@@ -57,7 +57,7 @@ const CreditsHistoryTable = memo(({ isLoading, usageData, paymentsData, showPaym
 											<VSCodeDataGridCell grid-column="3">
 												{Number(row.credits).toFixed(4)}
 											</VSCodeDataGridCell>
-											<VSCodeDataGridCell grid-column="2">
+											{/* <VSCodeDataGridCell grid-column="2">
 												{row.operation === "web_search"
 													? "Web Search"
 													: row.operation === "web_fetch"
@@ -65,9 +65,9 @@ const CreditsHistoryTable = memo(({ isLoading, usageData, paymentsData, showPaym
 														: row.operation === "search_chat_completion"
 															? "Web Fetch (LLM)"
 															: row.aiModelName}
-											</VSCodeDataGridCell>
+											</VSCodeDataGridCell> */}
 											{/* <VSCodeDataGridCell grid-column="3">{`${row.promptTokens} → ${row.completionTokens}`}</VSCodeDataGridCell> */}
-											<VSCodeDataGridCell grid-column="3">{`$${Number(row.creditsUsed / 1000000).toFixed(4)}`}</VSCodeDataGridCell>
+											{/* <VSCodeDataGridCell grid-column="3">{`$${Number(row.creditsUsed / 1000000).toFixed(4)}`}</VSCodeDataGridCell> */}
 										</VSCodeDataGridRow>
 									))}
 								</VSCodeDataGrid>

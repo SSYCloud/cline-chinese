@@ -31,6 +31,9 @@ export async function refreshShengSuanYunModels(
 				return undefined
 			}
 			for (const model of rawModels) {
+				if (!model.support_apis || !model.support_apis.includes("/v1/chat/completions")) {
+					continue
+				}
 				const modelInfo: Partial<ShengSuanYunModelInfo> = {
 					maxTokens: model.max_tokens || undefined,
 					contextWindow: model.context_window,

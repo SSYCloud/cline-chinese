@@ -10,10 +10,8 @@ import CreditsHistoryTable from "./CreditsHistoryTable"
 import { StyledCreditDisplaySSY } from "./StyledCreditDisplaySSY"
 
 export const SSYAccountView = () => {
-	const { userInfo, setUserInfo } = useExtensionState()
-	console.log("SSYAccountView() userInfo: ", userInfo)
-
-	const [balance, setBalance] = useState(0)
+	const { userInfo } = useExtensionState()
+	const [rate, setRate] = useState(0)
 	const [isLoading, setIsLoading] = useState(true)
 	const [usageData, setUsageData] = useState<UsageTransaction[]>([])
 	const [paymentsData, setPaymentsData] = useState<PaymentTransaction[]>([])
@@ -23,17 +21,15 @@ export const SSYAccountView = () => {
 		setIsLoading(true)
 		AccountServiceClient.shengSuanYunUserData(EmptyRequest.create())
 			.then((res: any) => {
-				setBalance(res.balance?.currentBalance || 0)
+				setRate(res.rate || 0)
 				setUsageData(res.usageTransactions)
 				setPaymentsData(res.paymentTransactions)
-				setUserInfo(res.user)
 			})
 			.catch((error: any) => {
 				console.error("Failed to fetch user credits data:", error)
-				setUserInfo(undefined)
 			})
 			.finally(() => setIsLoading(false))
-	}, [])
+	}, [userInfo])
 
 	return (
 		<div className="h-full flex flex-col">
@@ -44,20 +40,20 @@ export const SSYAccountView = () => {
 							{userInfo.photoUrl ? (
 								<img alt="Profile" className="size-16 rounded-full mr-4" src={userInfo.photoUrl} />
 							) : (
-								<div className="size-16 rounded-full bg-[var(--vscode-button-background)] flex items-center justify-center text-2xl text-[var(--vscode-button-foreground)] mr-4">
+								<div className="size-16 rounded-full bg-(--vscode-button-background) flex items-center justify-center text-2xl text-[var(--vscode-button-foreground)] mr-4">
 									{userInfo.displayName?.[0] || userInfo.email?.[0] || "?"}
 								</div>
 							)}
 
 							<div className="flex flex-col">
 								{userInfo.displayName && (
-									<h2 className="text-[var(--vscode-foreground)] m-0 mb-1 text-lg font-medium">
+									<h2 className="text-(--vscode-foreground) m-0 mb-1 text-lg font-medium">
 										{userInfo.displayName}
 									</h2>
 								)}
 
 								{userInfo.email && (
-									<div className="text-sm text-[var(--vscode-descriptionForeground)]">{userInfo.email}</div>
+									<div className="text-sm text-(--vscode-descriptionForeground)">{userInfo.email}</div>
 								)}
 							</div>
 						</div>
@@ -87,15 +83,15 @@ export const SSYAccountView = () => {
 
 					<VSCodeDivider className="w-full my-6" />
 					<div className="w-full flex flex-col items-center">
-						<div className="text-sm text-[var(--vscode-descriptionForeground)] mb-3">余额</div>
+						<div className="text-sm text-(--vscode-descriptionForeground) mb-3">余额</div>
 
-						<div className="text-4xl font-bold text-[var(--vscode-foreground)] mb-6 flex items-center gap-2">
+						<div className="text-4xl font-bold text-(--vscode-foreground) mb-6 flex items-center gap-2">
 							{isLoading ? (
-								<div className="text-[var(--vscode-descriptionForeground)]">加载中...</div>
+								<div className="text-(--vscode-descriptionForeground)">加载中...</div>
 							) : (
 								<>
 									<span>$</span>
-									<StyledCreditDisplaySSY balance={balance} />
+									<StyledCreditDisplaySSY balance={(userInfo.balance || 0) * rate} />
 									<VSCodeButton
 										appearance="icon"
 										className="mt-1"
@@ -103,7 +99,7 @@ export const SSYAccountView = () => {
 											setIsLoading(true)
 											AccountServiceClient.shengSuanYunUserData(EmptyRequest.create())
 												.then((res) => {
-													setBalance(res.balance?.currentBalance || 0)
+													setRate(res.rate || 0)
 													setUsageData(res.usageTransactions as any)
 													setPaymentsData(res.paymentTransactions)
 												})
@@ -127,7 +123,7 @@ export const SSYAccountView = () => {
 
 					<VSCodeDivider className="mt-6 mb-3 w-full" />
 
-					<div className="flex-grow flex flex-col min-h-0 pb-[0px]">
+					<div className="grow flex flex-col min-h-0 pb-0">
 						<CreditsHistoryTable isLoading={isLoading} paymentsData={paymentsData} usageData={usageData} />
 					</div>
 				</div>
@@ -137,14 +133,18 @@ export const SSYAccountView = () => {
 					<p style={{}}>注册帐户访问最新模型，进群联系客服，获得100万Tokens免费额度，以及更多即将推出的功能。</p>
 					<VSCodeButton
 						className="w-full mb-4"
-						onClick={() =>
-							AccountServiceClient.shengSuanYunLoginClicked(EmptyRequest.create()).catch((err) =>
-								console.error("Failed to get login URL:", err),
-							)
-						}>
+						disabled={isLoading}
+						onClick={() => {
+							setIsLoading(true)
+							AccountServiceClient.shengSuanYunLoginClicked(EmptyRequest.create())
+								.catch((err) => console.error("Failed to get login URL:", err))
+								.finally(() => {
+									setIsLoading(false)
+								})
+						}}>
 						注册 Cline 胜算云
 					</VSCodeButton>
-					<p className="text-[var(--vscode-descriptionForeground)] text-xs text-center m-0">
+					<p className="text-(--vscode-descriptionForeground) text-xs text-center m-0">
 						继续即表示您同意{" "}
 						<VSCodeLink href="https://docs.router.shengsuanyun.com/terms-of-service">服务条款</VSCodeLink> 和{" "}
 						<VSCodeLink href="https://docs.router.shengsuanyun.com/privacy-policy">隐私政策.</VSCodeLink>
