@@ -26,6 +26,7 @@ const SETTINGS_ONLY_PROVIDERS: ApiProvider[] = [
 	"oca",
 	"aihubmix",
 	"together",
+	"shengsuanyun",
 ]
 
 // Helper to get provider-specific configuration info and empty state guidance
@@ -76,6 +77,14 @@ const getProviderInfo = (
 				baseUrl: apiConfiguration.requestyBaseUrl,
 				helpText: "在设置中添加您的 Requesty API 密钥",
 			}
+		case "shengsuanyun":
+			return {
+				modelId:
+					effectiveMode === "plan"
+						? apiConfiguration.planModeShengSuanYunModelId
+						: apiConfiguration.actModeShengSuanYunModelId,
+				helpText: "在设置中添加您的胜算云 AI API 密钥",
+			}
 		case "together":
 			return {
 				modelId:
@@ -119,9 +128,9 @@ const getProviderInfo = (
 
 const OPENROUTER_MODEL_PROVIDERS: ApiProvider[] = ["cline", "openrouter", "vercel-ai-gateway"]
 
-import { freeModels, recommendedModels } from "@/components/settings/OpenRouterModelPicker"
 import { SUPPORTED_ANTHROPIC_THINKING_MODELS } from "@/components/settings/providers/AnthropicProvider"
 import { SUPPORTED_BEDROCK_THINKING_MODELS } from "@/components/settings/providers/BedrockProvider"
+import { freeModels, recommendedModels } from "@/components/settings/ShengSuanYunModelPicker"
 import {
 	filterOpenRouterModelIds,
 	getModelsForProvider,
@@ -175,6 +184,7 @@ const StarIcon = ({ isFavorite, onClick }: { isFavorite: boolean; onClick: (e: R
 const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChange, currentMode, children }) => {
 	const {
 		apiConfiguration,
+		shengSuanYunModels,
 		openRouterModels,
 		navigateToSettings,
 		planActSeparateModelsSetting,
@@ -294,12 +304,11 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 		return queryWords.every((word) => searchText.includes(word))
 	}, [])
 
-	// Filtered models - for OpenRouter/Vercel show all by default, for Cline only when searching
 	const filteredModels = useMemo(() => {
-		const isCline = selectedProvider === "cline"
+		const isShengsuanyun = selectedProvider === "shengsuanyun"
 
 		// For Cline: only show non-featured models when searching
-		if (isCline && !searchQuery) return []
+		if (isShengsuanyun && !searchQuery) return []
 
 		let models: ModelItem[]
 		if (searchQuery) {
@@ -313,13 +322,13 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 		models = models.filter((m) => m.id !== selectedModelId)
 
 		// For Cline when searching, also filter out featured models (they're shown separately)
-		if (isCline) {
+		if (isShengsuanyun) {
 			const featuredIds = new Set([...recommendedModels, ...freeModels].map((m) => m.id))
 			models = models.filter((m) => !featuredIds.has(m.id))
 		}
 
 		// For openrouter/vercel-ai-gateway (not cline): put favorites first
-		if (!isCline && (selectedProvider === "openrouter" || selectedProvider === "vercel-ai-gateway")) {
+		if (!isShengsuanyun && (selectedProvider === "openrouter" || selectedProvider === "vercel-ai-gateway")) {
 			const favoriteSet = new Set(favoritedModelIds || [])
 			const favoritedModels = models.filter((m) => favoriteSet.has(m.id))
 			const nonFavoritedModels = models.filter((m) => !favoriteSet.has(m.id))
@@ -335,7 +344,7 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 
 	// Featured models for Cline provider (recommended + free)
 	const featuredModels = useMemo(() => {
-		if (selectedProvider !== "cline") return []
+		// if (selectedProvider !== "cline") return []
 
 		const allFeatured = [...recommendedModels, ...freeModels].map((m) => ({
 			...m,
@@ -354,11 +363,9 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 		return filtered
 	}, [selectedProvider, searchQuery, selectedModelId, matchesSearch])
 
-	// Handle model selection - in split mode uses activeEditMode, otherwise closes modal
 	const handleSelectModel = useCallback(
 		(modelId: string, modelInfo?: ModelInfoType) => {
 			const modeToUse = isSplit ? activeEditMode : currentMode
-
 			if (OPENROUTER_MODEL_PROVIDERS.includes(selectedProvider)) {
 				const modelInfoToUse = modelInfo || openRouterModels[modelId]
 				handleModeFieldsChange(
@@ -372,10 +379,24 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 					},
 					modeToUse,
 				)
+			} else if (selectedProvider == "shengsuanyun") {
+				const modelInfoToUse = modelInfo || shengSuanYunModels[modelId]
+				handleModeFieldsChange(
+					{
+						shengSuanYunModelId: { plan: "planModeShengSuanYunModelId", act: "actModeShengSuanYunModelId" },
+						shengSuanYunModelInfo: { plan: "planModeShengSuanYunModelInfo", act: "actModeShengSuanYunModelInfo" },
+					},
+					{
+						shengSuanYunModelId: modelId,
+						shengSuanYunModelInfo: modelInfoToUse,
+					},
+					modeToUse,
+				)
 			} else {
 				// Static model providers use apiModelId
 				handleModeFieldChange({ plan: "planModeApiModelId", act: "actModeApiModelId" }, modelId, modeToUse)
 			}
+
 			// Only close modal if not in split mode
 			if (!isSplit) {
 				onOpenChange(false)
@@ -388,6 +409,7 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 			currentMode,
 			isSplit,
 			activeEditMode,
+			shengSuanYunModels,
 			openRouterModels,
 			onOpenChange,
 		],
@@ -573,7 +595,7 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 		onOpenChange(!isOpen)
 	}, [isOpen, onOpenChange])
 
-	const isClineProvider = selectedProvider === "cline"
+	const isshengsuanyunProvider = selectedProvider === "shengsuanyun"
 	const isSearching = !!searchQuery
 
 	return (
@@ -752,10 +774,10 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 									selectedModelId &&
 									modelBelongsToProvider &&
 									(() => {
-										// Check if current model has a featured label (only for Cline provider)
-										const currentFeaturedModel = isClineProvider
+										const currentFeaturedModel = isshengsuanyunProvider
 											? [...recommendedModels, ...freeModels].find((m) => m.id === selectedModelId)
 											: undefined
+
 										return (
 											<CurrentModelRow onClick={() => onOpenChange(false)}>
 												<ModelInfoRow>
@@ -766,8 +788,8 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 															: selectedProvider}
 													</ModelProvider>
 												</ModelInfoRow>
-												{currentFeaturedModel?.label && (
-													<ModelLabel>{currentFeaturedModel.label}</ModelLabel>
+												{currentFeaturedModel?.labelKey && (
+													<ModelLabel>{currentFeaturedModel.labelKey}</ModelLabel>
 												)}
 												<Check
 													size={14}
@@ -782,19 +804,19 @@ const ModelPickerModal: React.FC<ModelPickerModalProps> = ({ isOpen, onOpenChang
 								)}
 
 								{/* For Cline: Show recommended models */}
-								{isClineProvider &&
+								{isshengsuanyunProvider &&
 									featuredModels.map((model, index) => (
 										<ModelItemContainer
 											$isSelected={index === selectedIndex}
 											key={model.id}
-											onClick={() => handleSelectModel(model.id, openRouterModels[model.id])}
+											onClick={() => handleSelectModel(model.id, shengSuanYunModels[model.id])}
 											onMouseEnter={() => setSelectedIndex(index)}
 											ref={(el) => (itemRefs.current[index] = el)}>
 											<ModelInfoRow>
 												<ModelName>{model.name}</ModelName>
 												<ModelProvider>{model.provider}</ModelProvider>
 											</ModelInfoRow>
-											<ModelLabel>{model.label}</ModelLabel>
+											<ModelLabel>{model.labelKey}</ModelLabel>
 										</ModelItemContainer>
 									))}
 

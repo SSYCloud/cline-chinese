@@ -37,6 +37,43 @@ const StarIcon = ({ isFavorite, onClick }: { isFavorite: boolean; onClick: (e: R
 		</div>
 	)
 }
+
+export const recommendedModels = [
+	{
+		id: "anthropic/claude-sonnet-4.5",
+		descriptionKey: "claudeSonnet45",
+		labelKey: "最强",
+	},
+	{
+		id: "google/gemini-3-flash",
+		descriptionKey: "gemini3Flash",
+		labelKey: "最新",
+	},
+	{
+		id: "anthropic/claude-opus-4.5",
+		descriptionKey: "claudeOpus45",
+		labelKey: "热门",
+	},
+	{
+		id: "openai/gpt-5.2",
+		descriptionKey: "gpt52",
+		labelKey: "最新",
+	},
+	{
+		id: "google/gemini-3-pro-preview",
+		descriptionKey: "gemini3Pro",
+		labelKey: "1M上下文",
+	},
+]
+
+export const freeModels = [
+	{
+		id: "xiaomi/mimo-v2-flash",
+		descriptionKey: "MiMo V2 Flash (Free)",
+		labelKey: "免费",
+	},
+]
+
 const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPopup, currentMode }) => {
 	const { apiConfiguration, shengSuanYunModels, setShengSuanYunModels } = useExtensionState()
 	const { handleModeFieldsChange } = useApiConfigurationHandlers()
