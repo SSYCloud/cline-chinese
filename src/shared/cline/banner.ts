@@ -18,16 +18,6 @@ export enum BannerActionType {
 }
 
 /**
- * Backend banner format returned from server API
- */
-export interface BackendBanner {
-	id: string
-	titleMd: string
-	bodyMd: string
-	rulesJson: string
-}
-
-/**
  * Banner data structure for backend-to-frontend communication.
  * Backend constructs this JSON, frontend renders it via BannerCarousel.
  */
@@ -84,69 +74,75 @@ export interface BannerAction {
 	 * - Others: generally unused
 	 */
 	arg?: string
+
+	/**
+	 * Optional model picker tab to open when using SetModel action
+	 */
+	tab?: "recommended" | "free"
 }
 
 /**
  * The list of predefined banner config rendered by the Welcome Section UI.
  * TODO: Backend would return a similar JSON structure in the future which we will replace this with.
  */
+
 export const BANNER_DATA: BannerCardData[] = [
-	// Info banner with inline link
+	// Sonnet 4.6 banner
 	{
-		id: "info-banner-v1",
-		icon: "lightbulb",
-		title: "在右侧边栏使用 Cline",
-		description:
-			"为了获得最佳体验，请将 Cline 图标拖动到右侧边栏。这样在与 Cline 聊天时，您的文件资源管理器和编辑器仍然可见，从而更轻松地浏览代码库并实时查看更改。[查看如何操作 →](https://docs.cline.bot/features/customization/opening-cline-in-sidebar)",
-	},
-
-	// Announcement with conditional actions based on user auth state
-	{
-		id: "new-model-opus-4-5-cline-users",
-		icon: "megaphone",
-		title: "Claude Opus 4.5 现已推出",
-		description: "最先进的性能，成本比 Opus 4.1 低 3 倍。现已在 Cline 提供商中可用。",
+		// Bump this version string when copy/CTA changes and you want the banner to reappear.
+		id: "anthropic/claude-sonnet-4.6",
+		icon: "sparkles",
+		title: "Try Claude Sonnet 4.6",
+		description: "Anthropic 最新款模型，具有强大的推理和编码性能。",
 		actions: [
 			{
-				title: "立即尝试",
+				title: "使用 Sonnet 4.6",
 				action: BannerActionType.SetModel,
-				arg: "anthropic/claude-opus-4.5",
+				arg: "anthropic/claude-sonnet-4.6",
+				tab: "recommended",
 			},
 		],
-		isClineUserOnly: true, // Only Cline users see this
 	},
 
+	// Minimax free promo banner
 	{
-		id: "new-model-opus-4-5-non-cline-users",
+		// Bump this version string when copy/CTA changes and you want the banner to reappear.
+		id: "minimax/minimax-m2.5",
+		icon: "zap",
+		title: "Try MiniMax M2.5 Free",
+		description: "Cline 具备最先进的编码能力和闪电般的推理速度，而且价格优惠。",
+		actions: [
+			{
+				title: "使用",
+				action: BannerActionType.SetModel,
+				arg: "minimax/minimax-m2.5",
+				tab: "free",
+			},
+		],
+	},
+
+	// ChatGPT integration banner
+	{
+		id: "openai/gpt-5.2-codex",
 		icon: "megaphone",
-		title: "Claude Opus 4.5 现已推出",
-		description: "最先进的性能，成本比 Opus 4.1 低 3 倍。现已在 Cline 提供商中可用。",
+		title: "使用 GPT 5.2 Codex",
+		description: "将您的 ChatGPT 订阅迁移到 Cline！直接使用您现有的套餐，无需支付任何代币费用，也无需管理 API 密钥。",
 		actions: [
 			{
-				title: "开始使用",
-				action: BannerActionType.ShowAccount,
+				title: "Connect",
+				action: BannerActionType.ShowApiSettings,
+				arg: "openai-codex", // Pre-select OpenAI Codex provider
 			},
 		],
-		isClineUserOnly: false, // Only non-Cline users see this
 	},
 
-	// Platform-specific banner (macOS/Linux)
+	// Jupyter Notebooks banner
 	{
-		id: "cli-install-unix-v1",
-		icon: "terminal",
-		title: "CLI 和子代理现已可用",
-		platforms: ["mac", "linux"] satisfies BannerCardData["platforms"],
-		description: "在终端中使用 Cline 并启用子代理功能。[了解更多](https://docs.cline.bot/cline-cli/overview)",
-		actions: [
-			{
-				title: "安装",
-				action: BannerActionType.InstallCli,
-			},
-			{
-				title: "启用子代理",
-				action: BannerActionType.ShowFeatureSettings,
-			},
-		],
+		id: "jupyter-notebooks-v1",
+		icon: "book-open",
+		title: "Jupyter 笔记",
+		description:
+			"全面支持 AI 辅助编辑 `.ipynb` 文件，并具备完整的单元格级上下文感知能力。[了解更多 →](https://docs.cline.bot/features/jupyter-notebooks)",
 	},
 
 	// Platform-specific banner (Windows)
@@ -156,5 +152,14 @@ export const BANNER_DATA: BannerCardData[] = [
 		title: "Cline CLI 信息",
 		platforms: ["windows"] satisfies BannerCardData["platforms"],
 		description: "适用于 macOS 和 Linux。即将支持其他平台。[了解更多](https://docs.cline.bot/cline-cli/overview)",
+	},
+
+	// Info banner with inline link
+	{
+		id: "info-banner-v1",
+		icon: "lightbulb",
+		title: "在右边栏使用 Cline",
+		description:
+			"为了获得最佳体验，请将 Cline 图标拖到右侧边栏。这样，您在与 Cline 聊天时，文件资源管理器和编辑器将保持可见，方便您浏览代码库并实时查看更改。[查看方法 →](https://docs.cline.bot/features/customization/opening-cline-in-sidebar)",
 	},
 ]

@@ -1,6 +1,6 @@
 import type { ExtensionMessage } from "@shared/ExtensionMessage"
 import { ResetStateRequest } from "@shared/proto/cline/state"
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { UserOrganization } from "@shared/proto/index.cline"
 import {
 	CheckCheck,
 	FlaskConical,
@@ -17,8 +17,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { cn } from "@/lib/utils"
 import { StateServiceClient } from "@/services/grpc-client"
-import { getEnvironmentColor } from "@/utils/environmentColors"
-import { Tab, TabContent, TabHeader, TabList, TabTrigger } from "../common/Tab"
+import { Tab, TabContent, TabList, TabTrigger } from "../common/Tab"
+import ViewHeader from "../common/ViewHeader"
 import SectionHeader from "./SectionHeader"
 import AboutSection from "./sections/AboutSection"
 import ApiConfigurationSection from "./sections/ApiConfigurationSection"
@@ -31,13 +31,14 @@ import TerminalSettingsSection from "./sections/TerminalSettingsSection"
 const IS_DEV = process.env.IS_DEV
 
 // Tab definitions
+type SettingsTabID = "api-config" | "features" | "browser" | "terminal" | "general" | "about" | "debug"
 interface SettingsTab {
-	id: string
+	id: SettingsTabID
 	name: string
 	tooltipText: string
 	headerText: string
 	icon: LucideIcon
-	hidden?: boolean
+	hidden?: (params?: { activeOrganization: UserOrganization | null }) => boolean
 }
 
 export const SETTINGS_TABS: SettingsTab[] = [
@@ -90,7 +91,7 @@ export const SETTINGS_TABS: SettingsTab[] = [
 		tooltipText: "Debug Tools",
 		headerText: "Debug",
 		icon: FlaskConical,
-		hidden: !IS_DEV,
+		hidden: () => !IS_DEV,
 	},
 ]
 
@@ -118,7 +119,7 @@ const renderSectionHeader = (tabId: string) => {
 
 const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 	// Memoize to avoid recreation
-	const TAB_CONTENT_MAP = useMemo(
+	const TAB_CONTENT_MAP: Record<SettingsTabID, React.FC<any>> = useMemo(
 		() => ({
 			"api-config": ApiConfigurationSection,
 			general: GeneralSettingsSection,
@@ -131,8 +132,7 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 		[],
 	) // Empty deps - these imports never change
 
-	const { version, environment } = useExtensionState()
-
+	const { version, environment, settingsInitialModelTab } = useExtensionState()
 	const [activeTab, setActiveTab] = useState<string>(targetSection || SETTINGS_TABS[0].id)
 
 	// Optimized message handler with early returns
@@ -233,26 +233,16 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 			props.onResetState = handleResetState
 		} else if (activeTab === "about") {
 			props.version = version
+		} else if (activeTab === "api-config") {
+			props.initialModelTab = settingsInitialModelTab
 		}
 
 		return <Component {...props} />
-	}, [activeTab, handleResetState, version])
-
-	const titleColor = getEnvironmentColor(environment)
+	}, [activeTab, handleResetState, settingsInitialModelTab, version])
 
 	return (
 		<Tab>
-			<TabHeader className="flex justify-between items-center gap-2">
-				<div className="flex items-center gap-1">
-					<h3 className="text-md m-0" style={{ color: titleColor }}>
-						设置
-					</h3>
-				</div>
-				<div className="flex gap-2">
-					<VSCodeButton onClick={onDone}>确定</VSCodeButton>
-				</div>
-			</TabHeader>
-
+			<ViewHeader environment={environment} onDone={onDone} title="设置" />
 			<div className="flex flex-1 overflow-hidden">
 				<TabList
 					className="shrink-0 flex flex-col overflow-y-auto border-r border-sidebar-background"
@@ -260,7 +250,6 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 					value={activeTab}>
 					{SETTINGS_TABS.filter((tab) => !tab.hidden).map(renderTabItem)}
 				</TabList>
-
 				<TabContent className="flex-1 overflow-auto">{ActiveContent}</TabContent>
 			</div>
 		</Tab>

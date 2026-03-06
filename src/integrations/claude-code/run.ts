@@ -5,6 +5,7 @@ import path from "node:path"
 import type Anthropic from "@anthropic-ai/sdk"
 import { execa } from "execa"
 import readline from "readline"
+import { Logger } from "@/shared/services/Logger"
 import { getCwd } from "@/utils/path"
 import { ClaudeCodeMessage } from "./types"
 
@@ -95,7 +96,7 @@ export async function* runClaudeCode(options: ClaudeCodeOptions): AsyncGenerator
 			throw new Error(`Claude Code 进程退出代码 ${exitCode}.${errorOutput ? ` 返回错误: ${errorOutput}` : ""}`)
 		}
 	} catch (err) {
-		console.error(`Error during Claude Code execution:`, err)
+		Logger.error(`Error during Claude Code execution:`, err)
 
 		if (processState.stderrLogs.includes("unknown option '--system-prompt-file'")) {
 			throw new Error(`Claude Code 可执行文件已过时。请将其更新至最新版本.`, {
@@ -149,7 +150,7 @@ Anthropic 已意识到此问题，并正在考虑修复。: https://github.com/a
 		}
 
 		if (options.shouldUseFile) {
-			fs.unlink(tempFilePath).catch(console.error)
+			fs.unlink(tempFilePath).catch(Logger.error)
 		}
 	}
 }
@@ -264,7 +265,7 @@ function attemptParseChunk(data: string): ClaudeCodeMessage | null {
 	try {
 		return JSON.parse(data)
 	} catch (error) {
-		console.error("Error parsing chunk:", error, data.length)
+		Logger.error("Error parsing chunk:", error, data.length)
 		return null
 	}
 }

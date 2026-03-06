@@ -66,8 +66,16 @@ export function validateApiConfiguration(currentMode: Mode, apiConfiguration?: A
 				break
 			case "cline":
 				break
+			case "openai-codex":
+				// Authentication is handled via OAuth, not API key
+				// Validation happens at runtime in the handler
+				break
 			case "openai":
-				if (!apiConfiguration.openAiBaseUrl || !apiConfiguration.openAiApiKey || !openAiModelId) {
+				if (
+					!apiConfiguration.openAiBaseUrl ||
+					(!apiConfiguration.openAiApiKey && !apiConfiguration.azureIdentity) ||
+					!openAiModelId
+				) {
 					return "您必须提供一个有效的基本网址、API 密钥和模型 ID。"
 				}
 				break
@@ -172,22 +180,28 @@ export function validateModelId(
 	currentMode: Mode,
 	apiConfiguration?: ApiConfiguration,
 	openRouterModels?: Record<string, ModelInfo>,
+	clineModels?: Record<string, ModelInfo>,
 ): string | undefined {
 	if (apiConfiguration) {
-		const { apiProvider, openRouterModelId } = getModeSpecificFields(apiConfiguration, currentMode)
+		const { apiProvider, openRouterModelId, clineModelId } = getModeSpecificFields(apiConfiguration, currentMode)
 		switch (apiProvider) {
 			case "openrouter":
-			case "cline":
 				const modelId = openRouterModelId || openRouterDefaultModelId // in case the user hasn't changed the model id, it will be undefined by default
 				if (!modelId) {
 					return "你必须提供一个可用的模型 ID."
 				}
-				if (modelId.startsWith("@preset/")) {
-					break
-				}
 				if (openRouterModels && !Object.keys(openRouterModels).includes(modelId)) {
 					// even if the model list endpoint failed, extensionstatecontext will always have the default model info
 					return "模型 ID 无效，请选择其他模型."
+				}
+				break
+			case "cline":
+				const clineResolvedModelId = clineModelId || openRouterDefaultModelId
+				if (!clineResolvedModelId) {
+					return "You must provide a model ID."
+				}
+				if (clineModels && !Object.keys(clineModels).includes(clineResolvedModelId)) {
+					return "The model ID you provided is not available. Please choose a different model."
 				}
 				break
 		}

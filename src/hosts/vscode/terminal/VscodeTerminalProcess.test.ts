@@ -220,9 +220,7 @@ describe("TerminalProcess (Integration Tests)", () => {
 		// Check that the correct methods were called and events emitted
 		sendTextStub.calledWith("test-command", true).should.be.true()
 		;(emitSpy as sinon.SinonSpy).calledWith("completed").should.be.true()
-		;(emitSpy as sinon.SinonSpy)
-			.calledWith("continue")
-			.should.be.true()
+		;(emitSpy as sinon.SinonSpy).calledWith("continue").should.be.true()
 
 		// This event should be emitted for terminals without shell integration
 		;(emitSpy as sinon.SinonSpy).calledWith("no_shell_integration").should.be.true()
@@ -256,9 +254,7 @@ describe("TerminalProcess (Integration Tests)", () => {
 			await process.run(terminal, "echo test")
 
 			// Verify the executeCommand was called with the right command
-			mockExecuteCommand
-				.calledWith("echo test")
-				.should.be.true()
+			mockExecuteCommand.calledWith("echo test").should.be.true()
 
 			// Check that the events were emitted
 			;(emitSpy as sinon.SinonSpy).calledWith("completed").should.be.true()
@@ -377,9 +373,7 @@ describe("TerminalProcess (Integration Tests)", () => {
 
 			// Check that "test-command" was filtered out but "test command" was not
 			;(emitSpy as sinon.SinonSpy).calledWith("line", "test command").should.be.true()
-			;(emitSpy as sinon.SinonSpy)
-				.calledWith("line", "other output")
-				.should.be.true()
+			;(emitSpy as sinon.SinonSpy).calledWith("line", "other output").should.be.true()
 			// This should never be called because it should be filtered
 			;(emitSpy as sinon.SinonSpy).calledWith("line", "test-command").should.be.false()
 		})

@@ -8,9 +8,10 @@ interface ShengSuanYunProviderProps {
 	showModelOptions: boolean
 	isPopup?: boolean
 	currentMode: Mode
+	initialModelTab?: "recommended" | "free"
 }
 
-export const ShengSuanYunProvider = ({ showModelOptions, isPopup, currentMode }: ShengSuanYunProviderProps) => {
+export const ShengSuanYunProvider = ({ showModelOptions, isPopup, currentMode, initialModelTab }: ShengSuanYunProviderProps) => {
 	const { apiConfiguration } = useExtensionState()
 	const { handleFieldChange } = useApiConfigurationHandlers()
 	return (
@@ -21,7 +22,9 @@ export const ShengSuanYunProvider = ({ showModelOptions, isPopup, currentMode }:
 				providerName="胜算云"
 				signupUrl="https://console.shengsuanyun.com/user/keys"
 			/>
-			{showModelOptions && <ShengSuanYunModelPicker currentMode={currentMode} isPopup={isPopup} />}
+			{showModelOptions && (
+				<ShengSuanYunModelPicker currentMode={currentMode} initialModelTab={initialModelTab} isPopup={isPopup} />
+			)}
 		</div>
 	)
 }

@@ -11,6 +11,6 @@ import { Controller } from ".."
  */
 export async function updateTelemetrySetting(controller: Controller, request: TelemetrySettingRequest): Promise<Empty> {
 	const telemetrySetting = convertProtoTelemetrySettingToDomain(request.setting)
-	await controller.updateTelemetrySetting(telemetrySetting)
+	// await controller.updateTelemetrySetting(telemetrySetting)
 	return Empty.create()
 }

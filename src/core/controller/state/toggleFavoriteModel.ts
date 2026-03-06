@@ -1,5 +1,5 @@
 import { Empty, StringRequest } from "@shared/proto/cline/common"
-// import { telemetryService } from "@/services/telemetry"
+import { Logger } from "@/shared/services/Logger"
 import { Controller } from ".."
 
 /**
@@ -11,7 +11,7 @@ import { Controller } from ".."
 export async function toggleFavoriteModel(controller: Controller, request: StringRequest): Promise<Empty> {
 	try {
 		if (!request.value) {
-			throw new Error("Model ID is required")
+			throw new Error("缺少 Model ID")
 		}
 
 		const modelId = request.value
@@ -34,7 +34,7 @@ export async function toggleFavoriteModel(controller: Controller, request: Strin
 
 		return Empty.create()
 	} catch (error) {
-		console.error(`Failed to toggle favorite status for model ${request.value}:`, error)
+		Logger.error(`Failed to toggle favorite status for model ${request.value}:`, error)
 		throw error
 	}
 }

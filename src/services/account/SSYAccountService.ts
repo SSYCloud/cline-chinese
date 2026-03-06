@@ -1,5 +1,6 @@
 import { UserCreditsData, UserInfo } from "@shared/proto/cline/account"
 import axios, { AxiosRequestConfig } from "axios"
+import { Logger } from "@/shared/services/Logger"
 
 export class SSYAccountService {
 	private readonly baseUrl = "https://api.shengsuanyun.com"
@@ -24,9 +25,9 @@ export class SSYAccountService {
 			timeout: 50000,
 		}
 		const url = `${this.baseUrl}${endpoint}`
-		// console.log("SSYAccountService.authenticatedRequest():", url, reqConfig)
+		// Logger.log("SSYAccountService.authenticatedRequest():", url, reqConfig)
 		const res: any = await axios.get(url, reqConfig)
-		console.log(url, res.data)
+		Logger.log(url, res.data)
 		if (!res.data || !res.data.data || res.data.code == 103) {
 			throw new Error(`Invalid response from ${endpoint} API`)
 		}
@@ -67,24 +68,24 @@ export class SSYAccountService {
 					credits: 0,
 				}))
 			}
-			console.log("UserCreditsData", usage, payment)
+			Logger.log("UserCreditsData", usage, payment)
 			return UserCreditsData.create({
 				rate: rate,
 				usageTransactions: usage,
 				paymentTransactions: payment,
 			})
 		} catch (error) {
-			console.error("Failed fetchUserDataRPC:", error)
+			Logger.error("Failed fetchUserDataRPC:", error)
 			throw error
 		}
 	}
 
-	async getUserInfo(token: string = ""): Promise<UserInfo> {
+	async getUserInfo(token = ""): Promise<UserInfo> {
 		const headers = { ...(token ? { "x-token": token } : {}) }
 		try {
 			const res = await this.authenticatedRequest<any>("/user/info", { headers })
 			if (!res) {
-				console.log(res)
+				Logger.log(res)
 				throw new Error(`Invalid response from API: /user/info`)
 			}
 			const user: UserInfo = {
@@ -96,8 +97,8 @@ export class SSYAccountService {
 			}
 			return user
 		} catch (error) {
-			console.error("getUserInfo():", error)
-			console.log("headers: ", headers)
+			Logger.error("getUserInfo():", error)
+			Logger.log("headers: ", headers)
 			throw error
 		}
 	}

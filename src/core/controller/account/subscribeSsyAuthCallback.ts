@@ -1,4 +1,5 @@
 import { EmptyRequest, String as ProtoString } from "@shared/proto/cline/common"
+import { Logger } from "@/shared/services/Logger"
 import { getRequestRegistry, type StreamingResponseHandler } from "../grpc-handler"
 import { Controller } from "../index"
 
@@ -40,7 +41,7 @@ export async function sendSSYAuthCallbackEvent(customToken: string): Promise<voi
 				false, // Not the last message
 			)
 		} catch (error) {
-			console.error("Error sending authCallback event:", error)
+			Logger.error("Error sending authCallback event:", error)
 			// Remove the subscription if there was an error
 			activeAuthCallbackSubscriptions.delete(responseStream)
 		}

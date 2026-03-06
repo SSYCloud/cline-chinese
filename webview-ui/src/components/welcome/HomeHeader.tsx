@@ -1,8 +1,6 @@
 import { EmptyRequest } from "@shared/proto/cline/common"
-import { InfoIcon } from "lucide-react"
 import ClineLogoSanta from "@/assets/ClineLogoSanta"
 import ClineLogoVariable from "@/assets/ClineLogoVariable"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { UiServiceClient } from "@/services/grpc-client"
 
@@ -27,41 +25,11 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 
 	return (
 		<div className="flex flex-col items-center mb-5">
-			<style>
-				{`
-					@keyframes logo-pop-in {
-						0% {
-							opacity: 0;
-							transform: scale(0.95);
-						}
-						60% {
-							opacity: 1;
-							transform: scale(1.02);
-						}
-						100% {
-							opacity: 1;
-							transform: scale(1);
-						}
-					}
-					.logo-animate {
-						animation: logo-pop-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-					}
-				`}
-			</style>
-			<div className="my-7 logo-animate">
+			<div className="my-7">
 				<LogoComponent className="size-20" environment={environment} />
 			</div>
 			<div className="text-center flex items-center justify-center px-4">
 				<h1 className="m-0 font-bold">我能做什么?</h1>
-				<Tooltip>
-					<TooltipContent side="bottom">
-						我可以逐步开发软件，包括编辑文件、浏览项目、运行命令和使用浏览器。我甚至可以使用 MCP
-						工具扩展我的能力，使其超越基本的代码补全。
-					</TooltipContent>
-					<TooltipTrigger asChild>
-						<InfoIcon className="ml-2 cursor-pointer text-link text-sm size-2 shrink-0" />
-					</TooltipTrigger>
-				</Tooltip>
 			</div>
 			{shouldShowQuickWins && (
 				<div className="mt-4">
@@ -70,7 +38,7 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 						onClick={handleTakeATour}
 						type="button">
 						查看教程
-						<span className="codicon codicon-play scale-90"></span>
+						<span className="codicon codicon-play scale-90" />
 					</button>
 				</div>
 			)}

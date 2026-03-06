@@ -1,21 +1,17 @@
 import { buildApiHandler } from "@core/api"
 
 import { Empty } from "@shared/proto/cline/common"
-import {
-	PlanActMode,
-	OpenaiReasoningEffort as ProtoOpenaiReasoningEffort,
-	UpdateSettingsRequestCli,
-} from "@shared/proto/cline/state"
+import { PlanActMode, UpdateSettingsRequestCli } from "@shared/proto/cline/state"
 import { convertProtoToApiProvider } from "@shared/proto-conversions/models/api-configuration-conversion"
 import { Settings } from "@shared/storage/state-keys"
-import { TelemetrySetting } from "@shared/TelemetrySetting"
 import { ClineEnv } from "@/config"
 import { HostProvider } from "@/hosts/host-provider"
 import { ShowMessageType } from "@/shared/proto/host/window"
-import { Mode, OpenaiReasoningEffort } from "@/shared/storage/types"
-// import { telemetryService } from "../../../services/telemetry"
+import { Logger } from "@/shared/services/Logger"
+import { Mode } from "@/shared/storage/types"
 import { Controller } from ".."
 import { accountLogoutClicked } from "../account/accountLogoutClicked"
+import { normalizeOpenaiReasoningEffort } from "./reasoningEffort"
 
 /**
  * Updates multiple extension settings in a single request
@@ -24,21 +20,6 @@ import { accountLogoutClicked } from "../account/accountLogoutClicked"
  * @returns An empty response
  */
 export async function updateSettingsCli(controller: Controller, request: UpdateSettingsRequestCli): Promise<Empty> {
-	const convertOpenaiReasoningEffort = (effort: ProtoOpenaiReasoningEffort): OpenaiReasoningEffort => {
-		switch (effort) {
-			case ProtoOpenaiReasoningEffort.LOW:
-				return "low"
-			case ProtoOpenaiReasoningEffort.MEDIUM:
-				return "medium"
-			case ProtoOpenaiReasoningEffort.HIGH:
-				return "high"
-			case ProtoOpenaiReasoningEffort.MINIMAL:
-				return "minimal"
-			default:
-				return "medium"
-		}
-	}
-
 	const convertPlanActMode = (mode: PlanActMode): Mode => {
 		return mode === PlanActMode.PLAN ? "plan" : "act"
 	}
@@ -55,7 +36,8 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 			const {
 				// Fields requiring conversion
 				autoApprovalSettings,
-				openaiReasoningEffort,
+				planModeReasoningEffort,
+				actModeReasoningEffort,
 				mode,
 				customPrompt,
 				planModeApiProvider,
@@ -65,6 +47,8 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 				yoloModeToggled,
 				useAutoCondense,
 				clineWebToolsEnabled,
+				worktreesEnabled,
+				subagentsEnabled,
 				focusChainSettings,
 				browserSettings,
 				defaultTerminalProfile,
@@ -73,12 +57,12 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 
 			// Batch update for simple pass-through fields
 			const filteredSettings: Partial<Settings> = Object.fromEntries(
-				Object.entries(simpleSettings).filter(([_, value]) => value !== undefined),
+				Object.entries(simpleSettings).filter(([key, value]) => key !== "openaiReasoningEffort" && value !== undefined),
 			)
 
 			controller.stateManager.setGlobalStateBatch(filteredSettings)
 
-			console.log("autoApprovalSettings", controller.stateManager.getGlobalSettingsKey("autoApprovalSettings"))
+			Logger.log("autoApprovalSettings", controller.stateManager.getGlobalSettingsKey("autoApprovalSettings"))
 
 			// Handle fields requiring type conversion from generated protobuf types to application types
 			if (autoApprovalSettings) {
@@ -101,9 +85,14 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 				controller.stateManager.setGlobalState("autoApprovalSettings", mergedSettings)
 			}
 
-			if (openaiReasoningEffort !== undefined) {
-				const converted = convertOpenaiReasoningEffort(openaiReasoningEffort)
-				controller.stateManager.setGlobalState("openaiReasoningEffort", converted)
+			if (planModeReasoningEffort !== undefined) {
+				const converted = normalizeOpenaiReasoningEffort(planModeReasoningEffort)
+				controller.stateManager.setGlobalState("planModeReasoningEffort", converted)
+			}
+
+			if (actModeReasoningEffort !== undefined) {
+				const converted = normalizeOpenaiReasoningEffort(actModeReasoningEffort)
+				controller.stateManager.setGlobalState("actModeReasoningEffort", converted)
 			}
 
 			if (mode !== undefined) {
@@ -134,11 +123,6 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 				controller.task.api = buildApiHandler(apiConfigForHandler, currentMode)
 			}
 
-			// Update telemetry setting
-			if (telemetrySetting) {
-				await controller.updateTelemetrySetting(telemetrySetting as TelemetrySetting)
-			}
-
 			// Update yolo mode setting (requires telemetry)
 			if (yoloModeToggled !== undefined) {
 				// if (controller.task) {
@@ -165,6 +149,18 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 				// 	telemetryService.captureClineWebToolsToggle(controller.task.ulid, clineWebToolsEnabled)
 				// }
 				controller.stateManager.setGlobalState("clineWebToolsEnabled", clineWebToolsEnabled)
+			}
+
+			// Update worktrees setting
+			if (worktreesEnabled !== undefined) {
+				controller.stateManager.setGlobalState("worktreesEnabled", worktreesEnabled)
+			}
+
+			// Update subagents setting (requires telemetry on state change)
+			if (subagentsEnabled !== undefined) {
+				// const wasEnabled = controller.stateManager.getGlobalSettingsKey("subagentsEnabled") ?? false
+				const isEnabled = !!subagentsEnabled
+				controller.stateManager.setGlobalState("subagentsEnabled", isEnabled)
 			}
 
 			// Update focus chain settings (requires telemetry on state change)
@@ -275,7 +271,6 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 
 		return Empty.create()
 	} catch (error) {
-		console.error("Failed to update settings:", error)
 		throw error
 	}
 }

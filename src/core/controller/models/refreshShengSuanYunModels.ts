@@ -5,6 +5,7 @@ import { fileExistsAtPath } from "@utils/fs"
 import axios from "axios"
 import fs from "fs/promises"
 import path from "path"
+import { Logger } from "@/shared/services/Logger"
 import { Controller } from ".."
 
 /**
@@ -26,7 +27,7 @@ export async function refreshShengSuanYunModels(
 			const rawModels = response.data.data
 			const parsePrice = (price: any) => {
 				if (price) {
-					return parseInt(price, 10) / 10000
+					return Number.parseInt(price, 10) / 10000
 				}
 				return undefined
 			}
@@ -49,12 +50,12 @@ export async function refreshShengSuanYunModels(
 				models[model.api_name] = modelInfo
 			}
 		} else {
-			console.error("Invalid response from ShengSuanYun API")
+			Logger.error("Invalid response from ShengSuanYun API")
 		}
 		await fs.writeFile(shengSuanYunModelsFilePath, JSON.stringify(models))
-		console.log("ShengSuanYun models fetched and saved", models)
+		Logger.log("ShengSuanYun models fetched and saved", models)
 	} catch (error) {
-		console.error("Error fetching ShengSuanYun models:", error)
+		Logger.error("Error fetching ShengSuanYun models:", error)
 		// If we failed to fetch models, try to read cached models
 		const cachedModels = await readShengSuanYunModels(controller)
 		if (cachedModels) {
@@ -93,7 +94,7 @@ async function readShengSuanYunModels(
 			const fileContents = await fs.readFile(shengSuanYunModelsFilePath, "utf8")
 			return JSON.parse(fileContents)
 		} catch (error) {
-			console.error("Error reading cached ShengSuanYun models:", error)
+			Logger.error("Error reading cached ShengSuanYun models:", error)
 			return undefined
 		}
 	}

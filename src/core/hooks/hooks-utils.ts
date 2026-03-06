@@ -1,17 +1,14 @@
 /**
  * Determines if hooks are safely enabled based on platform support.
  *
- * Hooks are not yet supported on Windows, so this function ensures they
- * remain disabled on that platform regardless of user settings.
+ * NOTE: This function is the single choke point used by the task runtime and
+ * webview state to determine the effective hooks setting.
  *
- * @param userSetting The user's hooks enabled setting from global state (may be undefined)
+ * Hooks are supported on all current desktop platforms. Runtime details are
+ * handled by hook discovery and platform-specific process launch logic.
+ *
  * @returns true if hooks are enabled and supported on this platform, false otherwise
  */
-export function getHooksEnabledSafe(userSetting: boolean | undefined): boolean {
-	// Handle legacy object format: {user: boolean, featureFlag: boolean}, which
-	// can occur if the migration hasn't run yet or if reading from an old state.
-	const booleanValue = Boolean((userSetting as any)?.user ?? userSetting)
-
-	// Force hooks to false on Windows (not yet supported)
-	return process.platform === "win32" ? false : booleanValue
+export function getHooksEnabledSafe(): boolean {
+	return true
 }

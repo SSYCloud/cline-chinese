@@ -59,7 +59,7 @@ const WelcomeView = memo(() => {
 					立即注册
 					{isLoading && (
 						<span className="ml-1 animate-spin">
-							<span className="codicon codicon-refresh"></span>
+							<span className="codicon codicon-refresh" />
 						</span>
 					)}
 				</VSCodeButton>

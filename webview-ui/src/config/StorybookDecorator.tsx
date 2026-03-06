@@ -1,3 +1,7 @@
+import "../../../node_modules/@vscode/codicons/dist/codicon.css"
+import "../../../node_modules/@vscode/codicons/dist/codicon.ttf"
+import "../../src/index.css"
+
 import { cn } from "@heroui/react"
 import type { Decorator } from "@storybook/react-vite"
 import React from "react"
@@ -71,11 +75,11 @@ export const createStorybookDecorator =
 	(overrideStates?: Partial<ExtensionStateContextType>, classNames?: string, authOverrides?: Partial<ClineAuthContextType>) =>
 	(Story: any) => (
 		<ExtensionStateProviderWithOverrides overrides={overrideStates}>
-			<ClineAuthProviderWithOverrides overrides={authOverrides}>
-				<div className={cn("max-w-lg mx-auto", classNames)}>
-					<Story />
-				</div>
-			</ClineAuthProviderWithOverrides>
+			{/* <ClineAuthProviderWithOverrides overrides={authOverrides}> */}
+			<div className={cn("max-w-lg mx-auto", classNames)}>
+				<Story />
+			</div>
+			{/* </ClineAuthProviderWithOverrides> */}
 		</ExtensionStateProviderWithOverrides>
 	)
 

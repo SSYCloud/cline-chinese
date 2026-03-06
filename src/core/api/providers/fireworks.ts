@@ -1,7 +1,7 @@
 import { FireworksModelId, fireworksDefaultModelId, fireworksModels, ModelInfo } from "@shared/api"
 import OpenAI from "openai"
 import { ClineStorageMessage } from "@/shared/messages/content"
-import { fetch } from "@/shared/net"
+import { createOpenAIClient } from "@/shared/net"
 import { ApiHandler, CommonApiHandlerOptions } from ".."
 import { withRetry } from "../retry"
 import { convertToOpenAiMessages } from "../transform/openai-format"
@@ -28,10 +28,9 @@ export class FireworksHandler implements ApiHandler {
 				throw new Error("Fireworks API key is required")
 			}
 			try {
-				this.client = new OpenAI({
+				this.client = createOpenAIClient({
 					baseURL: "https://api.fireworks.ai/inference/v1",
 					apiKey: this.options.fireworksApiKey,
-					fetch, // Use configured fetch with proxy support
 				})
 			} catch (error) {
 				throw new Error(`Error creating Fireworks client: ${error.message}`)
@@ -60,7 +59,7 @@ export class FireworksHandler implements ApiHandler {
 
 		let reasoning: string | null = null
 		for await (const chunk of stream) {
-			const delta = chunk.choices[0]?.delta
+			const delta = chunk.choices?.[0]?.delta
 			if (reasoning || delta?.content?.includes("<think>")) {
 				reasoning = (reasoning || "") + (delta.content ?? "")
 			}
@@ -72,7 +71,7 @@ export class FireworksHandler implements ApiHandler {
 				}
 			}
 
-			if (reasoning || ("reasoning_content" in delta && delta.reasoning_content)) {
+			if (reasoning || (delta && "reasoning_content" in delta && delta.reasoning_content)) {
 				yield {
 					type: "reasoning",
 					reasoning: delta.content || ((delta as any).reasoning_content as string | undefined) || "",
