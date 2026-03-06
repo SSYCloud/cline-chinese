@@ -27,12 +27,12 @@ interface BedrockSetupProps {
 }
 
 const AUTH_METHODS: { label: string; value: AuthMethod; description: string }[] = [
-	{ label: "AWS Profile", value: "profile", description: "Use a named profile from ~/.aws/credentials" },
-	{ label: "AWS Credentials", value: "credentials", description: "Enter access key, secret key, and optional session token" },
+	{ label: "AWS 配置文件", value: "profile", description: "使用命名配置文件 ~/.aws/credentials" },
+	{ label: "AWS 凭证", value: "credentials", description: "输入访问密钥、私钥和可选的会话令牌" },
 	{
-		label: "Default credential chain",
+		label: "默认凭证链",
 		value: "default",
-		description: "Resolve from env vars, IAM role, or ~/.aws/credentials",
+		description: "从环境变量、IAM 角色或其他途径解析 ~/.aws/credentials",
 	},
 ]
 
@@ -86,7 +86,7 @@ const CredentialInput: React.FC<{
 				<Text inverse> </Text>
 			</Box>
 			<Text> </Text>
-			<Text color="gray">Enter to continue, Esc to go back</Text>
+			<Text color="gray">按 Enter 键继续，按 Esc 键返回</Text>
 		</Box>
 	)
 }
@@ -251,7 +251,7 @@ export const BedrockSetup: React.FC<BedrockSetupProps> = ({ isActive, onComplete
 	if (step === "auth_method") {
 		return (
 			<Box flexDirection="column">
-				<Text color="white">Authentication method</Text>
+				<Text color="white">身份验证方法</Text>
 				<Text> </Text>
 				{AUTH_METHODS.map((method, i) => (
 					<Box flexDirection="column" key={method.value} marginBottom={i < AUTH_METHODS.length - 1 ? 1 : 0}>
@@ -265,7 +265,7 @@ export const BedrockSetup: React.FC<BedrockSetupProps> = ({ isActive, onComplete
 					</Box>
 				))}
 				<Text> </Text>
-				<Text color="gray">Arrows to navigate, Enter to select, Esc to go back</Text>
+				<Text color="gray">使用方向键导航，按 Enter 键选择，按 Esc 键返回</Text>
 			</Box>
 		)
 	}
@@ -273,7 +273,7 @@ export const BedrockSetup: React.FC<BedrockSetupProps> = ({ isActive, onComplete
 	if (step === "profile_name") {
 		return (
 			<CredentialInput
-				hint="Leave empty to use the default profile"
+				hint="留空则使用默认配置文件"
 				isActive={isActive}
 				label="AWS Profile Name"
 				onCancel={goBack}
@@ -322,7 +322,7 @@ export const BedrockSetup: React.FC<BedrockSetupProps> = ({ isActive, onComplete
 	if (step === "session_token") {
 		return (
 			<CredentialInput
-				hint="Optional - for temporary credentials"
+				hint="可选 - 用于临时凭据"
 				isActive={isActive}
 				isPassword
 				label="AWS Session Token"
@@ -338,15 +338,15 @@ export const BedrockSetup: React.FC<BedrockSetupProps> = ({ isActive, onComplete
 	if (step === "region") {
 		return (
 			<Box flexDirection="column">
-				<Text color="white">AWS Region</Text>
+				<Text color="white">AWS 地区</Text>
 				<Text> </Text>
 				<Box>
-					<Text color="gray">Search or enter custom region: </Text>
+					<Text color="gray">搜索或输入自定义区域: </Text>
 					<Text color="white">{regionSearch}</Text>
 					<Text inverse> </Text>
 				</Box>
 				<Text> </Text>
-				{showRegionTop && <Text color="gray">... {regionVisibleStart} more above</Text>}
+				{showRegionTop && <Text color="gray">... {regionVisibleStart} 以上内容</Text>}
 				{visibleRegions.map((region, i) => {
 					const actualIndex = regionVisibleStart + i
 					return (
@@ -362,7 +362,7 @@ export const BedrockSetup: React.FC<BedrockSetupProps> = ({ isActive, onComplete
 					<Text color="gray">... {filteredRegions.length - regionVisibleStart - regionVisibleCount} more below</Text>
 				)}
 				<Text> </Text>
-				<Text color="gray">Type to search, arrows to navigate, Enter to select, Esc to go back</Text>
+				<Text color="gray">输入搜索内容， 使用方向键导航，按 Enter 键选择，按 Esc 键返回</Text>
 			</Box>
 		)
 	}
@@ -374,7 +374,7 @@ export const BedrockSetup: React.FC<BedrockSetupProps> = ({ isActive, onComplete
 				<Text> </Text>
 				<Text color={optionIndex === 0 ? COLORS.primaryBlue : undefined}>
 					{optionIndex === 0 ? "❯ " : "  "}
-					{crossRegion ? "[x]" : "[ ]"} Use cross-region inference
+					{crossRegion ? "[x]" : "[ ]"} 利用跨区域推断
 				</Text>
 				<Text> </Text>
 				<Text color={optionIndex === 1 ? COLORS.primaryBlue : undefined}>
@@ -382,7 +382,7 @@ export const BedrockSetup: React.FC<BedrockSetupProps> = ({ isActive, onComplete
 					确定
 				</Text>
 				<Text> </Text>
-				<Text color="gray">Arrows to navigate, Enter to select, Esc to go back</Text>
+				<Text color="gray">使用方向键导航，按 Enter 键选择，按 Esc 键返回</Text>
 			</Box>
 		)
 	}

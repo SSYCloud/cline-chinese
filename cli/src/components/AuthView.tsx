@@ -738,12 +738,12 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 							<Text color={COLORS.primaryBlue}>
 								<Spinner type="dots" />
 							</Text>
-							<Text color="white"> Waiting for browser sign-in...</Text>
+							<Text color="white"> 等待浏览器登录...</Text>
 						</Box>
 						<Text> </Text>
-						<Text color="gray">Complete sign-in in your browser, then return here.</Text>
+						<Text color="gray">请在浏览器中完成登录，然后返回此处。</Text>
 						<Text> </Text>
-						<Text color="gray">Esc to cancel</Text>
+						<Text color="gray">按 Esc 取消</Text>
 					</Box>
 				)
 
@@ -904,7 +904,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 			{/* Welcome text - centered */}
 			<Box justifyContent="center" marginTop={1}>
 				<Text bold color="white">
-					Welcome to Cline
+					欢迎使用 Cline
 				</Text>
 			</Box>
 

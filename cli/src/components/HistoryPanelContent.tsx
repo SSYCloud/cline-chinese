@@ -39,7 +39,7 @@ function formatRelativeDate(ts: number): string {
 	const hours = Math.floor(diff / 3600000)
 	const days = Math.floor(diff / 86400000)
 
-	if (minutes < 1) return "just now"
+	if (minutes < 1) return "刚刚"
 	if (minutes < 60) return `${minutes}m ago`
 	if (hours < 24) return `${hours}h ago`
 	if (days < 7) return `${days}d ago`
@@ -106,7 +106,7 @@ export const HistoryPanelContent: React.FC<HistoryPanelContentProps> = ({ onClos
 				await showTaskWithId(controller, StringRequest.create({ value: item.id }))
 				onSelectTask(item.id)
 			} catch (error) {
-				console.error("Error opening task:", error)
+				console.error("打开任务出错：", error)
 			}
 		},
 		[controller, onSelectTask],
@@ -172,11 +172,11 @@ export const HistoryPanelContent: React.FC<HistoryPanelContentProps> = ({ onClos
 
 	const renderContent = () => {
 		if (loading) {
-			return <Text color="gray">Loading history...</Text>
+			return <Text color="gray">正在加载历史...</Text>
 		}
 
 		if (items.length === 0) {
-			return <Text color="gray">{searchQuery ? "No tasks match your search." : "No task history."}</Text>
+			return <Text color="gray">{searchQuery ? "没有匹配搜索的任务。" : "没有任务历史。"}</Text>
 		}
 
 		return (
@@ -211,14 +211,14 @@ export const HistoryPanelContent: React.FC<HistoryPanelContentProps> = ({ onClos
 	}
 
 	return (
-		<Panel label="History">
+		<Panel label="历史">
 			<Box>
-				<Text color="gray">Search: </Text>
+				<Text color="gray">搜索: </Text>
 				<Text color="white">{searchQuery}</Text>
 				<Text inverse> </Text>
 			</Box>
 			<Box>
-				<Text color="gray">{searchQuery ? "Esc to clear" : "Enter to open · Esc to close"}</Text>
+				<Text color="gray">{searchQuery ? "按 Esc 清除搜索" : "按 Enter 键打开，按 Esc 键关闭"}</Text>
 			</Box>
 			{renderContent()}
 		</Panel>

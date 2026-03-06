@@ -184,7 +184,7 @@ export const ModelPicker: React.FC<ModelPickerProps> = ({ provider, controller, 
 		if (supportsCustomModel) {
 			list.push({
 				id: CUSTOM_MODEL_ID,
-				label: "Custom (ARN / Inference Profile)",
+				label: "自定义（ARN/推理配置文件）",
 			})
 		}
 		return list
@@ -202,7 +202,7 @@ export const ModelPicker: React.FC<ModelPickerProps> = ({ provider, controller, 
 				<Text color={COLORS.primaryBlue}>
 					<Spinner type="dots" />
 				</Text>
-				<Text color="gray"> Loading models...</Text>
+				<Text color="gray"> 正在加载模型...</Text>
 			</Box>
 		)
 	}

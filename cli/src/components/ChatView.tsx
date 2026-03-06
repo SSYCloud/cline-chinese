@@ -66,7 +66,7 @@
  *    - Scrolls up like terminal logs
  *    - Never re-renders, so no flicker contribution
  *    - IMPORTANT: Content in Static cannot update after initial render
- *      (e.g., AccountInfoView showing "Loading..." would stay that way forever)
+ *      (e.g., AccountInfoView showing "正在加载..." would stay that way forever)
  *
  * 2. Dynamic Region (current streaming message + input + status):
  *    - Only contains actively changing content
@@ -602,7 +602,7 @@ export const ChatView: React.FC<ChatViewProps> = ({
 
 		// Load the task by ID
 		showTaskWithId(ctrl, StringRequest.create({ value: taskId })).catch((error) => {
-			console.error("Error loading task:", error)
+			console.error("加载任务出错：", error)
 			onError?.()
 		})
 	}, [taskId, ctrl, onError])

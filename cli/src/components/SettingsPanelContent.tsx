@@ -236,7 +236,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 		() =>
 			stateManager.getApiConfiguration().actModeApiProvider ||
 			stateManager.getApiConfiguration().planModeApiProvider ||
-			"not configured",
+			"未配置",
 	)
 	// Refresh trigger to force re-reading model IDs from state
 	const [modelRefreshKey, setModelRefreshKey] = useState(0)
@@ -451,28 +451,28 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 				return [
 					{
 						key: "provider",
-						label: "Provider",
+						label: "供应商",
 						type: "editable",
-						value: provider ? getProviderLabel(provider) : "not configured",
+						value: provider ? getProviderLabel(provider) : "未配置",
 					},
 					...(provider === "cline"
-						? [{ key: "viewAccount", label: "View account", type: "action" as const, value: "" }]
+						? [{ key: "viewAccount", label: "查看账户", type: "action" as const, value: "" }]
 						: []),
 					...(separateModels
 						? [
 								{ key: "spacer0", label: "", type: "spacer" as const, value: "" },
-								{ key: "actHeader", label: "Act Mode", type: "header" as const, value: "" },
+								{ key: "actHeader", label: "执行模式", type: "header" as const, value: "" },
 								{
 									key: "actModelId",
-									label: "Model ID",
+									label: "模型 ID",
 									type: "editable" as const,
-									value: actModelId || "not set",
+									value: actModelId || "未设置",
 								},
 								...(showActThinkingOption
 									? [
 											{
 												key: "actThinkingEnabled",
-												label: "Enable thinking",
+												label: "启用思考",
 												type: "checkbox" as const,
 												value: actThinkingEnabled,
 											},
@@ -482,24 +482,24 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 									? [
 											{
 												key: "actReasoningEffort",
-												label: "Reasoning effort",
+												label: "推理强度",
 												type: "cycle" as const,
 												value: actReasoningEffort,
 											},
 										]
 									: []),
-								{ key: "planHeader", label: "Plan Mode", type: "header" as const, value: "" },
+								{ key: "planHeader", label: "规划模式", type: "header" as const, value: "" },
 								{
 									key: "planModelId",
-									label: "Model ID",
+									label: "模型 ID",
 									type: "editable" as const,
-									value: planModelId || "not set",
+									value: planModelId || "未设置",
 								},
 								...(showPlanThinkingOption
 									? [
 											{
 												key: "planThinkingEnabled",
-												label: "Enable thinking",
+												label: "启用思考",
 												type: "checkbox" as const,
 												value: planThinkingEnabled,
 											},
@@ -509,7 +509,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 									? [
 											{
 												key: "planReasoningEffort",
-												label: "Reasoning effort",
+												label: "推理强度",
 												type: "cycle" as const,
 												value: planReasoningEffort,
 											},
@@ -520,15 +520,15 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 						: [
 								{
 									key: "actModelId",
-									label: "Model ID",
+									label: "模型 ID",
 									type: "editable" as const,
-									value: actModelId || "not set",
+									value: actModelId || "未设置",
 								},
 								...(showActThinkingOption
 									? [
 											{
 												key: "actThinkingEnabled",
-												label: "Enable thinking",
+												label: "启用思考",
 												type: "checkbox" as const,
 												value: actThinkingEnabled,
 											},
@@ -538,7 +538,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 									? [
 											{
 												key: "actReasoningEffort",
-												label: "Reasoning effort",
+												label: "推理强度",
 												type: "cycle" as const,
 												value: actReasoningEffort,
 											},
@@ -547,7 +547,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 							]),
 					{
 						key: "separateModels",
-						label: "Use separate models for Plan and Act",
+						label: "对规划和执行使用单独的模型",
 						type: "checkbox",
 						value: separateModels,
 					},
@@ -614,25 +614,25 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 				result.push(
 					{
 						key: "useBrowser",
-						label: "Use the browser",
+						label: "使用浏览器",
 						type: "checkbox",
 						value: actions.useBrowser,
-						description: "Browse and interact with web pages",
+						description: "浏览和交互网页",
 					},
 					{
 						key: "useMcp",
-						label: "Use MCP servers",
+						label: "使用 MCP 服务器",
 						type: "checkbox",
 						value: actions.useMcp,
-						description: "Use Model Context Protocol tools",
+						description: "使用模型上下文协议工具",
 					},
 					{ key: "separator", label: "", type: "separator", value: false },
 					{
 						key: "enableNotifications",
-						label: "Enable notifications",
+						label: "启用通知",
 						type: "checkbox",
 						value: autoApproveSettings.enableNotifications,
-						description: "System alerts when Cline needs your attention",
+						description: "当 Cline 需要你关注时系统提醒",
 					},
 				)
 				return result
@@ -649,13 +649,13 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 
 			case "other":
 				return [
-					{ key: "language", label: "Preferred language", type: "editable", value: preferredLanguage },
+					{ key: "language", label: "首选语言", type: "editable", value: preferredLanguage },
 					{
 						key: "telemetry",
-						label: "Error/usage reporting",
+						label: "错误/使用报告",
 						type: "checkbox",
 						value: telemetry !== "disabled",
-						description: "Help improve Cline by sending anonymous usage data",
+						description: "通过发送匿名使用数据来帮助改进 Cline",
 					},
 					{ key: "separator", label: "", type: "separator", value: "" },
 					{ key: "version", label: "", type: "readonly", value: `Cline v${CLI_VERSION}` },
@@ -668,31 +668,31 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 				}
 				// If not logged in, show login option
 				if (!accountEmail) {
-					return [{ key: "login", label: "Sign in with Cline", type: "action", value: "" }]
+					return [{ key: "login", label: "使用 Cline 登录", type: "action", value: "" }]
 				}
 				// Logged in - show account info
 				const accountItems: ListItem[] = [
-					{ key: "email", label: "Email", type: "readonly", value: accountEmail },
-					{ key: "balance", label: "Credits", type: "readonly", value: formatBalance(accountBalance) },
+					{ key: "email", label: "电子邮件", type: "readonly", value: accountEmail },
+					{ key: "balance", label: "信用额度", type: "readonly", value: formatBalance(accountBalance) },
 				]
 				// Organization selector - only show if user has organizations
 				if (accountOrganizations && accountOrganizations.length > 0) {
 					accountItems.push({
 						key: "organization",
-						label: "Organization",
+						label: "组织",
 						type: "editable",
-						value: accountOrganization ? accountOrganization.name : "Personal",
+						value: accountOrganization ? accountOrganization.name : "个人",
 					})
 				} else {
 					accountItems.push({
 						key: "organization",
-						label: "Account",
+						label: "账户",
 						type: "readonly",
-						value: "Personal",
+						value: "个人",
 					})
 				}
 				accountItems.push({ key: "separator", label: "", type: "separator", value: "" })
-				accountItems.push({ key: "logout", label: "Sign out", type: "action", value: "" })
+				accountItems.push({ key: "logout", label: "登出", type: "action", value: "" })
 				return accountItems
 
 			default:
@@ -1501,18 +1501,18 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 						<Text color="yellow">{codexAuthError}</Text>
 					</Box>
 					<Box marginTop={1}>
-						<Text color="gray">Press any key to continue</Text>
+						<Text color="gray">按任意键继续</Text>
 					</Box>
 				</Box>
 			)
 		}
 
 		if (isPickingFeaturedModel && pickingModelKey) {
-			const label = pickingModelKey === "actModelId" ? "Model ID (Act)" : "Model ID (Plan)"
+			const label = pickingModelKey === "actModelId" ? "Model ID (Act)" : "模型 ID (规划)"
 			return (
 				<FeaturedModelPicker
 					featuredModels={featuredModels}
-					helpText="Arrows to navigate, Enter to select, Esc to cancel"
+					helpText="使用方向键导航，按 Enter 选择，按 Esc 取消"
 					selectedIndex={featuredModelIndex}
 					title={`Select: ${label}`}
 				/>
@@ -1520,7 +1520,7 @@ export const SettingsPanelContent: React.FC<SettingsPanelContentProps> = ({
 		}
 
 		if (isPickingModel && pickingModelKey) {
-			const label = pickingModelKey === "actModelId" ? "Model ID (Act)" : "Model ID (Plan)"
+			const label = pickingModelKey === "actModelId" ? "Model ID (Act)" : "模型 ID (规划)"
 			return (
 				<Box flexDirection="column">
 					<Text bold color={COLORS.primaryBlue}>

@@ -30,7 +30,7 @@ export const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({ commands, se
 	if (commands.length === 0) {
 		return (
 			<Box flexDirection="column" marginBottom={1} paddingLeft={1} paddingRight={1}>
-				<Text color="gray">{query ? `No commands matching "/${query}"` : "Type to search commands..."}</Text>
+				<Text color="gray">{query ? `没有匹配 "/${query}" 的命令` : "输入以搜索命令..."}</Text>
 			</Box>
 		)
 	}

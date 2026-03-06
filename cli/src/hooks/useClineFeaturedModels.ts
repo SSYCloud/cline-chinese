@@ -6,6 +6,7 @@ import {
 	mapRecommendedModelsToFeaturedModels,
 	withFeaturedModelFallback,
 } from "../constants/featured-models"
+import { refreshShengSuanYunModels } from "@/core/controller/models/refreshShengSuanYunModels"
 
 export function useClineFeaturedModels(): FeaturedModel[] {
 	const [featuredModels, setFeaturedModels] = useState<FeaturedModel[]>(() => getAllFeaturedModels())
@@ -14,7 +15,7 @@ export function useClineFeaturedModels(): FeaturedModel[] {
 		let cancelled = false
 		void (async () => {
 			try {
-				const recommendedModels = await refreshClineRecommendedModels()
+				const recommendedModels = await refreshShengSuanYunModels()
 				const mappedModels = mapRecommendedModelsToFeaturedModels(recommendedModels)
 				const modelsWithFallback = withFeaturedModelFallback(mappedModels)
 				if (!cancelled) {

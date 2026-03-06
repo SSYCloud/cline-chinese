@@ -11,7 +11,7 @@ interface LoadingSpinnerProps {
 }
 
 export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ mode = "act" }) => {
-	const message = mode === "plan" ? "Planning" : "Thinking"
+	const message = mode === "plan" ? "规划中" : "思考中"
 	return (
 		<Box>
 			<Text color="cyan">

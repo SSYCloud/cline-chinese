@@ -27,8 +27,7 @@ export async function refreshShengSuanYunModels(
 			for (const model of rawModels) {
 				if (
 					!model.support_apis ||
-					!model.support_apis.includes("/v1/chat/completions") ||
-					!model.support_apis.includes("/v1/responses")
+					!(model.support_apis.includes("/v1/chat/completions") || model.support_apis.includes("/v1/responses"))
 				) {
 					continue
 				}

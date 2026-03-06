@@ -26,7 +26,7 @@ export const Checkbox: React.FC<CheckboxProps> = ({ label, checked, isSelected =
 				</Text>
 				<Text color={isSelected || checked ? COLORS.primaryBlue : "gray"}>{checked ? "[✓]" : "[ ]"}</Text>
 				<Text color={isSelected ? COLORS.primaryBlue : "white"}> {label}</Text>
-				{isSelected && <Text color="gray"> (Tab to toggle)</Text>}
+				{isSelected && <Text color="gray"> (按 T​​ab 键切换)</Text>}
 			</Text>
 			{description && (
 				<Box marginLeft={6}>

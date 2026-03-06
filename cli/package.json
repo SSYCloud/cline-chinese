@@ -1,7 +1,7 @@
 {
 	"name": "cline",
 	"version": "2.5.1",
-	"description": "Autonomous coding agent CLI - capable of creating/editing files, running commands, using the browser, and more",
+	"description": "自主编码代理 CLI - 能够创建/编辑文件、运行命令、使用浏览器等等",
 	"main": "dist/lib.mjs",
 	"types": "dist/lib.d.ts",
 	"bin": {

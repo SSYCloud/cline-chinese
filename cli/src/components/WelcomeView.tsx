@@ -253,20 +253,25 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onSubmit, onExit, cont
 						{line}
 					</Text>
 				))}
+				<Box marginTop={1}>
+					<Text color="white">
+						欢迎使用 Cline
+					</Text>
+				</Box>
 			</Box>
 
 			{/* Main prompt - centered, bold */}
 			<Box justifyContent="center" marginTop={1}>
 				<Text bold color="white">
-					What can I do for you?
+					有什么我可以帮助你的？
 				</Text>
 			</Box>
 
 			{/* Ripgrep warning if needed */}
 			{showRipgrepWarning && (
 				<Box marginTop={1}>
-					<Text color="yellow">⚠ ripgrep not found - file search will be slower. </Text>
-					<Text color="gray">Install: {getRipgrepInstallInstructions()}</Text>
+					<Text color="yellow">⚠ 未找到 ripgrep - 文件搜索速度会变慢。 </Text>
+					<Text color="gray">安装: {getRipgrepInstallInstructions()}</Text>
 				</Box>
 			)}
 
@@ -292,12 +297,12 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onSubmit, onExit, cont
 				<Box gap={1}>
 					<Box>
 						<Text bold={mode === "plan"} color={mode === "plan" ? "yellow" : "gray"}>
-							{mode === "plan" ? "●" : "○"} Plan
+							{mode === "plan" ? "●" : "○"} 规划
 						</Text>
 					</Box>
 					<Box>
 						<Text bold={mode === "act"} color={mode === "act" ? "blue" : "gray"}>
-							{mode === "act" ? "●" : "○"} Act
+							{mode === "act" ? "●" : "○"} 执行
 						</Text>
 					</Box>
 					<Text color="gray">(Tab)</Text>
@@ -323,9 +328,9 @@ export const WelcomeView: React.FC<WelcomeViewProps> = ({ onSubmit, onExit, cont
 
 			{/* Help text */}
 			<Box>
-				<Text color="gray">Enter to submit · @ to mention files · </Text>
+				<Text color="gray">按 Enter 提交 · 按 @ 提及文件 · </Text>
 				<Text bold={escPressedOnce} color={escPressedOnce ? "white" : "gray"}>
-					{escPressedOnce ? "Press Esc again to exit" : "Esc to exit"}
+					{escPressedOnce ? "再按一次 Esc 退出" : "按 Esc 退出"}
 				</Text>
 			</Box>
 		</Box>

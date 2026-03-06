@@ -9,12 +9,12 @@ import { StateManager } from "@/core/storage/StateManager"
 import { COLORS } from "../constants/colors"
 import { useStdinContext } from "../context/StdinContext"
 import {
-	getProviderDisplayName,
-	getSourceDisplayName,
-	type ImportedKey,
-	type ImportSource,
-	importFromCodex,
-	importFromOpenCode,
+    getProviderDisplayName,
+    getSourceDisplayName,
+    type ImportedKey,
+    type ImportSource,
+    importFromCodex,
+    importFromOpenCode,
 } from "../utils/import-configs"
 import { applyProviderConfig } from "../utils/provider-config"
 
@@ -55,7 +55,7 @@ export const ImportView: React.FC<ImportViewProps> = ({ source, onComplete, onCa
 
 			const selectedKey = keys[selectedIndex]
 			if (!selectedKey) {
-				setErrorMessage("No key selected")
+				setErrorMessage("未选择密钥")
 				setStep("error")
 				return
 			}
@@ -133,7 +133,7 @@ export const ImportView: React.FC<ImportViewProps> = ({ source, onComplete, onCa
 					</Box>
 				))}
 				<Text> </Text>
-				<Text color="gray">Arrows to navigate, Enter to select, Esc to go back</Text>
+				<Text color="gray">使用方向键导航，按 Enter 键选择，按 Esc 键返回</Text>
 			</Box>
 		)
 	}

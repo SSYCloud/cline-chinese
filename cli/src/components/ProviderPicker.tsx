@@ -132,7 +132,7 @@ export const ProviderPicker: React.FC<ProviderPickerProps> = ({ onSelect, isActi
 		return sorted.map((providerId: string) => ({
 			id: providerId,
 			label: getProviderLabel(providerId),
-			suffix: isProviderConfigured(providerId, apiConfig) ? "(Configured)" : undefined,
+			suffix: isProviderConfigured(providerId, apiConfig) ? "(已配置)" : undefined,
 		}))
 	}, [apiConfig, sorted])
 

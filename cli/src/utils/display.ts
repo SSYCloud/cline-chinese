@@ -183,33 +183,33 @@ function formatAskMessage(message: ClineMessage, prefix: string, verbose: boolea
 				// Fallback to raw text if not JSON
 				question = message.text || ""
 			}
-			return `${prefix} ${style.info("Question:")} ${question}`
+			return `${prefix} ${style.info("问题：")} ${question}`
 		}
 
 		case "command":
-			return `${prefix} ${style.command("Execute command?")} ${style.code(message.text || "")}`
+			return `${prefix} ${style.command("执行命令？")} ${style.code(message.text || "")}`
 
 		case "tool":
-			return `${prefix} ${style.tool("Use tool?")} ${message.text || ""}`
+			return `${prefix} ${style.tool("使用工具？")} ${message.text || ""}`
 
 		case "completion_result":
-			return `${prefix} ${style.success("Task completed")} ${message.text ? `- ${message.text}` : ""}`
+			return `${prefix} ${style.success("任务已完成")} ${message.text ? `- ${message.text}` : ""}`
 
 		case "api_req_failed":
-			return `${prefix} ${style.error("API request failed")} ${message.text || ""}`
+			return `${prefix} ${style.error("API 请求失败")} ${message.text || ""}`
 
 		case "resume_task":
 		case "resume_completed_task":
-			return `${prefix} ${style.info("Resume task?")} ${message.text || ""}`
+			return `${prefix} ${style.info("恢复任务？")} ${message.text || ""}`
 
 		case "browser_action_launch":
-			return `${prefix} ${style.info("Launch browser?")} ${message.text || ""}`
+			return `${prefix} ${style.info("启动浏览器？")} ${message.text || ""}`
 
 		case "use_mcp_server":
-			return `${prefix} ${style.info("Use MCP server?")} ${message.text || ""}`
+			return `${prefix} ${style.info("使用 MCP 服务器？")} ${message.text || ""}`
 
 		case "plan_mode_respond":
-			return `${prefix} ${style.info("Plan mode response:")} ${message.text || ""}`
+			return `${prefix} ${style.info("规划模式响应：")} ${message.text || ""}`
 
 		default:
 			return verbose ? `${prefix} [ASK:${ask}] ${message.text || ""}` : ""
@@ -221,64 +221,64 @@ function formatSayMessage(message: ClineMessage, prefix: string, verbose: boolea
 
 	switch (say) {
 		case "task":
-			return `${prefix} ${style.task("Task:")} ${message.text || ""}`
+			return `${prefix} ${style.task("任务：")} ${message.text || ""}`
 
 		case "text":
 			return `${prefix} ${style.assistant(message.text || "")}`
 
 		case "reasoning":
-			return `${prefix} ${style.dim("Thinking:")} ${style.italic(message.text || "")}`
+			return `${prefix} ${style.dim("思考中：")} ${style.italic(message.text || "")}`
 
 		case "error":
-			return `${prefix} ${style.error("Error:")} ${message.text || ""}`
+			return `${prefix} ${style.error("错误：")} ${message.text || ""}`
 
 		case "completion_result":
-			return `${prefix} ${style.success("✓ Completed:")} ${message.text || ""}`
+			return `${prefix} ${style.success("✓ 已完成：")} ${message.text || ""}`
 
 		case "user_feedback":
-			return `${prefix} ${style.user("User:")} ${message.text || ""}`
+			return `${prefix} ${style.user("用户：")} ${message.text || ""}`
 
 		case "command":
-			return `${prefix} ${style.command("Command:")} ${style.code(message.text || "")}`
+			return `${prefix} ${style.command("命令：")} ${style.code(message.text || "")}`
 
 		case "command_output":
 			const output = message.text || ""
 			const truncated = output.length > 500 ? output.substring(0, 500) + "..." : output
-			return `${prefix} ${style.dim("Output:")} ${truncated}`
+			return `${prefix} ${style.dim("输出：")} ${truncated}`
 
 		case "tool":
-			return `${prefix} ${style.tool("Tool:")} ${message.text || ""}`
+			return `${prefix} ${style.tool("工具：")} ${message.text || ""}`
 
 		case "browser_action":
 		case "browser_action_launch":
-			return `${prefix} ${style.info("Browser:")} ${message.text || ""}`
+			return `${prefix} ${style.info("浏览器：")} ${message.text || ""}`
 
 		case "browser_action_result":
-			return `${prefix} ${style.dim("Browser result")} ${message.text ? `- ${message.text.substring(0, 100)}...` : ""}`
+			return `${prefix} ${style.dim("浏览器结果")} ${message.text ? `- ${message.text.substring(0, 100)}...` : ""}`
 
 		case "mcp_server_request_started":
-			return `${prefix} ${style.info("MCP request started")} ${message.text || ""}`
+			return `${prefix} ${style.info("MCP 请求已启动")} ${message.text || ""}`
 
 		case "mcp_server_response":
-			return `${prefix} ${style.info("MCP response")} ${message.text ? message.text.substring(0, 200) : ""}`
+			return `${prefix} ${style.info("MCP 响应")} ${message.text ? message.text.substring(0, 200) : ""}`
 
 		case "api_req_started":
-			return verbose ? `${prefix} ${style.api("API request started")}` : `${message.text || ""}`
+			return verbose ? `${prefix} ${style.api("API 请求已启动")}` : `${message.text || ""}`
 
 		case "api_req_finished":
-			return verbose ? `${prefix} ${style.api("API request finished")}` : ""
+			return verbose ? `${prefix} ${style.api("API 请求已完成")}` : ""
 
 		case "checkpoint_created":
-			return `${prefix} ${style.success("Checkpoint created")} ${message.text || ""}`
+			return `${prefix} ${style.success("检查点已创建")} ${message.text || ""}`
 
 		case "info":
 			return `${prefix} ${style.info(message.text || "")}`
 
 		case "hook_status":
-			return `${prefix} ${style.dim("Hook:")} ${message.text || ""}`
+			return `${prefix} ${style.dim("钩子：")} ${message.text || ""}`
 
 		case "task_progress":
-			return `${prefix} ${style.info("Progress:")} ${message.text || ""}`
+			return `${prefix} ${style.info("进度：")} ${message.text || ""}`
 
 		default:
 			return verbose ? `${prefix} [SAY:${say}] ${message.text || ""}` : ""

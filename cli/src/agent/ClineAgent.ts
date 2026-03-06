@@ -207,8 +207,8 @@ export class ClineAgent implements acp.Agent {
 			authMethods: [
 				{
 					id: "cline-oauth",
-					name: "Sign in with Cline",
-					description: "Authenticate with your Cline account via browser OAuth",
+					name: "使用 Cline 登录",
+					description: "通过浏览器 OAuth 使用你的 Cline 账户进行身份验证",
 				},
 				{
 					id: "openai-codex-oauth",
@@ -325,8 +325,8 @@ export class ClineAgent implements acp.Agent {
 			sessionId,
 			modes: {
 				availableModes: [
-					{ id: "plan", name: "Plan", description: "Gather information and create a detailed plan" },
-					{ id: "act", name: "Act", description: "Execute actions to accomplish the task" },
+					{ id: "plan", name: "规划", description: "收集信息并创建详细计划" },
+					{ id: "act", name: "执行", description: "执行操作完成任务" },
 				],
 				currentModeId: session.mode,
 			},

@@ -1,6 +1,6 @@
 /**
- * Interactive config view component for displaying and editing configuration values
- * Supports tabs for Settings, Rules, Workflows, Hooks, and Skills
+ * 交互式配置视图组件，用于显示和编辑配置值
+ * 支持设置、规则、工作流、钩子和技能选项卡
  */
 
 import {
@@ -48,28 +48,28 @@ interface ConfigViewProps {
 	workspaceState: Record<string, unknown>
 	onUpdateGlobal?: (key: GlobalStateAndSettingsKey, value: GlobalStateAndSettings[GlobalStateAndSettingsKey]) => void
 	onUpdateWorkspace?: (key: LocalStateKey, value: LocalState[LocalStateKey]) => void
-	// Rules toggles
+	// 规则开关
 	globalClineRulesToggles?: Record<string, boolean>
 	localClineRulesToggles?: Record<string, boolean>
 	localCursorRulesToggles?: Record<string, boolean>
 	localWindsurfRulesToggles?: Record<string, boolean>
 	localAgentsRulesToggles?: Record<string, boolean>
 	onToggleRule?: (isGlobal: boolean, rulePath: string, enabled: boolean, ruleType: string) => void
-	// Workflow toggles
+	// 工作流开关
 	globalWorkflowToggles?: Record<string, boolean>
 	localWorkflowToggles?: Record<string, boolean>
 	onToggleWorkflow?: (isGlobal: boolean, workflowPath: string, enabled: boolean) => void
-	// Hooks
+	// 钩子
 	hooksEnabled?: boolean
 	globalHooks?: HookInfo[]
 	workspaceHooks?: WorkspaceHooks[]
 	onToggleHook?: (isGlobal: boolean, hookName: string, enabled: boolean, workspaceName?: string) => void
-	// Skills
+	// 技能
 	skillsEnabled?: boolean
 	globalSkills?: SkillInfo[]
 	localSkills?: SkillInfo[]
 	onToggleSkill?: (isGlobal: boolean, skillPath: string, enabled: boolean) => void
-	// Open folder callback
+	// 打开文件夹回调
 	onOpenFolder?: (folderType: "rules" | "workflows" | "hooks" | "skills", isGlobal: boolean) => void
 }
 
@@ -111,7 +111,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 	const [searchQuery, setSearchQuery] = useState("")
 	const [objectEditor, setObjectEditor] = useState<ObjectEditorState | null>(null)
 
-	// Build entries for settings tab
+	// 构建设置选项卡的条目
 	const configEntries = useMemo(
 		() => [...buildConfigEntries(globalState, "global"), ...buildConfigEntries(workspaceState, "workspace")],
 		[globalState, workspaceState],
@@ -124,7 +124,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 		return fuzzyFilter(configEntries, searchQuery, (entry) => `${entry.key} ${String(entry.value ?? "")}`)
 	}, [configEntries, searchQuery])
 
-	// Build entries for rules tab
+	// 构建规则选项卡的条目
 	const ruleEntries = useMemo(() => {
 		const entries: ToggleEntry[] = []
 		entries.push(...buildToggleEntries(globalClineRulesToggles, "global", "cline"))
@@ -141,7 +141,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 		localAgentsRulesToggles,
 	])
 
-	// Build entries for workflows tab
+	// 构建工作流选项卡的条目
 	const workflowEntries = useMemo(() => {
 		const entries: ToggleEntry[] = []
 		entries.push(...buildToggleEntries(globalWorkflowToggles, "global"))
@@ -149,7 +149,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 		return entries
 	}, [globalWorkflowToggles, localWorkflowToggles])
 
-	// Build flat list of hooks
+	// 构建钩子的扁平列表
 	const hookEntries = useMemo(() => {
 		const entries: { hook: HookInfo; isGlobal: boolean; workspaceName?: string }[] = []
 		globalHooks.forEach((hook) => entries.push({ hook, isGlobal: true }))
@@ -159,7 +159,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 		return entries.sort((a, b) => a.hook.name.localeCompare(b.hook.name))
 	}, [globalHooks, workspaceHooks])
 
-	// Build flat list of skills
+	// 构建技能的扁平列表
 	const skillEntries = useMemo(() => {
 		const entries: { skill: SkillInfo; isGlobal: boolean }[] = []
 		globalSkills.forEach((skill) => entries.push({ skill, isGlobal: true }))
@@ -167,7 +167,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 		return entries.sort((a, b) => a.skill.name.localeCompare(b.skill.name))
 	}, [globalSkills, localSkills])
 
-	// Get current list length based on tab
+	// 根据选项卡获取当前列表长度
 	const currentListLength = useMemo(() => {
 		switch (currentTab) {
 			case "settings":
@@ -192,7 +192,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 		skillEntries.length,
 	])
 
-	// Get available tabs
+	// 获取可用选项卡
 	const availableTabs = useMemo(() => {
 		return TABS.filter((tab) => {
 			if (tab.requiresFlag === "hooks") {
@@ -205,7 +205,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 		})
 	}, [hooksEnabled, skillsEnabled])
 
-	// Reset selection when changing tabs
+	// 切换选项卡时重置选择
 	const handleTabChange = (newTab: TabView) => {
 		setCurrentTab(newTab)
 		setSelectedIndex(0)
@@ -213,7 +213,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 		setObjectEditor(null)
 	}
 
-	// Settings tab handlers
+	// 设置选项卡处理函数
 	const selectedConfigEntry = filteredConfigEntries[selectedIndex]
 
 	const handleSettingsSave = (value: string | boolean) => {
@@ -277,7 +277,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 		}
 	}
 
-	// Toggle handlers for rules/workflows/hooks/skills
+	// 规则/工作流/钩子/技能切换处理函数
 	const handleToggle = () => {
 		if (currentTab === "rules" && ruleEntries[selectedIndex] && onToggleRule) {
 			const entry = ruleEntries[selectedIndex]
@@ -294,7 +294,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 		}
 	}
 
-	// Input handling
+	// 输入处理
 	useInput(
 		(input, key) => {
 			if (objectEditor) {
@@ -319,14 +319,14 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 				return
 			}
 
-			// List navigation (arrow keys and vim-style j/k)
+			// 列表导航（箭头键和vim风格的j/k）
 			if (key.upArrow) {
 				setSelectedIndex((i) => (i > 0 ? i - 1 : currentListLength - 1))
 			} else if (key.downArrow) {
 				setSelectedIndex((i) => (i < currentListLength - 1 ? i + 1 : 0))
 			}
 
-			// Tab-specific actions
+			// 选项卡特定操作
 			if (currentTab === "settings") {
 				if ((key.return || key.tab) && selectedConfigEntry?.isEditable) {
 					if (selectedConfigEntry.type === "boolean") {
@@ -359,13 +359,13 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 					setSearchQuery((prev) => prev + input)
 				}
 			} else if (key.return || key.tab || input === " ") {
-				// Toggle for rules/workflows/hooks/skills
+				// 切换规则/工作流/钩子/技能
 				handleToggle()
 			}
 
-			// Open folder (for rules/workflows/hooks/skills tabs)
+			// 打开文件夹（用于规则/工作流/钩子/技能选项卡）
 			if (input === "o" && onOpenFolder && currentTab !== "settings") {
-				// Determine if current selection is global or workspace based on the selected entry
+				// 根据所选条目确定当前选择是全局还是工作区
 				let isGlobal = true
 				if (currentTab === "rules" && ruleEntries[selectedIndex]) {
 					isGlobal = ruleEntries[selectedIndex].source === "global"
@@ -382,16 +382,16 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 		{ isActive: isRawModeSupported && !isEditing },
 	)
 
-	// Scrolling window
+	// 滚动窗口
 	const halfVisible = Math.floor(MAX_VISIBLE / 2)
 	const startIndex = Math.max(0, Math.min(selectedIndex - halfVisible, currentListLength - MAX_VISIBLE))
 
-	// Edit mode UI (settings only)
+	// 编辑模式UI（仅设置）
 	if (isEditing && selectedConfigEntry && currentTab === "settings") {
 		const header = (
 			<React.Fragment>
 				<Text bold color="white">
-					⚙️ Edit Configuration
+					⚙️ 编辑配置
 				</Text>
 				<Text color="gray">{SEPARATOR}</Text>
 			</React.Fragment>
@@ -439,7 +439,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 		)
 	}
 
-	// Render tab content
+	// 渲染选项卡内容
 	const renderTabContent = () => {
 		switch (currentTab) {
 			case "settings": {
@@ -447,12 +447,12 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 				return (
 					<React.Fragment>
 						<Box>
-							<Text>Search: </Text>
+							<Text>搜索：</Text>
 							<Text color="white">{searchQuery}</Text>
 							<Text inverse> </Text>
 						</Box>
 						<Box>
-							<Text>Data directory: </Text>
+							<Text>数据目录：</Text>
 							<Text color="blue" underline>
 								{dataDir}
 							</Text>
@@ -468,7 +468,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 									<React.Fragment key={`${entry.source}-${entry.key}`}>
 										{showHeader && (
 											<SectionHeader
-												title={entry.source === "global" ? "Global Settings:" : "Workspace Settings:"}
+												title={entry.source === "global" ? "全局设置：" : "工作区设置："}
 											/>
 										)}
 										<ConfigRow entry={entry} isSelected={actualIndex === selectedIndex} />
@@ -485,7 +485,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 					return (
 						<Box>
 							<Text color="gray">
-								No rules configured. Add .clinerules files to your workspace or global config.
+								未配置规则。请添加 .clinerules 文件到工作区或全局配置。
 							</Text>
 						</Box>
 					)
@@ -501,7 +501,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 							return (
 								<React.Fragment key={`${entry.source}-${entry.path}`}>
 									{showHeader && (
-										<SectionHeader title={entry.source === "global" ? "Global Rules:" : "Workspace Rules:"} />
+										<SectionHeader title={entry.source === "global" ? "全局规则：" : "工作区规则："} />
 									)}
 									<ToggleRow entry={entry} isSelected={actualIndex === selectedIndex} showType />
 								</React.Fragment>
@@ -515,7 +515,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 				if (workflowEntries.length === 0) {
 					return (
 						<Box>
-							<Text color="gray">No workflows configured. Add workflow files to enable this feature.</Text>
+							<Text color="gray">未配置工作流。请添加工作流文件以启用此功能。</Text>
 						</Box>
 					)
 				}
@@ -531,7 +531,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 								<React.Fragment key={`${entry.source}-${entry.path}`}>
 									{showHeader && (
 										<SectionHeader
-											title={entry.source === "global" ? "Global Workflows:" : "Workspace Workflows:"}
+											title={entry.source === "global" ? "全局工作流：" : "工作区工作流："}
 										/>
 									)}
 									<ToggleRow entry={entry} isSelected={actualIndex === selectedIndex} />
@@ -546,7 +546,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 				if (hookEntries.length === 0) {
 					return (
 						<Box>
-							<Text color="gray">No hooks configured. Add hook scripts to enable automation.</Text>
+							<Text color="gray">未配置钩子。请添加钩子脚本以启用自动化。</Text>
 						</Box>
 					)
 				}
@@ -561,9 +561,9 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 								prevEntry.isGlobal !== entry.isGlobal ||
 								prevEntry.workspaceName !== entry.workspaceName
 
-							let sectionTitle = "Global Hooks:"
+							let sectionTitle = "全局钩子："
 							if (!entry.isGlobal && entry.workspaceName) {
-								sectionTitle = `${entry.workspaceName} Hooks:`
+								sectionTitle = `${entry.workspaceName} 钩子：`
 							}
 
 							return (
@@ -581,7 +581,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 				if (skillEntries.length === 0) {
 					return (
 						<Box>
-							<Text color="gray">No skills configured. Add SKILL.md files to enable skills.</Text>
+							<Text color="gray">未配置技能。请添加 SKILL.md 文件以启用技能。</Text>
 						</Box>
 					)
 				}
@@ -596,7 +596,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 							return (
 								<React.Fragment key={`${entry.isGlobal}-${entry.skill.path}`}>
 									{showHeader && (
-										<SectionHeader title={entry.isGlobal ? "Global Skills:" : "Workspace Skills:"} />
+										<SectionHeader title={entry.isGlobal ? "全局技能：" : "工作区技能："} />
 									)}
 									<SkillRow isSelected={actualIndex === selectedIndex} skill={entry.skill} />
 								</React.Fragment>
@@ -611,20 +611,20 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 		}
 	}
 
-	// Help text based on current tab
+	// 根据当前选项卡获取帮助文本
 	const getHelpText = () => {
-		const base = "↑/↓ Navigate • ←/→ tabs • 1-5 tabs • Esc Exit"
+		const base = "↑/↓ 导航 • ←/→ 切换标签 • 1-5 切换标签 • Esc 退出"
 		if (currentTab === "settings") {
-			return `${base} • Type to search • Enter/Tab Edit (booleans toggle) • Backspace clear search • Ctrl+R Reset`
+			return `${base} • 输入搜索 • 回车/Tab 编辑（布尔值切换）• 退格清除搜索 • Ctrl+R 重置`
 		}
-		const openFolder = onOpenFolder ? " • o Open folder" : ""
-		return `${base} • Enter/Tab/Space Toggle${openFolder}`
+		const openFolder = onOpenFolder ? " • o 打开文件夹" : ""
+		return `${base} • 回车/Tab/空格 切换${openFolder}`
 	}
 
 	return (
 		<Box flexDirection="column">
 			<Text bold color="white">
-				⚙️ Cline Configuration
+				⚙️ Cline 配置
 			</Text>
 			<Text color="gray">{SEPARATOR}</Text>
 
@@ -638,7 +638,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 				<Box marginTop={1}>
 					<Text color="gray">
 						{startIndex > 0 ? "↑ " : "  "}
-						Showing {startIndex + 1}-{Math.min(startIndex + MAX_VISIBLE, currentListLength)} of {currentListLength}
+						显示 {startIndex + 1}-{Math.min(startIndex + MAX_VISIBLE, currentListLength)} / {currentListLength}
 						{startIndex + MAX_VISIBLE < currentListLength ? " ↓" : "  "}
 					</Text>
 				</Box>
@@ -649,7 +649,7 @@ export const ConfigView: React.FC<ConfigViewProps> = ({
 			<Box flexDirection="column">
 				<Text color="gray">{getHelpText()}</Text>
 				{currentTab === "settings" && selectedConfigEntry && !selectedConfigEntry.isEditable && (
-					<Text color="yellow">This field is read-only ({selectedConfigEntry.type} type or not a setting)</Text>
+					<Text color="yellow">此字段为只读（{selectedConfigEntry.type} 类型或不是设置项）</Text>
 				)}
 			</Box>
 		</Box>

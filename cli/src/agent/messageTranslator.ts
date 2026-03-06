@@ -184,7 +184,7 @@ function translateSayMessage(
 ): TranslatedMessage {
 	const updates: acp.SessionUpdate[] = []
 	let toolCallId: string | undefined
-	const say = message.say!
+	const say = message.say
 
 	switch (say) {
 		case "text":
@@ -397,7 +397,7 @@ function translateAskMessage(
 	options?: TranslateMessageOptions,
 ): TranslatedMessage {
 	const updates: acp.SessionUpdate[] = []
-	const ask = message.ask!
+	const ask = message.ask
 	let requiresPermission = false
 	let permissionRequest: TranslatedMessage["permissionRequest"]
 	let toolCallId: string | undefined
@@ -519,7 +519,7 @@ function translateAskMessage(
 					// This is a new tool call
 					const toolCall: acp.ToolCall = {
 						toolCallId,
-						title: toolInfo?.title || "Tool operation",
+						title: toolInfo?.title || "工具操作",
 						kind: toolInfo?.kind || "other",
 						status: "pending",
 						rawInput: toolInfo?.input,

@@ -138,7 +138,7 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 	const searchableItems = useMemo(() => {
 		return modelIds.map((id) => ({ id, html: id }))
 	}, [modelIds])
-	console.log(searchableItems, "-------------searchableItems------------", shengSuanYunModels)
+	
 	const modelSearchResults = useMemo(() => {
 		if (!searchTerm) {
 			return searchableItems
