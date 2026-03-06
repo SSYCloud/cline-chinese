@@ -65,7 +65,7 @@ export const AnthropicProvider = ({ showModelOptions, isPopup, currentMode }: An
 				<BaseUrlField
 					disabled={!!remoteConfigSettings?.anthropicBaseUrl}
 					initialValue={apiConfiguration?.anthropicBaseUrl}
-					label="Use custom base URL"
+					label="使用自定义 URL"
 					onChange={(value) => handleFieldChange("anthropicBaseUrl", value)}
 					placeholder="Default: https://api.anthropic.com"
 					showLockIcon={!!remoteConfigSettings?.anthropicBaseUrl}

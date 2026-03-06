@@ -60,14 +60,14 @@ export const ApiKeyInput: React.FC<ApiKeyInputProps> = ({
 				{providerName} API Key
 			</Text>
 			<Box marginTop={1}>
-				<Text color="gray">Paste your API key below</Text>
+				<Text color="gray">粘贴 API key </Text>
 			</Box>
 			<Box marginTop={1}>
 				<Text color="white">{"•".repeat(value.length)}</Text>
 				<Text inverse> </Text>
 			</Box>
 			<Box marginTop={1}>
-				<Text color="gray">Enter to save, Esc to cancel</Text>
+				<Text color="gray">回车保存, Esc 取消</Text>
 			</Box>
 		</Box>
 	)

@@ -227,7 +227,7 @@ export const AskPrompt: React.FC<AskPromptProps> = ({ onRespond }) => {
 			if (parts.options && parts.options.length > 0) {
 				return (
 					<Box flexDirection="column" marginTop={1}>
-						<Text color="cyan">Select an option (enter number):</Text>
+						<Text color="cyan">选择 (输入数字):</Text>
 						{parts.options.map((opt, idx) => (
 							<Box key={idx} marginLeft={2}>
 								<Text>{`${idx + 1}. ${opt}`}</Text>
@@ -235,11 +235,11 @@ export const AskPrompt: React.FC<AskPromptProps> = ({ onRespond }) => {
 						))}
 						<Box marginTop={1}>
 							<Text>{icon} </Text>
-							<Text color="cyan">Or type: </Text>
+							<Text color="cyan">或输入: </Text>
 							<Text>{textInput}</Text>
 							<Text inverse> </Text>
 						</Box>
-						<Text color="gray">(Enter number to select, or type response + Enter)</Text>
+						<Text color="gray">(请输入要选择的数字，或输入答案并按 Enter 键。)</Text>
 					</Box>
 				)
 			}
@@ -249,11 +249,11 @@ export const AskPrompt: React.FC<AskPromptProps> = ({ onRespond }) => {
 				<Box flexDirection="column" marginTop={1}>
 					<Box>
 						<Text>{icon} </Text>
-						<Text color="cyan">Reply: </Text>
+						<Text color="cyan">回复: </Text>
 						<Text>{textInput}</Text>
 						<Text inverse> </Text>
 					</Box>
-					<Text color="gray">(Type your response and press Enter)</Text>
+					<Text color="gray">(输入您的回复并按回车键。)</Text>
 				</Box>
 			)
 		}
@@ -267,7 +267,7 @@ export const AskPrompt: React.FC<AskPromptProps> = ({ onRespond }) => {
 			if (parts.options && parts.options.length > 0) {
 				return (
 					<Box flexDirection="column" marginTop={1}>
-						<Text color="cyan">Select an option (enter number):</Text>
+						<Text color="cyan">请选择一个选项（输入数字）:</Text>
 						{parts.options.map((opt, idx) => (
 							<Box key={idx} marginLeft={2}>
 								<Text>{`${idx + 1}. ${opt}`}</Text>
@@ -275,11 +275,11 @@ export const AskPrompt: React.FC<AskPromptProps> = ({ onRespond }) => {
 						))}
 						<Box marginTop={1}>
 							<Text>{icon} </Text>
-							<Text color="cyan">Or type: </Text>
+							<Text color="cyan">或者输入：</Text>
 							<Text>{textInput}</Text>
 							<Text inverse> </Text>
 						</Box>
-						<Text color="gray">(Enter number to select, or type response + Enter)</Text>
+						<Text color="gray">（请输入数字进行选择，或输入答案并按回车键）</Text>
 					</Box>
 				)
 			}
@@ -289,11 +289,11 @@ export const AskPrompt: React.FC<AskPromptProps> = ({ onRespond }) => {
 				<Box flexDirection="column" marginTop={1}>
 					<Box>
 						<Text>{icon} </Text>
-						<Text color="cyan">Reply: </Text>
+						<Text color="cyan">回复: </Text>
 						<Text>{textInput}</Text>
 						<Text inverse> </Text>
 					</Box>
-					<Text color="gray">(Type response + Enter, or just Enter to switch to Act mode)</Text>
+					<Text color="gray">（输入回复 + 回车，或直接回车即可切换到操作模式）</Text>
 				</Box>
 			)
 		}
@@ -303,7 +303,7 @@ export const AskPrompt: React.FC<AskPromptProps> = ({ onRespond }) => {
 				<Box flexDirection="column" marginTop={1}>
 					<Box>
 						<Text>{icon} </Text>
-						<Text color="yellow"> Execute this command? </Text>
+						<Text color="yellow"> 执行此命令？ </Text>
 						<Text color="gray">(y/n)</Text>
 					</Box>
 				</Box>
@@ -314,7 +314,7 @@ export const AskPrompt: React.FC<AskPromptProps> = ({ onRespond }) => {
 				<Box flexDirection="column" marginTop={1}>
 					<Box>
 						<Text>{icon} </Text>
-						<Text color="blue"> Use this tool? </Text>
+						<Text color="blue"> 使用此工具吗？</Text>
 						<Text color="gray">(y/n)</Text>
 					</Box>
 				</Box>
@@ -325,11 +325,11 @@ export const AskPrompt: React.FC<AskPromptProps> = ({ onRespond }) => {
 				<Box flexDirection="column" marginTop={1}>
 					<Box>
 						<Text>{icon} </Text>
-						<Text color="cyan">Follow-up: </Text>
+						<Text color="cyan">后续：</Text>
 						<Text>{textInput}</Text>
 						<Text inverse> </Text>
 					</Box>
-					<Text color="gray">(Type follow-up question + Enter, or q to exit)</Text>
+					<Text color="gray">（输入后续问题并按回车键，或按 q 退出）</Text>
 				</Box>
 			)
 
@@ -339,7 +339,7 @@ export const AskPrompt: React.FC<AskPromptProps> = ({ onRespond }) => {
 				<Box flexDirection="column" marginTop={1}>
 					<Box>
 						<Text>{icon} </Text>
-						<Text color="cyan"> Resume task? </Text>
+						<Text color="cyan"> 重启任务? </Text>
 						<Text color="gray">(y/n)</Text>
 					</Box>
 				</Box>
@@ -350,7 +350,7 @@ export const AskPrompt: React.FC<AskPromptProps> = ({ onRespond }) => {
 				<Box flexDirection="column" marginTop={1}>
 					<Box>
 						<Text>{icon} </Text>
-						<Text color="cyan"> Launch browser? </Text>
+						<Text color="cyan"> 启动浏览器? </Text>
 						<Text color="gray">(y/n)</Text>
 					</Box>
 				</Box>
@@ -361,7 +361,7 @@ export const AskPrompt: React.FC<AskPromptProps> = ({ onRespond }) => {
 				<Box flexDirection="column" marginTop={1}>
 					<Box>
 						<Text>{icon} </Text>
-						<Text color="cyan"> Use MCP server? </Text>
+						<Text color="cyan"> 使用 MCP? </Text>
 						<Text color="gray">(y/n)</Text>
 					</Box>
 				</Box>

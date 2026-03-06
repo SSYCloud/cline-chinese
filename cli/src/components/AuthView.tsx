@@ -46,10 +46,10 @@ type AuthStep =
 	| "saving"
 	| "success"
 	| "error"
-	| "cline_auth"
+	| "ssy_auth"
 	| "oca_employee_check"
 	| "oca_auth"
-	| "cline_model"
+	| "shengsuanyun_model"
 	| "openai_codex_auth"
 	| "bedrock"
 	| "import"
@@ -106,7 +106,7 @@ const Select: React.FC<{
 					</Text>
 				</Box>
 			))}
-			<Text color="gray">(Use arrow keys to navigate, Enter to select)</Text>
+			<Text color="gray">（使用方向键导航，按回车键选择）</Text>
 		</Box>
 	)
 }
@@ -206,21 +206,21 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 
 	// Main menu items - conditionally include import options
 	const mainMenuItems: SelectItem[] = useMemo(() => {
-		const items: SelectItem[] = [{ label: "Sign in with Cline", value: "cline_auth" }]
+		const items: SelectItem[] = [{ label: "登陆胜算云", value: "ssy_auth" }]
 
 		// Add OpenAI Codex option for ChatGPT subscribers
-		items.push({ label: "Sign in with ChatGPT Subscription", value: "openai_codex_auth" })
+		items.push({ label: "登陆 ChatGPT 订阅", value: "openai_codex_auth" })
 
 		// Add import options if detected
 		if (importSources.codex) {
-			items.push({ label: "Import from Codex CLI", value: "import_codex" })
+			items.push({ label: "从 Codex CLI 导入", value: "import_codex" })
 		}
 		if (importSources.opencode) {
-			items.push({ label: "Import from OpenCode", value: "import_opencode" })
+			items.push({ label: "从 OpenCode 导入", value: "import_opencode" })
 		}
 
-		items.push({ label: "Use your own API key", value: "configure_byo" })
-		items.push({ label: "Exit", value: "exit" })
+		items.push({ label: "使用你的 API key", value: "configure_byo" })
+		items.push({ label: "退出", value: "exit" })
 
 		return items
 	}, [importSources])
@@ -270,7 +270,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 
 	// Subscribe to auth status updates when in cline_auth step
 	useEffect(() => {
-		if (step !== "cline_auth") {
+		if (step !== "ssy_auth") {
 			return
 		}
 
@@ -284,10 +284,10 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 
 			if (authState.user?.email) {
 				// Auth succeeded - save configuration and transition to model selection
-				await applyProviderConfig({ providerId: "cline", controller })
-				setSelectedProvider("cline")
+				await applyProviderConfig({ providerId: "shengsuanyun", controller })
+				setSelectedProvider("shengsuanyun")
 				setModelId(openRouterDefaultModelId)
-				setStep("cline_model")
+				setStep("shengsuanyun_model")
 			}
 		}
 
@@ -330,7 +330,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 	// Start Cline auth flow
 	const startClineAuth = useCallback(async () => {
 		try {
-			setStep("cline_auth")
+			setStep("ssy_auth")
 			await AuthService.getInstance(controller).createAuthRequest()
 		} catch (error) {
 			setErrorMessage(error instanceof Error ? error.message : String(error))
@@ -348,7 +348,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 			if (value === "exit") {
 				exit()
 				onComplete?.()
-			} else if (value === "cline_auth") {
+			} else if (value === "ssy_auth") {
 				startClineAuth()
 			} else if (value === "openai_codex_auth") {
 				setStep("openai_codex_auth")
@@ -527,11 +527,11 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 
 	// Error screen menu items
 	const errorMenuItems: SelectItem[] = useMemo(() => {
-		const items: SelectItem[] = [{ label: "Try again", value: "retry" }]
+		const items: SelectItem[] = [{ label: "重试", value: "retry" }]
 		if (onNavigateToWelcome) {
-			items.push({ label: "Start a task", value: "welcome" })
+			items.push({ label: "启动任务", value: "welcome" })
 		}
-		items.push({ label: "Exit", value: "exit" })
+		items.push({ label: "退出", value: "exit" })
 		return items
 	}, [onNavigateToWelcome])
 
@@ -570,8 +570,8 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 			case "modelid":
 				setModelId("")
 				// Go back to cline_model if we came from there (Cline provider)
-				if (selectedProvider === "cline") {
-					setStep("cline_model")
+				if (selectedProvider === "shengsuanyun") {
+					setStep("shengsuanyun_model")
 				} else if (selectedProvider === "bedrock") {
 					// Bedrock skips the API key step — go back to Bedrock setup
 					setStep("bedrock")
@@ -589,14 +589,14 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 			case "oca_auth":
 				setStep("oca_employee_check")
 				break
-			case "cline_auth":
+			case "ssy_auth":
 				setStep("menu")
 				break
 			case "openai_codex_auth":
 				openAiCodexOAuthManager.cancelAuthorizationFlow()
 				setStep("menu")
 				break
-			case "cline_model":
+			case "shengsuanyun_model":
 				setClineModelIndex(0)
 				setStep("menu")
 				break
@@ -623,15 +623,15 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 			case "provider": {
 				return (
 					<Box flexDirection="column">
-						<Text color="white">Select a provider</Text>
+						<Text color="white">选择供应商</Text>
 						<Text> </Text>
 						<Box>
-							<Text color="gray">Search: </Text>
+							<Text color="gray">搜索: </Text>
 							<Text color="white">{providerSearch}</Text>
 							<Text inverse> </Text>
 						</Box>
 						<Text> </Text>
-						{showProviderTopIndicator && <Text color="gray">... {providerVisibleStart} more above</Text>}
+						{showProviderTopIndicator && <Text color="gray">... {providerVisibleStart} 更多</Text>}
 						{visibleProviderItems.map((item, i) => {
 							const actualIndex = providerVisibleStart + i
 							return (
@@ -648,9 +648,9 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 								... {providerItems.length - providerVisibleStart - providerVisibleCount} more below
 							</Text>
 						)}
-						{providerItems.length === 0 && <Text color="gray">No providers match "{providerSearch}"</Text>}
+						{providerItems.length === 0 && <Text color="gray">未找到供应商 "{providerSearch}"</Text>}
 						<Text> </Text>
-						<Text color="gray">Type to search, arrows to navigate, Enter to select, Esc to go back</Text>
+						<Text color="gray">输入搜索, 使用方向键导航，按 Enter 键选择，按 Esc 键返回</Text>
 					</Box>
 				)
 			}
@@ -672,7 +672,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 				if (hasModelPicker(selectedProvider)) {
 					return (
 						<Box flexDirection="column">
-							<Text color="white">Select a model</Text>
+							<Text color="white">选择模型</Text>
 							<Text> </Text>
 							<ModelPicker
 								controller={controller}
@@ -682,29 +682,29 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 								provider={selectedProvider}
 							/>
 							<Text> </Text>
-							<Text color="gray">Type to search, arrows to navigate, Enter to select, Esc to go back</Text>
+							<Text color="gray">输入文字进行搜索，使用方向键导航，按 Enter 键选择，按 Esc 键返回。</Text>
 						</Box>
 					)
 				}
 				// Fall back to text input for providers without static model lists
 				return (
 					<Box flexDirection="column">
-						<Text color="white">Model ID</Text>
+						<Text color="white">模型 ID</Text>
 						<Text> </Text>
 						<Text color="gray">e.g., claude-sonnet-4-6, gpt-4o</Text>
 						<Text> </Text>
 						<TextInput onChange={setModelId} onSubmit={handleModelIdSubmit} placeholder="model-id" value={modelId} />
 						<Text> </Text>
-						<Text color="gray">Enter to continue, Esc to go back</Text>
+						<Text color="gray">按 Enter 键继续，按 Esc 键返回</Text>
 					</Box>
 				)
 
 			case "baseurl":
 				return (
 					<Box flexDirection="column">
-						<Text color="white">Base URL (optional)</Text>
+						<Text color="white">Base URL (可选)</Text>
 						<Text> </Text>
-						<Text color="gray">For self-hosted or proxy endpoints</Text>
+						<Text color="gray">对于自托管或代理端点</Text>
 						<Text> </Text>
 						<TextInput
 							onChange={setBaseUrl}
@@ -713,7 +713,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 							value={baseUrl}
 						/>
 						<Text> </Text>
-						<Text color="gray">Enter to skip or continue, Esc to go back</Text>
+						<Text color="gray">按 Enter 键跳过或继续，按 Esc 键返回</Text>
 					</Box>
 				)
 
@@ -723,7 +723,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 						<Text color={COLORS.primaryBlue}>
 							<Spinner type="dots" />
 						</Text>
-						<Text color="white"> Saving configuration...</Text>
+						<Text color="white"> 保存配置...</Text>
 					</Box>
 				)
 
@@ -731,7 +731,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 				return <OcaEmployeeCheck isActive={step === "oca_employee_check"} onCancel={goBack} onSignIn={startOcaAuth} />
 
 			case "oca_auth":
-			case "cline_auth":
+			case "ssy_auth":
 				return (
 					<Box flexDirection="column">
 						<Box>
@@ -754,20 +754,20 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 							<Text color={COLORS.primaryBlue}>
 								<Spinner type="dots" />
 							</Text>
-							<Text color="white"> Waiting for ChatGPT sign-in...</Text>
+							<Text color="white"> ChatGPT 登陆...</Text>
 						</Box>
 						<Text> </Text>
-						<Text color="gray">Sign in with your ChatGPT account in the browser.</Text>
-						<Text color="gray">Requires ChatGPT Plus, Pro, or Team subscription.</Text>
+						<Text color="gray">在浏览器登陆你的 ChatGPT 账户.</Text>
+						<Text color="gray">需要订阅 ChatGPT Plus、Pro 或 Team 版本。</Text>
 						<Text> </Text>
-						<Text color="gray">Esc to cancel</Text>
+						<Text color="gray">按 Esc 取消</Text>
 					</Box>
 				)
 
-			case "cline_model": {
+			case "shengsuanyun_model": {
 				return (
 					<Box flexDirection="column">
-						<Text color="white">Choose a model</Text>
+						<Text color="white">选择模型</Text>
 						<Text> </Text>
 						<FeaturedModelPicker featuredModels={featuredModels} selectedIndex={clineModelIndex} />
 					</Box>
@@ -808,7 +808,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 				return (
 					<Box flexDirection="column">
 						<Text bold color="red">
-							Something went wrong
+							出错啦
 						</Text>
 						<Text> </Text>
 						<Text color="yellow">{errorMessage}</Text>
@@ -832,9 +832,9 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 		"provider",
 		"modelid",
 		"baseurl",
-		"cline_auth",
+		"ssy_auth",
 		"oca_auth",
-		"cline_model",
+		"shengsuanyun_model",
 		"openai_codex_auth",
 		"bedrock",
 		"error",
@@ -870,7 +870,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 				} else if (input && !key.ctrl && !key.meta) {
 					setProviderSearch((prev) => prev + input)
 				}
-			} else if (step === "cline_model") {
+			} else if (step === "shengsuanyun_model") {
 				const maxIndex = getFeaturedModelMaxIndex(featuredModels)
 
 				if (key.upArrow) {
@@ -890,7 +890,10 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 			}
 			// Note: modelid step input is handled by ModelPicker component
 		},
-		{ isActive: isRawModeSupported && (step === "menu" || step === "provider" || step === "cline_model" || canGoBack) },
+		{
+			isActive:
+				isRawModeSupported && (step === "menu" || step === "provider" || step === "shengsuanyun_model" || canGoBack),
+		},
 	)
 
 	return (
@@ -917,7 +920,7 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 				paddingTop={1}>
 				{step === "menu" ? (
 					<Box flexDirection="column">
-						<Text color="gray">How would you like to get started?</Text>
+						<Text color="gray">您想如何开始?</Text>
 						<Text> </Text>
 						{mainMenuItems.map((item, index) => (
 							<Box key={item.value}>
@@ -926,12 +929,12 @@ export const AuthView: React.FC<AuthViewProps> = ({ controller, onComplete, onEr
 										{index === menuIndex ? "❯ " : "  "}
 										{item.label}
 									</Text>
-									{item.value === "cline_auth" && <Text color="yellow"> (try Opus 4.6!)</Text>}
+									{item.value === "ssy_auth" && <Text color="yellow"> (尝试 Opus 4.6!)</Text>}
 								</Text>
 							</Box>
 						))}
 						<Text> </Text>
-						<Text color="gray">Use arrow keys, Enter to select</Text>
+						<Text color="gray">使用方向键，按 Enter 键选择</Text>
 					</Box>
 				) : (
 					renderAuthContent()

@@ -53,7 +53,7 @@ export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ con
 			const mode = stateManager.getGlobalSettingsKey("mode") as string
 			const providerKey = mode === "act" ? "actModeApiProvider" : "planModeApiProvider"
 			const currentProvider = stateManager.getGlobalSettingsKey(providerKey) as string
-			setProvider(currentProvider || "cline")
+			setProvider(currentProvider || "shengsuanyun")
 
 			// If using Cline provider, fetch additional info
 			if (currentProvider === "cline") {
@@ -126,7 +126,7 @@ export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ con
 		return (
 			<Box>
 				<LoadingSpinner />
-				<Text color="gray"> Loading account info...</Text>
+				<Text color="gray"> 加载用户信息...</Text>
 			</Box>
 		)
 	}
@@ -143,7 +143,7 @@ export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ con
 	if (provider !== "cline") {
 		return (
 			<Box>
-				<Text color="gray">Provider: </Text>
+				<Text color="gray">供应商: </Text>
 				<Text color="cyan">{capitalize(provider || "Not configured")}</Text>
 			</Box>
 		)
@@ -153,10 +153,10 @@ export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ con
 	if (!email) {
 		return (
 			<Box>
-				<Text color="gray">Provider: </Text>
-				<Text color="cyan">Cline</Text>
+				<Text color="gray">供应商: </Text>
+				<Text color="cyan">胜算云</Text>
 				<Text color="gray"> • </Text>
-				<Text color="yellow">Not logged in (run 'cline auth' to sign in)</Text>
+				<Text color="yellow">未登陆 (运行 'cline auth' 登陆)</Text>
 			</Box>
 		)
 	}
@@ -165,8 +165,8 @@ export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ con
 	return (
 		<Box flexDirection="column">
 			<Box>
-				<Text color="gray">Provider: </Text>
-				<Text color="cyan">Cline</Text>
+				<Text color="gray">供应商: </Text>
+				<Text color="cyan">胜算云</Text>
 				{email && (
 					<Box>
 						<Text color="gray"> • </Text>
@@ -175,18 +175,11 @@ export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ con
 				)}
 			</Box>
 			<Box>
-				{organization ? (
-					<Box>
-						<Text color="gray">Organization: </Text>
-						<Text color="magenta">{organization.name}</Text>
-					</Box>
-				) : (
-					<Box>
-						<Text color="gray">Account: </Text>
-						<Text color="white">Personal</Text>
-					</Box>
-				)}
-				<Text color="gray"> • Credits: </Text>
+				<Box>
+					<Text color="gray">账户: </Text>
+					<Text color="white">Personal</Text>
+				</Box>
+				<Text color="gray"> • 余额: </Text>
 				<Text color="green">{formatBalance(balance)}</Text>
 			</Box>
 		</Box>
