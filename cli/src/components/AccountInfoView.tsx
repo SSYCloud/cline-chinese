@@ -81,20 +81,9 @@ export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ con
 				// Fetch credit balance
 				try {
 					const accountService = ClineAccountService.getInstance()
-					const activeOrgId = authService.getActiveOrganizationId()
-
-					if (activeOrgId) {
-						// Fetch organization balance
-						const orgBalance = await accountService.fetchOrganizationCreditsRPC(activeOrgId)
-						if (orgBalance?.balance !== undefined) {
-							setBalance(orgBalance.balance)
-						}
-					} else {
-						// Fetch personal balance
-						const balanceData = await accountService.fetchBalanceRPC()
-						if (balanceData?.balance !== undefined) {
-							setBalance(balanceData.balance)
-						}
+					const balanceData = await accountService.fetchBalanceRPC()
+					if (balanceData?.balance !== undefined) {
+						setBalance(balanceData.balance)
 					}
 				} catch {
 					// Balance fetch failed, but we can still show other info
