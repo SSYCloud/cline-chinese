@@ -55,13 +55,10 @@ export class ShengSuanYunHandler implements ApiHandler {
 	@withRetry()
 	async *createMessage(systemPrompt: string, messages: ClineStorageMessage[], tools?: ChatCompletionTool[]): ApiStream {
 		const model = this.getModel()
-		if (model?.info?.endPoints?.includes("/v1/chat/completions")) {
-			yield* this.createCompletionStream(systemPrompt, messages)
-		} else if (model?.info?.endPoints?.includes("/v1/responses")) {
+		if (model?.info?.endPoints?.includes("/v1/responses")) {
 			yield* this.createMessageResponsesApi(systemPrompt, messages, tools)
-		} else {
-			throw new Error("Unsupported ShengSuanYun model endpoints")
 		}
+		yield* this.createCompletionStream(systemPrompt, messages)
 	}
 
 	async calculateCost(
