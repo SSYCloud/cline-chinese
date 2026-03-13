@@ -46,7 +46,7 @@ export async function fetchOpenRouterModels(): Promise<string[]> {
 			}
 			return []
 		} catch (error) {
-			Logger.debug("Failed to fetch OpenRouter models:", error)
+			Logger.debug("获取 OpenRouter 模型失败：", error)
 			return []
 		} finally {
 			fetchPromise = null

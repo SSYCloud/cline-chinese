@@ -53,7 +53,7 @@ export const FileMentionMenu: React.FC<FileMentionMenuProps> = ({
 	if (results.length === 0) {
 		return (
 			<Box flexDirection="column" marginBottom={1} paddingLeft={1} paddingRight={1}>
-				<Text color="gray">{query ? `No files matching "${query}"` : "Type to search files..."}</Text>
+				<Text color="gray">{query ? `No files matching "${query}"` : "输入以搜索文件..."}</Text>
 				{ripgrepWarning}
 			</Box>
 		)

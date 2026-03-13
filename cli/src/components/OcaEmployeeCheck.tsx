@@ -68,21 +68,21 @@ export const OcaEmployeeCheck: React.FC<OcaEmployeeCheckProps> = ({ isActive, on
 					{selectedIndex === 0 ? "❯" : " "}{" "}
 				</Text>
 				<Text color={selectedIndex === 0 || isEmployee ? COLORS.primaryBlue : "gray"}>{isEmployee ? "[✓]" : "[ ]"}</Text>
-				<Text color={selectedIndex === 0 ? COLORS.primaryBlue : "white"}> I'm an Oracle Employee</Text>
-				{selectedIndex === 0 && <Text color="gray"> (Tab to toggle)</Text>}
+				<Text color={selectedIndex === 0 ? COLORS.primaryBlue : "white"}> 我是 Oracle 员工</Text>
+				{selectedIndex === 0 && <Text color="gray"> (按 T​​ab 键切换)</Text>}
 			</Text>
 			{/* Sign in button */}
 			<Text>
 				<Text bold color={selectedIndex === 1 ? COLORS.primaryBlue : undefined}>
 					{selectedIndex === 1 ? "❯" : " "}{" "}
 				</Text>
-				<Text color={selectedIndex === 1 ? COLORS.primaryBlue : "white"}>Sign in with Oracle Code Assist</Text>
+				<Text color={selectedIndex === 1 ? COLORS.primaryBlue : "white"}>使用 Oracle Code Assist 登录</Text>
 				{selectedIndex === 1 && <Text color="gray"> (Enter)</Text>}
 			</Text>
 			<Text> </Text>
-			<Text color="gray">Please ask your IT administrator to set up Oracle Code Assist as a model provider.</Text>
+			<Text color="gray">请贵公司的 IT 管理员将 Oracle Code Assist 设置为模型提供商。</Text>
 			<Text> </Text>
-			<Text color="gray">Arrows to navigate, Tab to toggle, Enter to continue, Esc to go back</Text>
+			<Text color="gray">使用方向键导航，Tab 键切换，Enter 键继续，Esc 键返回</Text>
 		</Box>
 	)
 }

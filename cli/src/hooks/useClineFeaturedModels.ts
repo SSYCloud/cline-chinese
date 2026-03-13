@@ -6,7 +6,6 @@ import {
 	mapRecommendedModelsToFeaturedModels,
 	withFeaturedModelFallback,
 } from "../constants/featured-models"
-
 export function useClineFeaturedModels(): FeaturedModel[] {
 	const [featuredModels, setFeaturedModels] = useState<FeaturedModel[]>(() => getAllFeaturedModels())
 

@@ -21,7 +21,7 @@ export const FeaturedModelPicker: React.FC<FeaturedModelPickerProps> = ({
 	selectedIndex,
 	title,
 	showBrowseAll = true,
-	helpText = "Arrows to navigate, Enter to select",
+	helpText = "方向键导航，Enter 键选择",
 	featuredModels,
 }) => {
 	const models = featuredModels
@@ -68,7 +68,7 @@ export const FeaturedModelPicker: React.FC<FeaturedModelPickerProps> = ({
 				<Box>
 					<Text color={selectedIndex === models.length ? COLORS.primaryBlue : "white"}>
 						{selectedIndex === models.length ? "❯ " : "  "}
-						Browse all models...
+						浏览所有模型...
 					</Text>
 				</Box>
 			)}

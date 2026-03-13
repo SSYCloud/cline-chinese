@@ -165,8 +165,8 @@ export const SkillsPanelContent: React.FC<SkillsPanelContentProps> = ({ controll
 
 	if (isLoading) {
 		return (
-			<Panel label="Skills">
-				<Text color="gray">Loading skills...</Text>
+			<Panel label="技能">
+				<Text color="gray">正在加载技能...</Text>
 			</Panel>
 		)
 	}
@@ -180,9 +180,9 @@ export const SkillsPanelContent: React.FC<SkillsPanelContentProps> = ({ controll
 			<Box flexDirection="column" gap={1}>
 				{skillEntries.length === 0 ? (
 					<Box flexDirection="column" gap={1}>
-						<Text color="gray">No skills installed.</Text>
+						<Text color="gray">没有安装技能。</Text>
 						<Text>
-							Install skills with: <Text color="white">npx skills add owner/repo</Text>
+							使用以下命令安装技能: <Text color="white">npx skills add owner/repo</Text>
 						</Text>
 					</Box>
 				) : (
@@ -199,7 +199,7 @@ export const SkillsPanelContent: React.FC<SkillsPanelContentProps> = ({ controll
 										{showHeader && (
 											<Box marginTop={actualIndex > 0 ? 1 : 0}>
 												<Text bold color="gray">
-													{entry.isGlobal ? "Global Skills:" : "Workspace Skills:"}
+													{entry.isGlobal ? "全局技能:" : "工作区技能:"}
 												</Text>
 											</Box>
 										)}
@@ -223,8 +223,8 @@ export const SkillsPanelContent: React.FC<SkillsPanelContentProps> = ({ controll
 				{/* Help text */}
 				<Box marginTop={1}>
 					<Text color="gray">
-						↑/↓ Navigate • Enter {isMarketplaceSelected ? "Open" : "Use"}
-						{!isMarketplaceSelected && " • Space Toggle"}
+						↑/↓ 导航 • 回车 {isMarketplaceSelected ? "打开" : "使用"}
+						{!isMarketplaceSelected && " • 空格键切换"}
 					</Text>
 				</Box>
 			</Box>

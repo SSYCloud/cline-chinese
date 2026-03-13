@@ -75,7 +75,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 				.then(() => {
 					onSelectTask?.(item.id)
 				})
-				.catch((error) => console.error("Error showing task:", error))
+				.catch((error) => console.error("显示任务出错：", error))
 		},
 		[controller, onSelectTask],
 	)
@@ -142,14 +142,14 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 	return (
 		<Box flexDirection="column">
 			<Text bold color="white">
-				{"📜 Task History (" + totalCount + " total)"}
+				{"📜 任务历史 (" + totalCount + " 总共)"}
 			</Text>
-			<Text color="gray">Use ↑↓/j/k to navigate, Enter to select</Text>
+			<Text color="gray">使用 ↑↓/j/k 导航，Enter 选择</Text>
 
 			{totalPages > 1 && (
 				<Box>
 					<Text color="gray">
-						Page {currentPage} of {totalPages}{" "}
+						{currentPage} / {totalPages}{" "}
 					</Text>
 					{hasPrevPage ? <Text color="blue">[← prev] </Text> : <Text color="gray">[← prev] </Text>}
 					{hasNextPage ? <Text color="blue">[next →]</Text> : <Text color="gray">[next →]</Text>}
@@ -158,15 +158,15 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 			<Text>{formatSeparator()}</Text>
 
 			{pageItems.length === 0 ? (
-				<Text>No task history available.</Text>
+				<Text>暂无任务历史记录.</Text>
 			) : (
 				<Box flexDirection="column">
-					{showUpIndicator && <Text color="gray">{"  ↑ " + startIndex + " more above"}</Text>}
+					{showUpIndicator && <Text color="gray">{"  ↑ " + startIndex + " 以上内容"}</Text>}
 					{visibleTasks.map((task, index) => {
 						const actualIndex = startIndex + index
 						const isSelected = actualIndex === selectedIndex
 						const date = new Date(task.ts).toLocaleString()
-						const taskText = task.task?.substring(0, 60) || "Unknown task"
+						const taskText = task.task?.substring(0, 60) || "未知任务"
 						const truncated = (task.task?.length || 0) > 60 ? "..." : ""
 
 						return (
@@ -186,12 +186,12 @@ export const HistoryView: React.FC<HistoryViewProps> = ({
 								</Box>
 								{typeof task.totalCost === "number" && (
 									<Box marginLeft={4}>
-										<Text color="gray">Cost: ${task.totalCost ? task.totalCost.toFixed(4) : "0"}</Text>
+										<Text color="gray">费用: ${task.totalCost ? task.totalCost.toFixed(4) : "0"}</Text>
 									</Box>
 								)}
 								{task.modelId && (
 									<Box marginLeft={4}>
-										<Text color="gray">Model: {task.modelId}</Text>
+										<Text color="gray">模型: {task.modelId}</Text>
 									</Box>
 								)}
 							</Box>

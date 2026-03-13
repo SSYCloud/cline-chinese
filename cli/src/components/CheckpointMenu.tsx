@@ -49,32 +49,32 @@ function getCheckpointOptions(messages: ClineMessage[]): CheckpointOption[] {
  */
 function getCheckpointLabel(msg: ClineMessage): string {
 	if (msg.say === "completion_result") {
-		return "Task completion"
+		return "任务完成"
 	}
 	if (msg.say === "checkpoint_created") {
-		return "Checkpoint"
+		return "检查点"
 	}
 	if (msg.say === "api_req_started") {
-		return "API request"
+		return "API请求"
 	}
-	return msg.say || msg.ask || "Message"
+	return msg.say || msg.ask || "消息"
 }
 
 const RESTORE_TYPE_OPTIONS: { type: RestoreType; label: string; description: string }[] = [
 	{
 		type: "taskAndWorkspace",
-		label: "Task + Workspace",
-		description: "Restore messages and files",
+		label: "任务 + 工作区",
+		description: "恢复消息和文件",
 	},
 	{
 		type: "task",
-		label: "Task Only",
-		description: "Delete messages after this point",
+		label: "仅任务",
+		description: "删除此点之后的消息",
 	},
 	{
 		type: "workspace",
-		label: "Workspace Only",
-		description: "Restore files only",
+		label: "仅工作区",
+		description: "仅恢复文件",
 	},
 ]
 
@@ -133,9 +133,9 @@ export const CheckpointMenu: React.FC<CheckpointMenuProps> = ({ messages, onSele
 	if (checkpoints.length === 0) {
 		return (
 			<Box borderColor="yellow" borderStyle="round" flexDirection="column" marginTop={1} paddingLeft={1} paddingRight={1}>
-				<Text color="yellow">No checkpoints available</Text>
-				<Text color="gray">Checkpoints are created at task completion points</Text>
-				<Text color="gray">Press Escape to close</Text>
+				<Text color="yellow">没有可用的检查点</Text>
+				<Text color="gray">检查点在任务完成时创建</Text>
+				<Text color="gray">按 Escape 键关闭</Text>
 			</Box>
 		)
 	}
@@ -144,9 +144,9 @@ export const CheckpointMenu: React.FC<CheckpointMenuProps> = ({ messages, onSele
 		return (
 			<Box borderColor="cyan" borderStyle="round" flexDirection="column" marginTop={1} paddingLeft={1} paddingRight={1}>
 				<Text bold color="cyan">
-					Restore Checkpoint
+					恢复检查点
 				</Text>
-				<Text color="gray">Select a checkpoint to restore (↑/↓ or number, Enter to select, Escape to cancel)</Text>
+				<Text color="gray">选择要恢复的检查点 (↑/↓ 或数字，Enter 键选择，Escape 键取消)</Text>
 				<Box flexDirection="column" marginTop={1}>
 					{checkpoints.map((cp, idx) => {
 						const isSelected = idx === selectedCheckpoint
@@ -174,10 +174,10 @@ export const CheckpointMenu: React.FC<CheckpointMenuProps> = ({ messages, onSele
 	return (
 		<Box borderColor="cyan" borderStyle="round" flexDirection="column" marginTop={1} paddingLeft={1} paddingRight={1}>
 			<Text bold color="cyan">
-				Restore Type
+				恢复类型
 			</Text>
 			<Text color="gray">
-				Restoring to: {selectedCp?.label} ({selectedCp?.date.toLocaleString()})
+				恢复到: {selectedCp?.label} ({selectedCp?.date.toLocaleString()})
 			</Text>
 			<Box flexDirection="column" marginTop={1}>
 				{RESTORE_TYPE_OPTIONS.map((opt, idx) => {
@@ -197,7 +197,7 @@ export const CheckpointMenu: React.FC<CheckpointMenuProps> = ({ messages, onSele
 					)
 				})}
 			</Box>
-			<Text color="gray">(↑/↓ to select, Enter to confirm, Escape to go back)</Text>
+			<Text color="gray">(↑/↓ 选择，Enter 键确认，Escape 键返回)</Text>
 		</Box>
 	)
 }

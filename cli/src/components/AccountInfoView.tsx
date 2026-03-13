@@ -8,7 +8,7 @@ import React, { useCallback, useEffect, useState } from "react"
 import { Controller } from "@/core/controller"
 import { StateManager } from "@/core/storage/StateManager"
 import { ClineAccountService } from "@/services/account/ClineAccountService"
-import { AuthService, ClineAccountOrganization } from "@/services/auth/AuthService"
+import { AuthService } from "@/services/auth/AuthService"
 import { LoadingSpinner } from "./Spinner"
 
 interface AccountInfoViewProps {
@@ -38,7 +38,6 @@ function formatBalance(balance: number | null): string {
 export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ controller }) => {
 	const [provider, setProvider] = useState<string | null>(null)
 	const [balance, setBalance] = useState<number | null>(null)
-	const [organization, setOrganization] = useState<ClineAccountOrganization | null>(null)
 	const [email, setEmail] = useState<string | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string | null>(null)
@@ -79,32 +78,12 @@ export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ con
 					return
 				}
 
-				// Get organization info
-				const organizations = authService.getUserOrganizations()
-				if (organizations) {
-					const activeOrg = organizations.find((org) => org.active)
-					if (activeOrg) {
-						setOrganization(activeOrg)
-					}
-				}
-
 				// Fetch credit balance
 				try {
 					const accountService = ClineAccountService.getInstance()
-					const activeOrgId = authService.getActiveOrganizationId()
-
-					if (activeOrgId) {
-						// Fetch organization balance
-						const orgBalance = await accountService.fetchOrganizationCreditsRPC(activeOrgId)
-						if (orgBalance?.balance !== undefined) {
-							setBalance(orgBalance.balance)
-						}
-					} else {
-						// Fetch personal balance
-						const balanceData = await accountService.fetchBalanceRPC()
-						if (balanceData?.balance !== undefined) {
-							setBalance(balanceData.balance)
-						}
+					const balanceData = await accountService.fetchBalanceRPC()
+					if (balanceData?.balance !== undefined) {
+						setBalance(balanceData.balance)
 					}
 				} catch {
 					// Balance fetch failed, but we can still show other info
@@ -112,7 +91,7 @@ export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ con
 				}
 			}
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to load account info")
+			setError(err instanceof Error ? err.message : "加载账户信息失败")
 		} finally {
 			setIsLoading(false)
 		}
@@ -134,7 +113,7 @@ export const AccountInfoView: React.FC<AccountInfoViewProps> = React.memo(({ con
 	if (error) {
 		return (
 			<Box>
-				<Text color="red">Error: {error}</Text>
+				<Text color="red">错误: {error}</Text>
 			</Box>
 		)
 	}

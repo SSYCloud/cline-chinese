@@ -420,7 +420,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 		const output = outputIndex === -1 ? "" : text.slice(outputIndex + COMMAND_OUTPUT_STRING.length).trim()
 
 		const isAsk = type === "ask"
-		const label = isAsk ? "Cline wants to execute this command: " : "Cline executed this command: "
+		const label = isAsk ? "Cline 想要执行此命令：" : "Cline 执行了此命令："
 
 		return (
 			<Box flexDirection="column" marginBottom={1} width="100%">
@@ -465,21 +465,21 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 		const parsed = text
 			? jsonParseSafe<Partial<ClineAskUseMcpServer> & { serverName: string }>(text, {
 					type: undefined,
-					serverName: "unknown server",
+					serverName: "未知服务器",
 					toolName: undefined,
 					arguments: undefined,
 					uri: undefined,
 				})
 			: undefined
 
-		const serverName = parsed?.serverName || "unknown server"
-		const actionLabel = isAsk ? "Cline wants to use MCP" : "Cline used MCP"
+		const serverName = parsed?.serverName || "未知服务器"
+		const actionLabel = isAsk ? "Cline 想要使用 MCP" : "Cline 使用了 MCP"
 		const targetLine =
 			parsed?.type === "access_mcp_resource"
-				? `resource: ${parsed?.uri || "unknown"}`
+				? `resource: ${parsed?.uri || "未知"}`
 				: parsed?.type === "use_mcp_tool"
-					? `tool: ${parsed?.toolName || "unknown"}`
-					: "tool: unknown"
+					? `tool: ${parsed?.toolName || "未知"}`
+					: "tool: 未知"
 
 		let argsLines: string[] = []
 		if (parsed?.arguments && parsed.arguments.trim() && parsed.arguments !== "{}") {
@@ -506,7 +506,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 					</ResultRow>
 					{argsLines.length > 0 && (
 						<Box flexDirection="column" paddingLeft={3} width="100%">
-							<Text color="gray">args:</Text>
+							<Text color="gray">参数：</Text>
 							{argsLines.map((line, idx) => (
 								<Text color="gray" key={`mcp-args-${idx}`}>
 									{line}
@@ -529,7 +529,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 		return (
 			<Box flexDirection="column" marginBottom={1} width="100%">
 				<DotRow color={toolColor} flashing={partial === true && isStreaming}>
-					<Text color={toolColor}>MCP response</Text>
+					<Text color={toolColor}>MCP 响应</Text>
 				</DotRow>
 				<Box flexDirection="column" marginLeft={2} width="100%">
 					{lines.map((line, idx) => (
@@ -548,7 +548,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 			<Box flexDirection="column" marginBottom={1} width="100%">
 				<DotRow color="red">
 					<Text color="red" wrap="wrap">
-						Cline tried to access <Text bold>{text}</Text> which is blocked by the .clineignore file.
+						Cline 尝试访问 <Text bold>{text}</Text>，但被 .clineignore 文件阻止。
 					</Text>
 				</DotRow>
 			</Box>
@@ -557,7 +557,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 
 	if (say === "error" || (type === "ask" && ask === "api_req_failed")) {
 		// Try to parse error message if it's JSON
-		let errorMessage = text || "Unknown error"
+		let errorMessage = text || "未知错误"
 		if (text) {
 			const parsed = jsonParseSafe(text, { message: undefined as string | undefined })
 			if (parsed.message) {
@@ -572,13 +572,13 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 			<Box flexDirection="column" marginBottom={1} width="100%">
 				<DotRow color="red">
 					<Text color="red" wrap="wrap">
-						<Text bold>Error</Text>: {errorMessage}
+						<Text bold>错误</Text>: {errorMessage}
 					</Text>
 				</DotRow>
 				{isClineAuthError && (
 					<Box marginLeft={2} marginTop={1}>
 						<Text color="gray">
-							Run <Text color="cyan">/settings</Text> and go to Account to sign in.
+							运行 <Text color="cyan">/settings</Text> 并转到账户进行登录。
 						</Text>
 					</Box>
 				)}
@@ -611,9 +611,9 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 				<Box flexDirection="column" marginBottom={1} width="100%">
 					<DotRow color="red">
 						<Text bold color="red">
-							Failed
+							失败
 						</Text>
-						<Text color="red"> after {retryInfo.maxAttempts} retries</Text>
+						<Text color="red"> 重试 {retryInfo.maxAttempts} 次后失败</Text>
 					</DotRow>
 					<Box marginLeft={2}>
 						<Text color="red" dimColor>
@@ -627,10 +627,10 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 			<Box flexDirection="column" marginBottom={1} width="100%">
 				<DotRow color="yellow">
 					<Text bold color="yellow">
-						Retrying
+						重试中
 					</Text>
 					<Text color="yellow">
-						... (attempt {retryInfo.attempt}/{retryInfo.maxAttempts})
+						...（尝试 {retryInfo.attempt}/{retryInfo.maxAttempts}）
 					</Text>
 				</DotRow>
 				<Box marginLeft={2}>
@@ -648,7 +648,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 		return (
 			<Box flexDirection="column" marginBottom={1} width="100%">
 				<DotRow color="green">
-					<Text color="green">Task completed</Text>
+					<Text color="green">任务完成</Text>
 				</DotRow>
 				{text && (
 					<Box marginLeft={2}>
@@ -671,7 +671,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 			<Box flexDirection="column" marginBottom={1} width="100%">
 				<DotRow color={toolColor} flashing={partial === true && isStreaming}>
 					<Text>
-						<Text color={toolColor}>Cline used the browser</Text>
+						<Text color={toolColor}>Cline 使用了浏览器</Text>
 						{text && (
 							<Text>
 								<Text color={toolColor}>: </Text>
@@ -690,7 +690,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 			<Box flexDirection="column" marginBottom={1} width="100%">
 				<DotRow color={toolColor} flashing={partial === true && isStreaming}>
 					<Text>
-						<Text color={toolColor}>Cline is using an MCP tool</Text>
+						<Text color={toolColor}>Cline 正在使用 MCP 工具</Text>
 						{text && (
 							<Text>
 								<Text color={toolColor}>: </Text>
@@ -709,7 +709,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 			<Box flexDirection="column" marginBottom={1} width="100%">
 				<DotRow color={toolColor}>
 					<Text>
-						<Text color={toolColor}>MCP Notification</Text>
+						<Text color={toolColor}>MCP 通知</Text>
 						<Text>: {truncate(text, 120)}</Text>
 					</Text>
 				</DotRow>
@@ -789,7 +789,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 			<Box flexDirection="column" marginBottom={1} width="100%">
 				<DotRow color="red">
 					<Text color="red" wrap="wrap">
-						<Text bold>Error</Text>: {text || "Mistake limit reached."}
+						<Text bold>错误</Text>: {text || "错误次数达到上限。"}
 					</Text>
 				</DotRow>
 			</Box>
@@ -802,7 +802,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 			<Box flexDirection="column" marginBottom={1} width="100%">
 				<DotRow color={COLORS.primaryBlue}>
 					<Text bold color={COLORS.primaryBlue}>
-						Cline wants to start a new task:
+						Cline 想要开始新任务：
 					</Text>
 				</DotRow>
 				<Box flexDirection="column" paddingLeft={2}>
@@ -818,7 +818,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 			<Box flexDirection="column" marginBottom={1} width="100%">
 				<DotRow color={COLORS.primaryBlue} flashing={partial === true && isStreaming}>
 					<Text bold color={COLORS.primaryBlue}>
-						Cline wants to condense your conversation:
+						Cline 想要压缩对话：
 					</Text>
 				</DotRow>
 				<Box flexDirection="column" paddingLeft={2}>
@@ -834,7 +834,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 			<Box flexDirection="column" marginBottom={1} width="100%">
 				<DotRow color={COLORS.primaryBlue} flashing={partial === true && isStreaming}>
 					<Text bold color={COLORS.primaryBlue}>
-						Cline wants to summarize the task:
+						Cline 想要总结任务：
 					</Text>
 				</DotRow>
 				<Box flexDirection="column" paddingLeft={2}>
@@ -850,7 +850,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, mode, isStrea
 			<Box flexDirection="column" marginBottom={1} width="100%">
 				<DotRow color={COLORS.primaryBlue} flashing={partial === true && isStreaming}>
 					<Text bold color={COLORS.primaryBlue}>
-						Cline wants to create a Github issue:
+						Cline 想要创建 GitHub 问题：
 					</Text>
 				</DotRow>
 				<Box flexDirection="column" paddingLeft={2}>

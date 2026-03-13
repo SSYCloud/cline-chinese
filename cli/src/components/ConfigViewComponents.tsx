@@ -63,11 +63,11 @@ export const MAX_VISIBLE = 12
 export const SEPARATOR = "─".repeat(80)
 
 export const TABS: { key: TabView; label: string; requiresFlag?: "hooks" | "skills" }[] = [
-	{ key: "settings", label: "Settings" },
-	{ key: "rules", label: "Rules" },
-	{ key: "workflows", label: "Workflows" },
-	{ key: "hooks", label: "Hooks", requiresFlag: "hooks" },
-	{ key: "skills", label: "Skills", requiresFlag: "skills" },
+	{ key: "settings", label: "设置" },
+	{ key: "rules", label: "规则" },
+	{ key: "workflows", label: "工作流" },
+	{ key: "hooks", label: "钩子", requiresFlag: "hooks" },
+	{ key: "skills", label: "技能", requiresFlag: "skills" },
 ]
 
 // ============================================================================
@@ -216,13 +216,13 @@ export const TextInput: React.FC<TextInputProps> = ({ label, onChange, onCancel,
 	return (
 		<Box flexDirection="column" marginTop={1}>
 			<Text bold color="cyan">
-				Edit: {label}
+				编辑：{label}
 			</Text>
 			<Box>
 				<Text color="white">{value}</Text>
 				<Text color="cyan">|</Text>
 			</Box>
-			<Text color="gray">Type: {type} • Enter to save • Esc to cancel</Text>
+			<Text color="gray">类型：{type} • 回车保存 • Esc 取消</Text>
 		</Box>
 	)
 }
@@ -254,13 +254,13 @@ export const BooleanSelect: React.FC<BooleanSelectProps> = ({ label, onCancel, o
 	return (
 		<Box flexDirection="column" marginTop={1}>
 			<Text bold color="cyan">
-				Edit: {label}
+				编辑：{label}
 			</Text>
 			<Box flexDirection="column">
-				<Text color={selected ? "green" : undefined}>{selected ? "❯ " : "  "}true</Text>
-				<Text color={!selected ? "green" : undefined}>{!selected ? "❯ " : "  "}false</Text>
+				<Text color={selected ? "green" : undefined}>{selected ? "❯ " : "  "}是</Text>
+				<Text color={!selected ? "green" : undefined}>{!selected ? "❯ " : "  "}否</Text>
 			</Box>
-			<Text color="gray">↑/↓ to toggle • Enter to save • Esc to cancel</Text>
+			<Text color="gray">↑/↓ 切换 • 回车保存 • Esc 取消</Text>
 		</Box>
 	)
 }
@@ -275,7 +275,7 @@ export const ConfigRow: React.FC<{ entry: ConfigEntry; isSelected: boolean }> = 
 				<Text color="cyan">{entry.key}</Text>
 				<Text color="gray">: </Text>
 				<Text color={valueColor}>{formatValue(entry.value)}</Text>
-				{!entry.isEditable && <Text color="gray"> (read-only)</Text>}
+				{!entry.isEditable && <Text color="gray"> (只读)</Text>}
 			</Text>
 		</Box>
 	)
@@ -511,7 +511,7 @@ export const ObjectEditorPanel: React.FC<ObjectEditorPanelProps> = ({
 	return (
 		<Box flexDirection="column">
 			<Text bold color="white">
-				⚙️ Edit Nested Object
+				⚙️ 编辑嵌套对象
 			</Text>
 			<Text color="gray">{SEPARATOR}</Text>
 			<Text color="cyan">{breadcrumb}</Text>
@@ -521,12 +521,12 @@ export const ObjectEditorPanel: React.FC<ObjectEditorPanelProps> = ({
 						<Text color="white">{state.editValue}</Text>
 						<Text color="cyan">|</Text>
 					</Box>
-					<Text color="gray">Enter to save • Esc to cancel</Text>
+					<Text color="gray">回车保存 • Esc 取消</Text>
 				</Box>
 			) : (
 				<Box flexDirection="column" marginTop={1}>
 					{objectEntries.length === 0 ? (
-						<Text color="gray">No nested keys at this level.</Text>
+						<Text color="gray">此层级没有嵌套键。</Text>
 					) : (
 						objectEntries.map(([key, value], idx) => {
 							const isSelected = idx === state.selectedIndex
@@ -542,7 +542,7 @@ export const ObjectEditorPanel: React.FC<ObjectEditorPanelProps> = ({
 							)
 						})
 					)}
-					<Text color="gray">↑/↓ Navigate • Enter/Tab Edit or drill in • Esc Back/Close</Text>
+					<Text color="gray">↑/↓ 导航 • 回车/Tab 编辑或进入 • Esc 返回/关闭</Text>
 				</Box>
 			)}
 		</Box>

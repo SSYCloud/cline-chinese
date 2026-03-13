@@ -137,6 +137,7 @@ const ExpandedList: React.FC<{
 	return (
 		<Box flexDirection="column" marginLeft={2} marginTop={1}>
 			{items.map((item, index) => (
+				// biome-ignore lint/suspicious/noArrayIndexKey: static array that never changes
 				<Box key={index}>
 					<Text color={item.checked ? "green" : "gray"}>{item.checked ? "✓" : "○"} </Text>
 					<Text color={item.checked ? "green" : undefined} dimColor={item.checked}>
@@ -147,7 +148,7 @@ const ExpandedList: React.FC<{
 			{isCompleted && (
 				<Box marginTop={1}>
 					<Text dimColor italic>
-						New steps will be generated if you continue the task
+						如果您继续执行任务，将会生成新的步骤。
 					</Text>
 				</Box>
 			)}

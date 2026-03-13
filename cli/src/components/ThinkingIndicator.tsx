@@ -52,7 +52,7 @@ const ShimmerText: React.FC<{ text: string; color: string; shimmerPos: number }>
 }
 
 export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({ mode = "act", startTime, onCancel }) => {
-	const message = mode === "plan" ? "Planning" : "Acting"
+	const message = mode === "plan" ? "规划中" : "执行中"
 	const color = mode === "plan" ? "yellow" : COLORS.primaryBlue
 
 	// Handle esc key to cancel
@@ -120,7 +120,7 @@ export const ThinkingIndicator: React.FC<ThinkingIndicatorProps> = ({ mode = "ac
 	return (
 		<Box paddingLeft={1}>
 			<ShimmerText color={color} shimmerPos={shimmerPos} text={fullText} />
-			{elapsedStr && <Text color="gray"> ({elapsedStr} · esc to interrupt)</Text>}
+			{elapsedStr && <Text color="gray"> ({elapsedStr} · 按 Esc 中断)</Text>}
 		</Box>
 	)
 }

@@ -27,7 +27,7 @@ export const OrganizationPicker: React.FC<OrganizationPickerProps> = ({ organiza
 		const result: SelectListItem[] = [
 			{
 				id: "personal",
-				label: "Personal",
+				label: "个人",
 			},
 		]
 

@@ -214,7 +214,7 @@ class AcpTerminalProcess extends EventEmitter<TerminalProcessEvents> implements 
 				const result = await this.manager.getOutput(this.terminalId)
 				if (!result.success) {
 					this.stopPolling()
-					this.emit("error", new Error(result.error || "Failed to get output"))
+					this.emit("error", new Error(result.error || "获取输出失败"))
 					return
 				}
 
@@ -504,7 +504,7 @@ export class AcpTerminalManager implements ITerminalManager {
 			this.numericIdToStringId.set(managedTerminal.numericId, handle.id)
 
 			// Update the process with the new terminal ID
-			;(process as any).terminalId = handle.id
+			;(process as unknown as Record<string, unknown>).terminalId = handle.id
 
 			// Start the process polling
 			process.run(command)

@@ -1,7 +1,7 @@
 {
-	"name": "cline",
+	"name": "@coohu/cline",
 	"version": "2.5.1",
-	"description": "Autonomous coding agent CLI - capable of creating/editing files, running commands, using the browser, and more",
+	"description": "自主编码代理 CLI - 能够创建/编辑文件、运行命令、使用浏览器等等",
 	"main": "dist/lib.mjs",
 	"types": "dist/lib.d.ts",
 	"bin": {
@@ -63,11 +63,11 @@
 	"license": "Apache-2.0",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/cline/cline"
+		"url": "https://github.com/SSYCloud/cline-chinese-ssy"
 	},
-	"homepage": "https://cline.bot",
+	"homepage": "https://shengsuanyun.com",
 	"bugs": {
-		"url": "https://github.com/cline/cline/issues"
+		"url": "https://github.com/SSYCloud/cline-chinese-ssy/issues"
 	},
 	"devDependencies": {
 		"@types/marked": "^5.0.2",

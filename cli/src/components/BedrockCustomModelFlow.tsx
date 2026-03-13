@@ -5,7 +5,6 @@
  */
 
 import { Box, Text, useInput } from "ink"
-// biome-ignore lint/correctness/noUnusedImports: React is needed for JSX at runtime
 import React, { useCallback, useState } from "react"
 import { COLORS } from "../constants/colors"
 import { useStdinContext } from "../context/StdinContext"
@@ -67,10 +66,10 @@ export const BedrockCustomModelFlow: React.FC<BedrockCustomModelFlowProps> = ({ 
 		return (
 			<Box flexDirection="column">
 				<Text bold color={COLORS.primaryBlue}>
-					Custom Model ID
+					自定义模型 ID
 				</Text>
 				<Box marginTop={1}>
-					<Text color="gray">Enter your Application Inference Profile ARN or custom model ID</Text>
+					<Text color="gray">输入您的应用程序推理配置文件 ARN 或自定义模型 ID</Text>
 				</Box>
 				<Box marginTop={1}>
 					{customArn ? (
@@ -81,7 +80,7 @@ export const BedrockCustomModelFlow: React.FC<BedrockCustomModelFlowProps> = ({ 
 					<Text inverse> </Text>
 				</Box>
 				<Box marginTop={1}>
-					<Text color="gray">Enter to continue, Esc to go back</Text>
+					<Text color="gray">按 Enter 键继续，按 Esc 键返回</Text>
 				</Box>
 			</Box>
 		)
@@ -91,9 +90,9 @@ export const BedrockCustomModelFlow: React.FC<BedrockCustomModelFlowProps> = ({ 
 	return (
 		<Box flexDirection="column">
 			<Text bold color={COLORS.primaryBlue}>
-				Base Inference Model
+				基础推理模型
 			</Text>
-			<Text color="gray">Select the base model your inference profile uses (for capability detection)</Text>
+			<Text color="gray">选择推理配置文件使用的基础模型（用于能力检测）</Text>
 			<Box marginTop={1}>
 				<SearchableList
 					isActive={isActive && step === "base_model"}
@@ -104,7 +103,7 @@ export const BedrockCustomModelFlow: React.FC<BedrockCustomModelFlowProps> = ({ 
 				/>
 			</Box>
 			<Box marginTop={1}>
-				<Text color="gray">Type to search, arrows to navigate, Enter to select, Esc to go back</Text>
+				<Text color="gray">输入文字进行搜索，使用方向键导航，按 Enter 键选择，按 Esc 键返回。</Text>
 			</Box>
 		</Box>
 	)

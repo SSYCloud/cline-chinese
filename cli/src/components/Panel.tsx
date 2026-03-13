@@ -37,7 +37,7 @@ export const Panel: React.FC<PanelProps> = ({ label, tabs, currentTab, isSubpage
 				<Text bold color={COLORS.primaryBlue}>
 					{label}
 				</Text>
-				<Text color="gray"> (Esc to {isSubpage ? "go back" : "close"})</Text>
+				<Text color="gray"> (Esc {isSubpage ? "返回" : "关闭"})</Text>
 			</Box>
 
 			{/* Tab bar if tabs are provided */}
