@@ -709,19 +709,19 @@ export class TaskCheckpointManager implements ICheckpointManager {
 			case "task":
 				HostProvider.window.showMessage({
 					type: ShowMessageType.INFORMATION,
-					message: "Task messages have been restored to the checkpoint",
+					message: "任务消息已恢复到检查点",
 				})
 				break
 			case "workspace":
 				HostProvider.window.showMessage({
 					type: ShowMessageType.INFORMATION,
-					message: "Workspace files have been restored to the checkpoint",
+					message: "工作区文件已恢复到检查点",
 				})
 				break
 			case "taskAndWorkspace":
 				HostProvider.window.showMessage({
 					type: ShowMessageType.INFORMATION,
-					message: "Task and workspace have been restored to the checkpoint",
+					message: "任务和工作区已恢复到检查点",
 				})
 				break
 		}
@@ -790,7 +790,7 @@ export class TaskCheckpointManager implements ICheckpointManager {
 				if (!checkpointsWarningShown) {
 					checkpointsWarningShown = true
 					await this.setcheckpointManagerErrorMessage(
-						"Checkpoints are taking longer than expected to initialize. Working in a large repository? Consider re-opening Cline in a project that uses git, or disabling checkpoints.",
+						"检查点正在初始化，这可能需要一些时间。您是否在处理一个大型仓库？请考虑在使用了 Git 的项目中重新打开 Cline，或禁用检查点。",
 					)
 				}
 			}, 7_000)
@@ -800,9 +800,8 @@ export class TaskCheckpointManager implements ICheckpointManager {
 			const tracker = await pTimeout(
 				CheckpointTracker.create(this.task.taskId, this.config.enableCheckpoints, workspacePath),
 				{
-					milliseconds: 15_000,
-					message:
-						"Checkpoints taking too long to initialize. Consider re-opening Cline in a project that uses git, or disabling checkpoints.",
+					milliseconds: 30_000,
+					message: "检查点初始化时间过长。请考虑在使用了 Git 的项目中重新打开 Cline，或禁用检查点。",
 				},
 			)
 
@@ -814,9 +813,9 @@ export class TaskCheckpointManager implements ICheckpointManager {
 			Logger.error("Failed to initialize checkpoint tracker:", errorMessage)
 
 			// If the error was a timeout, we disable all checkpoint operations for the rest of the task
-			if (errorMessage.includes("Checkpoints taking too long to initialize")) {
+			if (errorMessage.includes("检查点初始化时间过长")) {
 				await this.setcheckpointManagerErrorMessage(
-					"Checkpoints initialization timed out. Consider re-opening Cline in a project that uses git, or disabling checkpoints.",
+					"检查点初始化超时。请考虑在使用了 Git 的项目中重新打开 Cline，或禁用检查点。",
 				)
 			} else {
 				await this.setcheckpointManagerErrorMessage(errorMessage)
