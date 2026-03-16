@@ -75,7 +75,7 @@ export const OpenAICompatibleProvider = ({ showModelOptions, isPopup, currentMod
 	return (
 		<div>
 			<Tooltip>
-				<TooltipTrigger>
+				<TooltipTrigger style={{ width: "100%" }}>
 					<div className="mb-2.5 w-full">
 						<div className="flex items-center gap-2 mb-1">
 							<span style={{ fontWeight: 500 }}>Base URL</span>
@@ -202,7 +202,7 @@ export const OpenAICompatibleProvider = ({ showModelOptions, isPopup, currentMod
 
 			{remoteConfigSettings?.azureApiVersion !== undefined ? (
 				<Tooltip>
-					<TooltipTrigger>
+					<TooltipTrigger style={{ width: "100%" }}>
 						<BaseUrlField
 							disabled={true}
 							initialValue={apiConfiguration?.azureApiVersion}

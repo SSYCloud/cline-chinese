@@ -2652,13 +2652,15 @@ export class Task {
 
 			try {
 				for await (const chunk of stream) {
+					if (!chunk) {
+						continue
+					}
 					if (
 						!this.taskState.taskFirstTokenTimeMs &&
 						(chunk.type === "text" || chunk.type === "reasoning" || chunk.type === "tool_calls")
 					) {
 						this.taskState.taskFirstTokenTimeMs = Math.max(0, Date.now() - this.taskState.taskStartTimeMs)
 					}
-
 					switch (chunk.type) {
 						case "usage":
 							this.streamHandler.setRequestId(chunk.id)
@@ -2715,6 +2717,8 @@ export class Task {
 							break
 						}
 						case "text": {
+							// biome-ignore lint: 临时调试流输出，排查 API 响应问题
+							// console.log('----------------------', chunk.text)
 							// If we have reasoning content, finalize it before processing text (only once)
 							const currentReasoning = reasonsHandler.getCurrentReasoning()
 							if (currentReasoning?.thinking && !didFinalizeReasoningForUi) {
