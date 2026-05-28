@@ -220,7 +220,7 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 							setIsDropdownVisible(true)
 						}}
 						onKeyDown={handleKeyDown}
-						placeholder="Search and select a model..."
+						placeholder="搜索选择模型..."
 						role="combobox"
 						style={{
 							width: "100%",
@@ -266,9 +266,7 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 							) : (
 								<DropdownItem isSelected={false}>
 									<span style={{ color: "var(--vscode-descriptionForeground)" }}>
-										{Object.keys(vercelAiGatewayModels).length === 0
-											? "Loading models..."
-											: "No models found"}
+										{Object.keys(vercelAiGatewayModels).length === 0 ? "加载模型..." : "未找到模型"}
 									</span>
 								</DropdownItem>
 							)}
@@ -312,7 +310,7 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 					}}>
 					{Object.keys(vercelAiGatewayModels).length === 0 ? (
 						<>
-							Enter your Vercel AI Gateway API key above to load available models. You can get an API key from{" "}
+							输入 Vercel AI Gateway API key 加载可用模型列表. 获取{" "}
 							<VSCodeLink
 								href="https://vercel.com/d?to=%2F%5Bteam%5D%2F%7E%2Fai"
 								style={{ display: "inline", fontSize: "inherit" }}>
@@ -320,10 +318,7 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 							</VSCodeLink>
 						</>
 					) : (
-						<>
-							Select a model from the dropdown above. The extension fetches available models from your Vercel AI
-							Gateway configuration.
-						</>
+						<>请从上方下拉菜单中选择一个模型。该扩展程序会从您的 Vercel AI网关配置中获取可用模型。</>
 					)}
 				</p>
 			)}

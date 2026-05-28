@@ -31,7 +31,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 					const errorMessage = ssyError?._error?.message || ssyError?.message || rawApiError
 					const requestId = ssyError?._error?.request_id
 					const providerId = ssyError?.providerId || ssyError?._error?.providerId
-					const isClineProvider = providerId === "cline"
+					const isClineProvider = providerId === "shengsuanyun"
 					const errorCode = ssyError?._error?.code
 
 					if (ssyError?.isErrorType(SSYErrorType.Balance)) {

@@ -1,20 +1,19 @@
 import { Anthropic } from "@anthropic-ai/sdk"
 import { ShengSuanYunModelInfo } from "@shared/proto/cline/models"
 import OpenAI from "openai"
-import type { ChatCompletionTool } from "openai/resources/chat/completions"
-import { Logger } from "@/shared/services/Logger"
 import { ClineStorageMessage } from "@/shared/messages"
-import { calculateApiCostOpenAI } from "@/utils/cost"
-// import * as vscode from "vscode"
+import { Logger } from "@/shared/services/Logger"
 import { shouldSkipReasoningForModel } from "@/utils/model-utils"
-import { shengSuanYunDefaultModelId, shengSuanYunDefaultModelInfo } from "../../../shared/api"
+import { ModelInfo, shengSuanYunDefaultModelId, shengSuanYunDefaultModelInfo } from "../../../shared/api"
 import { ApiHandler, CommonApiHandlerOptions } from "../"
 import { withRetry } from "../retry"
 import { convertToOpenAIResponsesInput } from "../transform/openai-response-format"
 import { createOpenRouterStream } from "../transform/openrouter-stream"
 import { ApiStream } from "../transform/stream"
+import { handleResponsesApiStreamResponse } from "../utils/responses_api_support"
 import { OpenRouterErrorResponse } from "./types"
-
+import type { ChatCompletionTool as OpenAITool } from "openai/resources/chat/completions"
+import { calculateApiCostOpenAI } from "@utils/cost"
 interface ShengSuanYunHandlerOptions extends CommonApiHandlerOptions {
 	shengSuanYunApiKey?: string
 	reasoningEffort?: string
@@ -54,7 +53,7 @@ export class ShengSuanYunHandler implements ApiHandler {
 	}
 
 	@withRetry()
-	async *createMessage(systemPrompt: string, messages: ClineStorageMessage[], tools?: ChatCompletionTool[]): ApiStream {
+	async *createMessage(systemPrompt: string, messages: ClineStorageMessage[], tools?: OpenAITool[]): ApiStream {
 		const model = this.getModel()
 		if (model?.info?.endPoints?.includes("/v1/chat/completions")) {
 			yield* this.createCompletionStream(systemPrompt, messages)
@@ -83,6 +82,49 @@ export class ShengSuanYunHandler implements ApiHandler {
 			Logger.error("Unsupported ShengSuanYun model endpoints:", model)
 			throw new Error("Unsupported ShengSuanYun model endpoints")
 		}
+		yield* this.createCompletionStream(systemPrompt, messages)
+	}
+
+	async calculateCost(
+		modelInfo: ModelInfo,
+		inputTokens: number,
+		outputTokens: number,
+		_cacheWriteTokens?: number,
+		_cacheReadTokens?: number,
+	) {
+		const inputCost = modelInfo.inputPrice || 0
+		const outputCost = modelInfo.outputPrice || 0
+		const totalCost = (inputCost * inputTokens) / 1e6 + (outputCost * outputTokens) / 1e6
+		return totalCost
+	}
+
+	async *createMessageResponsesApi(systemPrompt: string, messages: ClineStorageMessage[], tools?: OpenAITool[]): ApiStream {
+		const client = this.ensureClient()
+		const inputMessages = convertToOpenAIResponsesInput(messages, { usePreviousResponseId: false }).input
+		const input: OpenAI.Responses.ResponseInputItem[] = [{ role: "system", content: systemPrompt }, ...inputMessages]
+		const responseTools = tools
+			?.filter((tool) => tool?.type === "function")
+			.map((tool: any) => ({
+				type: "function" as const,
+				name: tool.function.name,
+				description: tool.function.description,
+				parameters: tool.function.parameters,
+				strict: tool.function.strict ?? true, // Responses API defaults to strict mode
+			}))
+
+		const responsesParams: OpenAI.Responses.ResponseCreateParamsStreaming = {
+			model: this.options.shengSuanYunModelId || shengSuanYunDefaultModelId,
+			input,
+			stream: true,
+			tools: responseTools,
+		}
+
+		const modelInfo = this.options.shengSuanYunModelInfo
+		if (!modelInfo) {
+			throw new Error("未找到模型详细信息！")
+		}
+		const stream = await client.responses.create(responsesParams)
+		yield* handleResponsesApiStreamResponse(stream, modelInfo, this.calculateCost.bind(this))
 	}
 
 	async *createCompletionStream(systemPrompt: string, messages: Anthropic.Messages.MessageParam[]): ApiStream {
@@ -189,7 +231,7 @@ export class ShengSuanYunHandler implements ApiHandler {
 	private async *createResponseStream(
 		systemPrompt: string,
 		messages: ClineStorageMessage[],
-		tools: ChatCompletionTool[],
+		tools: OpenAITool[],
 	): ApiStream {
 		const client = this.ensureClient()
 		const model = this.getModel()

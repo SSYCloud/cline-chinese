@@ -8,13 +8,6 @@ import path from "path"
 import { Logger } from "@/shared/services/Logger"
 import { Controller } from ".."
 
-/**
- * Refreshes the ShengSuanYun models and returns the updated model list
- * @param controller The controller instance
- * @param request Empty request object
- * @returns Response containing the ShengSuanYun models
- */
-
 export async function refreshShengSuanYunModels(
 	controller: Controller,
 	_request: EmptyRequest,
@@ -32,7 +25,10 @@ export async function refreshShengSuanYunModels(
 				return undefined
 			}
 			for (const model of rawModels) {
-				if (!model.support_apis || !model.support_apis.includes("/v1/chat/completions")) {
+				if (
+					!model.support_apis ||
+					!(model.support_apis.includes("/v1/chat/completions") || model.support_apis.includes("/v1/responses"))
+				) {
 					continue
 				}
 				const modelInfo: Partial<ShengSuanYunModelInfo> = {

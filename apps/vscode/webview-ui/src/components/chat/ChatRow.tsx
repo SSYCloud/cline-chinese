@@ -315,12 +315,12 @@ export const ChatRowContent = memo(
 				case "error":
 					return [
 						<span className="codicon codicon-error text-error mb-[-1.5px]" />,
-						<span className="text-error font-bold">Error</span>,
+						<span className="text-error font-bold">错误</span>,
 					]
 				case "mistake_limit_reached":
 					return [
 						<CircleXIcon className="text-error size-2" />,
-						<span className="text-error font-bold">Cline is having trouble...</span>,
+						<span className="text-error font-bold">Cline 遇到错误...</span>,
 					]
 				case "command":
 					return [
@@ -336,7 +336,7 @@ export const ChatRowContent = memo(
 							<span className="codicon codicon-server text-foreground mb-[-1.5px]" />
 						),
 						<span className="ph-no-capture font-bold text-foreground break-words">
-							Cline wants to {mcpServerUse.type === "use_mcp_tool" ? "use a tool" : "access a resource"} on the{" "}
+							Cline 需要 {mcpServerUse.type === "use_mcp_tool" ? "use a tool" : "access a resource"} on the{" "}
 							<code className="break-all">
 								{getMcpServerDisplayName(mcpServerUse.serverName, mcpMarketplaceCatalog)}
 							</code>{" "}
@@ -720,7 +720,7 @@ export const ChatRowContent = memo(
 						<div>
 							<div className={HEADER_CLASSNAMES}>
 								<LightbulbIcon className="size-2" />
-								<span className="font-bold">Cline loaded the skill:</span>
+								<span className="font-bold">Cline 加载 skill:</span>
 							</div>
 							<div className="bg-code border border-editor-group-border overflow-hidden rounded-xs py-[9px] px-2.5">
 								<span className="ph-no-capture font-medium">{tool.path}</span>
@@ -1042,12 +1042,12 @@ export const ChatRowContent = memo(
 							<div className="flex flex-col bg-warning/20 p-2 rounded-xs border border-error">
 								<div className="flex items-center mb-1">
 									<TriangleAlertIcon className="mr-2 size-2 stroke-3 text-error" />
-									<span className="font-medium text-foreground">Shell Integration Unavailable</span>
+									<span className="font-medium text-foreground">Shell 集成不可用</span>
 								</div>
 								<div className="text-foreground opacity-80">
-									Cline may have trouble viewing the command's output. Please update VSCode (
-									<code>CMD/CTRL + Shift + P</code> → "Update") and make sure you're using a supported shell:
-									zsh, bash, fish, or PowerShell (<code>CMD/CTRL + Shift + P</code> → "Terminal: Select Default
+									Cline 可能无法查看命令输出。请更新 VSCode（
+									<code>CMD/CTRL + Shift + P</code> → "Update")，并确保您使用的是受支持的 shell：
+									zsh、bash、fish 或 PowerShell（<code>CMD/CTRL + Shift + P</code> → "Terminal: Select Default
 									Profile").
 									<a
 										className="px-1"
@@ -1082,13 +1082,12 @@ export const ChatRowContent = memo(
 										<div className="text-foreground opacity-80">
 											{isFailed ? (
 												<span>
-													Auto-retry failed after <strong>{maxAttempts}</strong> attempts. Manual
-													intervention required.
+													失败 <strong>{maxAttempts}</strong> 次后，自动重试
 												</span>
 											) : (
 												<span>
-													Attempt <strong>{attempt}</strong> of <strong>{maxAttempts}</strong> -
-													Retrying in {delaySeconds} seconds...
+													重试 <strong>{attempt}</strong> / <strong>{maxAttempts}</strong> - 耗时{" "}
+													{delaySeconds} 秒...
 												</span>
 											)}
 										</div>
@@ -1116,7 +1115,7 @@ export const ChatRowContent = memo(
 							<div className="p-2 bg-link/10 border border-link/30 rounded-xs">
 								<div className="flex items-center mb-1">
 									<LightbulbIcon className="mr-1.5 size-2 text-link" />
-									<span className="font-medium text-foreground">Shell integration issues</span>
+									<span className="font-medium text-foreground">Shell集成问题</span>
 								</div>
 								<div className="text-foreground opacity-90 mb-2">
 									Since you're experiencing repeated shell integration issues, we recommend switching to

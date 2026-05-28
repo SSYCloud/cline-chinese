@@ -369,7 +369,7 @@ export class Task {
 		} else if (task || images || files) {
 			this.ulid = ulid()
 		} else {
-			throw new Error("Either historyItem or task/images must be provided")
+			throw new Error("必须提供 historyItem 或 task/images。")
 		}
 
 		this.messageStateHandler = new MessageStateHandler({
@@ -405,7 +405,7 @@ export class Task {
 
 		if (isMultiRootWorkspace && checkpointsEnabled) {
 			// Set checkpoint manager error message to display warning in TaskHeader
-			this.taskState.checkpointManagerErrorMessage = "Checkpoints are not currently supported in multi-root workspaces."
+			this.taskState.checkpointManagerErrorMessage = "目前多根工作区不支持检查点。"
 		}
 
 		// Initialize checkpoint manager based on workspace configuration
@@ -447,7 +447,7 @@ export class Task {
 					const errorMessage = error instanceof Error ? error.message : "Unknown error"
 					HostProvider.window.showMessage({
 						type: ShowMessageType.ERROR,
-						message: `Failed to initialize checkpoint manager: ${errorMessage}`,
+						message: `检查点管理器初始化失败: ${errorMessage}`,
 					})
 				}
 			}
@@ -694,7 +694,7 @@ export class Task {
 					// await this.postStateToWebview()
 					const protoMessage = convertClineMessageToProto(lastMessage)
 					await sendPartialMessageEvent(protoMessage)
-					throw new Error("Current ask promise was ignored 1")
+					throw new Error("当前请求被忽略 1")
 				}
 				// this is a new partial message, so add it with partial state
 				// this.askResponse = undefined
@@ -710,7 +710,7 @@ export class Task {
 					partial,
 				})
 				await this.postStateToWebview()
-				throw new Error("Current ask promise was ignored 2")
+				throw new Error("当前请求被忽略 2")
 			}
 			// partial=false means its a complete version of a previously partial message
 			if (isUpdatingPreviousPartial) {
@@ -802,7 +802,7 @@ export class Task {
 			throw new Error("Cline instance aborted")
 		}
 		if (this.taskState.lastMessageTs !== askTs) {
-			throw new Error("Current ask promise was ignored") // could happen if we send multiple asks in a row i.e. with command_output. It's important that when we know an ask could fail, it is handled gracefully
+			throw new Error("当前请求被忽略") // could happen if we send multiple asks in a row i.e. with command_output. It's important that when we know an ask could fail, it is handled gracefully
 		}
 		const result = {
 			response: this.taskState.askResponse!,
@@ -1329,7 +1329,7 @@ export class Task {
 				modifiedApiConversationHistory = existingApiConversationHistory.slice(0, -1)
 				modifiedOldUserContent = [...existingUserContent]
 			} else {
-				throw new Error("Unexpected: Last message is not a user or assistant message")
+				throw new Error("意外情况：最后一条消息并非用户或助手消息。")
 			}
 		} else {
 			// No API conversation history yet (e.g., cancelled during hook before first API request)
@@ -1350,15 +1350,15 @@ export class Task {
 			const days = Math.floor(hours / 24)
 
 			if (days > 0) {
-				return `${days} day${days > 1 ? "s" : ""} ago`
+				return `${days} 天前`
 			}
 			if (hours > 0) {
-				return `${hours} hour${hours > 1 ? "s" : ""} ago`
+				return `${hours} 小时前`
 			}
 			if (minutes > 0) {
-				return `${minutes} minute${minutes > 1 ? "s" : ""} ago`
+				return `${minutes} 分钟前`
 			}
-			return "just now"
+			return "刚刚"
 		})()
 
 		const wasRecent = lastClineMessage?.ts && Date.now() - lastClineMessage.ts < 30_000
@@ -2392,8 +2392,8 @@ export class Task {
 			// In yolo mode, don't wait for user input - fail the task
 			if (this.stateManager.getGlobalSettingsKey("yoloModeToggled")) {
 				const errorMessage =
-					`[YOLO MODE] Task failed: Too many consecutive mistakes (${this.taskState.consecutiveMistakeCount}). ` +
-					`The model may not be capable enough for this task. Consider using a more capable model.`
+					`[YOLO MODE] 任务失败：错误过多 (${this.taskState.consecutiveMistakeCount}). ` +
+					`该模型可能不足以胜任此任务。请考虑使用功能更强大的模型。`
 				await this.say("error", errorMessage)
 				// End the task loop with failure
 				return true // didEndLoop = true, signals task completion/failure
@@ -2599,7 +2599,7 @@ export class Task {
 		if (clinerulesError === true) {
 			await this.say(
 				"error",
-				"Issue with processing the /newrule command. Double check that, if '.clinerules' already exists, it's a directory and not a file. Otherwise there was an issue referencing this file/directory.",
+				"处理 /newrule 命令时出现问题。请仔细检查，如果 '.clinerules' 已存在，则它是一个目录而不是一个文件。否则，可能是引用该文件/目录时出现问题。",
 			)
 		}
 
@@ -2757,11 +2757,7 @@ export class Task {
 							type: "text",
 							text:
 								assistantMessage +
-								`\n\n[${
-									cancelReason === "streaming_failed"
-										? "Response interrupted by API Error"
-										: "Response interrupted by user"
-								}]`,
+								`\n\n[${cancelReason === "streaming_failed" ? "API 错误导致响应中断" : "响应被用户中断"}]`,
 						},
 					],
 					modelInfo,
@@ -2876,7 +2872,6 @@ export class Task {
 					if (!this.taskState.taskFirstTokenTimeMs) {
 						this.taskState.taskFirstTokenTimeMs = Math.max(0, Date.now() - this.taskState.taskStartTimeMs)
 					}
-
 					switch (chunk.type) {
 						case "reasoning": {
 							// Process the reasoning delta through the handler
@@ -2934,6 +2929,8 @@ export class Task {
 							break
 						}
 						case "text": {
+							// biome-ignore lint: 临时调试流输出，排查 API 响应问题
+							// console.log('----------------------', chunk.text)
 							// If we have reasoning content, finalize it before processing text (only once)
 							const currentReasoning = reasonsHandler.getCurrentReasoning()
 							if (currentReasoning?.thinking && !didFinalizeReasoningForUi) {
@@ -2979,7 +2976,7 @@ export class Task {
 
 					if (this.taskState.didRejectTool) {
 						// userContent has a tool rejection, so interrupt the assistant's response to present the user's feedback
-						assistantMessage += "\n\n[Response interrupted by user feedback]"
+						assistantMessage += "\n\n[响应因用户反馈而中断]"
 						// this.userMessageContentReady = true // instead of setting this preemptively, we allow the present iterator to finish and set userMessageContentReady when its ready
 						shouldInterruptStream = true
 						break
@@ -3232,7 +3229,7 @@ export class Task {
 				didEndLoop = recDidEndLoop
 			} else {
 				// if there's no assistant_responses, that means we got no text or tool_use content blocks from API which we should assume is an error
-				const { model, providerId } = this.getCurrentProviderInfo()
+				// const { model, providerId } = this.getCurrentProviderInfo()
 				const reqId = this.getApiRequestIdSafe()
 
 				// Minimal diagnostics: structured log and telemetry
@@ -3246,7 +3243,7 @@ export class Task {
 				// })
 
 				const baseErrorMessage =
-					"Invalid API Response: The provider returned an empty or unparsable response. This is a provider-side issue where the model failed to generate valid output or returned tool calls that Cline cannot process. Retrying the request may help resolve this issue."
+					"无效的 API 响应：模型返回了空响应或无法解析的响应。这是模型API端的问题，模型未能生成有效输出，或者返回了 Cline 无法处理的工具调用。重试请求可能有助于解决此问题。"
 				const errorText = reqId ? `${baseErrorMessage} (Request ID: ${reqId})` : baseErrorMessage
 
 				await this.say("error", errorText)
@@ -3273,7 +3270,7 @@ export class Task {
 
 				let response: ClineAskResponse
 
-				const noResponseErrorMessage = "No assistant message was received. Would you like to retry the request?"
+				const noResponseErrorMessage = "未收到消息。您想重试请求吗？"
 
 				if (this.taskState.autoRetryAttempts < 3) {
 					// Auto-retry enabled with max 3 attempts: automatically approve the retry
@@ -3316,8 +3313,6 @@ export class Task {
 					// Signal the loop to continue (i.e., do not end), so it will attempt again
 					return false
 				}
-
-				// Returns early to avoid retry since user dismissed
 				return true
 			}
 
@@ -3665,7 +3660,7 @@ export class Task {
 		const recentlyModifiedFiles = this.fileContextTracker.getAndClearRecentlyModifiedFiles()
 		if (recentlyModifiedFiles.length > 0) {
 			details +=
-				"\n\n# Recently Modified Files\nThese files have been modified since you last accessed them (file was just edited so you may need to re-read it before editing):"
+				"\n\n# 最近修改的文件\n这些文件自您上次访问以来已被修改（文件刚刚被编辑过，因此您可能需要在编辑前重新阅读）："
 			for (const filePath of recentlyModifiedFiles) {
 				details += `\n${filePath}`
 			}
@@ -3685,14 +3680,14 @@ export class Task {
 		const timeZone = formatter.resolvedOptions().timeZone
 		const timeZoneOffset = -now.getTimezoneOffset() / 60 // Convert to hours and invert sign to match conventional notation
 		const timeZoneOffsetStr = `${timeZoneOffset >= 0 ? "+" : ""}${timeZoneOffset}:00`
-		details += `\n\n# Current Time\n${formatter.format(now)} (${timeZone}, UTC${timeZoneOffsetStr})`
+		details += `\n\n# 当前时间\n${formatter.format(now)} (${timeZone}, UTC${timeZoneOffsetStr})`
 
 		if (includeFileDetails) {
 			details += this.formatFileDetailsHeader()
 			const isDesktop = arePathsEqual(this.cwd, getDesktopDir())
 			if (isDesktop) {
 				// don't want to immediately access desktop since it would show permission popup
-				details += "(Desktop files not shown automatically. Use list_files to explore if needed.)"
+				details += "(桌面文件不会自动显示。如有需要，请使用 list_files 函数进行查看。)"
 			} else {
 				const [files, didHitLimit] = await listFiles(this.cwd, true, 200)
 				const result = formatResponse.formatFilesList(this.cwd, files, didHitLimit, this.clineIgnoreController)
@@ -3703,14 +3698,14 @@ export class Task {
 			if (this.workspaceManager) {
 				const workspacesJson = await this.workspaceManager.buildWorkspacesJson()
 				if (workspacesJson) {
-					details += `\n\n# Workspace Configuration\n${workspacesJson}`
+					details += `\n\n# 工作区配置\n${workspacesJson}`
 				}
 			}
 
 			// Add detected CLI tools
 			const availableCliTools = await detectAvailableCliTools()
 			if (availableCliTools.length > 0) {
-				details += `\n\n# Detected CLI Tools\nThese are some of the tools on the user's machine, and may be useful if needed to accomplish the task: ${availableCliTools.join(", ")}. This list is not exhaustive, and other tools may be available.`
+				details += `\n\n# 检测到的 CLI 工具\n这些是用户机器上的一些工具，如果需要完成任务可能会有用：${availableCliTools.join(", ")}. 此列表不详尽，可能还有其他可用的工具。`
 			}
 		}
 

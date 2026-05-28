@@ -3,9 +3,8 @@ import { Empty } from "@shared/proto/cline/common"
 import { PlanActMode, McpDisplayMode as ProtoMcpDisplayMode, UpdateSettingsRequest } from "@shared/proto/cline/state"
 import { convertProtoToApiProvider } from "@shared/proto-conversions/models/api-configuration-conversion"
 import { OpenaiReasoningEffort } from "@shared/storage/types"
-import { TelemetrySetting } from "@shared/TelemetrySetting"
+// import { TelemetrySetting } from "@shared/TelemetrySetting"
 import { ClineEnv } from "@/config"
-import { fetchRemoteConfig } from "@/core/storage/remote-config/fetch"
 import { clearRemoteConfig } from "@/core/storage/remote-config/utils"
 import { HostProvider } from "@/hosts/host-provider"
 import { McpDisplayMode } from "@/shared/McpDisplayMode"
@@ -55,11 +54,6 @@ export async function updateSettings(controller: Controller, request: UpdateSett
 				}
 				controller.task.api = buildApiHandler(apiConfigForHandler, currentMode)
 			}
-		}
-
-		// Update telemetry setting
-		if (request.telemetrySetting) {
-			await controller.updateTelemetrySetting(request.telemetrySetting as TelemetrySetting)
 		}
 
 		// Update plan/act separate models setting
@@ -169,25 +163,12 @@ export async function updateSettings(controller: Controller, request: UpdateSett
 
 		// Update subagents setting
 		if (request.subagentsEnabled !== undefined) {
-			const wasEnabled = controller.stateManager.getGlobalSettingsKey("subagentsEnabled") ?? false
 			const isEnabled = !!request.subagentsEnabled
 			controller.stateManager.setGlobalState("subagentsEnabled", isEnabled)
-
-			// Capture telemetry when setting changes
-			if (wasEnabled !== isEnabled) {
-				// telemetryService.captureSubagentToggle(isEnabled)
-			}
 		}
 
 		// Update auto-condense setting
 		if (request.useAutoCondense !== undefined) {
-			// if (controller.task) {
-			// 	telemetryService.captureAutoCondenseToggle(
-			// 		controller.task.ulid,
-			// 		request.useAutoCondense,
-			// 		controller.task.api.getModel().id,
-			// 	)
-			// }
 			controller.stateManager.setGlobalState("useAutoCondense", request.useAutoCondense)
 		}
 
@@ -335,7 +316,7 @@ export async function updateSettings(controller: Controller, request: UpdateSett
 				// The function catches any errors and posts the updated state to the webview
 				// The immediate state update below shows the user's intent (opted-in),
 				// and we apply the actual config afterwards without blocking the settings update
-				fetchRemoteConfig(controller)
+				// fetchRemoteConfig(controller)
 			}
 		}
 

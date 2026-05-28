@@ -5,8 +5,8 @@ import { fileExistsAtPath } from "@utils/fs"
 import axios from "axios"
 import fs from "fs/promises"
 import path from "path"
-import { Logger } from "@/shared/services/Logger"
 import { getAxiosSettings } from "@/shared/net"
+import { Logger } from "@/shared/services/Logger"
 import { Controller } from ".."
 
 /**

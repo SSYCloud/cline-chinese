@@ -259,11 +259,11 @@ const GroqModelPicker: React.FC<GroqModelPickerProps> = ({ isPopup, currentMode 
 				<ModelInfoView isPopup={isPopup} modelInfo={selectedModelInfo} selectedModelId={selectedModelId} />
 			) : (
 				<p className="text-xs mt-0 text-(--vscode-descriptionForeground)">
-					The extension automatically fetches the latest list of models available on{" "}
+					插件将从自动获取{" "}
 					<VSCodeLink className="inline text-inherit" href="https://console.groq.com/docs/models">
-						Groq.
+						Groq.模型列表
 					</VSCodeLink>
-					If you're unsure which model to choose, Cline works best with{" "}
+					{" 推荐您试用"}
 					<VSCodeLink className="inline text-inherit" onClick={() => handleModelChange("llama-3.3-70b-versatile")}>
 						llama-3.3-70b-versatile.
 					</VSCodeLink>

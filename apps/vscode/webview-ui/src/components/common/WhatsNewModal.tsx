@@ -1,11 +1,6 @@
 import { BannerAction, BannerCardData } from "@shared/cline/banner"
 import React from "react"
 import { useMount } from "react-use"
-import DiscordIcon from "@/assets/DiscordIcon"
-import GitHubIcon from "@/assets/GitHubIcon"
-import LinkedInIcon from "@/assets/LinkedInIcon"
-import RedditIcon from "@/assets/RedditIcon"
-import XIcon from "@/assets/XIcon"
 import WhatsNewItems from "@/components/common/WhatsNewItems"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -56,67 +51,17 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ open, onClose, ver
 					{/* Social Icons Section */}
 					<div className="flex flex-col items-center gap-3 mt-4 pt-4 border-t border-[var(--vscode-widget-border)]">
 						{/* Icon Row */}
-						<div className="flex items-center gap-4">
-							{/* X/Twitter */}
-							<a
-								aria-label="Follow us on X"
-								className="text-[var(--vscode-foreground)] hover:text-[var(--vscode-textLink-activeForeground)] transition-colors"
-								href="https://x.com/cline"
-								rel="noopener noreferrer"
-								target="_blank">
-								<XIcon />
-							</a>
-
-							{/* Discord */}
-							<a
-								aria-label="Join our Discord"
-								className="text-[var(--vscode-foreground)] hover:text-[var(--vscode-textLink-activeForeground)] transition-colors"
-								href="https://discord.gg/cline"
-								rel="noopener noreferrer"
-								target="_blank">
-								<DiscordIcon />
-							</a>
-
-							{/* GitHub */}
-							<a
-								aria-label="Star us on GitHub"
-								className="text-[var(--vscode-foreground)] hover:text-[var(--vscode-textLink-activeForeground)] transition-colors"
-								href="https://github.com/cline/cline"
-								rel="noopener noreferrer"
-								target="_blank">
-								<GitHubIcon />
-							</a>
-
-							{/* Reddit */}
-							<a
-								aria-label="Join our subreddit"
-								className="text-[var(--vscode-foreground)] hover:text-[var(--vscode-textLink-activeForeground)] transition-colors"
-								href="https://www.reddit.com/r/cline/"
-								rel="noopener noreferrer"
-								target="_blank">
-								<RedditIcon />
-							</a>
-
-							{/* LinkedIn */}
-							<a
-								aria-label="Follow us on LinkedIn"
-								className="text-[var(--vscode-foreground)] hover:text-[var(--vscode-textLink-activeForeground)] transition-colors"
-								href="https://www.linkedin.com/company/clinebot/"
-								rel="noopener noreferrer"
-								target="_blank">
-								<LinkedInIcon />
-							</a>
-						</div>
+						<div className="flex items-center gap-4">{/* X/Twitter */}</div>
 
 						{/* GitHub Star CTA */}
 						<p className="text-sm text-center" style={{ color: "var(--vscode-descriptionForeground)" }}>
-							Please support Cline by{" "}
+							在{" "}
 							<a
-								href="https://github.com/cline/cline"
+								href="https://github.com/SSYCloud/cline-chinese-ssy"
 								rel="noopener noreferrer"
 								style={{ color: "var(--vscode-textLink-foreground)" }}
 								target="_blank">
-								starring us on GitHub
+								GitHub 点赞支持我们
 							</a>
 							.
 						</p>

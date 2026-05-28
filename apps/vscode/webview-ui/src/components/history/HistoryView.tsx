@@ -26,13 +26,13 @@ const isToday = (timestamp: number): boolean => {
 }
 
 const HISTORY_FILTERS = {
-	newest: "Newest",
-	oldest: "Oldest",
-	mostExpensive: "Most Expensive",
-	mostTokens: "Most Tokens",
-	mostRelevant: "Most Relevant",
-	workspaceOnly: "Workspace Only",
-	favoritesOnly: "Favorites Only",
+	newest: "最新",
+	oldest: "最久",
+	mostExpensive: "最贵",
+	mostTokens: "Tokens 最多",
+	mostRelevant: "最匹配",
+	workspaceOnly: "仅工作目录",
+	favoritesOnly: "仅收藏",
 }
 
 const HistoryView = ({ onDone }: HistoryViewProps) => {
@@ -255,10 +255,10 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 
 		const groups: { tasks: any[]; label: string }[] = []
 		if (todayTasks.length > 0) {
-			groups.push({ tasks: todayTasks, label: "Today" })
+			groups.push({ tasks: todayTasks, label: "今天" })
 		}
 		if (olderTasks.length > 0) {
-			groups.push({ tasks: olderTasks, label: "Older" })
+			groups.push({ tasks: olderTasks, label: "更多" })
 		}
 
 		return {
@@ -308,7 +308,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 								setSortOption("mostRelevant")
 							}
 						}}
-						placeholder="Fuzzy search history..."
+						placeholder="模糊搜索历史记录……"
 						value={searchQuery}>
 						<div className="codicon codicon-search opacity-80 mt-0.5 !text-sm" slot="start" />
 						{searchQuery && (
@@ -420,10 +420,10 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 			<div className="p-2.5 border-t border-t-border-panel">
 				<div className="flex gap-2.5 mb-2.5">
 					<Button className="flex-1" onClick={() => handleBatchHistorySelect(true)} variant="secondary">
-						Select All
+						选择所有
 					</Button>
 					<Button className="flex-1" onClick={() => handleBatchHistorySelect(false)} variant="secondary">
-						Select None
+						取消选择
 					</Button>
 				</div>
 				{selectedItems.length > 0 ? (
@@ -434,7 +434,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							handleDeleteSelectedHistoryItems(selectedItems)
 						}}
 						variant="danger">
-						Delete {selectedItems.length > 1 ? selectedItems.length : ""} Selected
+						删除 {selectedItems.length > 1 ? selectedItems.length : ""} 选中
 						{selectedItemsSize > 0 ? ` (${formatSize(selectedItemsSize)})` : ""}
 					</Button>
 				) : (
@@ -450,7 +450,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 								.finally(() => setDeleteAllDisabled(false))
 						}}
 						variant="danger">
-						Delete All History{totalTasksSize !== null ? ` (${formatSize(totalTasksSize)})` : ""}
+						删除所有你是{totalTasksSize !== null ? ` (${formatSize(totalTasksSize)})` : ""}
 					</Button>
 				)}
 			</div>

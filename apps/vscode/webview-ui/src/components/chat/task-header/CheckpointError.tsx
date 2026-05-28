@@ -15,7 +15,7 @@ export const CheckpointError: React.FC<CheckpointErrorProps> = ({
 		const showDisableButton =
 			checkpointManagerErrorMessage?.endsWith("disabling checkpoints.") ||
 			checkpointManagerErrorMessage?.includes("multi-root workspaces")
-		const showGitInstructions = checkpointManagerErrorMessage?.includes("Git must be installed to use checkpoints.")
+		const showGitInstructions = checkpointManagerErrorMessage?.includes("要使用检查点功能，必须先安装 Git。")
 		return { message, showDisableButton, showGitInstructions }
 	}, [checkpointManagerErrorMessage])
 
@@ -28,8 +28,8 @@ export const CheckpointError: React.FC<CheckpointErrorProps> = ({
 			<Alert title={messages.message} variant="danger">
 				<AlertDescription className="flex gap-2 justify-end">
 					{messages.showDisableButton && (
-						<Button aria-label="Disable Checkpoints" onClick={handleCheckpointSettingsClick} variant="ghost">
-							Disable Checkpoints
+						<Button aria-label="禁用检查点" onClick={handleCheckpointSettingsClick} variant="ghost">
+							禁用检查点
 						</Button>
 					)}
 					{messages.showGitInstructions && (

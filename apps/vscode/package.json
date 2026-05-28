@@ -281,7 +281,7 @@
 			},
 			{
 				"command": "ClineShengsuan.improveCode",
-				"title": "Cline 优化代码",
+				"title": "使用 Cline 优化代码",
 				"category": "ClineShengsuan"
 			},
 			{
@@ -309,7 +309,7 @@
 			},
 			{
 				"command": "ClineShengsuan.openWalkthrough",
-				"title": "打开教程",
+				"title": "快速入门",
 				"category": "ClineShengsuan"
 			},
 			{

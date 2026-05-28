@@ -12,7 +12,7 @@ import { Controller } from ".."
 export async function toggleFavoriteModel(controller: Controller, request: StringRequest): Promise<Empty> {
 	try {
 		if (!request.value) {
-			throw new Error("Model ID is required")
+			throw new Error("缺少 Model ID")
 		}
 
 		const modelId = request.value

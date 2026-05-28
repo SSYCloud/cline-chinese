@@ -4,7 +4,6 @@ import { UserOrganization } from "@shared/proto/index.cline"
 import {
 	CheckCheck,
 	FlaskConical,
-	HardDriveDownload,
 	Info,
 	type LucideIcon,
 	SlidersHorizontal,
@@ -18,7 +17,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { cn } from "@/lib/utils"
 import { StateServiceClient } from "@/services/grpc-client"
-import { isAdminOrOwner } from "../account/helpers"
 import { Tab, TabContent, TabList, TabTrigger } from "../common/Tab"
 import ViewHeader from "../common/ViewHeader"
 import SectionHeader from "./SectionHeader"
@@ -28,13 +26,12 @@ import BrowserSettingsSection from "./sections/BrowserSettingsSection"
 import DebugSection from "./sections/DebugSection"
 import FeatureSettingsSection from "./sections/FeatureSettingsSection"
 import GeneralSettingsSection from "./sections/GeneralSettingsSection"
-import { RemoteConfigSection } from "./sections/RemoteConfigSection"
 import TerminalSettingsSection from "./sections/TerminalSettingsSection"
 
 const IS_DEV = process.env.IS_DEV
 
 // Tab definitions
-type SettingsTabID = "api-config" | "features" | "browser" | "terminal" | "general" | "about" | "debug" | "remote-config"
+type SettingsTabID = "api-config" | "features" | "browser" | "terminal" | "general" | "about" | "debug"
 interface SettingsTab {
 	id: SettingsTabID
 	name: string
@@ -79,15 +76,6 @@ export const SETTINGS_TABS: SettingsTab[] = [
 		tooltipText: "通用设置",
 		headerText: "通用设置",
 		icon: Wrench,
-	},
-	{
-		id: "remote-config",
-		name: "Remote Config",
-		tooltipText: "Remotely configured fields",
-		headerText: "Remote Config",
-		icon: HardDriveDownload,
-		hidden: ({ activeOrganization } = { activeOrganization: null }) =>
-			!activeOrganization || !isAdminOrOwner(activeOrganization),
 	},
 	{
 		id: "about",
@@ -138,7 +126,6 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 			features: FeatureSettingsSection,
 			browser: BrowserSettingsSection,
 			terminal: TerminalSettingsSection,
-			"remote-config": RemoteConfigSection,
 			about: AboutSection,
 			debug: DebugSection,
 		}),
@@ -146,7 +133,6 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 	) // Empty deps - these imports never change
 
 	const { version, environment, settingsInitialModelTab } = useExtensionState()
-
 	const [activeTab, setActiveTab] = useState<string>(targetSection || SETTINGS_TABS[0].id)
 
 	// Optimized message handler with early returns
@@ -265,7 +251,6 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 					value={activeTab}>
 					{SETTINGS_TABS.map((tab) => !tab.hidden && renderTabItem(tab))}
 				</TabList>
-
 				<TabContent className="flex-1 overflow-auto">{ActiveContent}</TabContent>
 			</div>
 		</Tab>

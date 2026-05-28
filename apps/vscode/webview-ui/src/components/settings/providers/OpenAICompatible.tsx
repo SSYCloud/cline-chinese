@@ -75,8 +75,8 @@ export const OpenAICompatibleProvider = ({ showModelOptions, isPopup, currentMod
 	return (
 		<div>
 			<Tooltip>
-				<TooltipTrigger>
-					<div className="mb-2.5">
+				<TooltipTrigger style={{ width: "100%" }}>
+					<div className="mb-2.5 w-full">
 						<div className="flex items-center gap-2 mb-1">
 							<span style={{ fontWeight: 500 }}>Base URL</span>
 							{remoteConfigSettings?.openAiBaseUrl !== undefined && (
@@ -90,14 +90,14 @@ export const OpenAICompatibleProvider = ({ showModelOptions, isPopup, currentMod
 								handleFieldChange("openAiBaseUrl", value)
 								debouncedRefreshOpenAiModels(value, apiConfiguration?.openAiApiKey)
 							}}
-							placeholder={"Enter base URL..."}
+							placeholder={"输入 base URL..."}
 							style={{ width: "100%", marginBottom: 10 }}
 							type="text"
 						/>
 					</div>
 				</TooltipTrigger>
 				<TooltipContent hidden={remoteConfigSettings?.openAiBaseUrl === undefined}>
-					This setting is managed by your organization's remote configuration
+					此设置由您所在组织的远程配置管理。
 				</TooltipContent>
 			</Tooltip>
 
@@ -149,7 +149,7 @@ export const OpenAICompatibleProvider = ({ showModelOptions, isPopup, currentMod
 									currentHeaders[newKey] = ""
 									handleFieldChange("openAiHeaders", currentHeaders)
 								}}>
-								添加 HTTP Haeder
+								添加 HTTP Header
 							</VSCodeButton>
 						</div>
 
@@ -202,22 +202,22 @@ export const OpenAICompatibleProvider = ({ showModelOptions, isPopup, currentMod
 
 			{remoteConfigSettings?.azureApiVersion !== undefined ? (
 				<Tooltip>
-					<TooltipTrigger>
+					<TooltipTrigger style={{ width: "100%" }}>
 						<BaseUrlField
 							disabled={true}
 							initialValue={apiConfiguration?.azureApiVersion}
-							label="Set Azure API version"
+							label="设置 Azure API 版本"
 							onChange={(value) => handleFieldChange("azureApiVersion", value)}
 							placeholder={`Default: ${azureOpenAiDefaultApiVersion}`}
 							showLockIcon={true}
 						/>
 					</TooltipTrigger>
-					<TooltipContent>This setting is managed by your organization's remote configuration</TooltipContent>
+					<TooltipContent>此设置由您所在组织的远程配置管理。</TooltipContent>
 				</Tooltip>
 			) : (
 				<BaseUrlField
 					initialValue={apiConfiguration?.azureApiVersion}
-					label="Set Azure API version"
+					label="设置 Azure API 版本"
 					onChange={(value) => handleFieldChange("azureApiVersion", value)}
 					placeholder={`Default: ${azureOpenAiDefaultApiVersion}`}
 				/>
@@ -229,7 +229,7 @@ export const OpenAICompatibleProvider = ({ showModelOptions, isPopup, currentMod
 					const isChecked = e.target.checked === true
 					return handleFieldChange("azureIdentity", isChecked)
 				}}>
-				Use Azure Identity Authentication
+				使用 Azure Identity 认证
 			</VSCodeCheckbox>
 
 			<div

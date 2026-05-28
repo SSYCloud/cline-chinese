@@ -16,8 +16,8 @@ interface ReasoningEffortSelectorProps {
 
 const ReasoningEffortSelector = ({
 	currentMode,
-	label = "Reasoning Effort",
-	description = "Higher effort improves depth, but uses more tokens.",
+	label = "推理强度",
+	description = "强推理利于对项目的了解, 但是会消耗更多 Token.",
 	allowedEfforts = OPENAI_REASONING_EFFORT_OPTIONS,
 	defaultEffort = "medium",
 }: ReasoningEffortSelectorProps) => {

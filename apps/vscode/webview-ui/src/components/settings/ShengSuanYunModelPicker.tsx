@@ -2,20 +2,20 @@ import { shengSuanYunDefaultModelId, shengSuanYunDefaultModelInfo } from "@share
 import { EmptyRequest } from "@shared/proto/cline/common"
 import { Mode } from "@shared/storage/types"
 import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
-import Fuse from "fuse.js"
 import React, { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react"
 import { useMount } from "react-use"
 import styled from "styled-components"
 import { ModelsServiceClient } from "@/services/grpc-client"
 import { useExtensionState } from "../../context/ExtensionStateContext"
-import { highlight } from "../history/HistoryView"
 import { ModelInfoView } from "./common/ModelInfoView"
 import ThinkingBudgetSlider from "./ThinkingBudgetSlider"
 import { getModeSpecificFields, normalizeApiConfiguration } from "./utils/providerUtils"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
+
 export interface ShengSuanYunModelPickerProps {
 	isPopup?: boolean
 	currentMode: Mode
+	initialModelTab?: "recommended" | "free"
 }
 // Star icon for favorites
 const StarIcon = ({ isFavorite, onClick }: { isFavorite: boolean; onClick: (e: React.MouseEvent) => void }) => {
@@ -74,7 +74,7 @@ export const freeModels = [
 	},
 ]
 
-const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPopup, currentMode }) => {
+const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPopup, currentMode, initialModelTab }) => {
 	const { apiConfiguration, shengSuanYunModels, setShengSuanYunModels } = useExtensionState()
 	const { handleModeFieldsChange } = useApiConfigurationHandlers()
 	const modeFields = getModeSpecificFields(apiConfiguration, currentMode)
@@ -108,6 +108,7 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 	useMount(() => {
 		ModelsServiceClient.refreshShengSuanYunModels(EmptyRequest.create({}))
 			.then((res) => {
+				console.log("refreshShengSuanYunModels():", res.models)
 				setShengSuanYunModels({
 					[shengSuanYunDefaultModelId]: shengSuanYunDefaultModelInfo,
 					...res.models,
@@ -134,31 +135,26 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 	}, [shengSuanYunModels])
 
 	const searchableItems = useMemo(() => {
-		return modelIds.map((id) => ({
-			id,
-			html: id,
-		}))
+		return modelIds.map((id) => ({ id, html: id }))
 	}, [modelIds])
 
-	const fuse = useMemo(() => {
-		return new Fuse(searchableItems, {
-			keys: ["html"], // highlight function will update this
-			threshold: 0.6,
-			shouldSort: true,
-			isCaseSensitive: false,
-			ignoreLocation: false,
-			includeMatches: true,
-			minMatchCharLength: 1,
-		})
-	}, [searchableItems])
-
 	const modelSearchResults = useMemo(() => {
-		const results: { id: string; html: string }[] = searchTerm
-			? highlight(fuse.search(searchTerm), "model-item-highlight")
-			: searchableItems
-		// results.sort((a, b) => a.id.localeCompare(b.id)) NOTE: sorting like this causes ids in objects to be reordered and mismatched
-		return results
-	}, [searchableItems, searchTerm, fuse])
+		if (!searchTerm) {
+			return searchableItems
+		}
+		const lowerSearchTerm = searchTerm.toLowerCase()
+		return searchableItems
+			.filter((item) => item.id.toLowerCase().includes(lowerSearchTerm))
+			.map((item) => {
+				const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+				const regex = new RegExp(`(${escapedSearchTerm})`, "gi")
+				const highlightedHtml = item.id.replace(regex, '<span class="model-item-highlight">$1</span>')
+				return {
+					id: item.id,
+					html: highlightedHtml,
+				}
+			})
+	}, [searchableItems, searchTerm])
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
 		if (!isDropdownVisible) {

@@ -60,7 +60,7 @@ export const OllamaProvider = ({ showModelOptions, isPopup, currentMode }: Ollam
 		<div className="flex flex-col gap-2">
 			<BaseUrlField
 				initialValue={apiConfiguration?.ollamaBaseUrl}
-				label="Use custom base URL"
+				label="使用自定义 URL"
 				onChange={(value) => handleFieldChange("ollamaBaseUrl", value)}
 				placeholder="Default: http://localhost:11434"
 			/>
@@ -101,7 +101,7 @@ export const OllamaProvider = ({ showModelOptions, isPopup, currentMode }: Ollam
 				onChange={(v) => handleFieldChange("ollamaApiOptionsCtxNum", v || undefined)}
 				placeholder={"e.g. 32768"}
 				style={{ width: "100%" }}>
-				<span className="font-semibold">Model Context Window</span>
+				<span className="font-semibold">模型上下文窗口</span>
 			</DebouncedTextField>
 
 			{showModelOptions && (
@@ -117,7 +117,7 @@ export const OllamaProvider = ({ showModelOptions, isPopup, currentMode }: Ollam
 						}}
 						placeholder="Default: 30000 (30 seconds)"
 						style={{ width: "100%" }}>
-						<span className="font-semibold">Request Timeout (ms)</span>
+						<span className="font-semibold">请求超时 (ms)</span>
 					</DebouncedTextField>
 					<p className="text-xs mt-0 text-description">
 						Maximum time in milliseconds to wait for API responses before timing out.

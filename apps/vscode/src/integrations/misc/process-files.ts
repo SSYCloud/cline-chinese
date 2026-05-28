@@ -78,7 +78,7 @@ export async function selectFiles(imagesAllowed: boolean): Promise<{ images: str
 				Logger.error(`Error checking file size for ${filePath}:`, error)
 				HostProvider.window.showMessage({
 					type: ShowMessageType.ERROR,
-					message: `无法检查文件大小 ${path.basename(filePath)}, 被忽略.`,
+					message: `文件太大： ${path.basename(filePath)} 被忽略 (超过 20MB).`,
 				})
 				return null
 			}

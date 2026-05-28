@@ -41,32 +41,47 @@ const meta: Meta<typeof MockApp> = {
 		layout: "fullscreen",
 		docs: {
 			description: {
-				component: `
-The ChatView component is the main interface for interacting with Cline. It provides a comprehensive chat experience with AI assistance, task management, and various tools.
+				component: `ChatView 组件是与 Cline 交互的主要界面。它提供全面的聊天体验，包括 AI 助手、任务管理和各种工具。
 
-**Key Features:**
-- **Task Management**: Create, resume, and manage AI-assisted tasks
-- **Message History**: View conversation history with rich formatting
-- **File & Image Support**: Attach files and images to messages
-- **Tool Integration**: Execute commands, browse files, and use various tools
-- **Auto-approval**: Configure automatic approval for certain actions
-- **Streaming Responses**: Real-time AI response streaming
-- **Context Management**: Intelligent conversation context handling
-- **Plan/Act Modes**: Separate planning and execution phases
-- **MCP Integration**: Model Context Protocol server support
-- **Browser Automation**: Automated browser interactions
-- **Checkpoint System**: Save and restore conversation states
+**主要功能：**
 
-**Use Cases:**
-- Software development assistance
-- Code review and refactoring
-- File system operations
-- Web browsing and research
-- Task automation
-- Learning and exploration
+- **任务管理**：创建、恢复和管理 AI 辅助任务
 
-**Note**: In Storybook, some features like file operations, command execution, and API calls are mocked for demonstration purposes.
-		`,
+- **消息历史记录**：以丰富的格式查看对话历史记录
+
+- **文件和图像支持**：将文件和图像附加到消息
+
+- **工具集成**：执行命令、浏览文件和使用各种工具
+
+- **自动审批**：配置特定操作的自动审批
+
+- **流式响应**：实时 AI 响应流
+
+- **上下文管理**：智能处理对话上下文
+
+- **计划/执行模式**：分离的计划和执行阶段
+
+- **MCP 集成**：支持模型上下文协议 (MCP) 服务器
+
+- **浏览器自动化**：自动化浏览器交互
+
+- **检查点系统**：保存和恢复对话状态
+
+**应用场景：**
+
+- 软件开发辅助
+
+- 代码审查和重构
+
+- 文件系统操作
+
+- 网络浏览和研究
+
+- 任务自动化
+
+- 学习和探索
+
+**注意**：在 Storybook 中，某些功能（例如文件操作、命令）可能无法正常工作。为了演示目的，执行和 API 调用都是模拟的。`,
 			},
 		},
 	},
@@ -86,8 +101,8 @@ type Story = StoryObj<typeof MockApp>
 
 // Mock data factories
 const createApiConfig = (overrides: Partial<ApiConfiguration> = {}): ApiConfiguration => ({
-	actModeApiProvider: "anthropic",
-	actModeApiModelId: "claude-3-5-sonnet-20241022",
+	actModeApiProvider: "shengsuanyun",
+	actModeApiModelId: "anthropic/claude-sonnet-4.5",
 	actModeOpenRouterModelInfo: {
 		maxTokens: 8000,
 		contextWindow: 200000,
@@ -99,8 +114,8 @@ const createApiConfig = (overrides: Partial<ApiConfiguration> = {}): ApiConfigur
 
 const mockApiConfiguration = createApiConfig()
 const mockApiConfigurationPlan = createApiConfig({
-	planModeApiProvider: "anthropic",
-	planModeApiModelId: "claude-3-5-sonnet-20241022",
+	planModeApiProvider: "shengsuanyun",
+	planModeApiModelId: "anthropic/claude-sonnet-4.5",
 })
 
 const createHistoryItem = (id: string, hoursAgo: number, task: string, metrics: Partial<HistoryItem> = {}): HistoryItem => ({
@@ -118,8 +133,8 @@ const createHistoryItem = (id: string, hoursAgo: number, task: string, metrics: 
 })
 
 const mockTaskHistory: HistoryItem[] = [
-	createHistoryItem("task-1", 1, "Create a React component for displaying user profiles"),
-	createHistoryItem("task-2", 2, "Debug the authentication flow in the login system", {
+	createHistoryItem("task-1", 1, "创建一个用于显示用户个人资料的 React 组件"),
+	createHistoryItem("task-2", 2, "调试登录系统中的身份验证流程", {
 		tokensIn: 3200,
 		tokensOut: 1800,
 		cacheWrites: 450,
@@ -127,7 +142,7 @@ const mockTaskHistory: HistoryItem[] = [
 		totalCost: 0.125,
 		size: 1234567,
 	}),
-	createHistoryItem("task-3", 24, "Optimize database queries for better performance", {
+	createHistoryItem("task-3", 24, "优化数据库查询以提高性能", {
 		tokensIn: 4500,
 		tokensOut: 2400,
 		cacheWrites: 680,

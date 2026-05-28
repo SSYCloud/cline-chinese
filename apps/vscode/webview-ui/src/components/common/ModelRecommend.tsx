@@ -4,7 +4,6 @@ import { ShengSuanYunModelInfo } from "@shared/proto/index.cline"
 import React, { useCallback, useRef } from "react"
 import { useMount } from "react-use"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
-// import { useClineAuth } from "@/context/ClineAuthContext"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { AccountServiceClient } from "@/services/grpc-client"
 import { useApiConfigurationHandlers } from "../settings/utils/useApiConfigurationHandlers"
@@ -16,7 +15,7 @@ interface WhatsNewModalProps {
 }
 
 export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ open, onClose, version }) => {
-	const { userInfo, shengSuanYunModels, setShowChatModelSelector, refreshShengSuanYunModels } = useExtensionState()
+	const { userInfo, shengSuanYunModels, refreshShengSuanYunModels } = useExtensionState()
 	const { handleFieldsChange } = useApiConfigurationHandlers()
 	const clickedModelsRef = useRef<Set<string>>(new Set())
 
@@ -46,10 +45,9 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ open, onClose, ver
 				actModeApiProvider: "shengsuanyun",
 			})
 			clickedModelsRef.current.add(modelId)
-			setShowChatModelSelector(true)
 			onClose()
 		},
-		[handleFieldsChange, shengSuanYunModels, setShowChatModelSelector, onClose],
+		[handleFieldsChange, shengSuanYunModels, onClose],
 	)
 
 	const handleShowAccount = useCallback(() => {

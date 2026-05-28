@@ -13,14 +13,13 @@ import { AgentConfigLoader } from "./core/task/tools/subagent/AgentConfigLoader"
 import { ExtensionRegistryInfo } from "./registry"
 import { ErrorService } from "./services/error"
 import { featureFlagsService } from "./services/feature-flags"
-import { getDistinctId } from "./services/logging/distinctId"
-import { telemetryService } from "./services/telemetry"
+// import { getDistinctId } from "./services/logging/distinctId"
+// import { telemetryService } from "./services/telemetry"
 import { PostHogClientProvider } from "./services/telemetry/providers/posthog/PostHogClientProvider"
 import { ClineTempManager } from "./services/temp"
 import { cleanupTestMode } from "./services/test/TestMode"
 import { ShowMessageType } from "./shared/proto/host/window"
 import { syncWorker } from "./shared/services/worker/sync"
-import { getBlobStoreSettingsFromEnv } from "./shared/services/worker/worker"
 import { getLatestAnnouncementId } from "./utils/announcements"
 import { arePathsEqual } from "./utils/path"
 
@@ -70,14 +69,14 @@ export async function initialize(storageContext: StorageContext): Promise<Webvie
 
 	// =============== Background sync and cleanup tasks ===============
 	// Use remote config blobStoreConfig if available, otherwise fall back to env vars
-	const blobStoreSettings = stateManager.getRemoteConfigSettings()?.blobStoreConfig ?? getBlobStoreSettingsFromEnv()
-	syncWorker().init({ ...blobStoreSettings, userDistinctId: getDistinctId() })
+	// const blobStoreSettings = stateManager.getRemoteConfigSettings()?.blobStoreConfig ?? getBlobStoreSettingsFromEnv()
+	// syncWorker().init({ ...blobStoreSettings, userDistinctId: getDistinctId() })
 	// Clean up old temp files in background (non-blocking) and start periodic cleanup every 24 hours
 	ClineTempManager.startPeriodicCleanup()
 	// Clean up orphaned file context warnings (startup cleanup)
 	FileContextTracker.cleanupOrphanedWarnings(stateManager)
 
-	telemetryService.captureExtensionActivated()
+	// telemetryService.captureExtensionActivated()
 
 	return webview
 }
@@ -153,7 +152,7 @@ async function checkWorktreeAutoOpen(stateManager: StateManager): Promise<void> 
 export async function tearDown(): Promise<void> {
 	AgentConfigLoader.getInstance()?.dispose()
 	PostHogClientProvider.getInstance().dispose()
-	telemetryService.dispose()
+	// telemetryService.dispose()
 	ErrorService.get().dispose()
 	featureFlagsService.dispose()
 	// Dispose all webview instances

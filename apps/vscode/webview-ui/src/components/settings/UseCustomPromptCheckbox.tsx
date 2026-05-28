@@ -22,13 +22,13 @@ const UseCustomPromptCheckbox: React.FC<CustomPromptCheckboxProps> = ({ provider
 	return (
 		<div id={providerId}>
 			<VSCodeCheckbox checked={isCompactPromptEnabled} onChange={() => toggleCompactPrompt(!isCompactPromptEnabled)}>
-				Use compact prompt
+				启用提示词压缩
 			</VSCodeCheckbox>
 			<div className="text-xs text-description">
-				A system prompt optimized for smaller context window (e.g. 8k or less).
+				针对较小上下文窗口（例如 8k 或更小）优化的系统提示符。
 				<div className="text-error flex align-middle">
 					<i className="codicon codicon-x" />
-					Does not support Mcp and Focus Chain
+					不支持 Mcp 和 Focus Chain
 				</div>
 			</div>
 		</div>

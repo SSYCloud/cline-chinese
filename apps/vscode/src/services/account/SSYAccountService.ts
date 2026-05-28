@@ -25,7 +25,7 @@ export class SSYAccountService {
 			timeout: 50000,
 		}
 		const url = `${this.baseUrl}${endpoint}`
-		// console.log("SSYAccountService.authenticatedRequest():", url, reqConfig)
+		// Logger.log("SSYAccountService.authenticatedRequest():", url, reqConfig)
 		const res: any = await axios.get(url, reqConfig)
 		Logger.log(url, res.data)
 		if (!res.data || !res.data.data || res.data.code == 103) {

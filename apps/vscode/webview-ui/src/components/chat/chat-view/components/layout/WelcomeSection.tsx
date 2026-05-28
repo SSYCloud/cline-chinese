@@ -4,7 +4,7 @@ import type { Worktree } from "@shared/proto/cline/worktree"
 import { TrackWorktreeViewOpenedRequest } from "@shared/proto/cline/worktree"
 import { GitBranch } from "lucide-react"
 import React, { useCallback, useEffect, useMemo, useState } from "react"
-import BannerCarousel from "@/components/common/BannerCarousel"
+// import BannerCarousel from "@/components/common/BannerCarousel"
 import WhatsNewModal from "@/components/common/WhatsNewModal"
 import HistoryPreview from "@/components/history/HistoryPreview"
 import { useApiConfigurationHandlers } from "@/components/settings/utils/useApiConfigurationHandlers"
@@ -14,7 +14,7 @@ import { SuggestedTasks } from "@/components/welcome/SuggestedTasks"
 import CreateWorktreeModal from "@/components/worktrees/CreateWorktreeModal"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { AccountServiceClient, StateServiceClient, UiServiceClient, WorktreeServiceClient } from "@/services/grpc-client"
-import { convertBannerData } from "@/utils/bannerUtils"
+// import { convertBannerData } from "@/utils/bannerUtils"
 import { getCurrentPlatform } from "@/utils/platformUtils"
 import { WelcomeSectionProps } from "../../types/chatTypes"
 
@@ -208,46 +208,21 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 	/**
 	 * Dismissal handler - updates version tracking
 	 */
-	const handleBannerDismiss = useCallback((bannerId: string) => {
-		// !! Do not continue use these version numbers or add new banners that don't have unique IDs. !!
-		// Banner versions are **deprecated**. Going forward, we are tracking which banners have
-		// been dismissed using the **banner ID**.
-		if (bannerId.startsWith("info-banner")) {
-			StateServiceClient.updateInfoBannerVersion({ value: 1 }).catch(console.error)
-		} else if (bannerId.startsWith("new-model")) {
-			StateServiceClient.updateModelBannerVersion({ value: 1 }).catch(console.error)
-		} else if (bannerId.startsWith("cli-")) {
-			StateServiceClient.updateCliBannerVersion({ value: 1 }).catch(console.error)
-		} else {
-			// Mark the banner as dismissed by its ID.
-			StateServiceClient.dismissBanner({ value: bannerId }).catch(console.error)
-		}
-	}, [])
-
-	/**
-	 * Build array of active banners for carousel
-	 * Combines hardcoded banners (bannerConfig) with dynamic banners from extension state
-	 */
-	const activeBanners = useMemo(() => {
-		// Start with the hardcoded banners (bannerConfig)
-		const hardcodedBanners = bannerConfig.map((banner) =>
-			convertBannerData(banner, {
-				onAction: handleBannerAction,
-				onDismiss: handleBannerDismiss,
-			}),
-		)
-
-		// Add banners from extension state (if any)
-		const extensionStateBanners = (banners ?? []).map((banner) =>
-			convertBannerData(banner, {
-				onAction: handleBannerAction,
-				onDismiss: handleBannerDismiss,
-			}),
-		)
-
-		// Combine both sources: extension state banners first, then hardcoded banners
-		return [...extensionStateBanners, ...hardcodedBanners]
-	}, [bannerConfig, banners, userInfo, handleBannerAction, handleBannerDismiss])
+	// const handleBannerDismiss = useCallback((bannerId: string) => {
+	// 	// !! Do not continue use these version numbers or add new banners that don't have unique IDs. !!
+	// 	// Banner versions are **deprecated**. Going forward, we are tracking which banners have
+	// 	// been dismissed using the **banner ID**.
+	// 	if (bannerId.startsWith("info-banner")) {
+	// 		StateServiceClient.updateInfoBannerVersion({ value: 1 }).catch(console.error)
+	// 	} else if (bannerId.startsWith("new-model")) {
+	// 		StateServiceClient.updateModelBannerVersion({ value: 1 }).catch(console.error)
+	// 	} else if (bannerId.startsWith("cli-")) {
+	// 		StateServiceClient.updateCliBannerVersion({ value: 1 }).catch(console.error)
+	// 	} else {
+	// 		// Mark the banner as dismissed by its ID.
+	// 		StateServiceClient.dismissBanner({ value: bannerId }).catch(console.error)
+	// 	}
+	// }, [])
 
 	return (
 		<div className="flex flex-col flex-1 w-full h-full p-0 m-0">
@@ -262,7 +237,7 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 				<HomeHeader shouldShowQuickWins={shouldShowQuickWins} />
 				{!showWhatsNewModal && (
 					<>
-						<BannerCarousel banners={activeBanners} />
+						{/*<BannerCarousel banners={activeBanners} /> */}
 						{!shouldShowQuickWins && taskHistory.length > 0 && <HistoryPreview showHistoryView={showHistoryView} />}
 						{/* Quick launch worktree button */}
 						{isGitRepo && worktreesEnabled?.featureFlag && worktreesEnabled?.user && (

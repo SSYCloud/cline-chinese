@@ -42,7 +42,7 @@ export class OpenAiHandler implements ApiHandler {
 	private ensureClient(): OpenAI {
 		if (!this.client) {
 			if (!this.options.openAiApiKey && !this.options.azureIdentity) {
-				throw new Error("OpenAI API key or Azure Identity Authentication is required")
+				throw new Error("API key 或 Azure 身份验证是必需的。")
 			}
 			try {
 				const baseUrl = this.options.openAiBaseUrl?.toLowerCase() ?? ""
@@ -149,16 +149,22 @@ export class OpenAiHandler implements ApiHandler {
 		for await (const chunk of stream) {
 			const delta = chunk.choices?.[0]?.delta
 			if (delta?.content) {
+				// biome-ignore lint: 临时调试流输出，排查 API 响应问题
+				// console.log("-----------[chunk]:", JSON.stringify(chunk,null,2))
 				yield {
 					type: "text",
 					text: delta.content,
 				}
 			}
 
-			if (delta && "reasoning_content" in delta && delta.reasoning_content) {
+			// 支持两种reasoning字段格式：reasoning_content（OpenAI标准）和 reasoning（某些兼容提供商）
+			const reasoningContent = (delta as any)?.reasoning_content || (delta as any)?.reasoning
+			if (delta && reasoningContent) {
+				// biome-ignore lint: 临时调试流输出，排查 API 响应问题
+				// console.log("***********[chunk]:", JSON.stringify(chunk,null,2))
 				yield {
 					type: "reasoning",
-					reasoning: (delta.reasoning_content as string | undefined) || "",
+					reasoning: reasoningContent as string,
 				}
 			}
 
@@ -167,6 +173,8 @@ export class OpenAiHandler implements ApiHandler {
 			}
 
 			if (chunk.usage) {
+				// biome-ignore lint: 临时调试流输出，排查 API 响应问题
+				// console.log("#############[chunk]:", JSON.stringify(chunk,null,2))
 				yield {
 					type: "usage",
 					inputTokens: chunk.usage.prompt_tokens || 0,

@@ -19,8 +19,6 @@ export function getConfiguredProviders(
 	if (!apiConfiguration) {
 		return ["shengsuanyun"] // Cline is always available
 	}
-
-	// Cline - always available (uses account-based auth)
 	configured.push("shengsuanyun")
 
 	// Anthropic - requires API key

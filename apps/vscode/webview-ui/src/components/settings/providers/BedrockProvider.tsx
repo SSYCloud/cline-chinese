@@ -366,7 +366,7 @@ export const BedrockProvider = ({ showModelOptions, isPopup, currentMode }: Bedr
 
 									handleFieldChange("awsUseCrossRegionInference", isChecked)
 								}}>
-								Use cross-region inference
+								利用跨区域推断
 							</VSCodeCheckbox>
 							{remoteConfigSettings?.awsUseCrossRegionInference !== undefined && (
 								<i className="codicon codicon-lock text-description text-sm" />

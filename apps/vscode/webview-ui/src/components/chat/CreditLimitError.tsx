@@ -2,7 +2,6 @@ import { AskResponseRequest } from "@shared/proto/cline/task"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import React, { useEffect, useState } from "react"
 import VSCodeButtonLink from "@/components/common/VSCodeButtonLink"
-// import { useClineAuth } from "@/context/ClineAuthContext"
 import { AccountServiceClient, TaskServiceClient } from "@/services/grpc-client"
 
 interface CreditLimitErrorProps {
@@ -24,7 +23,6 @@ const CreditLimitError: React.FC<CreditLimitErrorProps> = ({
 	totalPromotions,
 	totalSpent,
 }) => {
-	// const { activeOrganization } = useClineAuth()
 	const [fullBuyCreditsUrl, setFullBuyCreditsUrl] = useState<string>("")
 
 	const dashboardUrl = "https://console.shengsuanyun.com/user/recharge"

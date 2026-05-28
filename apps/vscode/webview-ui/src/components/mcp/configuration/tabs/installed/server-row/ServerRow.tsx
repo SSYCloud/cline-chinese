@@ -265,7 +265,7 @@ const ServerRow = ({
 						</div>
 					</TooltipTrigger>
 					<TooltipContent className="max-w-xs" hidden={!isAlwaysEnabled} side="top">
-						This server can't be disabled because it is enabled by your organization
+						由于您的组织已启用此服务器，因此无法禁用它。
 					</TooltipContent>
 				</Tooltip>
 				<div
@@ -288,7 +288,7 @@ const ServerRow = ({
 								McpServiceClient.authenticateMcpServer(StringRequest.create({ value: server.name }))
 							}}
 							variant="default">
-							Authenticate
+							认证
 						</Button>
 					) : (
 						<Button
@@ -306,7 +306,7 @@ const ServerRow = ({
 							disabled={isDeleting}
 							onClick={handleDelete}
 							variant="danger">
-							{isDeleting ? "Deleting..." : "Delete Server"}
+							{isDeleting ? "删除..." : "删除服务"}
 						</Button>
 					)}
 				</div>
@@ -384,7 +384,7 @@ const ServerRow = ({
 						</VSCodePanels>
 
 						<div className="my-2.5 mx-1.5">
-							<label className="block mb-1 text-[13px]">Request Timeout</label>
+							<label className="block mb-1 text-[13px]">请求超时</label>
 							<VSCodeDropdown className="w-full" onChange={handleTimeoutChange} value={timeoutValue}>
 								{TimeoutOptions}
 							</VSCodeDropdown>

@@ -15,7 +15,6 @@ import type { HistoryItem } from "@shared/HistoryItem"
 import type { McpMarketplaceCatalog, McpMarketplaceItem } from "@shared/mcp"
 import { type Settings } from "@shared/storage/state-keys"
 import type { Mode } from "@shared/storage/types"
-import type { TelemetrySetting } from "@shared/TelemetrySetting"
 import type { UserInfo } from "@shared/UserInfo"
 import { fileExistsAtPath } from "@utils/fs"
 import axios from "axios"
@@ -53,8 +52,6 @@ import {
 } from "../storage/disk"
 // import { fetchRemoteConfig } from "../storage/remote-config/fetch"
 // import { clearRemoteConfig } from "../storage/remote-config/utils"
-import { fetchRemoteConfig } from "../storage/remote-config/fetch"
-import { clearRemoteConfig } from "../storage/remote-config/utils"
 import { type PersistenceErrorEvent, StateManager } from "../storage/StateManager"
 import { Task } from "../task"
 import { sendMcpMarketplaceCatalogEvent } from "./mcp/subscribeToMcpMarketplaceCatalog"
@@ -200,7 +197,7 @@ export class Controller {
 		try {
 			// AuthService now handles its own storage cleanup in handleDeauth()
 			this.stateManager.setGlobalState("userInfo", undefined)
-			clearRemoteConfig()
+			// clearRemoteConfig()
 
 			// Update API providers through cache service
 			const apiConfiguration = this.stateManager.getApiConfiguration()
@@ -354,28 +351,6 @@ export class Controller {
 		if (history) {
 			await this.initTask(undefined, undefined, undefined, history.historyItem)
 		}
-	}
-
-	async updateTelemetrySetting(telemetrySetting: TelemetrySetting) {
-		// Get previous setting to detect state changes
-		// const previousSetting = this.stateManager.getGlobalSettingsKey("telemetrySetting")
-		// const wasOptedIn = previousSetting !== "disabled"
-		// const isOptedIn = telemetrySetting !== "disabled"
-
-		// // Capture opt-out event BEFORE updating (so it gets sent while telemetry is still enabled)
-		// if (wasOptedIn && !isOptedIn) {
-		// 	telemetryService.captureUserOptOut()
-		// }
-
-		// this.stateManager.setGlobalState("telemetrySetting", telemetrySetting)
-		// telemetryService.updateTelemetryState(isOptedIn)
-
-		// // Capture opt-in event AFTER updating (so telemetry is enabled to receive it)
-		// if (!wasOptedIn && isOptedIn) {
-		// 	telemetryService.captureUserOptIn()
-		// }
-
-		await this.postStateToWebview()
 	}
 
 	async toggleActModeForYoloMode(): Promise<boolean> {
@@ -558,8 +533,6 @@ export class Controller {
 
 			// Mark welcome view as completed since user has successfully logged in
 			this.stateManager.setGlobalState("welcomeViewCompleted", true)
-
-			await fetchRemoteConfig(this)
 
 			if (this.task) {
 				this.task.api = buildApiHandler({ ...updatedConfig, ulid: this.task.ulid }, currentMode)

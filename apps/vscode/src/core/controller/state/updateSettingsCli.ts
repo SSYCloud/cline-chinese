@@ -4,7 +4,6 @@ import { Empty } from "@shared/proto/cline/common"
 import { PlanActMode, UpdateSettingsRequestCli } from "@shared/proto/cline/state"
 import { convertProtoToApiProvider } from "@shared/proto-conversions/models/api-configuration-conversion"
 import { Settings } from "@shared/storage/state-keys"
-import { TelemetrySetting } from "@shared/TelemetrySetting"
 import { ClineEnv } from "@/config"
 import { HostProvider } from "@/hosts/host-provider"
 import { ShowMessageType } from "@/shared/proto/host/window"
@@ -125,11 +124,6 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 				controller.task.api = buildApiHandler(apiConfigForHandler, currentMode)
 			}
 
-			// Update telemetry setting
-			if (telemetrySetting) {
-				await controller.updateTelemetrySetting(telemetrySetting as TelemetrySetting)
-			}
-
 			// Update yolo mode setting (requires telemetry)
 			if (yoloModeToggled !== undefined) {
 				// if (controller.task) {
@@ -165,13 +159,13 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 
 			// Update subagents setting (requires telemetry on state change)
 			if (subagentsEnabled !== undefined) {
-				const wasEnabled = controller.stateManager.getGlobalSettingsKey("subagentsEnabled") ?? false
+				// const wasEnabled = controller.stateManager.getGlobalSettingsKey("subagentsEnabled") ?? false
 				const isEnabled = !!subagentsEnabled
 				controller.stateManager.setGlobalState("subagentsEnabled", isEnabled)
 
-				if (wasEnabled !== isEnabled) {
-					// telemetryService.captureSubagentToggle(isEnabled)
-				}
+				// if (wasEnabled !== isEnabled) {
+				// telemetryService.captureSubagentToggle(isEnabled)
+				// }
 			}
 
 			// Update focus chain settings (requires telemetry on state change)

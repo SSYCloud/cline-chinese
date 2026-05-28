@@ -33,7 +33,6 @@ export const ClineAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 		// 		if (!deepEqual(response.organizations, old)) {
 		// 			return response.organizations
 		// 		}
-
 		// 		return old
 		// 	})
 		// } catch (error) {

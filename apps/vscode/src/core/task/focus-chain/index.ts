@@ -185,8 +185,8 @@ export class FocusChainManager {
 						.replace("{{currentFocusChainChecklist}}", this.taskState.currentFocusChainChecklist)
 				}
 
-				// Return with progress-based stub
-				return `\n
+			// Return with progress-based stub
+			return `\n
 				${introUpdateRequired}\n
 				${listCurrentProgress}\n
 				${this.taskState.currentFocusChainChecklist}\n
