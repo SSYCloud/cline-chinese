@@ -1,0 +1,710 @@
+{
+	"name": "cline-shengsuan",
+	"displayName": "Cline 中文版",
+	"description": "Cline 中文汉化版，由胜算云进行汉化，打造国内版的OpenRouter，让中国开发者更方便进行 AI 编程。",
+	"version": "3.85.0",
+	"icon": "assets/icons/icon.png",
+	"workspaces": [
+		"."
+	],
+	"engines": {
+		"vscode": "^1.84.0"
+	},
+	"author": {
+		"name": "shengsuan-cloud"
+	},
+	"license": "Apache-2.0",
+	"publisher": "shengsuan-cloud",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/SSYCloud/cline-chinese-ssy"
+	},
+	"homepage": "https://www.shengsuanyun.com/",
+	"categories": [
+		"AI",
+		"Chat",
+		"Programming Languages",
+		"Education",
+		"Snippets",
+		"Testing"
+	],
+	"keywords": [
+		"OpenAI",
+		"GPT",
+		"ChatGPT",
+		"GPT-5",
+		"GPT-4O",
+		"Anthropic",
+		"Claude",
+		"Claude 3.7 Sonnet",
+		"Claude Sonnet 4",
+		"Claude Opus 4",
+		"Claude Opus 4.1",
+		"Google DeepMind",
+		"Google",
+		"Gemini",
+		"Gemini 2.5pro",
+		"Meta AI",
+		"LLaMA",
+		"Mistral",
+		"Mixtral",
+		"Cohere",
+		"Command R",
+		"克劳德",
+		"xAI",
+		"Grok",
+		"百度",
+		"阿里巴巴",
+		"通义千问",
+		"Qwen",
+		"Qwen3",
+		"Doubao",
+		"baidu",
+		"智谱",
+		"GLM",
+		"Meta.AI",
+		"minimax",
+		"字节跳动",
+		"byteDance",
+		"bigmodel",
+		"GLM-4.5",
+		"Kimi",
+		"deepseek-R1",
+		"deepseek-v3",
+		"上下文",
+		"Vibe Coding",
+		"JetBrains",
+		"OpenRouter",
+		"通义灵码",
+		"IDE",
+		"Lingma",
+		"Copilot",
+		"Cursor",
+		"AI",
+		"Java",
+		"Python",
+		"代码聊天",
+		"代码助手",
+		"补全",
+		"amazon",
+		"Github",
+		"C",
+		"代码调试",
+		"代码补全",
+		"代码生成",
+		"Vibe Coding",
+		"Debug",
+		"Claude Coder",
+		"HuggingFace",
+		"MCP",
+		"API",
+		"key",
+		"trae",
+		"CodeBuddy",
+		"文心快码",
+		"LLM",
+		"AI编程",
+		"大模型",
+		"代码自动化",
+		"开发",
+		"prompt",
+		"claude",
+		"dev",
+		"mcp",
+		"openrouter",
+		"coding",
+		"agent",
+		"autonomous",
+		"chatgpt",
+		"sonnet",
+		"ai",
+		"llama",
+		"shengsuanyun",
+		"shengsuanyun-router"
+	],
+	"activationEvents": [
+		"onLanguage",
+		"onUri",
+		"onStartupFinished",
+		"workspaceContains:evals.env"
+	],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"icons": {
+			"cline-icon": {
+				"description": "cline",
+				"default": {
+					"fontPath": "assets/icons/cline-bot.woff",
+					"fontCharacter": "\\e900"
+				}
+			}
+		},
+		"walkthroughs": [
+			{
+				"id": "ClineWalkthrough",
+				"title": "欢迎使用 Cline, 你的新编程伙伴",
+				"description": "Cline 像开发者一样编码，因为它的思维方式也像开发者一样。以下 5 种方法助您一臂之力:",
+				"steps": [
+					{
+						"id": "welcome",
+						"title": "从目标开始，而不仅仅是提示",
+						"description": "告诉 Cline 你想要实现的目标。它会像一位真正的合作伙伴一样，为你制定计划、提出问题，然后进行编码。",
+						"media": {
+							"markdown": "walkthrough/step1.md"
+						}
+					},
+					{
+						"id": "learn",
+						"title": "让 Cline 了解您的代码库",
+						"description": "将 Cline 指向您的项目。它可以帮助您理解项目，从而做出智能且可感知上下文的更改。",
+						"media": {
+							"markdown": "walkthrough/step2.md"
+						}
+					},
+					{
+						"id": "advanced-features",
+						"title": "始终使用最佳的 AI 模型",
+						"description": "Cline 为您提供最先进的 AI，连接顶级模型（Anthropic、Gemini、OpenAI 等）。",
+						"media": {
+							"markdown": "walkthrough/step3.md"
+						}
+					},
+					{
+						"id": "mcp",
+						"title": "使用强大的工具 (MCP) 进行扩展",
+						"description": "连接到数据库、API 或在 MCP 市场中发现新功能。",
+						"media": {
+							"markdown": "walkthrough/step4.md"
+						}
+					},
+					{
+						"id": "getting-started",
+						"title": "你始终掌控一切",
+						"description": "审核克莱恩的计划和差异。在变更生效前批准。避免意外。",
+						"media": {
+							"markdown": "walkthrough/step5.md"
+						},
+						"content": {
+							"path": "walkthrough/step5.md"
+						}
+					}
+				]
+			}
+		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "cline-shengsuan-ActivityBar",
+					"title": "Cline 中文版",
+					"icon": "assets/icons/icon.svg"
+				}
+			]
+		},
+		"views": {
+			"cline-shengsuan-ActivityBar": [
+				{
+					"type": "webview",
+					"id": "ClineShengsuan.SidebarProvider",
+					"name": ""
+				}
+			]
+		},
+		"commands": [
+			{
+				"command": "ClineShengsuan.plusButtonClicked",
+				"title": "新任务",
+				"icon": "$(add)"
+			},
+			{
+				"command": "ClineShengsuan.mcpButtonClicked",
+				"title": "MCP 服务",
+				"icon": "$(server)"
+			},
+			{
+				"command": "ClineShengsuan.historyButtonClicked",
+				"title": "历史记录",
+				"icon": "$(history)"
+			},
+			{
+				"command": "ClineShengsuan.accountButtonClicked",
+				"title": "账户",
+				"icon": "$(account)"
+			},
+			{
+				"command": "ClineShengsuan.settingsButtonClicked",
+				"title": "设置",
+				"icon": "$(settings-gear)"
+			},
+			{
+				"command": "ClineShengsuan.dev.createTestTasks",
+				"title": "创建测试任务",
+				"category": "ClineShengsuan",
+				"when": "cline.isDevMode"
+			},
+			{
+				"command": "ClineShengsuan.expireMcpOAuthTokens",
+				"title": "使 MCP OAuth 令牌过期（用于测试）",
+				"category": "Cline",
+				"when": "ClineShengsuan.isDevMode"
+			},
+			{
+				"command": "ClineShengsuan.addToChat",
+				"title": "添加到 Cline",
+				"category": "Cline"
+			},
+			{
+				"command": "ClineShengsuan.addTerminalOutputToChat",
+				"title": "添加到 Cline-中文版",
+				"category": "ClineShengsuan"
+			},
+			{
+				"command": "ClineShengsuan.focusChatInput",
+				"title": "跳转到对话窗口",
+				"category": "ClineShengsuan"
+			},
+			{
+				"command": "ClineShengsuan.generateGitCommitMessage",
+				"title": "生成带有Cline的提交消息",
+				"category": "Cline",
+				"icon": "$(cline-icon)"
+			},
+			{
+				"command": "ClineShengsuan.abortGitCommitMessage",
+				"title": "使用 Cline 生成提交消息 - 停止",
+				"category": "ClineShengsuan",
+				"icon": "$(debug-stop)"
+			},
+			{
+				"command": "ClineShengsuan.explainCode",
+				"title": "Cline 解释代码",
+				"category": "ClineShengsuan"
+			},
+			{
+				"command": "ClineShengsuan.improveCode",
+				"title": "Cline 优化代码",
+				"category": "ClineShengsuan"
+			},
+			{
+				"command": "ClineShengsuan.reconstructTaskHistory",
+				"title": "重建任务历史",
+				"category": "ClineShengsuan"
+			},
+			{
+				"command": "ClineShengsuan.jupyterGenerateCell",
+				"title": "使用 Cline 生成 Jupyter 单元格",
+				"category": "ClineShengsuan",
+				"icon": "$(sparkle)"
+			},
+			{
+				"command": "ClineShengsuan.jupyterExplainCell",
+				"title": "使用 Cline 解释 Jupyter 单元格",
+				"category": "ClineShengsuan",
+				"icon": "$(question)"
+			},
+			{
+				"command": "ClineShengsuan.jupyterImproveCell",
+				"title": "使用 Cline 优化 Jupyter 单元格",
+				"category": "ClineShengsuan",
+				"icon": "$(lightbulb)"
+			},
+			{
+				"command": "ClineShengsuan.openWalkthrough",
+				"title": "打开教程",
+				"category": "ClineShengsuan"
+			},
+			{
+				"command": "ClineShengsuan.reviewComment.reply",
+				"title": "回复",
+				"category": "ClineShengsuan",
+				"enablement": "!commentIsEmpty"
+			},
+			{
+				"command": "ClineShengsuan.reviewComment.addToChat",
+				"title": "添加到 Cline 聊天",
+				"category": "ClineShengsuan",
+				"icon": "$(link-external)"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "editor.action.submitComment",
+				"key": "enter",
+				"when": "commentEditorFocused && commentController == cline-ai-review && !commentIsEmpty"
+			},
+			{
+				"command": "ClineShengsuan.addToChat",
+				"key": "cmd+'",
+				"mac": "cmd+'",
+				"win": "ctrl+'",
+				"linux": "ctrl+'",
+				"when": "editorHasSelection"
+			},
+			{
+				"command": "ClineShengsuan.generateGitCommitMessage",
+				"when": "config.git.enabled && scmProvider == git"
+			},
+			{
+				"command": "ClineShengsuan.focusChatInput",
+				"key": "cmd+'",
+				"mac": "cmd+'",
+				"win": "ctrl+'",
+				"linux": "ctrl+'",
+				"when": "!editorHasSelection"
+			}
+		],
+		"menus": {
+			"view/title": [
+				{
+					"command": "ClineShengsuan.plusButtonClicked",
+					"group": "navigation@1",
+					"when": "view == ClineShengsuan.SidebarProvider"
+				},
+				{
+					"command": "ClineShengsuan.mcpButtonClicked",
+					"group": "navigation@2",
+					"when": "view == ClineShengsuan.SidebarProvider"
+				},
+				{
+					"command": "ClineShengsuan.historyButtonClicked",
+					"group": "navigation@3",
+					"when": "view == ClineShengsuan.SidebarProvider"
+				},
+				{
+					"command": "ClineShengsuan.accountButtonClicked",
+					"group": "navigation@5",
+					"when": "view == ClineShengsuan.SidebarProvider"
+				},
+				{
+					"command": "ClineShengsuan.settingsButtonClicked",
+					"group": "navigation@6",
+					"when": "view == ClineShengsuan.SidebarProvider"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "ClineShengsuan.addToChat",
+					"group": "navigation",
+					"when": "editorHasSelection"
+				}
+			],
+			"terminal/context": [
+				{
+					"command": "ClineShengsuan.addTerminalOutputToChat",
+					"group": "navigation"
+				}
+			],
+			"scm/title": [
+				{
+					"command": "ClineShengsuan.generateGitCommitMessage",
+					"group": "navigation",
+					"when": "config.git.enabled && scmProvider == git && !ClineShengsuan.isGeneratingCommit"
+				},
+				{
+					"command": "ClineShengsuan.abortGitCommitMessage",
+					"group": "navigation",
+					"when": "config.git.enabled && scmProvider == git && ClineShengsuan.isGeneratingCommit"
+				}
+			],
+			"notebook/toolbar": [
+				{
+					"command": "ClineShengsuan.jupyterGenerateCell",
+					"group": "navigation/add@1",
+					"when": "notebookType == 'jupyter-notebook'"
+				}
+			],
+			"notebook/cell/title": [
+				{
+					"command": "ClineShengsuan.jupyterExplainCell",
+					"group": "inline@1",
+					"when": "notebookType == 'jupyter-notebook'"
+				},
+				{
+					"command": "ClineShengsuan.jupyterImproveCell",
+					"group": "inline@2",
+					"when": "notebookType == 'jupyter-notebook'"
+				}
+			],
+			"commandPalette": [
+				{
+					"command": "ClineShengsuan.generateGitCommitMessage",
+					"when": "config.git.enabled && !ClineShengsuan.isGeneratingCommit"
+				},
+				{
+					"command": "ClineShengsuan.abortGitCommitMessage",
+					"when": "config.git.enabled && ClineShengsuan.isGeneratingCommit"
+				},
+				{
+					"command": "ClineShengsuan.reviewComment.reply",
+					"when": "false"
+				}
+			],
+			"comments/commentThread/context": [
+				{
+					"command": "ClineShengsuan.reviewComment.reply",
+					"group": "inline",
+					"when": "commentController == cline-ai-review"
+				}
+			],
+			"comments/commentThread/title": [
+				{
+					"command": "ClineShengsuan.reviewComment.addToChat",
+					"group": "inline",
+					"when": "commentController == cline-ai-review"
+				}
+			]
+		},
+		"configuration": {
+			"title": "Cline-中文版",
+			"properties": {}
+		}
+	},
+	"scripts": {
+		"pk":"npx @vscode/vsce package",
+		"vscode:prepublish": "npm run package",
+		"compile": "npm run check-types && npm run lint && node esbuild.mjs",
+		"compile-standalone": "npm run check-types && npm run lint && node esbuild.mjs --standalone",
+		"postcompile-standalone": "node scripts/package-standalone.mjs",
+		"dev": "npm run protos && npm run watch",
+		"watch": "npx npm-run-all -p watch:*",
+		"watch:esbuild": "node esbuild.mjs --watch",
+		"watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+		"package": "npm run check-types && npm run build:webview && npm run lint && node esbuild.mjs --production",
+		"protos": "node scripts/build-proto.mjs",
+		"protos-python": "node scripts/build-python-proto.mjs",
+		"download-ripgrep": "node scripts/download-ripgrep.mjs",
+		"postprotos": "biome format src/shared/proto src/core/controller src/hosts/ webview-ui/src/services src/generated --write --no-errors-on-unmatched",
+		"clean:build": "rimraf dist dist-standalone webview-ui/build src/generated out/",
+		"clean:deps": "rimraf node_modules webview-ui/node_modules",
+		"clean:all": "npm run clean:build && npm run clean:deps",
+		"compile-tests": "node ./scripts/build-tests.js",
+		"watch-tests": "tsc -p . -w --outDir out",
+		"check-types": "npm run protos && npx tsc --noEmit && cd webview-ui && npx tsc --noEmit",
+		"lint": "biome lint --no-errors-on-unmatched --files-ignore-unknown=true --diagnostic-level=error && npm run lint:proto",
+		"lint:proto": "bash ./scripts/proto-lint.sh",
+		"format": "biome format --changed --no-errors-on-unmatched --files-ignore-unknown=true --diagnostic-level=error",
+		"format:fix": "biome check --changed --no-errors-on-unmatched --files-ignore-unknown=true --write",
+		"fix:all": "biome check --no-errors-on-unmatched --files-ignore-unknown=true --write --diagnostic-level=error --unsafe",
+		"ci:check-all": "npx npm-run-all -p check-types lint format",
+		"ci:build": "npm run protos && npm run build:webview && node esbuild.mjs && npm run compile-tests",
+		"pretest": "npm run compile && npm run compile-tests && npm run compile-standalone && npm run lint",
+		"test": "npx npm-run-all test:unit test:integration",
+		"test:integration": "vscode-test",
+		"test:unit": "cross-env TS_NODE_PROJECT=./tsconfig.unit-test.json mocha",
+		"test:coverage": "vscode-test --coverage",
+		"test:sca-server": "npx tsx watch scripts/test-standalone-core-api-server.ts",
+		"test:tp-orchestrator": "npx tsx scripts/testing-platform-orchestrator.ts",
+		"e2e": "playwright test -c playwright.config.ts",
+		"test:e2e:build": "vsce package --allow-package-secrets sendgrid --out dist/e2e.vsix",
+		"test:e2e": "playwright install && npm run test:e2e:build && node src/test/e2e/utils/build.mjs && playwright test",
+		"test:e2e:optimal": "npm run test:e2e:build && node src/test/e2e/utils/build.mjs && playwright test",
+		"test:e2e:ui": "npx tsx scripts/interactive-playwright.ts",
+		"install:all": "npm install && cd webview-ui && npm install",
+		"dev:webview": "cd webview-ui && npm run dev",
+		"build:webview": "cd webview-ui && npm run build",
+		"test:webview": "cd webview-ui && npm run test",
+		"publish:marketplace": "node scripts/publish-marketplace.mjs",
+		"publish:marketplace:prerelease": "node scripts/publish-marketplace.mjs --pre-release",
+		"publish:marketplace:nightly": "node ./scripts/publish-nightly.mjs",
+		"prepare": "npx husky",
+		"docs": "cd docs && npm run dev",
+		"docs:check-links": "cd docs && npm run check",
+		"docs:rename-file": "cd docs && npm run rename",
+		"report-issue": "node scripts/report-issue.js",
+		"storybook": "cd webview-ui && npm run storybook",
+		"eval:smoke:run": "npx tsx evals/smoke-tests/run-smoke-tests.ts"
+	},
+	"lint-staged": {
+		"src/shared/storage/state-keys.ts": [
+			"node scripts/generate-state-proto.mjs",
+			"git add proto/cline/state.proto"
+		],
+		"*": [
+			"biome check --write --staged --no-errors-on-unmatched --files-ignore-unknown=true"
+		]
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.14",
+		"@bufbuild/buf": "^1.54.0",
+		"@microsoft/tui-test": "0.0.1",
+		"@types/better-sqlite3": "^7.6.13",
+		"@types/chai": "^5.0.1",
+		"@types/clone-deep": "^4.0.4",
+		"@types/get-folder-size": "^3.0.4",
+		"@types/js-yaml": "^4.0.9",
+		"@types/mocha": "^10.0.7",
+		"@types/node": "20.x",
+		"@types/pdf-parse": "^1.1.4",
+		"@types/picomatch": "^4.0.2",
+		"@types/proxyquire": "^1.3.31",
+		"@types/shell-quote": "^1.7.5",
+		"@types/should": "^11.2.0",
+		"@types/sinon": "^21.0.0",
+		"@types/turndown": "^5.0.5",
+		"@types/vscode": "1.84.0",
+		"@vscode/test-cli": "^0.0.12",
+		"@vscode/test-electron": "^2.5.2",
+		"@vscode/vsce": "^3.6.0",
+		"c8": "^10.1.3",
+		"chai": "^4.3.10",
+		"chalk": "5.6.2",
+		"cross-env": "^10.1.0",
+		"dotenv": "^17.2.3",
+		"esbuild": "^0.25.0",
+		"grpc-tools": "^1.13.0",
+		"husky": "^9.1.7",
+		"lint-staged": "^16.1.0",
+		"minimatch": "^3.0.3",
+		"npm-run-all": "^4.1.5",
+		"nyc": "^17.1.0",
+		"prebuild-install": "^7.1.3",
+		"protoc-gen-ts": "^0.8.7",
+		"proxyquire": "^2.1.3",
+		"rimraf": "^6.0.1",
+		"should": "^13.2.3",
+		"sinon": "^21.0.3",
+		"tree-kill": "^1.2.2",
+		"ts-node": "^10.9.2",
+		"ts-proto": "^2.6.1",
+		"tsconfig-paths": "^4.2.0",
+		"typescript": "^5.4.5"
+	},
+	"dependencies": {
+		"@anthropic-ai/sdk": "^0.37.0",
+		"@anthropic-ai/vertex-sdk": "^0.6.4",
+		"@aws-sdk/client-bedrock-runtime": "^3.922.0",
+		"@aws-sdk/credential-providers": "^3.922.0",
+		"@azure/identity": "^4.13.0",
+		"@bufbuild/protobuf": "^2.2.5",
+		"@cerebras/cerebras_cloud_sdk": "^1.35.0",
+		"@google-cloud/vertexai": "^1.9.3",
+		"@google/genai": "^1.30.0",
+		"@grpc/grpc-js": "^1.9.15",
+		"@grpc/reflection": "^1.0.4",
+		"@mistralai/mistralai": "^1.5.0",
+		"@modelcontextprotocol/sdk": "^1.25.1",
+		"@opentelemetry/api": "^1.9.0",
+		"@opentelemetry/core": "^2.1.0",
+		"@opentelemetry/exporter-logs-otlp-grpc": "^0.56.0",
+		"@opentelemetry/exporter-logs-otlp-http": "^0.56.0",
+		"@opentelemetry/exporter-logs-otlp-proto": "^0.56.0",
+		"@opentelemetry/exporter-metrics-otlp-grpc": "^0.56.0",
+		"@opentelemetry/exporter-metrics-otlp-http": "^0.56.0",
+		"@opentelemetry/exporter-metrics-otlp-proto": "^0.56.0",
+		"@opentelemetry/exporter-prometheus": "^0.56.0",
+		"@opentelemetry/exporter-trace-otlp-http": "^0.56.0",
+		"@opentelemetry/instrumentation": "^0.205.0",
+		"@opentelemetry/instrumentation-http": "^0.205.0",
+		"@opentelemetry/resources": "^1.30.1",
+		"@opentelemetry/sdk-logs": "^0.56.0",
+		"@opentelemetry/sdk-metrics": "^1.30.1",
+		"@opentelemetry/sdk-node": "^0.56.0",
+		"@opentelemetry/sdk-trace-base": "^2.1.0",
+		"@opentelemetry/sdk-trace-node": "^1.30.1",
+		"@opentelemetry/semantic-conventions": "^1.37.0",
+		"@playwright/test": "^1.55.1",
+		"@sap-ai-sdk/ai-api": "^2.7.0",
+		"@sap-ai-sdk/orchestration": "^2.7.0",
+		"@sap-cloud-sdk/connectivity": "^4.6.0",
+		"@streamparser/json": "^0.0.22",
+		"@tailwindcss/vite": "^4.1.14",
+		"@types/uuid": "^10.0.0",
+		"@vscode/codicons": "^0.0.36",
+		"archiver": "^7.0.1",
+		"aws4fetch": "^1.0.20",
+		"axios": "1.15.2",
+		"better-sqlite3": "^12.4.1",
+		"cheerio": "^1.0.0",
+		"chokidar": "^4.0.1",
+		"chrome-launcher": "^1.1.2",
+		"clone-deep": "^4.0.1",
+		"default-shell": "^2.2.0",
+		"diff": "8.0.4",
+		"exceljs": "^4.4.0",
+		"execa": "^9.5.2",
+		"fast-deep-equal": "^3.1.3",
+		"fzf": "^0.5.2",
+		"get-folder-size": "^5.0.0",
+		"globby": "^14.0.2",
+		"grpc-health-check": "^2.0.2",
+		"iconv-lite": "^0.6.3",
+		"ignore": "^7.0.3",
+		"image-size": "^2.0.2",
+		"isbinaryfile": "^5.0.2",
+		"jschardet": "^3.1.4",
+		"json5": "^2.2.3",
+		"mammoth": "^1.11.0",
+		"nanoid": "^5.1.6",
+		"nice-grpc": "^2.1.12",
+		"node-machine-id": "^1.1.12",
+		"ollama": "^0.5.13",
+		"open": "^10.1.2",
+		"open-graph-scraper": "^6.9.0",
+		"openai": "^6.21.0",
+		"os-name": "^6.0.0",
+		"p-mutex": "^1.0.0",
+		"p-timeout": "^6.1.4",
+		"p-wait-for": "^5.0.2",
+		"pdf-parse": "^1.1.1",
+		"picomatch": "^4.0.3",
+		"posthog-node": "^5.8.0",
+		"puppeteer-chromium-resolver": "^23.0.0",
+		"puppeteer-core": "^23.4.0",
+		"reconnecting-eventsource": "^1.6.4",
+		"serialize-error": "^11.0.3",
+		"shell-quote": "^1.8.3",
+		"simple-git": "3.36.0",
+		"strip-ansi": "^7.1.2",
+		"tailwindcss": "^4.1.14",
+		"tree-sitter-wasms": "^0.1.11",
+		"ts-morph": "^25.0.1",
+		"turndown": "^7.2.0",
+		"ulid": "^2.4.0",
+		"undici": "^7.16.0",
+		"uuid": "^11.1.0",
+		"vscode-uri": "^3.1.0",
+		"web-tree-sitter": "^0.22.6",
+		"zod": "^3.24.2"
+	},
+	"overrides": {
+		"tar-fs": ">=3.1.1",
+		"tar": "^7.5.2",
+		"vite": "^7.1.11",
+		"js-yaml": "^4.1.1",
+		"serialize-javascript": ">=7.0.3",
+		"protobufjs": "7.5.8",
+		"diff": "8.0.4"
+	},
+	"c8": {
+		"reporter": [
+			"lcov",
+			"html"
+		],
+		"exclude": [
+			"**/testing-platform/**",
+			"**/webview-ui/**",
+			"**/.vscode-test/**",
+			"**/node_modules/**",
+			"node_modules",
+			"**/dist-standalone/src/**",
+			"**/dist-standalone/vsce-extension/https:/**",
+			"**/dist-standalone/vsce-extension/**",
+			"**/dist-standalone/https:/**",
+			"**/dist-standalone/LIB/src/**",
+			"**/dist-standalone/pdfjs-dist/**",
+			"**/*.d.ts",
+			"**/*.{test,spec}.{js,jsx,ts,tsx,mjs,cjs}",
+			"**/__tests__/**",
+			"**/test/**",
+			"**/tests/**",
+			"**/.nyc_output/**",
+			"**/tests-results/**",
+			"src/test/**",
+			"**/src/xml/**",
+			"**/standalone/**",
+			"**/src/generated/**",
+			"dist"
+		],
+		"all": true,
+		"exclude-after-remap": true
+	}
+}

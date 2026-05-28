@@ -107,6 +107,8 @@ https://marketplace.visualstudio.com/items?itemName=shengsuan-cloud.roo-vibecodi
 感兴趣的可以扫码加入微信社群，一起交流学习AI（如果二维码失效，请查看github项目中的首页中，相同位置的群二维码, 或者加入Discord频道）：
 
 <div align="center">
+
+<div align="center">
 <table>
 <tbody>
 <td align="center">
