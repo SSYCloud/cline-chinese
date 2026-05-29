@@ -1,6 +1,6 @@
 {
-	"name": "@cline/sdk",
-	"description": "Cline SDK - user-facing alias for @cline/core",
+	"name": "@coohu/sdk",
+	"description": "Cline SDK - user-facing alias for @coohu/core",
 	"version": "0.0.42",
 	"repository": {
 		"type": "git",
@@ -25,7 +25,7 @@
 		"typecheck": "bun tsc -p tsconfig.json --noEmit"
 	},
 	"dependencies": {
-		"@cline/core": "workspace:*"
+		"@coohu/core": "workspace:*"
 	},
 	"engines": {
 		"node": ">=22"

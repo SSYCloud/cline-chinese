@@ -1,5 +1,5 @@
 {
-	"name": "@cline/core",
+	"name": "@coohu/core",
 	"description": "Cline Core SDK for Node Runtime",
 	"version": "0.0.42",
 	"repository": {
@@ -44,9 +44,9 @@
 		"test:watch": "vitest --config vitest.config.ts"
 	},
 	"dependencies": {
-		"@cline/agents": "workspace:*",
-		"@cline/shared": "workspace:*",
-		"@cline/llms": "workspace:*",
+		"@coohu/agents": "workspace:*",
+		"@coohu/shared": "workspace:*",
+		"@coohu/llms": "workspace:*",
 		"@modelcontextprotocol/sdk": "^1.29.0",
 		"@opentelemetry/api": "^1.9.0",
 		"@opentelemetry/api-logs": "^0.214.0",

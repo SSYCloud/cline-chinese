@@ -94,8 +94,8 @@
 		"zod": "^4.1.11"
 	},
 	"devDependencies": {
-		"@cline/core": "workspace:*",
-		"@cline/shared": "workspace:*",
+		"@coohu/core": "workspace:*",
+		"@coohu/shared": "workspace:*",
 		"@microsoft/tui-test": "^0.0.2",
 		"@types/react": "19.2.14"
 	}
