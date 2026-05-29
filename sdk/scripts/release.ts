@@ -75,7 +75,7 @@ if (explicitVersion && !/^\d+\.\d+\.\d+(-[\w.]+)?$/.test(explicitVersion)) {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const SDK_PUBLISH_ORDER = ["shared", "llms", "agents", "core", "sdk"] as const;
-const MAIN_BRANCH = "main";
+const MAIN_BRANCH = "ssy";
 const root = join(import.meta.dir, "..");
 const packagesDir = join(root, "packages");
 const cliDir = join(root, "apps/cli");
