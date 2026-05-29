@@ -50,9 +50,9 @@
 	},
 	"dependencies": {
 		"@ai-sdk/react": "^3.0.118",
-		"@cline/core": "workspace:*",
-		"@cline/llms": "workspace:*",
-		"@cline/shared": "workspace:*",
+		"@coohu/core": "workspace:*",
+		"@coohu/llms": "workspace:*",
+		"@coohu/shared": "workspace:*",
 		"ai": "^6.0.116"
 	},
 	"devDependencies": {

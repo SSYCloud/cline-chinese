@@ -12,8 +12,8 @@
 		"clean": "rm -rf node_modules dist src-tauri/target"
 	},
 	"dependencies": {
-		"@cline/core": "workspace:*",
-		"@cline/shared": "workspace:*"
+		"@coohu/core": "workspace:*",
+		"@coohu/shared": "workspace:*"
 	},
 	"devDependencies": {
 		"@tauri-apps/cli": "^2.0.0",
