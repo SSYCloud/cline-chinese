@@ -58,7 +58,7 @@ describe("CLI distribution package shape", () => {
 							postinstall: "node ./postinstall.mjs || true",
 						},
 						optionalDependencies: {
-							"@cline/cli-linux-x64": "1.2.3",
+							"@coohu/cline-linux-x64": "1.2.3",
 						},
 					},
 					null,

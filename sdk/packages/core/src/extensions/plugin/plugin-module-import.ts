@@ -207,7 +207,7 @@ function getPackageExportPath(specifier: string): string {
 }
 
 function isClineSdkSpecifier(specifier: string): boolean {
-	return getPackageName(specifier).startsWith("@cline/");
+	return getPackageName(specifier).startsWith("@coohu/");
 }
 
 function hasInstalledDependency(
