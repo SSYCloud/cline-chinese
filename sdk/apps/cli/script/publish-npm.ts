@@ -30,23 +30,23 @@ const { values } = parseArgs({
 
 const dryRun = values["dry-run"] ?? false;
 const npmTag = values.tag ?? "latest";
-const wrapperPackageName = "cline";
+const wrapperPackageName = "@coohu/cline";
 
 const expectedPlatformPackages = [
-	"@cline/cli-darwin-arm64",
-	"@cline/cli-darwin-x64",
-	"@cline/cli-linux-arm64",
-	"@cline/cli-linux-x64",
-	"@cline/cli-windows-arm64",
-	"@cline/cli-windows-x64",
+	"@coohu/cline-darwin-arm64",
+	"@coohu/cline-darwin-x64",
+	"@coohu/cline-linux-arm64",
+	"@coohu/cline-linux-x64",
+	"@coohu/cline-windows-arm64",
+	"@coohu/cline-windows-x64",
 ] as const;
 
 const hostSdkPackages = [
-	{ name: "@cline/sdk", directory: "sdk" },
-	{ name: "@cline/core", directory: "core" },
-	{ name: "@cline/agents", directory: "agents" },
-	{ name: "@cline/llms", directory: "llms" },
-	{ name: "@cline/shared", directory: "shared" },
+	{ name: "@coohu/sdk", directory: "sdk" },
+	{ name: "@coohu/core", directory: "core" },
+	{ name: "@coohu/agents", directory: "agents" },
+	{ name: "@coohu/llms", directory: "llms" },
+	{ name: "@coohu/shared", directory: "shared" },
 ] as const;
 
 interface PlatformPackageManifest {
@@ -244,7 +244,7 @@ console.log("\nPublishing platform packages...");
 const platformTasks = Object.keys(binaries)
 	.sort()
 	.map(async (name) => {
-		const dirName = name.replace("@cline/", "");
+		const dirName = name.replace("@coohu/", "");
 		const pkgDir = join(cliDir, "dist", dirName);
 
 		await publishPackage({
