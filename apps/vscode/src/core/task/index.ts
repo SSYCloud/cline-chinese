@@ -2409,8 +2409,8 @@ export class Task {
 			const { response, text, images, files } = await this.ask(
 				"mistake_limit_reached",
 				this.api.getModel().id.includes("claude")
-					? `This may indicate a failure in Cline's thought process or inability to use a tool properly, which can be mitigated with some user guidance (e.g. "Try breaking down the task into smaller steps").`
-					: "Cline uses complex prompts and iterative task execution that may be challenging for less capable models. For best results, it's recommended to use Claude 4.5 Sonnet for its advanced agentic coding capabilities.",
+					? `这可能表明 Cline 的思维过程存在缺陷，或无法正确使用工具；这一问题可通过提供一些用户指导（例如：“试着将任务拆解为更小的步骤”）来加以缓解。`
+					: "Cline 采用了复杂的提示词和迭代式任务执行机制，这对能力较弱的模型而言可能颇具挑战。为获得最佳效果，建议选用 Claude 4.5 Sonnet，以充分利用其先进的代理式编程能力。",
 			)
 			if (response === "messageResponse") {
 				// Display the user's message in the chat UI

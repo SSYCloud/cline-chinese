@@ -74,7 +74,7 @@ async function collectSecurity(
 	if (isCancel(restrict)) return null;
 	if (!restrict) {
 		p.log.warn(
-			"Anyone who finds this bot will be able to run tasks on your machine.",
+			"任何发现此机器人的人，都将能够在您的机器上运行任务。",
 		);
 		return [];
 	}
@@ -135,7 +135,7 @@ export async function runConnectWizard(): Promise<number> {
 
 	if (platform.type === "webhook") {
 		p.log.warn(
-			"This connector requires a publicly accessible URL for webhooks.",
+			"此连接器要求为 Webhook 提供一个可公开访问的 URL。",
 		);
 	}
 
@@ -157,25 +157,25 @@ export async function runConnectWizard(): Promise<number> {
 	const advanced = await p.group({
 		provider: () =>
 			p.text({
-				message: "Provider override",
-				placeholder: "leave empty for default",
+				message: "供应商覆盖",
+				placeholder: "留空以使用默认值",
 			}),
 		model: () =>
 			p.text({
-				message: "Model override",
-				placeholder: "leave empty for default",
+				message: "模型覆盖",
+				placeholder: "留空以使用默认值",
 			}),
 		systemPrompt: () =>
 			p.text({
-				message: "System prompt override",
-				placeholder: "leave empty for default",
+				message: "系统提示词覆盖",
+				placeholder: "留空以使用默认值",
 			}),
 		mode: () =>
 			p.select({
-				message: "Agent mode",
+				message: "Agent 模式",
 				options: [
-					{ value: "act", label: "Act", hint: "execute tasks" },
-					{ value: "plan", label: "Plan", hint: "plan only" },
+					{ value: "act", label: "Act", hint: "执行任务" },
+					{ value: "plan", label: "Plan", hint: "仅计划" },
 				],
 				initialValue: "act",
 			}),
@@ -202,9 +202,9 @@ export async function runConnectWizard(): Promise<number> {
 	args.push("-i");
 
 	p.log.success(
-		`Running: cline connect ${platform.id} ${redactCommandArgs(args)}`,
+		`运行: cline 链接 ${platform.id} ${redactCommandArgs(args)}`,
 	);
-	p.outro("Starting connector (Ctrl+C to stop)");
+	p.outro("启动连接器 (Ctrl+C 停止)");
 
 	return runConnectAdapter(platform.id, args, {
 		writeln: (text) => {

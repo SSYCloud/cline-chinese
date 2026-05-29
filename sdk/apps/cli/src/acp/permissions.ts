@@ -68,7 +68,7 @@ export function handlePermissionResponse(
 		  },
 ): ToolApprovalResult {
 	if (outcome.outcome === "cancelled") {
-		return { approved: false, reason: "Permission request was cancelled" };
+		return { approved: false, reason: "权限请求已取消" };
 	}
 
 	const optionId = outcome.optionId;
@@ -78,11 +78,11 @@ export function handlePermissionResponse(
 			return { approved: true };
 		case "reject_once":
 		case "reject_always":
-			return { approved: false, reason: "User rejected the tool call" };
+			return { approved: false, reason: "用户拒绝了工具调用" };
 		default:
 			return {
 				approved: false,
-				reason: `Unknown permission option: ${optionId}`,
+				reason: `未知的权限选项: ${optionId}`,
 			};
 	}
 }

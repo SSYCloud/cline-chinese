@@ -99,13 +99,13 @@ Introducing our new Cline CLI built on our new SDK and comes with a snappy new T
 Install:
 
 ```sh
-npm install -g cline
+npm install -g @coohu/cline
 ```
 
 For nightly builds:
 
 ```sh
-npm install -g cline@nightly
+npm install -g @coohu/cline@nightly
 ```
 
 ## 0.0.13

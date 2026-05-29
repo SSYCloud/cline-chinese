@@ -230,7 +230,7 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           echo "Published cline@${VERSION} to npm with dist-tag 'latest'"
-          echo "Install with: npm install -g cline"
+          echo "Install with: npm install -g @coohu/cline"
 
       - name: Post release to Slack
         uses: slackapi/slack-github-action@v3.0.1
@@ -432,4 +432,4 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           echo "Published cline@${VERSION} to npm with dist-tag 'nightly'"
-          echo "Install with: npm install -g cline@nightly"
+          echo "Install with: npm install -g @coohu/cline@nightly"

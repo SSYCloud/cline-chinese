@@ -323,7 +323,7 @@ export function parsePluginSource(
 ): ParsedPluginSource {
 	const trimmed = source.trim();
 	if (!trimmed) {
-		throw new Error("plugin install requires a source");
+		throw new Error("插件安装需要指定源");
 	}
 	if (sourceType === "npm") {
 		const spec = trimmed.startsWith("npm:")
@@ -335,7 +335,7 @@ export function parsePluginSource(
 	if (sourceType === "git") {
 		const git = parseGitSource(trimmed, { force: true });
 		if (!git) {
-			throw new Error(`Invalid git plugin source: ${source}`);
+			throw new Error(`无效的 Git 插件源: ${source}`);
 		}
 		return git;
 	}
@@ -345,7 +345,7 @@ export function parsePluginSource(
 	if (sourceType === "remote") {
 		const remote = normalizeRemotePluginFileUrl(trimmed);
 		if (!remote) {
-			throw new Error(`Invalid remote plugin source: ${source}`);
+			throw new Error(`无效的远程插件源: ${source}`);
 		}
 		return remote;
 	}
@@ -373,7 +373,7 @@ export function parsePluginSource(
 	}
 	if (looksLikeHostnamePath(trimmed)) {
 		throw new Error(
-			`Unrecognized plugin source "${source}". Use --git for hostname-style repositories or pass an explicit local path such as ./github.com/owner/repo.`,
+			`无法识别的插件源 "${source}"。请使用 --git 参数指定主机名风格的仓库，或直接传入明确的本地路径（例如 ./github.com/owner/repo）。`,
 		);
 	}
 	return { type: "local", path: source };
@@ -827,12 +827,12 @@ async function installLocalPackage(
 ): Promise<string> {
 	const absolutePath = resolve(cwd, resolveHomePath(parsed.path));
 	if (!existsSync(absolutePath)) {
-		throw new Error(`Plugin source path does not exist: ${absolutePath}`);
+		throw new Error(`插件源路径不存在: ${absolutePath}`);
 	}
 	const stats = statSync(absolutePath);
 	if (stats.isFile()) {
 		if (!isPluginModulePath(absolutePath)) {
-			throw new Error(`Plugin file must be .js or .ts: ${absolutePath}`);
+			throw new Error(`插件文件必须是 .js 或 .ts: ${absolutePath}`);
 		}
 		mkdirSync(stagingRoot, { recursive: true });
 		const targetPath = join(stagingRoot, basename(absolutePath));
@@ -841,7 +841,7 @@ async function installLocalPackage(
 	}
 	if (!stats.isDirectory()) {
 		throw new Error(
-			`Plugin source must be a file or directory: ${absolutePath}`,
+			`插件源必须是文件或目录: ${absolutePath}`,
 		);
 	}
 	const packageRoot = join(stagingRoot, PACKAGE_DIRECTORY_NAME);
@@ -859,7 +859,7 @@ async function installLocalPackage(
 function assertCanInstall(targetPath: string, force: boolean): void {
 	if (existsSync(targetPath) && !force) {
 		throw new Error(
-			`Plugin is already installed at ${targetPath}. Use --force to replace it.`,
+			`插件已安装在 ${targetPath}。使用 --force 参数来替换它。`,
 		);
 	}
 }
@@ -876,7 +876,7 @@ function replaceInstallPath(
 	}
 	if (!force) {
 		throw new Error(
-			`Plugin is already installed at ${installPath}. Use --force to replace it.`,
+			`插件已安装在 ${installPath}。使用 --force 参数来替换它。`,
 		);
 	}
 

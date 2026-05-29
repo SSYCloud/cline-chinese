@@ -517,7 +517,7 @@ async function releaseCLI(version: string): Promise<number> {
 		console.log(`  CLI v${version} published to npm.`);
 		console.log("");
 		console.log("  Install via npm:");
-		console.log("    npm install -g cline");
+		console.log("    npm install -g @coohu/cline");
 	}
 	console.log(`${"═".repeat(60)}\n`);
 

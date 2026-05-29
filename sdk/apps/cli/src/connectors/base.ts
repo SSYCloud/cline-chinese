@@ -226,7 +226,7 @@ export abstract class ConnectorBase<Options, State>
 	protected parseMode(value: string | undefined): "act" | "plan" {
 		const mode = value?.trim().toLowerCase() || "act";
 		if (mode !== "act" && mode !== "plan") {
-			throw new Error(`invalid mode "${mode}" (expected "act" or "plan")`);
+			throw new Error(`无效的模式 "${mode}" (可用模式 "act" 或 "plan")`);
 		}
 		return mode;
 	}

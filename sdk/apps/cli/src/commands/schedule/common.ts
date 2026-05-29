@@ -20,7 +20,7 @@ export function parseJsonObjectFlag(
 	}
 	const parsed = JSON.parse(raw) as unknown;
 	if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-		throw new Error("metadata JSON must be an object");
+		throw new Error("元数据 JSON 必须是一个对象。");
 	}
 	return parsed as Record<string, unknown>;
 }
@@ -187,22 +187,22 @@ export function formatResolvedAddressLabel(
 
 export function addSharedOptions(cmd: Command): Command {
 	return cmd
-		.option("--address <host:port>", "Hub server address")
-		.option("--json", "Output as JSON");
+		.option("--address <host:port>", "中心服务器地址")
+		.option("--json", "输出 JSON");
 }
 
 export function addDeliveryOptions(cmd: Command): Command {
 	return cmd
-		.option("--delivery-adapter <name>", "Delivery adapter name")
-		.option("--delivery-bot <name>", "Delivery bot user name")
-		.option("--delivery-channel <id>", "Delivery channel ID")
-		.option("--delivery-thread <id>", "Delivery thread ID");
+		.option("--delivery-adapter <name>", "交付适配器名称")
+		.option("--delivery-bot <name>", "交付机器人用户名")
+		.option("--delivery-channel <id>", "交付频道 ID")
+		.option("--delivery-thread <id>", "交付线程 ID");
 }
 
 export function addAutonomousOptions(cmd: Command): Command {
 	return cmd
-		.option("--autonomous", "Enable autonomous mode")
-		.option("--no-autonomous", "Disable autonomous mode")
-		.option("--idle-timeout <seconds>", "Autonomous idle timeout in seconds")
-		.option("--poll-interval <seconds>", "Autonomous poll interval in seconds");
+		.option("--autonomous", "启用自主模式")
+		.option("--no-autonomous", "禁用自主模式")
+		.option("--idle-timeout <seconds>", "自主空闲超时时间（秒）")
+		.option("--poll-interval <seconds>", "自主轮询间隔（秒）");
 }

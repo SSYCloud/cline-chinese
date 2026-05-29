@@ -11,7 +11,7 @@ const registry = new Map<string, ConnectorRegistryEntry>([
 		"gchat",
 		{
 			name: "gchat",
-			description: "Google Chat webhook bridge backed by RPC runtime sessions",
+			description: "基于 RPC 运行时会话的 Google Chat Webhook 网桥",
 			load: async () => (await import("./adapters/gchat")).gchatConnector,
 		},
 	],
@@ -19,7 +19,7 @@ const registry = new Map<string, ConnectorRegistryEntry>([
 		"linear",
 		{
 			name: "linear",
-			description: "Linear webhook bridge backed by RPC runtime sessions",
+			description: "基于 RPC 运行时会话的 Linear Webhook 网桥",
 			load: async () => (await import("./adapters/linear")).linearConnector,
 		},
 	],
@@ -27,7 +27,7 @@ const registry = new Map<string, ConnectorRegistryEntry>([
 		"slack",
 		{
 			name: "slack",
-			description: "Slack webhook bridge backed by RPC runtime sessions",
+			description: "基于 RPC 运行时会话的 Slack Webhook 网桥",
 			load: async () => (await import("./adapters/slack")).slackConnector,
 		},
 	],
@@ -35,7 +35,7 @@ const registry = new Map<string, ConnectorRegistryEntry>([
 		"telegram",
 		{
 			name: "telegram",
-			description: "Bridge Telegram bot messages into RPC chat sessions",
+			description: "将 Telegram 机器人消息桥接到 RPC 聊天会话",
 			load: async () => (await import("./adapters/telegram")).telegramConnector,
 		},
 	],
@@ -43,7 +43,7 @@ const registry = new Map<string, ConnectorRegistryEntry>([
 		"whatsapp",
 		{
 			name: "whatsapp",
-			description: "Bridge WhatsApp webhook messages into RPC chat sessions",
+			description: "将 WhatsApp webhook 消息桥接到 RPC 聊天会话",
 			load: async () => (await import("./adapters/whatsapp")).whatsappConnector,
 		},
 	],

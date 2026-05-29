@@ -4,7 +4,6 @@ import {
 	type GatewayProviderManifest,
 	type GatewayProviderMetadata,
 	type GatewayProviderSettings,
-	getClineEnvironmentConfig,
 	type JsonValue,
 	type ProviderCapability,
 } from "@cline/shared";
@@ -270,13 +269,11 @@ const OPENAI_COMPATIBLE_SPECS: BuiltinSpec[] = [
 		family: "openai-compatible",
 		popular: 1,
 		capabilities: ["reasoning", "prompt-cache", "tools", "oauth"],
-		modelsProviderId: "openrouter",
+		modelsSourceUrl: "https://router.shengsuanyun.com/api/v1/models",
 		defaultModelId: "anthropic/claude-sonnet-4.6",
 		apiKeyEnv: ["SHENGSUANYUN_API_KEY"],
 		defaults: {
-			get baseUrl(): string {
-				return `${getClineEnvironmentConfig().apiBaseUrl}/api/v1`;
-			},
+			baseUrl: "https://router.shengsuanyun.com/api/v1",
 		},
 		metadata: ANTHROPIC_AND_QWEN_CACHE_ROUTING_METADATA,
 	},

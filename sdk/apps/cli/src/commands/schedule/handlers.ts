@@ -53,22 +53,22 @@ export function registerScheduleCommands(
 
 	const createCmd = schedule
 		.command("create")
-		.description("Create a new schedule")
-		.argument("<name>", "Schedule name")
-		.requiredOption("--cron <pattern>", "Cron pattern")
-		.requiredOption("--prompt <text>", "Task prompt")
-		.requiredOption("--workspace <path>", "Workspace root path")
-		.option("--created-by <name>", "Creator name")
-		.option("--cwd <path>", "Working directory")
-		.option("--disabled", "Create in disabled state")
-		.option("--max-parallel <n>", "Max parallel executions", "1")
-		.option("--metadata-json <json>", "Metadata as JSON object")
-		.option("--mode <act|plan>", "Execution mode")
-		.option("--model <model>", "Model to use", "openai/gpt-5.3-codex")
-		.option("--provider <id>", "Provider ID", "cline")
-		.option("--system-prompt <text>", "System prompt override")
-		.option("--tags <list>", "Comma-separated tags")
-		.option("--timeout <seconds>", "Timeout in seconds");
+		.description("创建新日程")
+		.argument("<name>", "日程名")
+		.requiredOption("--cron <pattern>", "Cron 模式")
+		.requiredOption("--prompt <text>", "任务提示词")
+		.requiredOption("--workspace <path>", "工作区根目录")
+		.option("--created-by <name>", "创作者名")
+		.option("--cwd <path>", "工作目录")
+		.option("--disabled", "以禁用状态创建")
+		.option("--max-parallel <n>", "最大并行执行数", "1")
+		.option("--metadata-json <json>", "作为 JSON 对象的元数据")
+		.option("--mode <act|plan>", "执行模式")
+		.option("--model <model>", "要使用的模型", "openai/gpt-5.3-codex")
+		.option("--provider <id>", "供应商 ID", "cline")
+		.option("--system-prompt <text>", "系统提示词覆盖")
+		.option("--tags <list>", "逗号分隔的标签")
+		.option("--timeout <seconds>", "超时时间（秒）");
 	addDeliveryOptions(createCmd);
 	addAutonomousOptions(createCmd);
 	addSharedOptions(createCmd);
@@ -110,7 +110,7 @@ export function registerScheduleCommands(
 					metadata,
 				});
 				if (!created) {
-					io.writeErr("failed to create schedule");
+					io.writeErr("创建日程失败");
 					fail();
 					return;
 				}
@@ -133,7 +133,7 @@ export function registerScheduleCommands(
 			const ensured = await ensureSchedulerHub(address, process.cwd(), io);
 			if (!ensured.ok) {
 				io.writeErr(
-					`failed to ensure hub server${formatResolvedAddressLabel(address)}`,
+					`未能确保中心服务器${formatResolvedAddressLabel(address)}`,
 				);
 				fail();
 				return;
@@ -151,8 +151,8 @@ export function registerScheduleCommands(
 
 	const getCmd = schedule
 		.command("get")
-		.description("Get a schedule by ID")
-		.argument("<schedule-id>", "Schedule ID");
+		.description("根据 ID 获取日程")
+		.argument("<schedule-id>", "日程 ID");
 	addSharedOptions(getCmd);
 	getCmd.action(
 		action(async (scheduleId: string) => {
@@ -183,10 +183,10 @@ export function registerScheduleCommands(
 
 	const historyCmd = schedule
 		.command("history")
-		.description("Show execution history for a schedule")
-		.argument("<schedule-id>", "Schedule ID")
-		.option("--limit <n>", "Maximum number of results", "20")
-		.option("--status <status>", "Filter by execution status");
+		.description("显示日程的执行历史")
+		.argument("<schedule-id>", "日程 ID")
+		.option("--limit <n>", "结果的最大数量", "20")
+		.option("--status <status>", "按执行状态过滤");
 	addSharedOptions(historyCmd);
 	historyCmd.action(
 		action(async (scheduleId: string) => {
@@ -216,11 +216,11 @@ export function registerScheduleCommands(
 
 	const listCmd = schedule
 		.command("list")
-		.description("List schedules")
-		.option("--disabled", "Show only disabled schedules")
-		.option("--enabled", "Show only enabled schedules")
-		.option("--limit <n>", "Maximum number of results", "100")
-		.option("--tags <list>", "Filter by comma-separated tags");
+		.description("列出日程")
+		.option("--disabled", "只显示已禁用的日程")
+		.option("--enabled", "只显示已启用的日程")
+		.option("--limit <n>", "结果的最大数量", "100")
+		.option("--tags <list>", "按逗号分隔的标签过滤");
 	addSharedOptions(listCmd);
 	listCmd.action(
 		action(async () => {
@@ -255,8 +255,8 @@ export function registerScheduleCommands(
 
 	const pauseCmd = schedule
 		.command("pause")
-		.description("Pause a schedule")
-		.argument("<schedule-id>", "Schedule ID");
+		.description("暂停日程")
+		.argument("<schedule-id>", "日程 ID");
 	addSharedOptions(pauseCmd);
 	pauseCmd.action(
 		action(async (scheduleId: string) => {
@@ -287,8 +287,8 @@ export function registerScheduleCommands(
 
 	const resumeCmd = schedule
 		.command("resume")
-		.description("Resume a schedule")
-		.argument("<schedule-id>", "Schedule ID");
+		.description("恢复日程")
+		.argument("<schedule-id>", "日程 ID");
 	addSharedOptions(resumeCmd);
 	resumeCmd.action(
 		action(async (scheduleId: string) => {
@@ -319,8 +319,8 @@ export function registerScheduleCommands(
 
 	const statsCmd = schedule
 		.command("stats")
-		.description("Show statistics for a schedule")
-		.argument("<schedule-id>", "Schedule ID");
+		.description("显示日程的统计信息")
+		.argument("<schedule-id>", "日程 ID");
 	addSharedOptions(statsCmd);
 	statsCmd.action(
 		action(async (scheduleId: string) => {
@@ -346,8 +346,8 @@ export function registerScheduleCommands(
 
 	const triggerCmd = schedule
 		.command("trigger")
-		.description("Trigger a schedule immediately")
-		.argument("<schedule-id>", "Schedule ID");
+		.description("立即触发日程")
+		.argument("<schedule-id>", "日程 ID");
 	addSharedOptions(triggerCmd);
 	triggerCmd.action(
 		action(async (scheduleId: string) => {
@@ -378,8 +378,8 @@ export function registerScheduleCommands(
 
 	const upcomingCmd = schedule
 		.command("upcoming")
-		.description("Show upcoming scheduled runs")
-		.option("--limit <n>", "Maximum number of results", "20");
+		.description("显示即将进行的计划运行")
+		.option("--limit <n>", "结果的最大数量", "20");
 	addSharedOptions(upcomingCmd);
 	upcomingCmd.action(
 		action(async () => {

@@ -52,7 +52,7 @@ export function loadImageAsDataUrl(filePath: string): string {
 		return bufferToImageDataUrl(buffer, getImageMimeType(filePath));
 	} catch (error) {
 		throw new Error(
-			`Failed to load image from ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
+			`加载图片失败 ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
 		);
 	}
 }

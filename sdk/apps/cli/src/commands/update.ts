@@ -324,10 +324,10 @@ async function restartHubServerIfRunning(): Promise<void> {
 	// Re-ensure a fresh hub instance is spawned.
 	try {
 		await ensureCliHubServer(process.cwd()); // return value intentionally unused here
-		writeln(`${c.green}✓${c.reset} ${c.dim}[hub] server restarted${c.reset}`);
+		writeln(`${c.green}✓${c.reset} ${c.dim}[hub] 服务已启动${c.reset}`);
 	} catch (err) {
 		writeErr(
-			`[hub] failed to restart server: ${err instanceof Error ? err.message : String(err)}`,
+			`[hub] 服务启动失败: ${err instanceof Error ? err.message : String(err)}`,
 		);
 	}
 }
@@ -379,7 +379,7 @@ export async function checkForUpdates(
 	const currentVersion = version;
 	const includeKanban = options.includeKanban ?? true;
 	writeln(
-		`${c.cyan}Checking for updates${includeKanban ? " to Cline CLI and kanban" : ""}…${c.reset}`,
+		`${c.cyan} 检查更新 ${includeKanban ? "  转向 Cline CLI 和看板 " : ""}…${c.reset}`,
 	);
 
 	const { packageName, updateCommand, packageManager } =
@@ -422,14 +422,14 @@ export async function checkForUpdates(
 				}
 				if (!kanbanInstallCommand) {
 					writeln(
-						`${c.dim}Kanban installer: unavailable (npm, pnpm, or bun not found)${c.reset}`,
+						`${c.dim} 看板安装: 不可用 (npm, pnpm, 或 bun 未找到)${c.reset}`,
 					);
 				}
 			}
 		}
 
 		if (!latestVersion && !shouldUpdateKanban) {
-			writeErr("Failed to check for updates: could not fetch latest version");
+			writeErr("检查更新失败：无法获取最新版本");
 			return 1;
 		}
 
@@ -455,7 +455,7 @@ export async function checkForUpdates(
 
 		if (cliUpdateAvailable && latestVersion) {
 			writeln(
-				`${c.yellow}New version available:${c.reset} ${c.bold}${latestVersion}${c.reset} (current: ${currentVersion})`,
+				`${c.yellow}新版本可以更新:${c.reset} ${c.bold}${latestVersion}${c.reset} (current: ${currentVersion})`,
 			);
 		}
 
@@ -465,7 +465,7 @@ export async function checkForUpdates(
 		if (cliUpdateAvailable && latestVersion) {
 			if (!updateCommand) {
 				writeln(
-					`${c.dim}Unable to determine Cline update command. Please update manually with your package manager.${c.reset}`,
+					`${c.dim}无法确定 Cline 更新命令。请使用您的包管理器手动更新。.${c.reset}`,
 				);
 				hadFailure = true;
 			} else {
@@ -532,7 +532,7 @@ export async function checkForUpdates(
 		return hadFailure ? 1 : 0;
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error);
-		writeErr(`Error checking for updates: ${message}`);
+		writeErr(`检查更新错误: ${message}`);
 		return 1;
 	}
 }

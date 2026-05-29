@@ -41,6 +41,7 @@ export function useOnboardingKeyboard(input: {
 	refreshCodexCliStatus: () => void;
 	startOAuthFlow: (providerId: OnboardingOAuthProviderId) => void;
 	startDeviceCodeFlow: (providerId: OnboardingOAuthProviderId) => void;
+	startSSYAuthFlow: () => void;
 	selectProvider: (providerId: string) => void;
 	loadModelsForProvider: (providerId: string) => void;
 	saveClineModelSelection: (modelId: string, modelName: string) => void;
@@ -143,7 +144,9 @@ export function useOnboardingKeyboard(input: {
 			if (key.name === "return") {
 				const option = MAIN_MENU[input.menuSelected];
 				if (!option) return;
-				if (option.value === "cline" || option.value === "openai-codex") {
+				if (option.value === "shengsuanyun") {
+					input.startSSYAuthFlow();
+				} else if (option.value === "openai-codex") {
 					input.startOAuthFlow(option.value);
 				} else {
 					input.setStep("byo_provider");

@@ -436,7 +436,7 @@
 
 ### Added
 
-- Cline CLI 2.0 now available. Install with `npm install -g cline`
+- Cline CLI 2.0 now available. Install with `npm install -g @coohu/cline`
 - Anthopic Opus 4.6
 - Minimax-2.1 and Kimi-k2.5 now available for free for a limited time promo
 - Codex-5.3 through ChatGPT subscription

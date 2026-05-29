@@ -40,7 +40,7 @@ export async function checkCodexCliInstalled(): Promise<CodexCliStatus> {
 		if (code === "ENOENT") {
 			return {
 				installed: false,
-				reason: "The codex executable was not found on PATH.",
+				reason: "未在 PATH 中找到 codex 可执行文件。",
 			};
 		}
 		const message =

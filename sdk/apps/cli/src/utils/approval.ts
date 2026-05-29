@@ -40,7 +40,7 @@ async function requestDesktopToolApprovalFromCore(
 				).requestDesktopToolApproval;
 				if (typeof fn !== "function") {
 					throw new Error(
-						"Installed @cline/core does not expose requestDesktopToolApproval",
+						"已安装的 @cline/core 未暴露 requestDesktopToolApproval。",
 					);
 				}
 				return fn;
@@ -48,7 +48,7 @@ async function requestDesktopToolApprovalFromCore(
 			.catch(() => {
 				return async () => ({
 					approved: false,
-					reason: "Desktop tool approval IPC is not available",
+					reason: "桌面工具审批 IPC 不可用。",
 				});
 			});
 	}
@@ -68,7 +68,7 @@ async function requestTerminalToolApproval(
 	if (!process.stdin.isTTY || !process.stdout.isTTY) {
 		return {
 			approved: false,
-			reason: `Tool "${request.toolName}" requires approval in a TTY session`,
+			reason: `工具 "${request.toolName}" 需要在 TTY 会话中获得批准`,
 		};
 	}
 	const preview = truncate(JSON.stringify(request.input), 160);
@@ -91,7 +91,7 @@ async function requestTerminalToolApproval(
 	}
 	return {
 		approved: false,
-		reason: `Tool "${request.toolName}" was denied by user`,
+		reason: `工具 "${request.toolName}" 被用户拒绝`,
 	};
 }
 

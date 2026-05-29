@@ -114,7 +114,7 @@ if (!resolved) {
 				return '"' + n + '"';
 			}).join(" or ") +
 			"\n\n" +
-			"Try reinstalling: npm install -g cline",
+			"Try reinstalling: npm install -g @coohu/cline",
 	);
 	process.exit(1);
 }

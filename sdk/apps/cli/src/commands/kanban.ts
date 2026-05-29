@@ -311,7 +311,7 @@ async function ensureKanbanInstalled(
 
 	if (!isCommandAvailable(command)) {
 		writeErr(
-			`Installed kanban, but ${command} was not found in PATH. Try opening a new terminal.`,
+			`已安装 kanban，但在 PATH 中未找到 ${command}。请尝试开启一个新的终端。`,
 		);
 		return false;
 	}

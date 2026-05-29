@@ -71,7 +71,7 @@ export function createHubCommand(
 		.hook("postAction", () => {
 			setExitCode(actionExitCode);
 		})
-		.option("--cwd <path>", "Workspace root", process.cwd())
+		.option("--cwd <path>", "工作区根目录", process.cwd())
 		.option("--host <host>", "Hub host")
 		.option("--port <port>", "Hub port", (value) => Number.parseInt(value, 10))
 		.option("--pathname <path>", "Hub websocket path");

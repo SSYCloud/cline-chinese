@@ -52,9 +52,9 @@ export function registerScheduleExportCommand(
 ): void {
 	const exportCmd = schedule
 		.command("export")
-		.description("Export a schedule")
-		.argument("<schedule-id>", "Schedule ID")
-		.option("--to <path>", "Output file path");
+		.description("导出日程")
+		.argument("<schedule-id>", "日程 ID")
+		.option("--to <path>", "输出文件路径");
 	addSharedOptions(exportCmd);
 	exportCmd.action(
 		action(async (scheduleId: string) => {
@@ -123,8 +123,8 @@ export function registerScheduleImportCommand(
 ): void {
 	const importCmd = schedule
 		.command("import")
-		.description("Import a schedule from file")
-		.argument("<path>", "Source file path");
+		.description("从文件导入日程")
+		.argument("<path>", "源文件路径");
 	addSharedOptions(importCmd);
 	importCmd.action(
 		action(async (sourcePath: string) => {
@@ -133,7 +133,7 @@ export function registerScheduleImportCommand(
 			const ensured = await ensureSchedulerHub(address, process.cwd(), io);
 			if (!ensured.ok) {
 				io.writeErr(
-					`failed to ensure hub server${formatResolvedAddressLabel(address)}`,
+					`未能确保中心服务器${formatResolvedAddressLabel(address)}`,
 				);
 				fail();
 				return;
@@ -153,7 +153,7 @@ export function registerScheduleImportCommand(
 				).trim();
 				if (!workspaceRoot) {
 					io.writeErr(
-						"schedule import requires workspaceRoot/workspace_root in the source file",
+						"日程导入需要在源文件中指定 workspaceRoot/workspace_root",
 					);
 					fail();
 					return;
@@ -200,7 +200,7 @@ export function registerScheduleImportCommand(
 					),
 				});
 				if (!created) {
-					io.writeErr("failed to import schedule");
+					io.writeErr("导入日程失败");
 					fail();
 					return;
 				}
@@ -220,26 +220,26 @@ export function registerScheduleUpdateCommand(
 ): void {
 	const updateCmd = schedule
 		.command("update")
-		.description("Update a schedule")
-		.argument("<schedule-id>", "Schedule ID")
-		.option("--clear-timeout", "Clear timeout")
-		.option("--cron <pattern>", "New cron pattern")
-		.option("--cwd <path>", "New working directory")
-		.option("--disabled", "Disable the schedule")
-		.option("--enabled", "Enable the schedule")
-		.option("--max-parallel <n>", "New max parallel executions")
-		.option("--metadata-json <json>", "New metadata as JSON object")
-		.option("--mode <act|plan>", "New execution mode")
-		.option("--model <model>", "New model")
-		.option("--name <name>", "New name")
-		.option("--pause", "Pause the schedule")
-		.option("--prompt <text>", "New prompt")
-		.option("--provider <id>", "New provider ID")
-		.option("--resume", "Resume the schedule")
-		.option("--system-prompt <text>", "New system prompt")
-		.option("--tags <list>", "New comma-separated tags")
-		.option("--timeout <n>", "New timeout in seconds")
-		.option("--workspace <path>", "New workspace root");
+		.description("更新日程")
+		.argument("<schedule-id>", "日程 ID")
+		.option("--clear-timeout", "删除超时")
+		.option("--cron <pattern>", "新的 cron pattern")
+		.option("--cwd <path>", "新的工作目录")
+		.option("--disabled", "禁用日程")
+		.option("--enabled", "启用日程")
+		.option("--max-parallel <n>", "新的最大并行执行数")
+		.option("--metadata-json <json>", "新的元数据作为 JSON 对象")
+		.option("--mode <act|plan>", "新的执行模式")
+		.option("--model <model>", "新的模型")
+		.option("--name <name>", "新的名称")
+		.option("--pause", "暂停日程")
+		.option("--prompt <text>", "新的提示")
+		.option("--provider <id>", "新的提供商 ID")
+		.option("--resume", "恢复日程")
+		.option("--system-prompt <text>", "新的系统提示")
+		.option("--tags <list>", "新的逗号分隔标签")
+		.option("--timeout <n>", "新的超时时间（秒）")
+		.option("--workspace <path>", "新的工作区根目录");
 	addDeliveryOptions(updateCmd);
 	addAutonomousOptions(updateCmd);
 	addSharedOptions(updateCmd);
@@ -250,7 +250,7 @@ export function registerScheduleUpdateCommand(
 			const ensured = await ensureSchedulerHub(address, process.cwd(), io);
 			if (!ensured.ok) {
 				io.writeErr(
-					`failed to ensure hub server${formatResolvedAddressLabel(address)}`,
+					`未能确保中心服务器${formatResolvedAddressLabel(address)}`,
 				);
 				fail();
 				return;

@@ -3,9 +3,9 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-	getInstallationInfo,
-	PackageManager,
-	withMinimumReleaseAgeBypass,
+    getInstallationInfo,
+    PackageManager,
+    withMinimumReleaseAgeBypass,
 } from "./update";
 
 const originalArgv = [...process.argv];
@@ -45,7 +45,7 @@ describe("getInstallationInfo", () => {
 		expect(getInstallationInfo("1.2.3")).toEqual({
 			packageManager: PackageManager.NPM,
 			packageName: "cline",
-			updateCommand: "npm install -g cline@latest",
+			updateCommand: "npm install -g @coohu/cline@latest",
 		});
 	});
 
@@ -57,7 +57,7 @@ describe("getInstallationInfo", () => {
 		expect(getInstallationInfo("1.2.3-nightly.456")).toEqual({
 			packageManager: PackageManager.NPM,
 			packageName: "cline",
-			updateCommand: "npm install -g cline@nightly",
+			updateCommand: "npm install -g @coohu/cline@nightly",
 		});
 	});
 
@@ -76,10 +76,10 @@ describe("withMinimumReleaseAgeBypass", () => {
 	it("adds the package-manager-specific cooldown bypass", () => {
 		expect(
 			withMinimumReleaseAgeBypass(
-				"npm install -g cline@latest",
+				"npm install -g @coohu/cline@latest",
 				PackageManager.NPM,
 			).command,
-		).toBe("npm install -g cline@latest --min-release-age=0");
+		).toBe("npm install -g @coohu/cline@latest --min-release-age=0");
 		expect(
 			withMinimumReleaseAgeBypass("bun add -g cline@latest", PackageManager.BUN)
 				.command,

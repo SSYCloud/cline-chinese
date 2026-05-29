@@ -39,7 +39,7 @@ jobs:
         if: steps.detect.outputs.hit == 'true'
         run: |
           # Install the Cline CLI
-          sudo npm install -g cline
+          sudo npm install -g @coohu/cline
 
       - name: Create Cline Instance
         if: steps.detect.outputs.hit == 'true'

@@ -121,10 +121,10 @@ async function runRulesConfigCommand(
 		return 0;
 	}
 	if (rules.length === 0) {
-		io.writeln("No enabled rules found.");
+		io.writeln("没找到启用的 rules。");
 		return 0;
 	}
-	io.writeln("Enabled rules:");
+	io.writeln("启用的 rules:");
 	for (const rule of rules) {
 		io.writeln(`  ${rule.name} (${rule.path})`);
 	}
@@ -525,7 +525,7 @@ export function createConfigCommand(
 					break;
 				default:
 					io.writeErr(
-						`config requires one of: workflows, rules, skills, agents, plugins, hooks, mcp, tools (got "${target}")`,
+						`配置需要: workflows, rules, skills, agents, plugins, hooks, mcp, tools (got "${target}")`,
 					);
 					actionExitCode = 1;
 			}

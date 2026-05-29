@@ -167,7 +167,7 @@ export function spawnDetachedConnector(
 				runtime: "cli",
 				component: options?.component ?? "connectors",
 			});
-			logger.core.error?.("Unable to resolve detached connector command", {
+			logger.core.error?.("无法解析分离连接器命令", {
 				commandPrefixArgs,
 				rawArgs,
 				childEnvKey,

@@ -114,7 +114,7 @@ function formatAskQuestionInput(input: Record<string, unknown>): string {
 		return "";
 	}
 
-	const lines = ["The agent is waiting for your input."];
+	const lines = ["Agent 在等待输入."];
 	if (question) {
 		lines.push(question);
 	}

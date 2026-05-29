@@ -40,6 +40,7 @@ import {
 	type OnboardingOAuthProviderId,
 	runDeviceCodeAuthFlow,
 	runOAuthAuthFlow,
+	runSSYAuthFlow,
 } from "./auth";
 import { FIELD_ORDER } from "./fields";
 import { useOnboardingKeyboard } from "./keyboard";
@@ -89,6 +90,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 	>();
 	const [codexCliChecking, setCodexCliChecking] = useState(false);
 	const authAbortRef = useRef(false);
+	const ssyCleanupRef = useRef<(() => void) | null>(null);
 
 	// Device code flow
 	const [deviceUserCode, setDeviceUserCode] = useState("");
@@ -276,7 +278,30 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		setAuthUrl("");
 		setAuthError("");
 		authAbortRef.current = false;
+		ssyCleanupRef.current?.();
+		ssyCleanupRef.current = null;
 	}, []);
+
+	const startSSYAuthFlow = useCallback(() => {
+		resetAuth();
+		authAbortRef.current = false;
+		setOauthProvider("shengsuanyun");
+		setStep("oauth_pending");
+		setAuthStatus("正在启动...");
+
+		runSSYAuthFlow({
+			providerSettingsManager,
+			isAborted: () => authAbortRef.current,
+			setStatus: setAuthStatus,
+			setAuthUrl,
+			setError: setAuthError,
+			onComplete: transitionToModelPicker,
+			setCleanup: (close) => {
+				ssyCleanupRef.current = close;
+			},
+			telemetry: getCliTelemetryService(),
+		});
+	}, [providerSettingsManager, resetAuth, transitionToModelPicker]);
 
 	const startDeviceCodeFlow = useCallback(
 		(providerId: OnboardingOAuthProviderId) => {
@@ -602,6 +627,8 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		setThinkingSelected,
 		abortOAuth: () => {
 			authAbortRef.current = true;
+			ssyCleanupRef.current?.();
+			ssyCleanupRef.current = null;
 		},
 		abortDeviceCode: () => {
 			deviceAbortRef.current = true;
@@ -610,6 +637,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		refreshCodexCliStatus,
 		startOAuthFlow,
 		startDeviceCodeFlow,
+		startSSYAuthFlow,
 		selectProvider,
 		loadModelsForProvider,
 		saveClineModelSelection,

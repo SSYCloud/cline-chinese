@@ -112,7 +112,7 @@ async function getCoreOAuthApi(): Promise<CoreOAuthApi> {
 				typeof runtimeApi.loginOpenAICodex !== "function"
 			) {
 				throw new Error(
-					"Installed @cline/core does not expose OAuth login helpers required by the CLI",
+					"已安装的 @cline/core 未暴露 CLI 所需的 OAuth 登录辅助函数。",
 				);
 			}
 			return runtimeApi as CoreOAuthApi;
@@ -130,13 +130,13 @@ async function getCoreOAuthApi(): Promise<CoreOAuthApi> {
  */
 export function createAuthCommand(): Command {
 	const cmd = new Command("auth")
-		.description("Authenticate with an LLM provider")
+		.description("向 LLM 提供商进行身份验证")
 		.exitOverride()
 		.configureOutput({ writeOut: () => {}, writeErr: () => {} })
-		.argument("[provider]", "provider id (positional shorthand for -p)")
-		.option("-p, --provider <id>", "provider id")
+		.argument("[provider]", "供应商 id (-p 简写)")
+		.option("-p, --provider <id>", "供应商 id")
 		.option("-k, --apikey <key>", "API key")
-		.option("-m, --modelid <id>", "model id")
+		.option("-m, --modelid <id>", "模型 id")
 		.option("-b, --baseurl <url>", "base URL");
 	return cmd;
 }
@@ -198,7 +198,7 @@ async function ensureQuickSetupInputValid(
 		normalizedProvider !== BUILT_IN_PROVIDER.OPENAI_COMPATIBLE &&
 		normalizedProvider !== BUILT_IN_PROVIDER.OPENAI_NATIVE
 	) {
-		return "base URL is only supported for OpenAI and OpenAI-compatible providers";
+		return "Base URL 仅支持 OpenAI 及兼容 OpenAI 的服务提供商。";
 	}
 	return undefined;
 }
@@ -229,7 +229,7 @@ function saveQuickAuthProviderSettings(input: {
 
 async function askForInputInTerminal(question: string): Promise<string> {
 	if (!process.stdin.isTTY || !process.stdout.isTTY) {
-		throw new Error("OAuth login requires an interactive terminal session");
+		throw new Error("OAuth 登录需要交互式终端会话。");
 	}
 
 	return new Promise<string>((resolve) => {
@@ -263,10 +263,10 @@ function createOAuthCallbacks(io: AuthIo): {
 		openUrl: (url) => open(url, { wait: false }).then(() => undefined),
 		onOpenUrlError: ({ error }) => {
 			io.writeln(
-				`${c.dim}[auth] Could not open browser automatically; open the URL above manually.${c.reset}`,
+				`${c.dim}[auth] 无法自动打开浏览器；请手动打开上方链接。${c.reset}`,
 			);
 			io.writeln(
-				`${c.dim}[auth] Browser open failed: ${error instanceof Error ? error.message : String(error)}${c.reset}`,
+				`${c.dim}[auth] 浏览器打开失败: ${error instanceof Error ? error.message : String(error)}${c.reset}`,
 			);
 		},
 	});
@@ -302,7 +302,7 @@ async function loginWithOAuthProvider(
 	}
 
 	throw new Error(
-		`Provider "${providerId}" does not support CLI OAuth flow (supported: cline, openai-codex, oca)`,
+		`供应商 "${providerId}" 不支持 CLI OAuth 流程 (支持的: 胜算云, openai-codex, oca)`,
 	);
 }
 

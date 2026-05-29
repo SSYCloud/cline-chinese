@@ -236,23 +236,23 @@ function usage(text: string): string {
 
 function formatHelp(state: ChatCommandState): string {
 	return [
-		"Cline connector commands:",
-		"/help or /start - show this help",
-		"/new or /clear - start a fresh session",
-		"/whereami - show thread, cwd, tools, and yolo state",
-		"/tools [on|off|toggle] - allow repo/file/shell tools",
-		"/yolo [on|off|toggle] - auto-approve tool use",
-		"/cwd <path> - change working directory",
-		"/schedule create/list/trigger/delete - manage scheduled workflows",
-		"/abort - stop the current task",
-		"/exit - stop this connector",
+		"Cline 连接器命令:",
+		"/help or /start - 显示此帮助信息",
+		"/new or /clear - 开始新的会话",
+		"/whereami - 显示 thread、cwd、tools 和 yolo 状态",
+		"/tools [on|off|toggle] - 允许 repo/file/shell 工具",
+		"/yolo [on|off|toggle] - 自动批准工具使用",
+		"/cwd <path> - 更改工作目录",
+		"/schedule create/list/trigger/delete - 管理计划工作流程",
+		"/abort - 停止当前任务",
+		"/exit - 停止此连接器",
 		"",
 		`Current state: tools=${state.enableTools ? "on" : "off"}, yolo=${state.autoApproveTools ? "on" : "off"}`,
 		state.toolsLocked
-			? "Tool controls are locked because this connector was started with --no-tools."
+			? "工具控件已被锁定，因为此连接器是使用 --no-tools 启动的。"
 			: undefined,
-		"Send normal text to ask a question or assign a task.",
-		"When tools are on, I can inspect files, edit code, run commands/tests, and help prepare PRs.",
+		"发送普通文本以提问或分配任务。",
+		"当工具开启时，我可以检查文件、编辑代码、运行命令或测试，并协助准备拉取请求（PR）。",
 	]
 		.filter((line): line is string => line !== undefined)
 		.join("\n");
@@ -366,7 +366,7 @@ function createDefaultChatCommandHost(): ChatCommandHost {
 				const taskBody = args.join(" ").trim();
 				if (!taskBody) {
 					await context.reply(
-						"Usage: /team <task description>\nStarts a team of agents for the given task.",
+						"用法：/team <任务描述>为指定任务启动一个智能体团队。",
 					);
 					return;
 				}
@@ -374,7 +374,7 @@ function createDefaultChatCommandHost(): ChatCommandHost {
 				// The interactive runtime handles input transformation and
 				// session-level enableTeams toggling before this host runs.
 				await context.reply(
-					"The /team command must be entered directly as a prompt, not via a chat command.",
+					"/team 命令必须直接作为提示输入，而不是通过聊天命令输入。",
 				);
 			},
 		})
@@ -389,18 +389,18 @@ function createDefaultChatCommandHost(): ChatCommandHost {
 					await context.reply(
 						error instanceof Error
 							? error.message
-							: "Fork failed: could not read messages from the current session.",
+							: "Fork 失败：无法从当前会话读取消息。",
 					);
 					return;
 				}
 				if (!result) {
 					await context.reply(
-						"Fork failed: could not read messages from the current session.",
+						"Fork 失败：无法从当前会话读取消息。",
 					);
 					return;
 				}
 				await context.reply(
-					`Forked session ${result.forkedFromSessionId} into new session ${result.newSessionId}. This is now the active session. Use /history to switch sessions.`,
+					`已将会话 ${result.forkedFromSessionId} 分叉为新会话 ${result.newSessionId}。当前该会话处于活跃状态。使用 /history 切换会话。`,
 				);
 			},
 		})
@@ -408,7 +408,7 @@ function createDefaultChatCommandHost(): ChatCommandHost {
 			names: ["/schedule"],
 			run: async ({ args }, context) => {
 				if (!context.schedule) {
-					await context.reply("Scheduling is not available in this chat.");
+					await context.reply("此聊天中无法进行日程安排。");
 					return;
 				}
 				const subcommand = args[0]?.trim().toLowerCase();
@@ -418,7 +418,7 @@ function createDefaultChatCommandHost(): ChatCommandHost {
 				}
 				if (subcommand === "list") {
 					if (!context.schedule.list) {
-						await context.reply("Schedule listing is not available here.");
+						await context.reply("此聊天中无法列出日程。");
 						return;
 					}
 					await context.reply(await context.schedule.list());
@@ -431,7 +431,7 @@ function createDefaultChatCommandHost(): ChatCommandHost {
 						return;
 					}
 					if (!context.schedule.trigger) {
-						await context.reply("Schedule triggering is not available here.");
+						await context.reply("此处不支持定时触发。");
 						return;
 					}
 					await context.reply(await context.schedule.trigger(scheduleId));
@@ -444,7 +444,7 @@ function createDefaultChatCommandHost(): ChatCommandHost {
 						return;
 					}
 					if (!context.schedule.delete) {
-						await context.reply("Schedule deletion is not available here.");
+						await context.reply("此聊天中无法删除日程。");
 						return;
 					}
 					await context.reply(await context.schedule.delete(scheduleId));
@@ -452,7 +452,7 @@ function createDefaultChatCommandHost(): ChatCommandHost {
 				}
 				if (subcommand === "create") {
 					if (!context.schedule.create) {
-						await context.reply("Schedule creation is not available here.");
+						await context.reply("此聊天中无法创建日程。");
 						return;
 					}
 					const parsed = parseFlagValues(tokenizeArgs(args.slice(1).join(" ")));

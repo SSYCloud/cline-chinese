@@ -3,7 +3,7 @@ import { formatUserCommandBlock } from "@cline/shared";
 import type { Config } from "./types";
 
 export const TEAM_COMMAND_USAGE =
-	"Usage: /team <task description>\nStarts a team of agents for the given task.";
+	"用法：/team <任务描述>为指定任务启动一个智能体团队。";
 
 type TeamPromptRewriteResult =
 	| { kind: "none" }
@@ -22,7 +22,7 @@ export function rewriteTeamPrompt(input: string): TeamPromptRewriteResult {
 	return {
 		kind: "rewritten",
 		prompt: formatUserCommandBlock(
-			`spawn a team of agents for the following task: ${taskBody}`,
+			`生成一组 Agent 以执行以下任务： ${taskBody}`,
 			"team",
 		),
 	};

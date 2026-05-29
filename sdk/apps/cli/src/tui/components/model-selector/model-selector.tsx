@@ -98,12 +98,12 @@ export function ModelIdInputContent(
 
 	return (
 		<box flexDirection="column" gap={1}>
-			<text>Set Model ID</text>
+			<text>设置模型 ID</text>
 
 			<ProviderRow providerName={currentProviderName} focused={onProvider} />
 
 			<box flexDirection="column" gap={0}>
-				<text fg="gray">Model ID</text>
+				<text fg="gray">模型 ID</text>
 				<box
 					border
 					borderStyle="rounded"
@@ -124,7 +124,7 @@ export function ModelIdInputContent(
 				{error && <text fg="red">{error}</text>}
 			</box>
 
-			<text fg="gray">Enter to save, Tab to change provider, Esc to close</text>
+			<text fg="gray">Enter 保存，Tab 切换提供商，Esc 关闭</text>
 		</box>
 	);
 }
@@ -224,12 +224,12 @@ export function ModelSelectorContent(
 	if (isCreatingCustomModel) {
 		return (
 			<box flexDirection="column" gap={1}>
-				<text>Create custom model ID</text>
+				<text>创建自定义模型 ID</text>
 
 				<ProviderRow providerName={currentProviderName} focused={false} />
 
 				<box flexDirection="column" gap={0}>
-					<text fg="gray">Model ID</text>
+					<text fg="gray">模型 ID</text>
 					<box
 						border
 						borderStyle="rounded"
@@ -259,7 +259,7 @@ export function ModelSelectorContent(
 				</box>
 
 				<text fg="gray">
-					Enter to create, Esc to go back to model selection
+					Enter 创建，Esc 返回模型选择
 				</text>
 			</box>
 		);
@@ -267,7 +267,7 @@ export function ModelSelectorContent(
 
 	return (
 		<box flexDirection="column" gap={1}>
-			<text>Select Model</text>
+			<text>选择模型</text>
 
 			<ProviderRow providerName={currentProviderName} focused={onProvider} />
 
@@ -298,8 +298,7 @@ export function ModelSelectorContent(
 			/>
 
 			<text fg="gray">
-				Type to search, ↑/↓ navigate, Enter to select, Tab to change provider,
-				Esc to close
+				输入以搜索，↑/↓ 导航，Enter 选择，Tab 切换提供商，Esc 关闭
 			</text>
 		</box>
 	);
@@ -311,11 +310,11 @@ export type ThinkingLevel = "none" | "low" | "medium" | "high" | "xhigh";
 
 const THINKING_LEVELS: { value: ThinkingLevel; label: string; desc: string }[] =
 	[
-		{ value: "none", label: "Off", desc: "No extended thinking" },
-		{ value: "low", label: "Low", desc: "Minimal reasoning" },
-		{ value: "medium", label: "Medium", desc: "Balanced reasoning" },
-		{ value: "high", label: "High", desc: "Deep reasoning" },
-		{ value: "xhigh", label: "Extra High", desc: "Maximum reasoning" },
+		{ value: "none", label: "关闭", desc: "不进行扩展思考" },
+		{ value: "low", label: "低", desc: "最小化推理" },
+		{ value: "medium", label: "中", desc: "平衡推理" },
+		{ value: "high", label: "高", desc: "深度推理" },
+		{ value: "xhigh", label: "极高", desc: "最大推理" },
 	];
 
 export function ThinkingLevelContent(
@@ -352,7 +351,7 @@ export function ThinkingLevelContent(
 
 	return (
 		<box flexDirection="column" gap={1}>
-			<text>Thinking Level for {modelName}</text>
+			<text> {modelName} 模型思考等级</text>
 
 			<box flexDirection="column">
 				{THINKING_LEVELS.map((level, i) => (
@@ -395,7 +394,7 @@ export function ThinkingLevelContent(
 				))}
 			</box>
 
-			<text fg="gray">↑/↓ navigate, Enter to select, Esc to go back</text>
+			<text fg="gray">↑/↓ 导航，Enter 选择，Esc 返回</text>
 		</box>
 	);
 }
