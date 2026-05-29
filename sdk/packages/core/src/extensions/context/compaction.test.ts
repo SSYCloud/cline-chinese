@@ -1,4 +1,4 @@
-import type * as LlmsProviders from "@cline/llms";
+import type * as LlmsProviders from "@coohu/llms";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CoreCompactionContext } from "../../types/config";
 import { runBasicCompaction } from "./basic-compaction";
@@ -14,7 +14,7 @@ type FakeChunk = Record<string, unknown>;
 
 const createHandlerMock = vi.fn();
 
-vi.mock("@cline/llms", () => ({
+vi.mock("@coohu/llms", () => ({
 	createHandlerAsync: (config: unknown) => createHandlerMock(config),
 }));
 

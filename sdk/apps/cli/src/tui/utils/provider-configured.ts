@@ -1,4 +1,4 @@
-import { ProviderSettingsManager } from "@cline/core";
+import { ProviderSettingsManager } from "@coohu/core";
 import { isProviderSettingsUsable } from "../../utils/provider-readiness";
 import type { TuiProps } from "../types";
 

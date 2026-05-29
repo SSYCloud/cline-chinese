@@ -7,8 +7,8 @@ import {
 	saveLocalProviderOAuthCredentials,
 	saveLocalProviderSettings,
 	startClineDeviceAuth,
-} from "@cline/core";
-import { getClineEnvironmentConfig } from "@cline/shared";
+} from "@coohu/core";
+import { getClineEnvironmentConfig } from "@coohu/shared";
 import * as http from "node:http";
 import type { AddressInfo } from "node:net";
 import open from "open";

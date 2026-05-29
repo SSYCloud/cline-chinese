@@ -1,9 +1,9 @@
-import type { ChatStartSessionRequest } from "@cline/core";
+import type { ChatStartSessionRequest } from "@coohu/core";
 import {
 	createUserInstructionConfigService,
 	HubSessionClient,
-} from "@cline/core";
-import type { ConnectLinearOptions, LinearConnectorState } from "@cline/shared";
+} from "@coohu/core";
+import type { ConnectLinearOptions, LinearConnectorState } from "@coohu/shared";
 import { type Adapter, Chat, ConsoleLogger, type Thread } from "chat";
 import type { Command } from "commander";
 import type { CliLoggerAdapter } from "../../logging/adapter";

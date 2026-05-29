@@ -1,7 +1,7 @@
 import {
 	resolveDefaultMcpSettingsPath,
 	setMcpServerDisabled,
-} from "@cline/core";
+} from "@coohu/core";
 import type { ChoiceContext } from "@opentui-ui/dialog";
 import { useDialogKeyboard } from "@opentui-ui/dialog/react";
 import { useState } from "react";

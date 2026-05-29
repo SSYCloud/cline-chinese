@@ -1,4 +1,4 @@
-import { registerDisposable } from "@cline/shared";
+import { registerDisposable } from "@coohu/shared";
 import { nowIso } from "./helpers";
 import type { ActiveCliSession, CliOutputMode } from "./types";
 

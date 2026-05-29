@@ -1,4 +1,4 @@
-import { estimateTokens } from "@cline/shared";
+import { estimateTokens } from "@coohu/shared";
 import type {
 	AgentMessage,
 	AgentModel,
@@ -12,12 +12,12 @@ import type {
 	GatewayProviderRegistration,
 	GatewayStreamRequest,
 	ITelemetryService,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { toAsyncIterable } from "./async";
 import { BUILTIN_PROVIDER_REGISTRATIONS } from "./builtins-runtime";
 import { GatewayRegistry } from "./registry";
 
-export type * from "@cline/shared";
+export type * from "@coohu/shared";
 
 const GATEWAY_OUTPUT_RESERVE_TOKENS = 1_024;
 

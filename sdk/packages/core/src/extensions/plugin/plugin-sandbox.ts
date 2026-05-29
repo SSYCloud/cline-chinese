@@ -10,7 +10,7 @@ import type {
 	Message,
 	PluginSetupContext,
 	WorkspaceInfo,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { SubprocessSandbox } from "../../runtime/tools/subprocess-sandbox";
 import type { PluginLoadDiagnostics } from "./plugin-load-report";
 import type { PluginTargeting } from "./plugin-targeting";

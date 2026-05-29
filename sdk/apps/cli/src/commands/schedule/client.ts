@@ -3,7 +3,7 @@ import {
 	HubScheduleCommandService,
 	HubScheduleService,
 	sendHubCommand,
-} from "@cline/core";
+} from "@coohu/core";
 import {
 	ensureCliHubServer,
 	parseHubEndpointOverride,

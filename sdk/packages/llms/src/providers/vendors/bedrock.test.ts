@@ -1,4 +1,4 @@
-import type { GatewayResolvedProviderConfig } from "@cline/shared";
+import type { GatewayResolvedProviderConfig } from "@coohu/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createBedrockProviderModule } from "./bedrock";
 

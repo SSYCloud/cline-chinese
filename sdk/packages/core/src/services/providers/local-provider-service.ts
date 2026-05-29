@@ -1,4 +1,4 @@
-import * as LlmsModels from "@cline/llms";
+import * as LlmsModels from "@coohu/llms";
 import {
 	type AddProviderActionRequest,
 	getClineEnvironmentConfig,
@@ -8,7 +8,7 @@ import {
 	type ProviderListItem,
 	type ProviderModel,
 	type SaveProviderSettingsActionRequest,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { createOAuthClientCallbacks } from "../../auth/client";
 import { loginClineOAuth } from "../../auth/cline";
 import { loginOpenAICodex } from "../../auth/codex";

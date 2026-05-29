@@ -3,8 +3,8 @@ import {
 	type BasicLogger,
 	createContributionRegistry,
 	resolveAndLoadAgentPlugins,
-} from "@cline/core";
-import type { AgentTool, Message } from "@cline/shared";
+} from "@coohu/core";
+import type { AgentTool, Message } from "@coohu/shared";
 import {
 	type ChatCommandDefinition,
 	type ChatCommandHost,

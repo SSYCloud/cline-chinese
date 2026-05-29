@@ -1,5 +1,5 @@
-import { createTeamName } from "@cline/core";
-import { formatUserCommandBlock } from "@cline/shared";
+import { createTeamName } from "@coohu/core";
+import { formatUserCommandBlock } from "@coohu/shared";
 import type { Config } from "./types";
 
 export const TEAM_COMMAND_USAGE =

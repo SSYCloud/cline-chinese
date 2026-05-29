@@ -2,7 +2,7 @@
  * Team data types and interfaces.
  *
  * These are the pure data-shape contracts for the multi-agent team system.
- * They intentionally avoid referencing @cline/agents types so that shared
+ * They intentionally avoid referencing @coohu/agents types so that shared
  * can remain dependency-free of the agents package.
  */
 
@@ -90,7 +90,7 @@ export type TeamRunStatus =
  * Shared representation of a teammate run record.
  *
  * The `result` field is typed as `unknown` at the shared contract level
- * because the concrete type (`AgentResult`) lives in `@cline/agents`.
+ * because the concrete type (`AgentResult`) lives in `@coohu/agents`.
  * Consuming packages narrow this via their own type assertions.
  */
 export interface TeamRunRecord {

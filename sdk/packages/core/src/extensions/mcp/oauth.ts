@@ -266,7 +266,7 @@ function buildClient(input: {
 	clientVersion?: string;
 }): Client {
 	return new Client({
-		name: input.clientName?.trim() || "@cline/core",
+		name: input.clientName?.trim() || "@coohu/core",
 		version: input.clientVersion?.trim() || "0.0.0",
 	});
 }

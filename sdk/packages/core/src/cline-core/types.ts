@@ -1,10 +1,10 @@
-import type { Message } from "@cline/llms";
+import type { Message } from "@coohu/llms";
 import type {
 	AgentConfig,
 	AutomationEventEnvelope,
 	BasicLogger,
 	ITelemetryService,
-} from "@cline/shared";
+} from "@coohu/shared";
 import type { CronEventSuppression } from "../cron/events/cron-event-ingress";
 import type {
 	CronEventLogRecord,
@@ -244,7 +244,7 @@ export interface ClineCoreOptions {
 	 *   - `startHubServer({ fetch })` / `ensureHubServer({ fetch })` from
 	 *     `@cline/hub`
 	 *   - `createLocalHubScheduleRuntimeHandlers({ fetch })` from
-	 *     `@cline/core/hub` for the scheduler
+	 *     `@coohu/core/hub` for the scheduler
 	 */
 	fetch?: typeof fetch;
 	/**

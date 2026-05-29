@@ -4,7 +4,7 @@ import type {
 	AgentModelEvent,
 	AgentModelRequest,
 	AgentRuntimeEvent,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AgentRuntime } from "./agent-runtime";
 import { Agent, createAgent } from "./index";
@@ -17,7 +17,7 @@ const { createAgentModel, createGateway } = vi.hoisted(() => {
 	return { createAgentModel, createGateway };
 });
 
-vi.mock("@cline/llms", () => ({
+vi.mock("@coohu/llms", () => ({
 	createGateway,
 }));
 

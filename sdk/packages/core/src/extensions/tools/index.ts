@@ -5,7 +5,7 @@
  */
 
 // Zod Utilities
-export { validateWithZod, zodToJsonSchema } from "@cline/shared";
+export { validateWithZod, zodToJsonSchema } from "@coohu/shared";
 // Constants
 export { ALL_DEFAULT_TOOL_NAMES, DefaultToolNames } from "./constants";
 // AgentTool Definitions
@@ -112,7 +112,7 @@ export type {
 // Convenience: Create Tools with Built-in Executors
 // =============================================================================
 
-import type { AgentTool } from "@cline/shared";
+import type { AgentTool } from "@coohu/shared";
 import { createDefaultTools } from "./definitions";
 import {
 	createDefaultExecutors,
@@ -143,7 +143,7 @@ export interface CreateBuiltinToolsOptions
  *
  * @example
  * ```typescript
- * import { Agent, createBuiltinTools } from "@cline/core"
+ * import { Agent, createBuiltinTools } from "@coohu/core"
  *
  * const tools = createBuiltinTools({
  *   cwd: "/path/to/project",

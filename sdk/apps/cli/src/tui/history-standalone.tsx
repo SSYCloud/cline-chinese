@@ -1,4 +1,4 @@
-import type { SessionHistoryRecord } from "@cline/core";
+import type { SessionHistoryRecord } from "@coohu/core";
 import { createCliRenderer } from "@opentui/core";
 import { createRoot } from "@opentui/react";
 import React from "react";

@@ -7,7 +7,7 @@ const hoisted = vi.hoisted(() => ({
 	getCliTelemetryService: vi.fn(() => undefined),
 }));
 
-vi.mock("@cline/core", () => ({
+vi.mock("@coohu/core", () => ({
 	captureExtensionActivated: hoisted.captureExtensionActivated,
 	identifyAccount: hoisted.identifyAccount,
 	// CLI telemetry singleton path normally pulls in

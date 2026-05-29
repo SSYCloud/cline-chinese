@@ -3,7 +3,7 @@ import type {
 	GatewayProviderContext,
 	GatewayReasoningFormat,
 	GatewayStreamRequest,
-} from "@cline/shared";
+} from "@coohu/shared";
 
 export function resolveModelFamily(
 	context: GatewayProviderContext,

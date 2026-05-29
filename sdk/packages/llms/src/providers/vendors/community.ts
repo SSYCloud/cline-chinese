@@ -1,4 +1,4 @@
-import type { GatewayResolvedProviderConfig } from "@cline/shared";
+import type { GatewayResolvedProviderConfig } from "@coohu/shared";
 import { createClaudeCode } from "ai-sdk-provider-claude-code";
 import { createCodexExec } from "ai-sdk-provider-codex-cli";
 import { createDifyProvider } from "dify-ai-provider";

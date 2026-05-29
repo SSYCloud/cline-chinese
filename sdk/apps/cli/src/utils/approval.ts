@@ -1,5 +1,5 @@
 import { createInterface } from "node:readline";
-import type { ToolApprovalRequest, ToolApprovalResult } from "@cline/shared";
+import type { ToolApprovalRequest, ToolApprovalResult } from "@coohu/shared";
 import { truncate } from "./helpers";
 import { c, getActiveCliSession, write } from "./output";
 
@@ -25,7 +25,7 @@ async function requestDesktopToolApprovalFromCore(
 	request: ToolApprovalRequest,
 ): Promise<ToolApprovalResult> {
 	if (!cachedDesktopApprovalRequester) {
-		cachedDesktopApprovalRequester = import("@cline/core")
+		cachedDesktopApprovalRequester = import("@coohu/core")
 			.then((module) => {
 				const fn = (
 					module as {
@@ -40,7 +40,7 @@ async function requestDesktopToolApprovalFromCore(
 				).requestDesktopToolApproval;
 				if (typeof fn !== "function") {
 					throw new Error(
-						"已安装的 @cline/core 未暴露 requestDesktopToolApproval。",
+						"已安装的 @coohu/core 未暴露 requestDesktopToolApproval。",
 					);
 				}
 				return fn;

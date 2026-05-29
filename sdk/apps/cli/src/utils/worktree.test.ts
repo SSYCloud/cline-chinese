@@ -9,7 +9,7 @@ import {
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
-import { setClineDir } from "@cline/shared/storage";
+import { setClineDir } from "@coohu/shared/storage";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createTaskWorktree, getTaskWorktreesHomePath } from "./worktree";
 

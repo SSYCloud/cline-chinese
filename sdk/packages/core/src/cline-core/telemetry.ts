@@ -1,4 +1,4 @@
-import type { ITelemetryService } from "@cline/shared";
+import type { ITelemetryService } from "@coohu/shared";
 import { CORE_TELEMETRY_EVENTS } from "../services/telemetry/core-events";
 import { SessionSource } from "../types/common";
 import type { ClineCoreStartInput } from "./types";

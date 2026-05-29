@@ -1,5 +1,5 @@
 /**
- * AgentRuntime contract types (ported from clinee `@cline/shared`).
+ * AgentRuntime contract types (ported from clinee `@coohu/shared`).
  *
  * These are the canonical type definitions consumed by `AgentRuntime`.
  *

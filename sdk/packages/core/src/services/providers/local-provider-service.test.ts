@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import * as LlmsModels from "@cline/llms";
+import * as LlmsModels from "@coohu/llms";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ProviderSettingsManager } from "../storage/provider-settings-manager";
 import {

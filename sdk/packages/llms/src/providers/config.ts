@@ -5,7 +5,7 @@
  * This replaces the per-provider config chaos with a single structure.
  */
 
-import type { BasicLogger, ExtensionContext } from "@cline/shared";
+import type { BasicLogger, ExtensionContext } from "@coohu/shared";
 import type { ModelInfo, ProviderClient } from "../catalog/types";
 import {
 	BUILT_IN_PROVIDER,

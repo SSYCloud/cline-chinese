@@ -3,7 +3,7 @@ import { createVertexAnthropic } from "@ai-sdk/google-vertex/anthropic";
 import type {
 	GatewayProviderContext,
 	GatewayResolvedProviderConfig,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { ensureFetch, resolveApiKey } from "../http";
 import { isClaudeModelId } from "../model-facts";
 import type { ProviderFactoryResult } from "./types";

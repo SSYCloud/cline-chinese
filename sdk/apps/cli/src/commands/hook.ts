@@ -1,4 +1,4 @@
-import type { HookEventPayload } from "@cline/core";
+import type { HookEventPayload } from "@coohu/core";
 import { handleSessionHookEvent } from "../session/session";
 import {
 	appendHookAudit,

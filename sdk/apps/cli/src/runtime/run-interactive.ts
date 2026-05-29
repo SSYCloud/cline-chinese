@@ -3,7 +3,7 @@ import {
 	type ProviderSettings,
 	ProviderSettingsManager,
 	type UserInstructionConfigService,
-} from "@cline/core";
+} from "@coohu/core";
 import type { CliMigrationNotice } from "../kanban-migration/notice";
 import { logCliError } from "../logging/errors";
 import {

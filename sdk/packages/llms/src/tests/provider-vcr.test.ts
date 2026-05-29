@@ -1,8 +1,8 @@
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { disposeAll, initVcr } from "@cline/shared";
-import { resolveProviderSettingsPath } from "@cline/shared/storage";
+import { disposeAll, initVcr } from "@coohu/shared";
+import { resolveProviderSettingsPath } from "@coohu/shared/storage";
 import { afterEach, describe, expect, it } from "vitest";
 import { createHandlerAsync, type ProviderConfig } from "../providers";
 

@@ -1,6 +1,6 @@
-import { getCurrentContextSize, summarizeUsageFromMessages } from "@cline/core";
-import type { Message } from "@cline/shared";
-import { formatDisplayUserInput, truncateStr } from "@cline/shared";
+import { getCurrentContextSize, summarizeUsageFromMessages } from "@coohu/core";
+import type { Message } from "@coohu/shared";
+import { formatDisplayUserInput, truncateStr } from "@coohu/shared";
 import type { KeyEvent } from "@opentui/core";
 import { useRenderer, useTerminalDimensions } from "@opentui/react";
 import type { ChoiceContext } from "@opentui-ui/dialog";

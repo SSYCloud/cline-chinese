@@ -1,5 +1,5 @@
 // @jsxImportSource @opentui/react
-import type { ClineAccountOrganization } from "@cline/core";
+import type { ClineAccountOrganization } from "@coohu/core";
 import type { ChoiceContext } from "@opentui-ui/dialog";
 import { useDialogKeyboard } from "@opentui-ui/dialog/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";

@@ -1,4 +1,4 @@
-import { createGateway, MODEL_COLLECTIONS_BY_PROVIDER_ID } from "@cline/llms";
+import { createGateway, MODEL_COLLECTIONS_BY_PROVIDER_ID } from "@coohu/llms";
 import type {
 	AgentConfig,
 	AgentModel,
@@ -6,7 +6,7 @@ import type {
 	GatewayModelDefinition,
 	ITelemetryService,
 	ModelInfo,
-} from "@cline/shared";
+} from "@coohu/shared";
 import type { ProviderConfig } from "./provider-settings";
 
 function compactOptions(

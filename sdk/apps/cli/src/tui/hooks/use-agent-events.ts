@@ -1,4 +1,4 @@
-import type { AgentEvent, TeamEvent } from "@cline/core";
+import type { AgentEvent, TeamEvent } from "@coohu/core";
 import { useCallback, useRef } from "react";
 import type {
 	PendingPromptSnapshot,

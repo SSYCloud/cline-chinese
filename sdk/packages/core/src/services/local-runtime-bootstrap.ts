@@ -8,8 +8,8 @@ import type {
 	ToolApprovalRequest,
 	ToolApprovalResult,
 	WorkspaceInfo,
-} from "@cline/shared";
-import { hasRuntimeConfigExtension } from "@cline/shared";
+} from "@coohu/shared";
+import { hasRuntimeConfigExtension } from "@coohu/shared";
 import { decodeJwtPayload } from "../auth/utils";
 import { resolveAndLoadAgentPlugins } from "../extensions/plugin/plugin-config-loader";
 import type {

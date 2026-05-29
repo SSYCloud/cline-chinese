@@ -59,7 +59,7 @@ export function toBuiltInProviderSummary(input: {
 	collection: BuiltInProviderSummary["id"] extends string
 		? {
 				provider: Pick<
-					import("@cline/llms").ProviderInfo,
+					import("@coohu/llms").ProviderInfo,
 					| "id"
 					| "name"
 					| "description"

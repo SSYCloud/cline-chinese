@@ -3,7 +3,7 @@ import {
 	setDisabledPlugin,
 	setDisabledTools,
 	type UserInstructionConfigService,
-} from "@cline/core";
+} from "@coohu/core";
 import {
 	type InteractiveConfigData,
 	type InteractiveConfigItem,

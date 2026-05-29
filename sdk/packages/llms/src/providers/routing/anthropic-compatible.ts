@@ -5,7 +5,7 @@ import type {
 	GatewayProviderManifest,
 	GatewayProviderMetadata,
 	GatewayStreamRequest,
-} from "@cline/shared";
+} from "@coohu/shared";
 import {
 	isAnthropicCompatibleModel,
 	isQwenModel,

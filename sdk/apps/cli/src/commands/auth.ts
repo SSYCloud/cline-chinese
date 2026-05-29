@@ -6,8 +6,8 @@ import {
 	listLocalProviders,
 	type ProviderSettings,
 	type ProviderSettingsManager,
-} from "@cline/core";
-import { getClineEnvironmentConfig } from "@cline/shared";
+} from "@coohu/core";
+import { getClineEnvironmentConfig } from "@coohu/shared";
 import { Command } from "commander";
 import open from "open";
 import React from "react";
@@ -104,7 +104,7 @@ let cachedCoreOAuthApi: Promise<CoreOAuthApi> | undefined;
 
 async function getCoreOAuthApi(): Promise<CoreOAuthApi> {
 	if (!cachedCoreOAuthApi) {
-		cachedCoreOAuthApi = import("@cline/core").then((module) => {
+		cachedCoreOAuthApi = import("@coohu/core").then((module) => {
 			const runtimeApi = module as Partial<CoreOAuthApi>;
 			if (
 				typeof runtimeApi.loginClineOAuth !== "function" ||
@@ -112,7 +112,7 @@ async function getCoreOAuthApi(): Promise<CoreOAuthApi> {
 				typeof runtimeApi.loginOpenAICodex !== "function"
 			) {
 				throw new Error(
-					"已安装的 @cline/core 未暴露 CLI 所需的 OAuth 登录辅助函数。",
+					"已安装的 @coohu/core 未暴露 CLI 所需的 OAuth 登录辅助函数。",
 				);
 			}
 			return runtimeApi as CoreOAuthApi;

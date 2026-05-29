@@ -8,7 +8,7 @@ const result = await Bun.build({
 	minify: true,
 	packages: "bundle",
 	sourcemap: "none",
-	external: ["@cline/core"],
+	external: ["@coohu/core"],
 });
 
 if (result.logs.length > 0) {

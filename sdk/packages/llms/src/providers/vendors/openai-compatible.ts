@@ -3,7 +3,7 @@ import type { LanguageModelV3 } from "@ai-sdk/provider";
 import type {
 	GatewayProviderContext,
 	GatewayResolvedProviderConfig,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { wrapLanguageModel } from "ai";
 import { resolveApiKey } from "../http";
 import { splitToolImagesMiddleware } from "../middleware/split-tool-images";

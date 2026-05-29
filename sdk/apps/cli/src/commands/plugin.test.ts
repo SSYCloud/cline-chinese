@@ -13,7 +13,7 @@ import {
 	resolvePluginConfigSearchPaths,
 	setClineDir,
 	setHomeDir,
-} from "@cline/shared/storage";
+} from "@coohu/shared/storage";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	installPlugin,
@@ -253,14 +253,14 @@ describe("plugin install command", () => {
 						plugins: [{ paths: ["./index.ts"], capabilities: ["tools"] }],
 					},
 					dependencies: {
-						"@cline/core": "latest",
+						"@coohu/core": "latest",
 						yaml: "^2.8.1",
 					},
 					peerDependencies: {
-						"@cline/shared": "*",
+						"@coohu/shared": "*",
 					},
 					peerDependenciesMeta: {
-						"@cline/shared": {
+						"@coohu/shared": {
 							optional: true,
 						},
 					},
@@ -339,10 +339,10 @@ describe("plugin install command", () => {
 				"  shift",
 				"done",
 				'mkdir -p "$prefix/node_modules/published-plugin"',
-				'mkdir -p "$prefix/node_modules/@cline/core"',
+				'mkdir -p "$prefix/node_modules/@coohu/core"',
 				'printf \'%s\\n\' \'{"name":"published-plugin","type":"module","cline":{"plugins":["index.ts"]}}\' > "$prefix/node_modules/published-plugin/package.json"',
 				"printf '%s\\n' \"export default { name: 'published-plugin', manifest: { capabilities: ['tools'] } };\" > \"$prefix/node_modules/published-plugin/index.ts\"",
-				'printf \'%s\\n\' \'{"name":"@cline/core"}\' > "$prefix/node_modules/@cline/core/package.json"',
+				'printf \'%s\\n\' \'{"name":"@coohu/core"}\' > "$prefix/node_modules/@coohu/core/package.json"',
 				"exit 0",
 			].join("\n"),
 			{ encoding: "utf8", mode: 0o755 },

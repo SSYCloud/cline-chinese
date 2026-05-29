@@ -1,13 +1,13 @@
 import { createTelegramAdapter } from "@chat-adapter/telegram";
-import type { ChatStartSessionRequest } from "@cline/core";
+import type { ChatStartSessionRequest } from "@coohu/core";
 import {
 	createUserInstructionConfigService,
 	HubSessionClient,
-} from "@cline/core";
+} from "@coohu/core";
 import type {
 	ConnectTelegramOptions,
 	TelegramConnectorState,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { Chat, ConsoleLogger, type Thread } from "chat";
 import type { Command } from "commander";
 import type { CliLoggerAdapter } from "../../logging/adapter";

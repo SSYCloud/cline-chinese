@@ -60,7 +60,7 @@ export interface DefaultExecutorsOptions {
  *
  * @example
  * ```typescript
- * import { createDefaultTools, createDefaultExecutors } from "@cline/core"
+ * import { createDefaultTools, createDefaultExecutors } from "@coohu/core"
  *
  * const executors = createDefaultExecutors({
  *   bash: { timeoutMs: 60000 },

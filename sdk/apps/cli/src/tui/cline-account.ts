@@ -7,8 +7,8 @@ import {
 	getValidClineCredentials,
 	type ProviderSettings,
 	ProviderSettingsManager,
-} from "@cline/core";
-import { getClineEnvironmentConfig } from "@cline/shared";
+} from "@coohu/core";
+import { getClineEnvironmentConfig } from "@coohu/shared";
 import { formatCreditBalance, normalizeCreditBalance } from "../utils/output";
 import { toProviderApiKey } from "../utils/provider-auth";
 import type { Config } from "../utils/types";

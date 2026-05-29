@@ -1,10 +1,10 @@
 /**
- * @cline/core
+ * @coohu/core
  *
  * Core contracts, shared state utilities, and Node runtime services.
  */
 
-export * as Llms from "@cline/llms";
+export * as Llms from "@coohu/llms";
 // Shared contracts and path helpers re-exported for app consumers.
 export type {
 	AddProviderActionRequest,
@@ -71,7 +71,7 @@ export type {
 	WorkspaceInfoSchema,
 	WorkspaceManifest,
 	WorkspaceManifestSchema,
-} from "@cline/shared";
+} from "@coohu/shared";
 export {
 	buildClineSystemPrompt as getClineDefaultSystemPrompt,
 	buildSdkErrorProperties,
@@ -89,8 +89,8 @@ export {
 	parseUserCommandEnvelope,
 	registerDisposable,
 	SDK_ERROR_TELEMETRY_EVENT,
-} from "@cline/shared";
-export * from "@cline/shared/storage";
+} from "@coohu/shared";
+export * from "@coohu/shared/storage";
 export {
 	type ClineAccountBalance,
 	type ClineAccountOperations,
@@ -618,7 +618,7 @@ export { CORE_BUILD_VERSION } from "./version";
 export async function loadOpenTelemetryAdapter() {
 	return import("./services/telemetry/index.js");
 }
-export { Agent, createAgentRuntime } from "@cline/agents";
+export { Agent, createAgentRuntime } from "@coohu/agents";
 export { createContextCompactionPrepareTurn } from "./extensions/context/compaction";
 export {
 	ALL_DEFAULT_TOOL_NAMES,

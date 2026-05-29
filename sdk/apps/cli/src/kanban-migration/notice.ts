@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { resolveClineDataDir } from "@cline/shared/storage";
+import { resolveClineDataDir } from "@coohu/shared/storage";
 
 const NOTICE_ID = "cline-cli-tui-default";
 const FORCE_NOTICE_ENV = "CLINE_FORCE_MIGRATION_NOTICE";

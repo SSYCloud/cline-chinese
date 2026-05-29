@@ -1,4 +1,4 @@
-import { formatDisplayUserInput } from "@cline/shared";
+import { formatDisplayUserInput } from "@coohu/shared";
 import type { AppView, ChatEntry } from "../types";
 
 const APP_TITLE = "Cline";

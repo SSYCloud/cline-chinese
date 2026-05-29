@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import { resolveMcpSettingsPath } from "@cline/shared/storage";
+import { resolveMcpSettingsPath } from "@coohu/shared/storage";
 import { z } from "zod";
 import type {
 	McpManager,

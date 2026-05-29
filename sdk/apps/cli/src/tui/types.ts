@@ -3,12 +3,12 @@ import type {
 	AgentMode,
 	CheckpointEntry,
 	TeamEvent,
-} from "@cline/core";
+} from "@coohu/core";
 import type {
 	Message,
 	ToolApprovalRequest,
 	ToolApprovalResult,
-} from "@cline/shared";
+} from "@coohu/shared";
 import type { CliMigrationNotice } from "../kanban-migration/notice";
 import type {
 	PendingPromptSnapshot,

@@ -1,5 +1,5 @@
-import * as LlmsModels from "@cline/llms";
-import { isOAuthProviderId } from "@cline/shared";
+import * as LlmsModels from "@coohu/llms";
+import { isOAuthProviderId } from "@coohu/shared";
 
 export type ProviderConfigFieldKey =
 	| "apiKey"

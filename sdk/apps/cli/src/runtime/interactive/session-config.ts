@@ -1,4 +1,4 @@
-import type { TeamEvent } from "@cline/core";
+import type { TeamEvent } from "@coohu/core";
 import type { ChatCommandState } from "../../utils/chat-commands";
 import type { Config } from "../../utils/types";
 import {

@@ -2,7 +2,7 @@ import type {
 	GatewayProviderContext,
 	GatewayProviderMetadata,
 	GatewayStreamRequest,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { isGlmModel } from "../model-facts";
 import type { ProviderOptionsPatch } from "./utils";
 

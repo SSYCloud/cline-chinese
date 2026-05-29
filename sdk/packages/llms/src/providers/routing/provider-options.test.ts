@@ -1,7 +1,7 @@
 import type {
 	GatewayProviderContext,
 	GatewayStreamRequest,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { describe, expect, it } from "vitest";
 import { GLM_THINKING_ROUTING_METADATA } from "./glm-thinking";
 import {

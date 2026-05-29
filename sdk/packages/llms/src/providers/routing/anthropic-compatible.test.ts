@@ -2,7 +2,7 @@ import type {
 	GatewayModelRoute,
 	GatewayProviderContext,
 	GatewayProviderManifest,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { describe, expect, it } from "vitest";
 import {
 	isAnthropicCompatibleModel,

@@ -1,5 +1,5 @@
-import { Llms, type ProviderSettings } from "@cline/core";
-import { isOAuthProviderId } from "@cline/shared";
+import { Llms, type ProviderSettings } from "@coohu/core";
+import { isOAuthProviderId } from "@coohu/shared";
 
 export type OAuthCredentials = {
 	access: string;
@@ -23,7 +23,7 @@ export function normalizeAuthProviderId(providerId: string): string {
 }
 
 /**
- * Re-exports `isOAuthProviderId` from `@cline/shared` so the CLI has a
+ * Re-exports `isOAuthProviderId` from `@coohu/shared` so the CLI has a
  * single source of truth for the OAuth provider list. Existing call sites
  * keep their `isOAuthProvider` import name.
  */

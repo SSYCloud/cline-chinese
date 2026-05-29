@@ -3,7 +3,7 @@ import type {
 	AgentResult,
 	HubCommandEnvelope,
 	HubReplyEnvelope,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { parseHookEventPayload } from "../../../hooks";
 import type { SendSessionInput } from "../../../runtime/host/runtime-host";
 import { logHubMessage } from "../hub-server-logging";

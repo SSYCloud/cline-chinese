@@ -3,10 +3,10 @@ import type {
 	BasicLogger,
 	ChatRunTurnRequest,
 	ChatStartSessionRequest,
-} from "@cline/shared";
-import { buildClineSystemPrompt } from "@cline/shared";
-import { nowIso } from "@cline/shared/db";
-import type { ResolveCronSpecsDirOptions } from "@cline/shared/storage";
+} from "@coohu/shared";
+import { buildClineSystemPrompt } from "@coohu/shared";
+import { nowIso } from "@coohu/shared/db";
+import type { ResolveCronSpecsDirOptions } from "@coohu/shared/storage";
 import { DefaultToolNames } from "../../extensions/tools/constants";
 import { mergeRulesForSystemPrompt } from "../../runtime/safety/rules";
 import { buildWorkspaceMetadata } from "../../services/workspace/workspace-manifest";

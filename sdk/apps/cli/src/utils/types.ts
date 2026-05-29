@@ -7,8 +7,8 @@ import type {
 	SessionLineage,
 	SessionManifest,
 	ToolPolicy,
-} from "@cline/core";
-import type { Message } from "@cline/shared";
+} from "@coohu/core";
+import type { Message } from "@coohu/shared";
 
 export type CliOutputMode = "text" | "json";
 export type CliAgentMode = AgentMode;

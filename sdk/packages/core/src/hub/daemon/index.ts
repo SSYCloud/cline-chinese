@@ -6,7 +6,7 @@ import {
 	CLINE_RUN_AS_HUB_DAEMON_ENV,
 	isHubDaemonProcess,
 	withResolvedClineBuildEnv,
-} from "@cline/shared";
+} from "@coohu/shared";
 import {
 	rememberRecoverableLocalHubUrl,
 	requestHubShutdown,

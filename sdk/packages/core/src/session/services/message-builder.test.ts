@@ -1,4 +1,4 @@
-import type { Message } from "@cline/shared";
+import type { Message } from "@coohu/shared";
 import { describe, expect, it } from "vitest";
 import { MessageBuilder } from "./message-builder";
 

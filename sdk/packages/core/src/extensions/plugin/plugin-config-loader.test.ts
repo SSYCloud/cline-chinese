@@ -1,7 +1,7 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { setHomeDir } from "@cline/shared/storage";
+import { setHomeDir } from "@coohu/shared/storage";
 import { afterEach, describe, expect, it } from "vitest";
 import {
 	discoverPluginModulePaths,

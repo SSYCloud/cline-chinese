@@ -9,7 +9,7 @@ import {
 	refreshProviderModelsFromSource,
 	resolveProviderConfig,
 	saveLocalProviderSettings,
-} from "@cline/core";
+} from "@coohu/core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
 	type CodexCliStatus,

@@ -6,7 +6,7 @@ import {
 	type HubReplyEnvelope,
 	type HubTransportFrame,
 	resolveHubCommandTimeoutMs,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { spawnDetachedHubServerWithRetry } from "../daemon";
 import {
 	clearHubDiscovery,

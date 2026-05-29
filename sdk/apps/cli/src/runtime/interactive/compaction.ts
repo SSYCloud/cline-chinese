@@ -5,8 +5,8 @@ import {
 	type ProviderSettingsManager,
 	type ReasoningSettings,
 	toProviderConfig,
-} from "@cline/core";
-import type { Message } from "@cline/shared";
+} from "@coohu/core";
+import type { Message } from "@coohu/shared";
 import type { Config } from "../../utils/types";
 
 const FALLBACK_MANUAL_COMPACTION_MAX_INPUT_TOKENS = 64_000;

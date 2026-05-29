@@ -16,7 +16,7 @@ vi.mock("./runtime/host/host", () => ({
 	createRuntimeHost: createRuntimeHostMock,
 }));
 
-import type { AgentResult } from "@cline/shared";
+import type { AgentResult } from "@coohu/shared";
 import { ClineCore } from "./ClineCore";
 
 function createStartInput(): ClineCoreStartInput {

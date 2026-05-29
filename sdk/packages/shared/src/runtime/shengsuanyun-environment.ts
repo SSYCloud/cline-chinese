@@ -59,7 +59,7 @@ function normalizeShengSuanYunEnvironment(
 
 function readProcessEnv(): NodeJS.ProcessEnv {
 	// `process` may be absent in browser-style runtimes (this module ships
-	// from the browser entry of `@cline/shared`). Treat its absence as "no
+	// from the browser entry of `@coohu/shared`). Treat its absence as "no
 	// env vars set" so callers always get a deterministic default.
 	if (typeof process === "undefined" || !process?.env) {
 		return {};

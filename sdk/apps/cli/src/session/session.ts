@@ -5,12 +5,12 @@ import type {
 	RuntimeHostMode,
 	SessionHistoryRecord,
 	SessionRecord,
-} from "@cline/core";
+} from "@coohu/core";
 import {
 	ClineCore,
 	listSessionHistoryFromBackend,
 	resolveSessionBackend,
-} from "@cline/core";
+} from "@coohu/core";
 import {
 	createCliMessagesArtifactUploader,
 	prepareCliEnterpriseIntegration,

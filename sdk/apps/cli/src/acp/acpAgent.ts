@@ -27,8 +27,8 @@ import {
 	Llms,
 	ProviderSettingsManager,
 	SessionSource,
-} from "@cline/core";
-import type { Message } from "@cline/shared";
+} from "@coohu/core";
+import type { Message } from "@coohu/shared";
 import { getPersistedProviderApiKey } from "../commands/auth";
 import { resolveSystemPrompt } from "../runtime/prompt";
 import { subscribeToAgentEvents } from "../runtime/session-events";

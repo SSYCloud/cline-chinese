@@ -1,10 +1,10 @@
-export type { ITelemetryService } from "@cline/shared";
+export type { ITelemetryService } from "@coohu/shared";
 export { HubScheduleCommandService } from "../cron/service/schedule-command-service";
 export { HubScheduleService } from "../cron/service/schedule-service";
 /**
  * Re-exported so detached hub daemon entry points (e.g. the VS Code
  * `hub-daemon.ts` companion process) can construct a telemetry service
- * from a single `@cline/core/hub` import. The hub daemon is the
+ * from a single `@coohu/core/hub` import. The hub daemon is the
  * canonical owner of telemetry forwarding for sessions executed inside
  * the detached process, so the factory belongs on the hub surface even
  * though its implementation lives under `services/telemetry`.

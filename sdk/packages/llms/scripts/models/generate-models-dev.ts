@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import type { ModelInfo } from "@cline/shared";
+import type { ModelInfo } from "@coohu/shared";
 import { fetchModelsDevProviderModels } from "../../src/catalog/catalog-live";
 
 function sortObjectByKey<T>(

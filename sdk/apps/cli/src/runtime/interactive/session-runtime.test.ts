@@ -4,8 +4,8 @@ import type {
 	TeamEvent,
 	ToolApprovalRequest,
 	ToolApprovalResult,
-} from "@cline/core";
-import type { AgentTool } from "@cline/shared";
+} from "@coohu/core";
+import type { AgentTool } from "@coohu/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ChatCommandState } from "../../utils/chat-commands";
 import type { Config } from "../../utils/types";

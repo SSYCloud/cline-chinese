@@ -6,14 +6,14 @@ import type {
 	GatewayProviderFactory,
 	GatewayResolvedProviderConfig,
 	GatewayStreamRequest,
-} from "@cline/shared";
+} from "@coohu/shared";
 import {
 	type AiSdkFormatterMessage,
 	type AiSdkFormatterPart,
 	captureSdkError,
 	formatMessagesForAiSdk,
 	sanitizeSurrogates,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { jsonSchema, streamText } from "ai";
 import { nanoid } from "nanoid";
 import { z } from "zod";

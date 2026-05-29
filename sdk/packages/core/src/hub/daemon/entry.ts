@@ -1,4 +1,4 @@
-import { initVcr } from "@cline/shared";
+import { initVcr } from "@coohu/shared";
 import { createLocalHubScheduleRuntimeHandlers } from "../daemon/runtime-handlers";
 import { resolveHubEndpointOptions } from "../discovery/defaults";
 import { resolveSharedHubOwnerContext } from "../discovery/workspace";

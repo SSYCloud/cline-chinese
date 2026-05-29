@@ -9,7 +9,7 @@ import {
 	createTool,
 	validateWithZod,
 	zodToJsonSchema,
-} from "@cline/shared";
+} from "@coohu/shared";
 import {
 	formatError,
 	formatReadFileQuery,
@@ -648,7 +648,7 @@ export function createSubmitAndExitTool(
  *
  * @example
  * ```typescript
- * import { Agent, createDefaultTools } from "@cline/core"
+ * import { Agent, createDefaultTools } from "@coohu/core"
  * import * as fs from "fs/promises"
  * import { exec } from "child_process"
  *

@@ -27,7 +27,7 @@ const outputMocks = vi.hoisted(() => ({
 	c: { dim: "", reset: "" },
 }));
 
-vi.mock("@cline/core", () => ({
+vi.mock("@coohu/core", () => ({
 	prewarmFileIndex: vi.fn(async () => undefined),
 	SessionSource: {
 		CLI: "cli",

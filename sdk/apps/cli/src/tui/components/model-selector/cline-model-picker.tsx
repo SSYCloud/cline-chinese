@@ -4,7 +4,7 @@ import {
 	type ClineRecommendedModel,
 	type ClineRecommendedModelsData,
 	fetchClineRecommendedModels,
-} from "@cline/core";
+} from "@coohu/core";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import "opentui-spinner/react";

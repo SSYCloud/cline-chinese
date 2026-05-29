@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs";
 import { isAbsolute, resolve as resolvePath } from "node:path";
-import { augmentNodeCommandForDebug, type ClineDebugRole } from "@cline/shared";
+import { augmentNodeCommandForDebug, type ClineDebugRole } from "@coohu/shared";
 
 export interface ResolveCliLaunchSpecOptions {
 	execPath?: string;

@@ -9,8 +9,8 @@ import {
 	nowIso,
 	type SqliteDb,
 	toBoolInt,
-} from "@cline/shared/db";
-import { resolveDbDataDir } from "@cline/shared/storage";
+} from "@coohu/shared/db";
+import { resolveDbDataDir } from "@coohu/shared/storage";
 import {
 	isNonTerminalSessionStatus,
 	type SessionStatus,

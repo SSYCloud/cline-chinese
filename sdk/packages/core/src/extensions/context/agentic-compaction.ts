@@ -1,5 +1,5 @@
-import { createHandlerAsync } from "@cline/llms";
-import type { BasicLogger } from "@cline/shared";
+import { createHandlerAsync } from "@coohu/llms";
+import type { BasicLogger } from "@coohu/shared";
 import type {
 	CoreCompactionContext,
 	CoreCompactionResult,

@@ -2,7 +2,7 @@ import {
 	formatDisplayUserInput,
 	type Message,
 	normalizeUserInput,
-} from "@cline/shared";
+} from "@coohu/shared";
 
 const FORK_TITLE_SUFFIX = " (fork)";
 const MAX_FORK_TITLE_LENGTH = 120;

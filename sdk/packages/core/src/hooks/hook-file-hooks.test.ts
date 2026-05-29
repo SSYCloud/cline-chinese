@@ -6,7 +6,7 @@ import {
 	resolveDocumentsClineDirectoryPath,
 	setClineDir,
 	setHomeDir,
-} from "@cline/shared/storage";
+} from "@coohu/shared/storage";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
 	createHookAuditHooks,

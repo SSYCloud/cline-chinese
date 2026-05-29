@@ -1,4 +1,4 @@
-import type { AgentHooks, HookEventPayload } from "@cline/core";
+import type { AgentHooks, HookEventPayload } from "@coohu/core";
 import { closeInlineStreamIfNeeded } from "./events";
 import {
 	c,

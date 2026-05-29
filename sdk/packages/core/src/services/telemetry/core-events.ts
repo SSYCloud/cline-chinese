@@ -2,7 +2,7 @@ import {
 	type ITelemetryService,
 	SDK_ERROR_TELEMETRY_EVENT,
 	type TelemetryProperties,
-} from "@cline/shared";
+} from "@coohu/shared";
 
 const MAX_ERROR_MESSAGE_LENGTH = 500;
 

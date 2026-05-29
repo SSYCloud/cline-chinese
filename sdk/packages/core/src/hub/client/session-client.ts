@@ -1,4 +1,4 @@
-import type * as LlmsProviders from "@cline/llms";
+import type * as LlmsProviders from "@coohu/llms";
 import type {
 	ChatRunTurnRequest,
 	ChatStartSessionRequest,
@@ -6,7 +6,7 @@ import type {
 	ChatTurnResult,
 	HubEventEnvelope,
 	TeamProgressProjectionEvent,
-} from "@cline/shared";
+} from "@coohu/shared";
 import type { CheckpointEntry } from "../../hooks/checkpoint-hooks";
 import { NodeHubClient } from "../client";
 

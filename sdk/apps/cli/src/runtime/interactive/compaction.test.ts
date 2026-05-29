@@ -4,7 +4,7 @@ import { join } from "node:path";
 import {
 	type CoreCompactionContext,
 	ProviderSettingsManager,
-} from "@cline/core";
+} from "@coohu/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Config } from "../../utils/types";
 import {

@@ -4,7 +4,7 @@ import type {
 	GatewayProviderFactory,
 	GatewayProviderRegistration,
 	GatewayStreamRequest,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { nanoid } from "nanoid";
 import type {
 	ModelInfo,

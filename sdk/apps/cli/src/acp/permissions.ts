@@ -5,7 +5,7 @@ import type {
 	RequestPermissionRequest,
 	ToolCallUpdate,
 } from "@agentclientprotocol/sdk";
-import type { ToolApprovalRequest, ToolApprovalResult } from "@cline/shared";
+import type { ToolApprovalRequest, ToolApprovalResult } from "@coohu/shared";
 import { buildToolTitle, mapToolKind } from "./tool-utils";
 
 // ---------------------------------------------------------------------------

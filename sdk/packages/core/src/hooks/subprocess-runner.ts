@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import {
 	augmentNodeCommandForDebug,
 	withResolvedClineBuildEnv,
-} from "@cline/shared";
+} from "@coohu/shared";
 
 export interface RunSubprocessEventOptions {
 	command: string[];

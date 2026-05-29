@@ -5,9 +5,9 @@ import {
 	prewarmFileIndex,
 	SessionSource,
 	type UserInstructionConfigService,
-} from "@cline/core";
-import type { ConsecutiveMistakeLimitContext } from "@cline/shared";
-import { createSessionId } from "@cline/shared";
+} from "@coohu/core";
+import type { ConsecutiveMistakeLimitContext } from "@coohu/shared";
+import { createSessionId } from "@coohu/shared";
 import { logCliError } from "../logging/errors";
 import { createCliCore } from "../session/session";
 import { resolveClineWelcomeLine } from "../tui/interactive-welcome";

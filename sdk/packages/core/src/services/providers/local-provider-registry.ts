@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import * as LlmsModels from "@cline/llms";
+import * as LlmsModels from "@coohu/llms";
 import {
 	type ModelCapability,
 	ModelCapabilitySchema,
@@ -13,7 +13,7 @@ import {
 	type ProviderModel,
 	type ProviderProtocol,
 	ProviderProtocolSchema,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { z } from "zod";
 import type {
 	ProviderSettings,

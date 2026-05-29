@@ -1,11 +1,11 @@
-import type { ChatStartSessionRequest, RuntimeLoggerConfig } from "@cline/core";
+import type { ChatStartSessionRequest, RuntimeLoggerConfig } from "@coohu/core";
 import {
 	CoreSessionService,
 	HubSessionClient,
 	Llms,
 	ProviderSettingsManager,
 	SqliteSessionStore,
-} from "@cline/core";
+} from "@coohu/core";
 import type { Thread } from "chat";
 import {
 	ensureOAuthProviderApiKey,

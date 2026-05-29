@@ -5,7 +5,7 @@ import type {
 	ChatStartSessionRequest,
 	HubSessionClient,
 	UserInstructionConfigService,
-} from "@cline/core";
+} from "@coohu/core";
 import type { SentMessage, Thread } from "chat";
 import type { CliLoggerAdapter } from "../logging/adapter";
 import { buildUserInputMessage, resolveSystemPrompt } from "../runtime/prompt";

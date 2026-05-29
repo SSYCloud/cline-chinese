@@ -4,7 +4,7 @@
  * Pre-configured tool combinations for common use cases.
  */
 
-import type { AgentMode, AgentTool, ToolPolicy } from "@cline/shared";
+import type { AgentMode, AgentTool, ToolPolicy } from "@coohu/shared";
 import { ALL_DEFAULT_TOOL_NAMES } from "./constants";
 import { createDefaultTools } from "./definitions";
 import type { CreateDefaultToolsOptions, DefaultToolsConfig } from "./types";

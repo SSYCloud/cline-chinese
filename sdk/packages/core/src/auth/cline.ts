@@ -1,7 +1,7 @@
 import {
 	getClineEnvironmentConfig,
 	type ITelemetryService,
-} from "@cline/shared";
+} from "@coohu/shared";
 import {
 	captureAuthFailed,
 	captureAuthLoggedOut,

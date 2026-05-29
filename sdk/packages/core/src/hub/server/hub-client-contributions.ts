@@ -11,7 +11,7 @@ import type {
 	HubClientToolContribution,
 	HubClientToolExecutorContribution,
 	JsonValue,
-} from "@cline/shared";
+} from "@coohu/shared";
 import {
 	HUB_CHECKPOINT_CAPABILITY,
 	HUB_COMPACTION_CAPABILITY,
@@ -21,7 +21,7 @@ import {
 	HUB_TOOL_EXECUTOR_CAPABILITY_PREFIX,
 	HUB_USER_INSTRUCTIONS_SNAPSHOT_CAPABILITY,
 	isHubToolExecutorName,
-} from "@cline/shared";
+} from "@coohu/shared";
 
 export {
 	HUB_CHECKPOINT_CAPABILITY,
@@ -31,7 +31,7 @@ export {
 	HUB_MISTAKE_LIMIT_CAPABILITY,
 	HUB_TOOL_EXECUTOR_CAPABILITY_PREFIX,
 	HUB_USER_INSTRUCTIONS_SNAPSHOT_CAPABILITY,
-} from "@cline/shared";
+} from "@coohu/shared";
 
 import type {
 	AvailableRuntimeCommand,

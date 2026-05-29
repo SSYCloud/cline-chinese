@@ -1,4 +1,4 @@
-import { truncateSplit } from "@cline/shared";
+import { truncateSplit } from "@coohu/shared";
 import type {
 	SkillConfig,
 	UserInstructionConfigWatcher,

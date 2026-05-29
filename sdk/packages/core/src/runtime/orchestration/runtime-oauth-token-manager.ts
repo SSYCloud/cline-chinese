@@ -3,7 +3,7 @@ import {
 	type ITelemetryService,
 	isOAuthProviderId,
 	type OAuthProviderId,
-} from "@cline/shared";
+} from "@coohu/shared";
 import {
 	type ClineOAuthCredentials,
 	getValidClineCredentials,

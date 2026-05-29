@@ -2,7 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { existsSync } from "node:fs";
 import { chmod, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import { resolveClineDataDir, resolveClineDir } from "@cline/shared/storage";
+import { resolveClineDataDir, resolveClineDir } from "@coohu/shared/storage";
 import corePackage from "../../../package.json";
 
 const HUB_DISCOVERY_ENV = "CLINE_HUB_DISCOVERY_PATH";

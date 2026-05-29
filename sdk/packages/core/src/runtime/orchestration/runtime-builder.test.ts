@@ -6,7 +6,7 @@ import {
 	type AgentTool,
 	createContributionRegistry,
 	type Message,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { afterEach, describe, expect, it } from "vitest";
 import { createUserInstructionConfigService } from "../../extensions/config";
 import { TelemetryService } from "../../services/telemetry/TelemetryService";

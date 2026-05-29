@@ -1,4 +1,4 @@
-import type { GatewayProviderSettings } from "@cline/shared";
+import type { GatewayProviderSettings } from "@coohu/shared";
 
 export function ensureFetch(fetchImpl?: typeof fetch): typeof fetch {
 	const resolved = fetchImpl ?? globalThis.fetch;

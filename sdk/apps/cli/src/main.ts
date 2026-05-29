@@ -1,9 +1,9 @@
 import { fstatSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename } from "node:path";
-import type { ToolPolicy } from "@cline/core";
+import type { ToolPolicy } from "@coohu/core";
 
-import { registerDisposable } from "@cline/shared";
+import { registerDisposable } from "@coohu/shared";
 import type { Command } from "commander";
 import {
 	CommanderError,
@@ -58,13 +58,13 @@ export function stdinHasPipedInput(): boolean {
 }
 
 async function createProviderSettingsManager() {
-	const { ProviderSettingsManager } = await import("@cline/core");
+	const { ProviderSettingsManager } = await import("@coohu/core");
 	return new ProviderSettingsManager();
 }
 
 async function loadCliRuntimeModules() {
 	const [coreServer, prompt, runAgentModule] = await Promise.all([
-		import("@cline/core"),
+		import("@coohu/core"),
 		import("./runtime/prompt"),
 		import("./runtime/run-agent"),
 	]);
@@ -113,7 +113,7 @@ export async function runCli(): Promise<void> {
 
 	const cliArgs = process.argv.slice(2);
 	const configDir = resolveConfigDirArg(cliArgs);
-	const { setClineDir, setHomeDir } = await import("@cline/shared/storage");
+	const { setClineDir, setHomeDir } = await import("@coohu/shared/storage");
 	if (configDir) {
 		setClineDir(configDir);
 	}
@@ -177,7 +177,7 @@ export async function runCli(): Promise<void> {
 			// --config=<dir> form) is always respected before any provider
 			// settings manager is constructed against ~/.cline.
 			if (opts.config?.trim()) {
-				const { setClineDir } = await import("@cline/shared/storage");
+				const { setClineDir } = await import("@coohu/shared/storage");
 				setClineDir(opts.config.trim());
 			}
 			// Honor --data-dir before constructing the provider settings manager

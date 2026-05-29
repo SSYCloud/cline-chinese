@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
-import type { AgentConfig, AgentTool, ITelemetryService } from "@cline/shared";
-import { resolveGlobalSettingsPath } from "@cline/shared/storage";
+import type { AgentConfig, AgentTool, ITelemetryService } from "@coohu/shared";
+import { resolveGlobalSettingsPath } from "@coohu/shared/storage";
 import { z } from "zod";
 import { captureTelemetryOptOut } from "./telemetry/core-events";
 

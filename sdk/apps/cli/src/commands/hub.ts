@@ -5,8 +5,8 @@ import {
 	readHubDiscovery,
 	resolveSharedHubOwnerContext,
 	stopLocalHubServerGracefully,
-} from "@cline/core";
-import { formatUptime } from "@cline/shared";
+} from "@coohu/core";
+import { formatUptime } from "@coohu/shared";
 import { Command } from "commander";
 
 interface HubCommandIo {

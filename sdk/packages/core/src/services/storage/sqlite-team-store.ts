@@ -4,9 +4,9 @@ import {
 	safeJsonParse,
 	type TeamRuntimeState,
 	type TeamTeammateSpec,
-} from "@cline/shared";
-import { loadSqliteDb, nowIso, type SqliteDb } from "@cline/shared/db";
-import { resolveDbDataDir } from "@cline/shared/storage";
+} from "@coohu/shared";
+import { loadSqliteDb, nowIso, type SqliteDb } from "@coohu/shared/db";
+import { resolveDbDataDir } from "@coohu/shared/storage";
 import type { TeamEvent } from "../../extensions/tools/team";
 import type { TeamStore } from "../../types/storage";
 
@@ -161,7 +161,7 @@ export class SqliteTeamStore implements TeamStore {
 		db.exec("PRAGMA journal_mode = WAL;");
 		db.exec("PRAGMA busy_timeout = 5000;");
 		// Single-row table so ALTER-based upgrades can run in order (baseline = 1).
-		// Session/schedule schemas use separate migration paths in @cline/shared.
+		// Session/schedule schemas use separate migration paths in @coohu/shared.
 		db.exec(`
 			CREATE TABLE IF NOT EXISTS team_store_schema_version (
 				lock INTEGER PRIMARY KEY CHECK (lock = 1),

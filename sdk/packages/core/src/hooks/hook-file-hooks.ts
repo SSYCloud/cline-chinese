@@ -8,7 +8,7 @@ import type {
 	AgentHooks,
 	AgentRunLifecycleContext,
 	AgentRuntimeEvent,
-} from "@cline/shared";
+} from "@coohu/shared";
 import {
 	augmentNodeCommandForDebug,
 	type BasicLogger,
@@ -16,8 +16,8 @@ import {
 	type HookSessionContext,
 	type WorkspaceInfo,
 	withResolvedClineBuildEnv,
-} from "@cline/shared";
-import { ensureHookLogDir } from "@cline/shared/storage";
+} from "@coohu/shared";
+import { ensureHookLogDir } from "@coohu/shared/storage";
 import { createAgentHooksExtension } from "./hook-extension";
 import { listHookConfigFiles } from "./hook-file-config";
 import type { HookEventName, HookEventPayload } from "./subprocess";

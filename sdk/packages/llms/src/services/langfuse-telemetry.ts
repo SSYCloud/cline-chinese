@@ -60,7 +60,7 @@ export async function ensureLangfuseTelemetry(
 
 async function initializeLangfuseTelemetry(): Promise<boolean> {
 	// Register for cleanup once, when initialization begins.
-	const { registerDisposable } = await import("@cline/shared");
+	const { registerDisposable } = await import("@coohu/shared");
 	registerDisposable(disposeLangfuseTelemetry);
 	const config = readLangfuseTelemetryConfig();
 	if (!config) {

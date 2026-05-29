@@ -1,1 +1,1 @@
-export * from "@cline/core";
+export * from "@coohu/core";

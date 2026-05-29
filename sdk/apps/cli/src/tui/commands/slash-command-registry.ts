@@ -1,4 +1,4 @@
-import { formatUserCommandBlock } from "@cline/shared";
+import { formatUserCommandBlock } from "@coohu/shared";
 import type { InteractiveSlashCommand } from "../interactive-welcome";
 
 export type SlashCommandSource =

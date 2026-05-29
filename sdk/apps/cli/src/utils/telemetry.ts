@@ -7,7 +7,7 @@ import {
 	identifyAccount,
 	registerDisposable,
 	TelemetryLoggerSink,
-} from "@cline/core";
+} from "@coohu/core";
 import { getCliBuildInfo } from "./common";
 import {
 	markActivationCaptured,

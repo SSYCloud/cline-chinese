@@ -1,4 +1,4 @@
-import type { ITelemetryService } from "@cline/shared";
+import type { ITelemetryService } from "@coohu/shared";
 import { nanoid } from "nanoid";
 import {
 	captureAuthFailed,

@@ -4,8 +4,8 @@ import type {
 	HubEventEnvelope,
 	HubReplyEnvelope,
 	ToolApprovalRequest,
-} from "@cline/shared";
-import { captureSdkError, createSessionId } from "@cline/shared";
+} from "@coohu/shared";
+import { captureSdkError, createSessionId } from "@coohu/shared";
 import { CronService } from "../../cron/service/cron-service";
 import { HubScheduleCommandService } from "../../cron/service/schedule-command-service";
 import { HubScheduleService } from "../../cron/service/schedule-service";

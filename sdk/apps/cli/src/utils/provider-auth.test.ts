@@ -1,4 +1,4 @@
-import type { ProviderSettings } from "@cline/core";
+import type { ProviderSettings } from "@coohu/core";
 import { describe, expect, it } from "vitest";
 import { isProviderConfigured } from "./provider-auth";
 

@@ -1,7 +1,7 @@
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { SessionHistoryRecord } from "@cline/core";
+import type { SessionHistoryRecord } from "@coohu/core";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
 	formatCheckpointDetail,

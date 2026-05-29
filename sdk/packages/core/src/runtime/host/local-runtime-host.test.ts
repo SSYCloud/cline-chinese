@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { MessageWithMetadata } from "@cline/llms";
+import type { MessageWithMetadata } from "@coohu/llms";
 import type {
 	AgentConfig,
 	AgentEvent,
@@ -10,8 +10,8 @@ import type {
 	AgentResult,
 	AgentRuntimeEvent,
 	BasicLogger,
-} from "@cline/shared";
-import { setClineDir, setHomeDir } from "@cline/shared/storage";
+} from "@coohu/shared";
+import { setClineDir, setHomeDir } from "@coohu/shared/storage";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TelemetryService } from "../../services/telemetry/TelemetryService";
 import type { SessionManifest } from "../../session/models/session-manifest";

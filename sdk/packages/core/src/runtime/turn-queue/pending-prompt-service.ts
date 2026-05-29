@@ -1,4 +1,4 @@
-import { type AgentMode, normalizeUserInput } from "@cline/shared";
+import { type AgentMode, normalizeUserInput } from "@coohu/shared";
 import { nanoid } from "nanoid";
 import type {
 	CoreSessionEvent,

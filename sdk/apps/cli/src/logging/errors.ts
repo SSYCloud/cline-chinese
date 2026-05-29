@@ -1,4 +1,4 @@
-import type { BasicLogger } from "@cline/core";
+import type { BasicLogger } from "@coohu/core";
 import { createCliLoggerAdapter, flushCliLoggerAdapters } from "./adapter";
 
 export function logCliError(

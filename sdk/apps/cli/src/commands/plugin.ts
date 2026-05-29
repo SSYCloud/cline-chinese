@@ -17,7 +17,7 @@ import {
 	isPluginModulePath,
 	resolveClineDir,
 	resolvePluginModuleEntries,
-} from "@cline/shared/storage";
+} from "@coohu/shared/storage";
 
 export interface PluginInstallOptions {
 	source: string;

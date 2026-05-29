@@ -1,5 +1,5 @@
-import type { ProviderSettings, ProviderSettingsManager } from "@cline/core";
-import { getClineEnvironmentConfig } from "@cline/shared";
+import type { ProviderSettings, ProviderSettingsManager } from "@coohu/core";
+import { getClineEnvironmentConfig } from "@coohu/shared";
 import type { OAuthCredentials } from "../commands/auth";
 import {
 	getPersistedProviderApiKey,
@@ -36,9 +36,9 @@ async function performOAuthLogin(
 ): Promise<OAuthCredentials> {
 	const [{ createOAuthClientCallbacks }, { default: open }, coreOAuth] =
 		await Promise.all([
-			import("@cline/core"),
+			import("@coohu/core"),
 			import("open"),
-			import("@cline/core").then((m) => ({
+			import("@coohu/core").then((m) => ({
 				loginClineOAuth: m.loginClineOAuth as (input: {
 					useWorkOSDeviceAuth?: boolean;
 					apiBaseUrl: string;

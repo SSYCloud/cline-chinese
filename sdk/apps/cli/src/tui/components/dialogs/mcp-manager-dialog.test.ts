@@ -15,7 +15,7 @@ interface TestMcpSettings {
 	mcpServers?: Record<string, { disabled?: boolean }>;
 }
 
-vi.mock("@cline/core", () => ({
+vi.mock("@coohu/core", () => ({
 	resolveDefaultMcpSettingsPath: () =>
 		process.env.CLINE_MCP_SETTINGS_PATH ?? "cline_mcp_settings.json",
 	setMcpServerDisabled: (options: SetMcpServerDisabledOptions) => {

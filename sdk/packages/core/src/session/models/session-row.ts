@@ -1,4 +1,4 @@
-import type { TeamTeammateSpec } from "@cline/shared";
+import type { TeamTeammateSpec } from "@coohu/shared";
 import type { AgentTeamsRuntime } from "../../extensions/tools/team";
 import type { SessionSource, SessionStatus } from "../../types/common";
 import type { SessionManifest } from "./session-manifest";

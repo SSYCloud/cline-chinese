@@ -53,7 +53,7 @@ vi.mock("node:fs", () => ({
 	openSync,
 }));
 
-vi.mock("@cline/shared", () => ({
+vi.mock("@coohu/shared", () => ({
 	CLINE_RUN_AS_HUB_DAEMON_ENV,
 	CLINE_HUB_PORT: 25463,
 	CLINE_HUB_DEV_PORT: 25466,

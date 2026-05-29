@@ -3,9 +3,9 @@ import {
 	getCoreBuiltinToolCatalog,
 	resolveDisabledToolNames,
 	type ToolCatalogEntry,
-} from "@cline/core";
+} from "@coohu/core";
 
-export type { ToolCatalogEntry } from "@cline/core";
+export type { ToolCatalogEntry } from "@coohu/core";
 
 export function getToolCatalog(
 	availabilityContext?: BuiltinToolAvailabilityContext,

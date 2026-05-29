@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import * as LlmsModels from "@cline/llms";
-import { resolveClineDataDir } from "@cline/shared/storage";
+import * as LlmsModels from "@coohu/llms";
+import { resolveClineDataDir } from "@coohu/shared/storage";
 import {
 	emptyStoredProviderSettings,
 	type ProviderSettings,

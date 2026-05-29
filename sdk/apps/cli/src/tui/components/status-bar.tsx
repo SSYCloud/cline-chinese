@@ -1,4 +1,4 @@
-import type { AgentMode } from "@cline/core";
+import type { AgentMode } from "@coohu/core";
 import { useTerminalDimensions } from "@opentui/react";
 import { shouldShowCliUsageCost } from "../../utils/usage-cost-display";
 import {

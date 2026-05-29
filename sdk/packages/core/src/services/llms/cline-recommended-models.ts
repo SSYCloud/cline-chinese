@@ -1,4 +1,4 @@
-import { getClineEnvironmentConfig } from "@cline/shared";
+import { getClineEnvironmentConfig } from "@coohu/shared";
 import { ProviderSettingsManager } from "../storage/provider-settings-manager";
 
 export interface ClineRecommendedModel {
