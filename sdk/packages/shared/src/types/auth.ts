@@ -2,7 +2,7 @@
  * Canonical list of OAuth provider IDs managed by the platform.
  * Derive sets, types, and guards from this single source of truth.
  */
-export const OAUTH_PROVIDER_IDS = ["shengsuanyun", "oca", "openai-codex"] as const;
+export const OAUTH_PROVIDER_IDS = ["shengsuanyun", "oca", "openai-codex","cline"] as const;
 
 export type OAuthProviderId = (typeof OAUTH_PROVIDER_IDS)[number];
 
