@@ -88,7 +88,7 @@ jobs:
             - name: Build CLI
               id: build_cli_step
               if: ${{ !cancelled() && steps.build_sdk_step.outcome == 'success' }}
-              run: bun -F @cline/cli build
+              run: bun -F @coohu/cline build
 
             - name: Run Tests
               if: ${{ !cancelled() && steps.build_sdk_step.outcome == 'success' && steps.build_cli_step.outcome == 'success' && matrix.os != 'windows-latest' }}

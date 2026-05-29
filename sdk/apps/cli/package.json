@@ -1,5 +1,5 @@
 {
-	"name": "@coohu/cli",
+	"name": "@coohu/cline",
 	"displayName": "cline",
 	"version": "3.0.13",
 	"description": "自主编程 Agent CLI —— 具备创建/编辑文件、执行命令、使用浏览器等功能.",

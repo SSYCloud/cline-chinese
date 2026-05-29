@@ -92,7 +92,7 @@ if (!buildOptions.skipSdkBuild) {
 	await $`bun run build:sdk`.cwd(rootDir);
 
 	console.log("Building CLI bundle...");
-	await $`bun -F @cline/cli build`.cwd(rootDir);
+	await $`bun -F @coohu/cline build`.cwd(rootDir);
 }
 
 const binaries: Record<string, string> = {};
