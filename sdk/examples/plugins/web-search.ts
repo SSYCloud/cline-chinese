@@ -275,8 +275,8 @@ const plugin: AgentPlugin = {
 			createTool({
 				name: "web_search",
 				description:
-					"使用 Exa 在网络上搜索当前的公开信息。"+
-					"利用此工具来发现相关的 URL、新闻、文档及最新事实；若需对特定页面进行更深入的检查，随后可使用 `fetch_web_content`。"+
+					"使用 Exa 在网络上搜索当前的公开信息。" +
+					"利用此工具来发现相关的 URL、新闻、文档及最新事实；若需对特定页面进行更深入的检查，随后可使用 `fetch_web_content`。" +
 					"要求在插件宿主环境中配置 `EXA_API_KEY`。",
 				inputSchema: {
 					type: "object",
@@ -303,8 +303,7 @@ const plugin: AgentPlugin = {
 						},
 						country: {
 							type: "string",
-							description:
-								"可选的小写两位国家代码，用于本地化结果，例如 us。",
+							description: "可选的小写两位国家代码，用于本地化结果，例如 us。",
 						},
 					},
 					required: ["query"],

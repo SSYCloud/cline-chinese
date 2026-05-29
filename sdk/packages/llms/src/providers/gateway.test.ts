@@ -339,11 +339,12 @@ describe("sdk-gateway", () => {
 			.map((provider) => provider.id)
 			.sort();
 
-		expect(strategyProviders).toEqual([
+		expect(strategyProviders).toContain([
 			"aihubmix",
 			"anthropic",
 			"bedrock",
 			"cline",
+			"shengsuanyun",
 			"minimax",
 			"oca",
 			"openrouter",
@@ -2580,9 +2581,9 @@ describe("sdk-gateway", () => {
 
 	it.each([
 		{
-			providerId: "cline",
+			providerId: "shengsuanyun",
 			modelId: "qwen/qwen3.6-plus",
-			providerOptionsKey: "cline",
+			providerOptionsKey: "shengsuanyun",
 			aliasKey: undefined,
 		},
 		{

@@ -128,7 +128,9 @@ export class AcpAgent implements Agent {
 
 		const defaultMode = "act";
 		const providerId =
-			process.env.SHENGSUANYUN_PROVIDER ?? this.authResult?.providerId ?? "shengsuanyun";
+			process.env.SHENGSUANYUN_PROVIDER ??
+			this.authResult?.providerId ??
+			"shengsuanyun";
 		const defaultModelId =
 			process.env.SHENGSUANYUN_MODEL ?? "anthropic/claude-sonnet-4.6";
 
@@ -157,8 +159,7 @@ export class AcpAgent implements Agent {
 					{
 						id: "plan",
 						name: "Plan",
-						description:
-							"在不修改文件的情况下，探索代码库并规划变更。",
+						description: "在不修改文件的情况下，探索代码库并规划变更。",
 					},
 					{
 						id: "act",
@@ -512,8 +513,10 @@ export class AcpAgent implements Agent {
 	private async buildConfig(session: SessionState): Promise<Config> {
 		const cwd = session.cwd || process.cwd();
 		// Resolve credentials: env vars take precedence, then session provider.
-		const providerId = process.env.SHENGSUANYUN_PROVIDER ?? session.currentProviderId;
-		const apiKey = process.env.SHENGSUANYUN_API_KEY ?? this.authResult?.apiKey ?? "";
+		const providerId =
+			process.env.SHENGSUANYUN_PROVIDER ?? session.currentProviderId;
+		const apiKey =
+			process.env.SHENGSUANYUN_API_KEY ?? this.authResult?.apiKey ?? "";
 		const systemPrompt = await resolveSystemPrompt({
 			cwd,
 			providerId,

@@ -73,9 +73,7 @@ async function collectSecurity(
 
 	if (isCancel(restrict)) return null;
 	if (!restrict) {
-		p.log.warn(
-			"任何发现此机器人的人，都将能够在您的机器上运行任务。",
-		);
+		p.log.warn("任何发现此机器人的人，都将能够在您的机器上运行任务。");
 		return [];
 	}
 
@@ -134,9 +132,7 @@ export async function runConnectWizard(): Promise<number> {
 	p.log.step(`Setting up ${platform.name}`);
 
 	if (platform.type === "webhook") {
-		p.log.warn(
-			"此连接器要求为 Webhook 提供一个可公开访问的 URL。",
-		);
+		p.log.warn("此连接器要求为 Webhook 提供一个可公开访问的 URL。");
 	}
 
 	const args = await collectFields(platform);
@@ -201,9 +197,7 @@ export async function runConnectWizard(): Promise<number> {
 
 	args.push("-i");
 
-	p.log.success(
-		`运行: cline 链接 ${platform.id} ${redactCommandArgs(args)}`,
-	);
+	p.log.success(`运行: cline 链接 ${platform.id} ${redactCommandArgs(args)}`);
 	p.outro("启动连接器 (Ctrl+C 停止)");
 
 	return runConnectAdapter(platform.id, args, {

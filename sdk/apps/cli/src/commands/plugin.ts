@@ -840,9 +840,7 @@ async function installLocalPackage(
 		return stagingRoot;
 	}
 	if (!stats.isDirectory()) {
-		throw new Error(
-			`插件源必须是文件或目录: ${absolutePath}`,
-		);
+		throw new Error(`插件源必须是文件或目录: ${absolutePath}`);
 	}
 	const packageRoot = join(stagingRoot, PACKAGE_DIRECTORY_NAME);
 	await cp(absolutePath, packageRoot, {
@@ -858,9 +856,7 @@ async function installLocalPackage(
 
 function assertCanInstall(targetPath: string, force: boolean): void {
 	if (existsSync(targetPath) && !force) {
-		throw new Error(
-			`插件已安装在 ${targetPath}。使用 --force 参数来替换它。`,
-		);
+		throw new Error(`插件已安装在 ${targetPath}。使用 --force 参数来替换它。`);
 	}
 }
 
@@ -875,9 +871,7 @@ function replaceInstallPath(
 		return;
 	}
 	if (!force) {
-		throw new Error(
-			`插件已安装在 ${installPath}。使用 --force 参数来替换它。`,
-		);
+		throw new Error(`插件已安装在 ${installPath}。使用 --force 参数来替换它。`);
 	}
 
 	const backupPath = join(

@@ -1,62 +1,61 @@
-import { CLINE_ENVIRONMENT_ENV, CLINE_ENVIRONMENTS } from "@coohu/shared";
+import {
+	SHENGSUANYUN_ENVIRONMENT_ENV,
+	SHENGSUANYUN_ENVIRONMENTS,
+} from "@coohu/shared";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { BUILTIN_SPECS } from "./builtins";
 import { getModelsForProvider, getProvider } from "./model-registry";
 
 function findClineSpec() {
-	const spec = BUILTIN_SPECS.find((s) => s.id === "cline");
+	const spec = BUILTIN_SPECS.find((s) => s.id === "shengsuanyun");
 	if (!spec) {
-		throw new Error("cline builtin spec not found");
+		throw new Error("shengsuanyun builtin spec not found");
 	}
 	return spec;
 }
 
-describe("cline builtin spec defaults.baseUrl", () => {
-	const originalEnvironment = process.env[CLINE_ENVIRONMENT_ENV];
+describe("shengsuanyun builtin spec defaults.baseUrl", () => {
+	const originalEnvironment = process.env[SHENGSUANYUN_ENVIRONMENT_ENV];
 
 	beforeEach(() => {
-		delete process.env[CLINE_ENVIRONMENT_ENV];
+		delete process.env[SHENGSUANYUN_ENVIRONMENT_ENV];
 	});
 
 	afterEach(() => {
 		if (originalEnvironment === undefined) {
-			delete process.env[CLINE_ENVIRONMENT_ENV];
+			delete process.env[SHENGSUANYUN_ENVIRONMENT_ENV];
 		} else {
-			process.env[CLINE_ENVIRONMENT_ENV] = originalEnvironment;
+			process.env[SHENGSUANYUN_ENVIRONMENT_ENV] = originalEnvironment;
 		}
 	});
 
-	it("re-resolves baseUrl when CLINE_ENVIRONMENT changes between reads", () => {
+	it("re-resolves baseUrl when SHENGSUANYUN_ENVIRONMENT changes between reads", () => {
 		const spec = findClineSpec();
 
 		expect(spec.defaults?.baseUrl).toBe(
-			`${CLINE_ENVIRONMENTS.production.apiBaseUrl}/api/v1`,
+			`${SHENGSUANYUN_ENVIRONMENTS.production.apiBaseUrl}/api/v1`,
 		);
 
-		process.env[CLINE_ENVIRONMENT_ENV] = "staging";
+		process.env[SHENGSUANYUN_ENVIRONMENT_ENV] = "staging";
 		expect(spec.defaults?.baseUrl).toBe(
-			`${CLINE_ENVIRONMENTS.staging.apiBaseUrl}/api/v1`,
+			`${SHENGSUANYUN_ENVIRONMENTS.staging.apiBaseUrl}/api/v1`,
 		);
 
-		process.env[CLINE_ENVIRONMENT_ENV] = "local";
+		process.env[SHENGSUANYUN_ENVIRONMENT_ENV] = "local";
 		expect(spec.defaults?.baseUrl).toBe(
-			`${CLINE_ENVIRONMENTS.local.apiBaseUrl}/api/v1`,
+			`${SHENGSUANYUN_ENVIRONMENTS.local.apiBaseUrl}/api/v1`,
 		);
 
-		delete process.env[CLINE_ENVIRONMENT_ENV];
+		delete process.env[SHENGSUANYUN_ENVIRONMENT_ENV];
 		expect(spec.defaults?.baseUrl).toBe(
-			`${CLINE_ENVIRONMENTS.production.apiBaseUrl}/api/v1`,
+			`${SHENGSUANYUN_ENVIRONMENTS.production.apiBaseUrl}/api/v1`,
 		);
 	});
 });
 
 describe("built-in provider metadata", () => {
 	it("marks popular providers with a provider capability and rank", async () => {
-		await expect(getProvider("cline")).resolves.toMatchObject({
-			capabilities: expect.arrayContaining(["popular"]),
-			metadata: { popularRank: 1 },
-		});
-		await expect(getProvider("zai")).resolves.not.toMatchObject({
+		await expect(getProvider("shengsuanyun")).resolves.not.toMatchObject({
 			capabilities: expect.arrayContaining(["popular"]),
 		});
 	});

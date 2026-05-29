@@ -3,9 +3,9 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-    getInstallationInfo,
-    PackageManager,
-    withMinimumReleaseAgeBypass,
+	getInstallationInfo,
+	PackageManager,
+	withMinimumReleaseAgeBypass,
 } from "./update";
 
 const originalArgv = [...process.argv];

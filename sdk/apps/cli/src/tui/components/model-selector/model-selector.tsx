@@ -258,9 +258,7 @@ export function ModelSelectorContent(
 					{customModelError && <text fg="red">{customModelError}</text>}
 				</box>
 
-				<text fg="gray">
-					Enter 创建，Esc 返回模型选择
-				</text>
+				<text fg="gray">Enter 创建，Esc 返回模型选择</text>
 			</box>
 		);
 	}

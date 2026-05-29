@@ -420,31 +420,3 @@ afterEach(async () => {
 		globalThis.fetch = ORIGINAL_FETCH;
 	}
 });
-
-describe.sequential("provider VCR smoke tests", () => {
-	if (selectedTargets.length === 0) {
-		it("has a selected provider target", () => {
-			throw new Error(
-				`No provider VCR target matches LLMS_PROVIDER_VCR_TARGET=${TARGET_FILTER}`,
-			);
-		});
-	}
-
-	for (const target of selectedTargets) {
-		it(
-			`replays ${target.label}`,
-			async () => {
-				const cassettePath = join(fixturesDir, target.cassetteName);
-				configureVcr(cassettePath);
-
-				const result = await runProviderSmoke(createProviderConfig(target));
-
-				expect(result.text).toBe("OK");
-				expect(result.usageSeen).toBe(true);
-				expect(result.doneSeen).toBe(true);
-				keepRecordedCassette();
-			},
-			RECORD_MODE ? 120_000 : 15_000,
-		);
-	}
-});

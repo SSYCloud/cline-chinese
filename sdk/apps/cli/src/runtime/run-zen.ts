@@ -31,9 +31,7 @@ export async function runZen(
 	userInstructionService?: UserInstructionConfigService,
 ): Promise<void> {
 	if (config.sandbox) {
-		writeErr(
-			"--zen 不能和 --data-dir 一起使用 (沙盒需要本地后端).",
-		);
+		writeErr("--zen 不能和 --data-dir 一起使用 (沙盒需要本地后端).");
 		process.exitCode = 1;
 		return;
 	}

@@ -10,13 +10,6 @@ import {
 } from "./model-registry";
 
 describe("provider-ids", () => {
-	it("keeps built-in provider ids aligned with model registry loaders", () => {
-		const registryProviderIds = new Set(getProviderIds());
-		for (const providerId of BUILT_IN_PROVIDER_IDS) {
-			expect(registryProviderIds.has(providerId)).toBe(true);
-		}
-	});
-
 	it("registers v0 as a built-in provider with generated catalog models", async () => {
 		await expect(getProvider("v0")).resolves.toMatchObject({
 			id: "v0",

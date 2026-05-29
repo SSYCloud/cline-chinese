@@ -523,9 +523,7 @@ export async function runAuthProviderCommand(
 			existing,
 			credentials,
 		);
-		io.writeln(
-			`${c.green}您已成功登录到 ${c.cyan}${providerId}${c.reset}`,
-		);
+		io.writeln(`${c.green}您已成功登录到 ${c.cyan}${providerId}${c.reset}`);
 		return 0;
 	} catch (error) {
 		io.writeErr(error instanceof Error ? error.message : String(error));

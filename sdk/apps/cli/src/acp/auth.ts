@@ -68,17 +68,13 @@ async function performOAuthLogin(
 				return Promise.resolve(defaultValue);
 			}
 			return Promise.reject(
-				new Error(
-					"OAuth 流程需要交互式输入，而在 ACP 模式下无法提供。",
-				),
+				new Error("OAuth 流程需要交互式输入，而在 ACP 模式下无法提供。"),
 			);
 		},
 		onOutput: (message) => writeErr(`[acp/auth] ${message}`),
 		openUrl: (url) => open(url, { wait: false }).then(() => undefined),
 		onOpenUrlError: ({ url }) => {
-			writeErr(
-				`[acp/auth] 无法自动打开浏览器。请手动打开此 URL:\n${url}`,
-			);
+			writeErr(`[acp/auth] 无法自动打开浏览器。请手动打开此 URL:\n${url}`);
 		},
 	});
 

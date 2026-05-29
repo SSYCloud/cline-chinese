@@ -1,5 +1,6 @@
 export const SHENGSUANYUN_ENVIRONMENT_ENV = "SHENGSUANYUN_ENVIRONMENT";
-export const SHENGSUANYUN_ENVIRONMENT_OVERRIDE_ENV = "SHENGSUANYUN_ENVIRONMENT_OVERRIDE";
+export const SHENGSUANYUN_ENVIRONMENT_OVERRIDE_ENV =
+	"SHENGSUANYUN_ENVIRONMENT_OVERRIDE";
 
 export type ShengSuanYunEnvironment = "production" | "staging" | "local";
 
@@ -37,7 +38,8 @@ export const SHENGSUANYUN_ENVIRONMENTS: Readonly<
 	},
 };
 
-export const DEFAULT_SHENGSUANYUN_ENVIRONMENT: ShengSuanYunEnvironment = "production";
+export const DEFAULT_SHENGSUANYUN_ENVIRONMENT: ShengSuanYunEnvironment =
+	"production";
 
 export interface ResolveShengSuanYunEnvironmentOptions {
 	env?: Partial<NodeJS.ProcessEnv>;
@@ -72,17 +74,23 @@ export function resolveShengSuanYunEnvironment(
 ): ShengSuanYunEnvironment {
 	const env = options.env ?? readProcessEnv();
 	return (
-		normalizeShengSuanYunEnvironment(env[SHENGSUANYUN_ENVIRONMENT_OVERRIDE_ENV]) ??
+		normalizeShengSuanYunEnvironment(
+			env[SHENGSUANYUN_ENVIRONMENT_OVERRIDE_ENV],
+		) ??
 		normalizeShengSuanYunEnvironment(env[SHENGSUANYUN_ENVIRONMENT_ENV]) ??
 		DEFAULT_SHENGSUANYUN_ENVIRONMENT
 	);
 }
 
 export function getShengSuanYunEnvironmentConfig(
-	environmentOrOptions?: ShengSuanYunEnvironment | ResolveShengSuanYunEnvironmentOptions,
+	environmentOrOptions?:
+		| ShengSuanYunEnvironment
+		| ResolveShengSuanYunEnvironmentOptions,
 ): ShengSuanYunEnvironmentConfig {
 	if (typeof environmentOrOptions === "string") {
 		return SHENGSUANYUN_ENVIRONMENTS[environmentOrOptions];
 	}
-	return SHENGSUANYUN_ENVIRONMENTS[resolveShengSuanYunEnvironment(environmentOrOptions)];
+	return SHENGSUANYUN_ENVIRONMENTS[
+		resolveShengSuanYunEnvironment(environmentOrOptions)
+	];
 }

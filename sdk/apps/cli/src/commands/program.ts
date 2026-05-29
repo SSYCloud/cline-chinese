@@ -36,21 +36,12 @@ export function addRootOptions(cmd: Command): Command {
 				"设置推理努力级别在 none|low|medium|high|xhigh (默认: medium)",
 			)
 			.option("--compaction <mode>", CLI_COMPACTION_MODE_OPTION_DESCRIPTION)
-			.option(
-				"-i, --tui",
-				"打开终端用户界面 (TUI) 用于交互式会话",
-			)
+			.option("-i, --tui", "打开终端用户界面 (TUI) 用于交互式会话")
 			.option("--id <session-id>", "按 ID 恢复现有会话")
 			.option("-P, --provider <id>", "供应商 id (default: shengsuanyun)")
 			.option("-k, --key <api-key>", "本次运行的 API 密钥覆盖")
-			.option(
-				"-m, --model <model-id>",
-				"用于与所选提供商进行会话的模型",
-			)
-			.option(
-				"-s, --system <system-prompt>",
-				"覆盖默认系统提示",
-			)
+			.option("-m, --model <model-id>", "用于与所选提供商进行会话的模型")
+			.option("-s, --system <system-prompt>", "覆盖默认系统提示")
 			.option("-z, --zen", "启动一个在后台中心运行的会话。")
 			.option(
 				"--retries [value]",
@@ -64,10 +55,7 @@ export function addRootOptions(cmd: Command): Command {
 				"--acp",
 				"在 Agent Client Protocol (ACP) 模式下运行，用于编辑器集成",
 			)
-			.option(
-				"--config <path>",
-				"配置目录 (默认: ~/.cline/data/settings)",
-			)
+			.option("--config <path>", "配置目录 (默认: ~/.cline/data/settings)")
 			.option(
 				"--data-dir <path>",
 				"在该目录路径下使用隔离的本地状态 (默认: ~/.cline)",
@@ -99,10 +87,7 @@ export function addRootOptions(cmd: Command): Command {
 			)
 			.addOption(
 				// TODO: Refactor teams to resume session without team name
-				new Option(
-					"--team-name <name>",
-					"覆盖运行时团队状态名称",
-				).hideHelp(),
+				new Option("--team-name <name>", "覆盖运行时团队状态名称").hideHelp(),
 			)
 	);
 }

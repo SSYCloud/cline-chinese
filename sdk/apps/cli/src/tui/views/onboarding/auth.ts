@@ -80,9 +80,8 @@ export function runSSYAuthFlow(input: {
 			.then((r) => r.json())
 			.then((data: unknown) => {
 				if (input.isAborted()) return;
-				const d = (
-					data as { data?: { api_key?: string; jwt_token?: string } }
-				)?.data;
+				const d = (data as { data?: { api_key?: string; jwt_token?: string } })
+					?.data;
 				if (!d) {
 					input.setError("获取凭据失败：服务器响应无效");
 					input.setStatus("认证失败");

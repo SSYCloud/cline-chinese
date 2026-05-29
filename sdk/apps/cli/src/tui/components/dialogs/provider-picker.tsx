@@ -238,9 +238,7 @@ export function ProviderPickerContent(
 				</box>
 			)}
 
-			<text fg="gray">
-				输入搜索，↑/↓ 导航，Enter 选中，Esc 返回
-			</text>
+			<text fg="gray">输入搜索，↑/↓ 导航，Enter 选中，Esc 返回</text>
 		</box>
 	);
 }
@@ -677,14 +675,10 @@ export function OAuthLoginContent(
 				setStatus("等待浏览器认证...");
 				try {
 					void open(url, { wait: false }).catch(() => {
-						setStatus(
-							"无法自动打开浏览器。请打开下方链接。",
-						);
+						setStatus("无法自动打开浏览器。请打开下方链接。");
 					});
 				} catch {
-					setStatus(
-						"无法自动打开浏览器。请打开下方链接。",
-					);
+					setStatus("无法自动打开浏览器。请打开下方链接。");
 				}
 			},
 		)

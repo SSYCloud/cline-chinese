@@ -132,9 +132,7 @@ export function registerScheduleCommands(
 			const address = resolveAddress(opts.address);
 			const ensured = await ensureSchedulerHub(address, process.cwd(), io);
 			if (!ensured.ok) {
-				io.writeErr(
-					`未能确保中心服务器${formatResolvedAddressLabel(address)}`,
-				);
+				io.writeErr(`未能确保中心服务器${formatResolvedAddressLabel(address)}`);
 				fail();
 				return;
 			}

@@ -446,9 +446,7 @@ export function AccountDialogContent(
 			<box flexDirection="column" paddingX={1} gap={1}>
 				<text fg="cyan">胜算云账户</text>
 				<text>登录或注册胜算云账户.</text>
-				<text fg="gray">
-					获取最新型号，并享定期免费促销及折扣优惠。
-				</text>
+				<text fg="gray">获取最新型号，并享定期免费促销及折扣优惠。</text>
 
 				<box flexDirection="column">
 					{actions.map((action, index) => (
@@ -520,9 +518,7 @@ export function AccountDialogContent(
 					<text fg="gray" selectable>
 						{loaded.user.email}
 					</text>
-					<text fg="gray">
-						成员自 {formatDate(loaded.user.createdAt)}
-					</text>
+					<text fg="gray">成员自 {formatDate(loaded.user.createdAt)}</text>
 				</box>
 			</box>
 

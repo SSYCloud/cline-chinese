@@ -410,9 +410,7 @@ export function OnboardingProviderPickerScreen(props: {
 			)}
 
 			<text fg="gray" paddingX={1}>
-				<em>
-					输入以搜索, ↑/↓ 导航, Enter 选择, Esc 返回, Ctrl+C 退出
-				</em>
+				<em>输入以搜索, ↑/↓ 导航, Enter 选择, Esc 返回, Ctrl+C 退出</em>
 			</text>
 		</OnboardingFrame>
 	);
@@ -495,9 +493,7 @@ export function OnboardingModelPickerScreen(props: {
 			)}
 
 			<text fg="gray" paddingX={1}>
-				<em>
-					输入以搜索, ↑/↓ 导航, Enter 选择, Esc 返回, Ctrl+C 退出
-				</em>
+				<em>输入以搜索, ↑/↓ 导航, Enter 选择, Esc 返回, Ctrl+C 退出</em>
 			</text>
 		</OnboardingFrame>
 	);
@@ -552,9 +548,7 @@ export function OnboardingCustomModelIdScreen(props: {
 			</box>
 
 			<text fg="gray" paddingX={1}>
-				<em>
-					Enter 创建, Esc 返回模型选择, Ctrl+C 退出
-				</em>
+				<em>Enter 创建, Esc 返回模型选择, Ctrl+C 退出</em>
 			</text>
 		</OnboardingFrame>
 	);
@@ -575,7 +569,7 @@ export function OnboardingThinkingLevelScreen(props: {
 			mouse={props.mouse}
 		>
 			<text fg={defaultFg} paddingX={1}>
-				 {props.selectedModelName} 思考级别
+				{props.selectedModelName} 思考级别
 			</text>
 			<text fg="gray" paddingX={1}>
 				扩展思考让模型能够推理复杂问题
