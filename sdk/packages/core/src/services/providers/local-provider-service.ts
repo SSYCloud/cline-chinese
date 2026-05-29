@@ -707,7 +707,7 @@ export function normalizeOAuthProvider(provider: string): OAuthProviderId {
 	const normalized = provider.trim().toLowerCase();
 	if (normalized === "codex" || normalized === "openai-codex")
 		return "openai-codex";
-	if (normalized === "shengsuanyun" || normalized === "oca") return normalized;
+	if (normalized === "shengsuanyun" || normalized === "oca"|| normalized === "cline") return normalized;
 	throw new Error(
 		`供应商 "${provider}" 不支持 OAuth 登录 (支持的: shengsuanyun, oca, openai-codex)`,
 	);
