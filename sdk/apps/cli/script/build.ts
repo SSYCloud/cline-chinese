@@ -175,8 +175,8 @@ async function buildCompiledBinary(input: {
 for (const item of targets) {
 	// npm treats "win32" specially in os field, but for package naming use "windows"
 	const displayOs = item.os === "win32" ? "windows" : item.os;
-	const name = `@cline/cli-${displayOs}-${item.arch}`;
-	const dirName = `cli-${displayOs}-${item.arch}`;
+	const name = `@coohu/cline-${displayOs}-${item.arch}`;
+	const dirName = `cline-${displayOs}-${item.arch}`;
 	const binaryName = item.os === "win32" ? "cline.exe" : "cline";
 	const bunTarget = getBunTarget(item);
 
