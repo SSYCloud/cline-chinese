@@ -262,7 +262,7 @@ async function ensureCleanWorkingTree(): Promise<void> {
 }
 
 async function ensureCliReleaseTag(version: string): Promise<void> {
-	const expectedTag = `cli-v${version}`;
+	const expectedTag = `cline-v${version}`;
 	if (dryRun) {
 		console.log(`  [dry-run] Required pushed git tag: ${expectedTag}`);
 		return;
