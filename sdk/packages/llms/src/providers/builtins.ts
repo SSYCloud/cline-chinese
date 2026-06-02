@@ -1,4 +1,5 @@
 import {
+	getClineEnvironmentConfig,
 	type GatewayModelCapability,
 	type GatewayModelDefinition,
 	type GatewayProviderManifest,
@@ -274,6 +275,23 @@ const OPENAI_COMPATIBLE_SPECS: BuiltinSpec[] = [
 		apiKeyEnv: ["SHENGSUANYUN_API_KEY"],
 		defaults: {
 			baseUrl: "https://router.shengsuanyun.com/api/v1",
+		},
+		metadata: ANTHROPIC_AND_QWEN_CACHE_ROUTING_METADATA,
+	},
+	{
+		id: "cline",
+		name: "Cline",
+		description: "Cline API endpoint",
+		family: "openai-compatible",
+		popular: 1,
+		capabilities: ["reasoning", "prompt-cache", "tools", "oauth"],
+		modelsProviderId: "openrouter",
+		defaultModelId: "anthropic/claude-sonnet-4.6",
+		apiKeyEnv: ["CLINE_API_KEY"],
+		defaults: {
+			get baseUrl(): string {
+				return `${getClineEnvironmentConfig().apiBaseUrl}/api/v1`;
+			},
 		},
 		metadata: ANTHROPIC_AND_QWEN_CACHE_ROUTING_METADATA,
 	},
