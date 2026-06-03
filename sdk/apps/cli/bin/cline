@@ -74,7 +74,7 @@ if (!arch) {
 	arch = os.arch();
 }
 
-const base = "@cline/cli-" + platform + "-" + arch;
+const base = "@coohu/cline-" + platform + "-" + arch;
 const binary = platform === "windows" ? "cline.exe" : "cline";
 
 // Build fallback chain of package names to try

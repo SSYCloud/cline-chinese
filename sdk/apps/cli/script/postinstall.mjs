@@ -31,7 +31,7 @@ function main() {
 	};
 	const platform = platformMap[os.platform()] || os.platform();
 	const arch = os.arch();
-	const packageName = `@cline/cli-${platform}-${arch}`;
+	const packageName = `@coohu/cline-${platform}-${arch}`;
 	const binaryName = "cline";
 
 	let binaryPath;
