@@ -24,12 +24,14 @@ const { values } = parseArgs({
 	options: {
 		"dry-run": { type: "boolean", default: false },
 		tag: { type: "string", default: "latest" },
+		otp: { type: "string" },
 	},
 	strict: true,
 });
 
 const dryRun = values["dry-run"] ?? false;
 const npmTag = values.tag ?? "latest";
+const otp = values.otp;
 const wrapperPackageName = "@coohu/cline";
 
 const expectedPlatformPackages = [
@@ -147,6 +149,7 @@ async function publishPackage(input: {
 	dir: string;
 	tag: string;
 	dryRun: boolean;
+	otp?: string;
 }): Promise<void> {
 	if (process.platform !== "win32") {
 		await $`chmod -R 755 .`.cwd(input.dir);
@@ -165,7 +168,8 @@ async function publishPackage(input: {
 	console.log(`  Publishing ${input.name}@${input.version}...`);
 	removePackedTarballs(input.dir);
 	await $`bun pm pack`.cwd(input.dir);
-	await $`npm publish *.tgz --access public --tag ${input.tag}`.cwd(input.dir);
+	const otpArgs = input.otp ? ["--otp", input.otp] : [];
+	await $`npm publish *.tgz --access public --tag ${input.tag} ${otpArgs}`.cwd(input.dir);
 	console.log(`  Published ${input.name}@${input.version}`);
 }
 
@@ -253,6 +257,7 @@ const platformTasks = Object.keys(binaries)
 			dir: pkgDir,
 			tag: npmTag,
 			dryRun,
+			otp,
 		});
 	});
 await Promise.all(platformTasks);
@@ -346,6 +351,7 @@ if (dryRun) {
 		dir: mainPkgDir,
 		tag: npmTag,
 		dryRun: false,
+		otp,
 	});
 	console.log(
 		`\nPublished ${wrapperPackageName}@${version} with tag ${npmTag}`,
