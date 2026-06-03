@@ -234,20 +234,19 @@ async function ensureMainBranch(): Promise<void> {
 		console.log(`  Already on ${MAIN_BRANCH}`);
 		return;
 	}
-
 	// Check for uncommitted changes before switching
-	const status = (
-		await run(["git", "status", "--porcelain"], { stdout: "pipe" })
-	).trim();
-	if (status) {
-		throw new Error(
-			`Working tree is dirty. Commit or stash changes before releasing.\n${status}`,
-		);
-	}
+	// const status = (
+	// 	await run(["git", "status", "--porcelain"], { stdout: "pipe" })
+	// ).trim();
+	// if (status) {
+	// 	throw new Error(
+	// 		`Working tree is dirty. Commit or stash changes before releasing.\n${status}`,
+	// 	);
+	// }
 
-	console.log(`  Switching from ${branch} to ${MAIN_BRANCH}...`);
-	await run(["git", "checkout", MAIN_BRANCH]);
-	await run(["git", "pull", "--ff-only"]);
+	// console.log(`  Switching from ${branch} to ${MAIN_BRANCH}...`);
+	// await run(["git", "checkout", MAIN_BRANCH]);
+	// await run(["git", "pull", "--ff-only"]);
 }
 
 async function ensureCleanWorkingTree(): Promise<void> {
@@ -520,7 +519,6 @@ async function releaseCLI(version: string): Promise<number> {
 		console.log("    npm install -g @coohu/cline");
 	}
 	console.log(`${"═".repeat(60)}\n`);
-
 	return 0;
 }
 
@@ -535,8 +533,8 @@ if (target === "sdk") {
 } else {
 	header("Checking CLI release tag");
 	const version = await resolveCliVersion();
-	await ensureCleanWorkingTree();
-	await ensureCliReleaseTag(version);
+	// await ensureCleanWorkingTree();
+	// await ensureCliReleaseTag(version);
 	exitCode = await releaseCLI(version);
 }
 

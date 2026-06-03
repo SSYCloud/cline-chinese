@@ -41,7 +41,7 @@ const pkg = JSON.parse(readFileSync(join(cliDir, "package.json"), "utf-8"));
 const version: string = pkg.version;
 const repository: unknown = pkg.repository;
 
-console.log(`Building @cline/cli v${version}`);
+console.log(`Building @coohu/cline v${version}`);
 
 const buildOptions = parseBuildOptions(process.argv.slice(2));
 
