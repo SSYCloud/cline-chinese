@@ -33,7 +33,8 @@
 		"fix": "bun biome check --write --unsafe --diagnostic-level=error",
 		"check": "bun biome check --diagnostic-level=error && bun run build:sdk && bun run -F @coohu/cli build && bun --parallel -F './packages/**' -F @coohu/cli typecheck && bun scripts/check-publish.ts",
 		"version": "bun run types && bun scripts/version.ts",
-		"release": "bun scripts/release.ts"
+		"release": "bun scripts/release.ts",
+		"pub":"bun release sdk 0.1.3 --skip-tests && bun release cli --skip-tests"
 	},
 	"lint-staged": {
 		"*": [

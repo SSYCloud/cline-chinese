@@ -76,6 +76,33 @@ async function runCommandOrThrow(cmd: string[], cwd: string): Promise<void> {
 
 let updated = 0;
 
+// Collect all workspace package names for workspace:* replacement
+const workspacePackageNames = new Set<string>();
+for (const workspace of workspaces) {
+	const pkgPath = join(packagesDir, workspace, "package.json");
+	try {
+		const raw = await readFile(pkgPath, "utf-8");
+		const pkg = JSON.parse(raw);
+		if (!pkg.internal && typeof pkg.name === "string") {
+			workspacePackageNames.add(pkg.name);
+		}
+	} catch {
+		// skip
+	}
+}
+
+function replaceWorkspaceDeps(
+	deps: Record<string, string> | undefined,
+	ver: string,
+): void {
+	if (!deps) return;
+	for (const [name, value] of Object.entries(deps)) {
+		if (workspacePackageNames.has(name) && value.startsWith("workspace:")) {
+			deps[name] = ver;
+		}
+	}
+}
+
 for (const workspace of workspaces) {
 	const pkgPath = join(packagesDir, workspace, "package.json");
 	try {
@@ -86,6 +113,10 @@ for (const workspace of workspaces) {
 		}
 		const oldVersion = pkg.version;
 		pkg.version = version;
+
+		replaceWorkspaceDeps(pkg.dependencies, version);
+		replaceWorkspaceDeps(pkg.devDependencies, version);
+		replaceWorkspaceDeps(pkg.peerDependencies, version);
 
 		const out = `${JSON.stringify(pkg, null, "\t")}\n`;
 
