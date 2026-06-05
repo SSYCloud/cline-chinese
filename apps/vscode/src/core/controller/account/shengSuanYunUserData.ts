@@ -10,15 +10,11 @@ export async function shengSuanYunUserData(controller: Controller, _request: Emp
 			throw new Error("Account service not available")
 		}
 		const userData = await controller.accountServiceSSY.fetchUserDataRPC()
-
-		// Save userInfo to persistent state
 		if (userData.user) {
 			controller.stateManager.setGlobalState("userInfo", userData.user)
 		}
-
 		return userData
 	} catch (error) {
-		// Clear userInfo from state on error
 		controller.stateManager.setGlobalState("userInfo", undefined)
 		// shengSuanYunLoginClicked(controller, _request)
 		Logger.error(`Failed to fetch user credits data: ${error}`)
