@@ -107,7 +107,7 @@ export const ChatMessageList = forwardRef<
 				{props.isStreaming && (
 					<box flexDirection="row" gap={1}>
 						<spinner name="dots" color={accent} />
-						<text fg="gray">Thinking... (esc to cancel)</text>
+						<text fg="gray">思考... (esc 取消)</text>
 					</box>
 				)}
 			</box>

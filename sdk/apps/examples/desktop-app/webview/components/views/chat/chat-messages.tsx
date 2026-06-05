@@ -235,7 +235,7 @@ function ChatMessagesImpl({
 				await Promise.resolve(fn(requestId));
 			} catch (err) {
 				const message =
-					err instanceof Error ? err.message : "Could not submit decision.";
+					err instanceof Error ? err.message : "不能提交决策。";
 				setToolApprovalErrors((prev) => ({ ...prev, [requestId]: message }));
 			} finally {
 				setToolApprovalActions((prev) => {
@@ -264,7 +264,7 @@ function ChatMessagesImpl({
 				await Promise.resolve(onAnswerAskQuestion(requestId, answer));
 			} catch (err) {
 				const message =
-					err instanceof Error ? err.message : "Could not submit answer.";
+					err instanceof Error ? err.message : "不能提交答案。";
 				setAskQuestionErrors((prev) => ({ ...prev, [requestId]: message }));
 			} finally {
 				setAskQuestionActions((prev) => {
@@ -291,8 +291,8 @@ function ChatMessagesImpl({
 			} catch {
 				toast({
 					variant: "destructive",
-					title: "Copy failed",
-					description: "The message could not be copied to the clipboard.",
+					title: "复制失败",
+					description: "消息无法复制到剪贴板。",
 				});
 			}
 		},
@@ -317,7 +317,7 @@ function ChatMessagesImpl({
 				await Promise.resolve(onRestoreCheckpoint(runCount));
 			} catch (err) {
 				const message =
-					err instanceof Error ? err.message : "Could not restore checkpoint.";
+					err instanceof Error ? err.message : "无法恢复检查点。";
 				setCheckpointErrors((prev) => ({ ...prev, [messageId]: message }));
 			} finally {
 				setCheckpointActions((prev) => {
@@ -351,7 +351,7 @@ function ChatMessagesImpl({
 				await Promise.resolve(onForkSession());
 			} catch (err) {
 				const message =
-					err instanceof Error ? err.message : "Could not fork session.";
+					err instanceof Error ? err.message : "无法创建会话副本。";
 				setForkErrors((prev) => ({ ...prev, [messageId]: message }));
 			} finally {
 				setForkingMessageId((current) =>
@@ -446,14 +446,14 @@ function ChatMessagesImpl({
 							<div className="pointer-events-none absolute right-6 top-6 z-20 rounded-full border border-border/70 bg-background/90 px-3 py-1.5 text-xs text-muted-foreground shadow-sm backdrop-blur-[1px]">
 								<div className="flex items-center gap-1.5">
 									<Loader2 className="h-3.5 w-3.5 animate-spin" />
-									Switching session...
+									切换会话...
 								</div>
 							</div>
 						) : (
 							<div className="rounded-xl border border-border/70 bg-card p-4">
 								<div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
 									<Loader2 className="h-4 w-4 animate-spin" />
-									Loading session...
+									加载会话...
 								</div>
 								<div className="space-y-3">
 									<div className="h-4 w-2/5 animate-pulse rounded bg-muted/70" />
@@ -466,15 +466,15 @@ function ChatMessagesImpl({
 					{status === "starting" && !isSessionSwitching ? (
 						<div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
 							<Loader2 className="h-4 w-4 animate-spin" />
-							Thinking...
+							思考...
 						</div>
 					) : null}
 					{chatTransportState !== "connected" && !shouldShowErrorBanner ? (
 						<div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
 							<Loader2 className="h-3.5 w-3.5 animate-spin" />
 							{chatTransportState === "reconnecting"
-								? "Reconnecting chat..."
-								: "Connecting chat..."}
+								? "重连会话..."
+								: "连接会话..."}
 						</div>
 					) : null}
 					{shouldShowErrorBanner ? (
@@ -493,7 +493,7 @@ function ChatMessagesImpl({
 					variant="secondary"
 				>
 					<ChevronDown className="size-4" />
-					<span className="sr-only">Scroll to bottom</span>
+					<span className="sr-only">滚动至底部</span>
 				</Button>
 			) : null}
 		</div>
@@ -541,10 +541,10 @@ function ToolApprovalPanel({
 		<section className="rounded-xl border border-amber-400/40 bg-amber-500/5 p-3">
 			<div className="flex items-center gap-2 text-sm font-medium text-foreground">
 				<ShieldAlert className="h-4 w-4 text-amber-500" />
-				Tool approval required
+				工具审批所需
 			</div>
 			<p className="mt-1 text-xs text-muted-foreground">
-				Review each tool call and approve or reject it before execution.
+				在执行前审查每个工具调用并批准或拒绝它。
 			</p>
 			<div className="mt-3 flex flex-col gap-2">
 				{items.map((item) => {
@@ -586,10 +586,10 @@ function ToolApprovalPanel({
 									{pendingAction === "approving" ? (
 										<>
 											<Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-											Approving...
+											批准...
 										</>
 									) : (
-										"Approve"
+										"批准"
 									)}
 								</Button>
 								<Button
@@ -602,10 +602,10 @@ function ToolApprovalPanel({
 									{pendingAction === "rejecting" ? (
 										<>
 											<Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-											Rejecting...
+											拒绝...
 										</>
 									) : (
-										"Reject"
+										"拒绝"
 									)}
 								</Button>
 							</div>
@@ -632,10 +632,10 @@ function AskQuestionPanel({
 		<section className="rounded-xl border border-blue-400/40 bg-blue-500/5 p-3">
 			<div className="flex items-center gap-2 text-sm font-medium text-foreground">
 				<MessagesSquare className="h-4 w-4 text-blue-500" />
-				Follow-up question
+				跟进问题
 			</div>
 			<p className="mt-1 text-xs text-muted-foreground">
-				Choose one option to continue the current agent turn.
+				选择一个选项以继续当前代理回合。
 			</p>
 			<div className="mt-3 flex flex-col gap-2">
 				{items.map((item) => {
@@ -678,7 +678,7 @@ function AskQuestionPanel({
 										{pendingAnswer === option ? (
 											<>
 												<Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-												Sending...
+												发送...
 											</>
 										) : (
 											option
@@ -857,7 +857,7 @@ function ReasoningBlock({
 				type="button"
 				variant="ghost"
 			>
-				Thinking
+				思考
 			</Button>
 			{expanded ? (
 				<div className="mt-1 whitespace-pre-wrap rounded-lg border border-border/70 bg-muted/30 p-3 text-xs text-muted-foreground">
@@ -1221,7 +1221,7 @@ function ToolMessageBlock({ message }: { message: ChatMessage }) {
 						{inputPreview ? (
 							<div className="space-y-1">
 								<div className="text-xxs uppercase tracking-wide text-muted-foreground/80">
-									Input
+									输入
 								</div>
 								<pre className="max-h-52 overflow-auto rounded-md border border-border/70 bg-background/60 p-2 text-xxs leading-relaxed text-foreground whitespace-pre-wrap break-all">
 									{inputPreview}
