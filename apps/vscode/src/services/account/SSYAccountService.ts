@@ -106,6 +106,7 @@ export class SSYAccountService {
 				Logger.log("getUserInfo response:", res)
 				throw new Error(`Invalid response from API: /user/info`)
 			}
+			this.uid = res.ID || ""
 			const user: UserInfo = {
 				displayName: res.Nickname || res.Username || undefined,
 				email: res.Email ?? undefined,
@@ -145,8 +146,12 @@ export class SSYAccountService {
 	}
 
 	async getEBill(qs:QSBills){
-		const data= {
+		if(!this.uid || !qs.project_id) {	
+			throw new Error("User ID or Project ID is missing for fetching bills")
+		}
+		const data = {
 			...qs,
+			raw_user_id: this.uid,
 			start_time: qs.start_time ? qs.start_time.toISOString() : new Date().toISOString(),
 			end_time: qs.end_time ? qs.end_time.toISOString() : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
 		}
