@@ -130,13 +130,103 @@ https://marketplace.visualstudio.com/items?itemName=shengsuan-cloud.roo-vibecodi
 </table>
 </div>
 
-Discord 频道：[SSYRouter API](https://discord.gg/frBHkRKB4x) <br>
+</div>
+
+<br>
+
+<div align="center">
+<table>
+<tr>
+<td align="center" width="50%">
+
+### CLI
+
+在终端中运行 Cline。
+支持交互式聊天，或在 CI/CD 和脚本场景下以完全无头（headless）模式运行。
+
+```
+npm i -g @coohu/cline
+```
+
+<a href="./apps/cli/README.md">了解更多</a>
+<br><br>
+
+</td>
+<td align="center" width="50%">
+
+### Kanban
+
+通过基于 Web 的任务看板并行运行多个代理。每个任务卡都拥有独立的工作树、自动提交功能及依赖链。
+
+```
+npm i -g @coohu/kanban
+```
+
+<a href="https://github.com/cline/kanban">了解更多</a>
+<br><br>
+
+</td>
+</tr>
+<tr>
+<td align="center" width="50%">
+
+### VS Code Extension
+
+集成于编辑器中的 AI 编程助手。
+创建文件、运行命令、浏览网页，
+并在“人在回路”的审批机制下使用各种工具。
+
+<a href="https://marketplace.visualstudio.com/items?itemName=shengsuan-cloud.cline-shengsuan">从 VSCode 插件市场安装</a>
+<br><br>
+
+</td>
+<td align="center" width="50%">
+
+### JetBrains Plugin
+
+在 IntelliJ IDEA、PyCharm、WebStorm、GoLand 及其他 JetBrains 系列 IDE 中，都能获得同样的 Cline 体验。
+
+<a href="https://plugins.jetbrains.com/plugin/28247-cline">Install from JetBrains Marketplace</a>
+<br><br>
+
+</td>
+</tr>
+</table>
+</div>
+
+<div align="center">
+<table>
+<tr>
+<td align="center">
+
+### SDK
+
+构建您自己的 AI 智能体与集成应用，所依托的核心引擎与 CLI、看板（Kanban）、VS Code 扩展及 JetBrains 插件完全相同。支持自定义工具、多智能体协作团队、连接器、定时自动化任务等丰富功能。
+
+```
+npm install @coohu/sdk
+```
+
+<a href="https://docs.cline.bot/cline-sdk/overview">Documentation</a>
+<br><br>
+
+</td>
+</tr>
+</table>
+</div>
 
 ---
 
 ## 免责声明
 
-1. **使用风险**：本项目是一个开源的VSCode插件，用户在使用过程中可能会遇到的任何问题或风险，开发团队不承担任何责任。
+| Product | Description | Location | CHANGELOG |
+|---------|------------|--------------|--------------|
+| **SDK** | Node.js programmatic agent API and extension exports. | [`sdk/`](https://github.com/cline/cline/tree/main/sdk) | [CHANGELOG.md](https://github.com/cline/cline/blob/main/sdk/CHANGELOG.md) |
+| **CLI** | Terminal UI, headless mode, shell commands, and CLI-specific flows. | [`apps/cli/`](https://github.com/cline/cline/tree/main/apps/cli) | [CHANGELOG.md](https://github.com/cline/cline/blob/main/apps/cli/CHANGELOG.md) |
+| **VS Code Extension** | The Marketplace extension and extension host integration. | [`/`](https://github.com/cline/cline/tree/main) (WIP migrating) | [CHANGELOG.md](https://github.com/cline/cline/blob/main/CHANGELOG.md) |
+| **JetBrains Plugin** | JetBrains-hosted client that talks to the shared agent core. | Currently we are not open-sourcing JetBrains plugins | - |
+| **Kanban** | Web-based multi-agent task board. | [`cline/kanban`](https://github.com/cline/kanban) | [CHANGELOG.md](https://github.com/cline/kanban/blob/main/CHANGELOG.md) |
+| **Docs site** | Public documentation pages. | [`docs/`](https://docs.cline.bot/) | - |
 
 2. **数据安全**：本插件不会收集或存储任何用户数据。但在使用过程中，用户应注意保护自己的敏感信息和代码安全，但是免费API供应模型可能会采集用户数据，请注意对免费模型的使用场景避免您重要关注或者有可能泄密的地方，比如工作代码等。
 
@@ -155,4 +245,97 @@ Discord 频道：[SSYRouter API](https://discord.gg/frBHkRKB4x) <br>
    - 本项目可能随时变更或终止，会及时同步到本项目中。
 ---
 
-> 注：本项目是小型团队维护的汉化版本，与原版 Cline 团队无关。如果您喜欢这个项目，也请给原版 [Cline](https://github.com/cline/cline) 一个 star ⭐️
+## 计划和执行模式
+
+在“计划模式”（Plan mode）和“执行模式”（Act mode）之间切换。在规划模式下，Cline 会分析你的代码库，提出澄清问题，并制定行动策略。双方达成一致后，切换到执行模式，Cline 便会按计划进行操作。每一次文件修改和终端命令执行都需要你批准，确保你始终掌控实际的变更内容；或者，你也可以开启自动批准功能，让 Cline 自主运行。
+
+## 规则 and Skills
+
+在 `.clinerules` 文件中定义项目专属规则，以指导 Cline 在代码库中的运作方式，例如编码规范、架构约定、部署流程及测试要求等。CLI、VS Code 扩展和 JetBrains 插件会自动读取这些规则。此外，您还可以利用“技能”（skills）功能，让模型在需要时加载特定的规则。
+
+## 适用于所有型号
+
+Cline 不绑定于单一 AI 提供商。您可以根据工作流程选择合适的模型：
+
+| Provider | Models |
+|----------|--------|
+| Anthropic | Claude Opus, Sonnet, Haiku |
+| OpenAI | GPT series model |
+| Google | Gemini series model |
+| OpenRouter | 200+ models from any provider |
+| Vercel AI Gateway | Models through Vercel AI Gateway |
+| AWS Bedrock | Claude, Llama, and more |
+| Azure / GCP Vertex | All hosted models |
+| Cerebras / Groq | Fast inference models |
+| Ollama / LM Studio | Run local models on your machine |
+| Any OpenAI-compatible API | Self-hosted or third-party endpoints |
+
+## 使用插件或 MCP 服务器进行扩展
+
+利用插件扩展 Cline 的功能。您可以使用 SDK，通过插件系统以编程方式注册工具和生命周期钩子，从而实现日志记录、审计、策略执行或添加特定领域的各项功能。下方提供了一个简单的插件示例。
+
+```typescript
+import { Agent, createTool } from "@cline/sdk"
+
+const deployTool = createTool({
+  name: "deploy",
+  description: "Deploy the current branch to staging.",
+  inputSchema: { type: "object", properties: { env: { type: "string" } }, required: ["env"] },
+  execute: async (input) => {
+    // your deployment logic
+  },
+})
+
+const agent = new Agent({ tools: [deployTool], /* ... */ })
+```
+……或者使用 [MCP 服务器](https://github.com/modelcontextprotocol)来连接数据库、查询 API、管理云基础设施以及与外部系统交互。你可以使用[社区构建的服务器](https://github.com/modelcontextprotocol/servers)，也可以让 Cline 实时创建自定义工具。在 CLI 中，可以使用 `cline mcp` 命令来管理这些服务器。
+
+## 多 Agent 合作
+
+协调多个智能体协同完成复杂任务。协调型智能体将工作拆解为子任务，并将其分配给各自拥有专属工具与上下文信息的专业智能体。团队状态会在会话间持久保存，确保您可以随时从上次中断的地方继续工作。
+
+```bash
+cline --team-name auth-sprint "规划并实施包含测试的用户身份验证功能"
+```
+
+## 任务计划 Agents
+
+按 Cron 计划运行代理，以执行周期性自动化任务，例如每日 PR 摘要、每周依赖项检查及代码库健康状况报告。这些计划在重启后依然有效，且独立于任何终端会话运行。
+
+```bash
+cline schedule create "PR summary" \
+  --cron "0 9 * * MON-FRI" \
+  --prompt "List all open PRs and their review status" \
+  --workspace /path/to/repo
+```
+
+## 连接到 Slack, Telegram, Discord, 等
+
+您可以通过 Telegram、Slack、Discord、Google Chat、WhatsApp 和 Linear 等各类即时通讯平台与您的智能体（Agent）进行对话。每个对话会话都对应一个包含完整上下文信息的智能体交互会话。您还可以设置访问控制，以限定哪些用户能够与您的智能体进行交互。
+
+```bash
+# Connect to Telegram
+cline connect telegram -k $BOT_TOKEN
+# Connect to Slack through webhook
+cline connect slack --bot-token $SLACK_TOKEN --signing-secret $SECRET --base-url $URL
+# Connect to Slack using socket mode
+cline connect slack --bot-token $SLACK_TOKEN --app-token $SLACK_APP_TOKEN
+```
+
+## 无头 CLI for CI/CD
+
+在无需人工交互的情况下运行 Cline，以实现脚本化与自动化。支持输入重定向、获取 JSON 输出、命令链式调用以及集成到 CI/CD 流水线中。
+
+```bash
+cline "Run tests and fix any failures"
+git diff origin/main | cline  "Review these changes for issues"
+cline --json "List all TODO comments" | jq -r 'select(.type == "agent_event" and .event.text) | .event.text'
+```
+
+## Contributing
+
+Start with the [Contributing Guide](CONTRIBUTING.md). Join our [Discord](https://discord.gg/cline) and head to the `#contributors` channel to connect with other contributors. Check our [careers page](https://cline.bot/join-us) for full-time roles.
+
+## License
+
+[Apache 2.0 © 2026 Cline Bot Inc.](./LICENSE)

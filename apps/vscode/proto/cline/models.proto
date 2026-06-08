@@ -31,6 +31,8 @@ service ModelsService {
   rpc refreshRequestyModels(EmptyRequest) returns (OpenRouterCompatibleModelInfo);
   // Refreshes and returns ShengSuanYun models
   rpc refreshShengSuanYunModels(EmptyRequest) returns (ShengSuanYunCompatibleModelInfo);
+  // Refreshes and returns ShengSuanYun enterprise models
+  rpc refreshShengSuanYunEModels(EmptyRequest) returns (ShengSuanYunCompatibleModelInfo);
   // Refreshes and returns Hicap models
   rpc refreshHicapModels(EmptyRequest) returns (OpenRouterCompatibleModelInfo);
   // Refreshes and returns LiteLLM models
@@ -711,7 +713,7 @@ message ShengSuanYunModelInfo {
   optional string description = 9;
   optional ThinkingConfig thinking_config = 10;
   optional bool supports_global_endpoint = 11;
-  repeated string end_points = 12;
+  optional string end_points = 12;
 }
 
 // Wrapper for multiple ShengSuanYun models

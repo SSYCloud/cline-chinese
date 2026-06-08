@@ -1423,6 +1423,8 @@ export class McpHub {
 	}
 
 	public async addRemoteServer(serverName: string, serverUrl: string, transportType = "streamableHttp"): Promise<McpServer[]> {
+		// Set flag to prevent file watcher from triggering during our update
+		this.isUpdatingClineSettings = true
 		try {
 			const settings = await this.readAndValidateMcpSettingsFile()
 			if (!settings) {
@@ -1470,6 +1472,11 @@ export class McpHub {
 		} catch (error) {
 			Logger.error("Failed to add remote MCP server:", error)
 			throw error
+		} finally {
+			// Clear flag after a delay to ensure file watcher event has been processed
+			setTimeout(() => {
+				this.isUpdatingClineSettings = false
+			}, 300)
 		}
 	}
 
@@ -1479,6 +1486,8 @@ export class McpHub {
 	 * @returns Array of remaining MCP servers
 	 */
 	public async deleteServerRPC(serverName: string): Promise<McpServer[]> {
+		// Set flag to prevent file watcher from triggering during our update
+		this.isUpdatingClineSettings = true
 		try {
 			// Clear OAuth data BEFORE removing from config (while we still have the connection/URL)
 			await this.clearOAuthForConnection(serverName)
@@ -1506,6 +1515,11 @@ export class McpHub {
 		} catch (error) {
 			Logger.error(`Failed to delete MCP server: ${error instanceof Error ? error.message : String(error)}`)
 			throw error
+		} finally {
+			// Clear flag after a delay to ensure file watcher event has been processed
+			setTimeout(() => {
+				this.isUpdatingClineSettings = false
+			}, 300)
 		}
 	}
 

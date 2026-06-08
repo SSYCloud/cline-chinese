@@ -1,3 +1,4 @@
+import { AgentRuntimeAbortError } from "@coohu/agents";
 import { initVcr } from "@coohu/shared";
 import { createLocalHubScheduleRuntimeHandlers } from "../daemon/runtime-handlers";
 import { resolveHubEndpointOptions } from "../discovery/defaults";
@@ -106,6 +107,12 @@ async function main(): Promise<void> {
 		shutdownFatal("uncaughtException", error);
 	});
 	process.on("unhandledRejection", (reason) => {
+		if (reason instanceof AgentRuntimeAbortError) {
+			process.stderr.write(
+				`[hub-daemon] ignored agent runtime abort rejection: ${reason.message}\n`,
+			);
+			return;
+		}
 		shutdownFatal("unhandledRejection", reason);
 	});
 

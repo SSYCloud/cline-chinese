@@ -110,7 +110,7 @@ async function assertSnapshot(name: string, content: string): Promise<void> {
 // ============================================================================
 // Test Context Helpers
 // ============================================================================
-
+// biome-ignore lint/suspicious/noExportsInTest: need to export mock data for other routing tests
 export const mockProviderInfo = {
 	providerId: "test",
 	model: { id: "fast", info: { supportsPromptCache: false } },

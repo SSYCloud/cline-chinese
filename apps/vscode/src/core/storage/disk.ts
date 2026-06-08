@@ -66,6 +66,7 @@ export const GlobalFileNames = {
 	agentsRulesFile: "AGENTS.md",
 	taskMetadata: "task_metadata.json",
 	shengSuanYunModels: "shengSuanYun_models.json",
+	shengSuanYunEModels: "shengSuanYun_e_models.json",
 	mcpMarketplaceCatalog: "mcp_marketplace_catalog.json",
 	remoteConfig: (orgId: string) => `remote_config_${orgId}.json`,
 }

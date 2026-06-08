@@ -450,7 +450,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 								.finally(() => setDeleteAllDisabled(false))
 						}}
 						variant="danger">
-						删除所有你是{totalTasksSize !== null ? ` (${formatSize(totalTasksSize)})` : ""}
+						删除所有历史{totalTasksSize !== null ? ` (${formatSize(totalTasksSize)})` : ""}
 					</Button>
 				)}
 			</div>

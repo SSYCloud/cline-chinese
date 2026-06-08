@@ -26,12 +26,6 @@ describe("Hook System", () => {
 		sandbox = hookTestEnv.sandbox
 	})
 
-	beforeEach(function () {
-		if (process.platform === "win32") {
-			this.timeout(WINDOWS_TEST_TIMEOUT_MS)
-		}
-	})
-
 	afterEach(async () => {
 		await hookTestEnv.cleanup()
 	})

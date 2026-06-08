@@ -79,9 +79,10 @@ if (explicitVersion && !/^\d+\.\d+\.\d+(-[\w.]+)?$/.test(explicitVersion)) {
 
 const SDK_PUBLISH_ORDER = ["shared", "llms", "agents", "core", "sdk"] as const;
 const MAIN_BRANCH = "ssy";
-const root = join(import.meta.dir, "..");
-const packagesDir = join(root, "packages");
-const cliDir = join(root, "apps/cli");
+const root = join(import.meta.dir, "..", "..");
+const sdkRoot = join(import.meta.dir, "..");
+const packagesDir = join(sdkRoot, "packages");
+const cliDir = join(sdkRoot, "../apps/cli");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -138,7 +139,11 @@ async function stageSdkReadmeForPublish(
 		return undefined;
 	}
 
-	await copyFile(join(root, "README.md"), destination, constants.COPYFILE_EXCL);
+	await copyFile(
+		join(sdkRoot, "README.md"),
+		destination,
+		constants.COPYFILE_EXCL,
+	);
 	return destination;
 }
 
@@ -409,11 +414,11 @@ async function releaseSDK(version: string): Promise<number> {
 	// Step 2: Update versions
 	// version.ts handles: version bump -> lockfile regeneration -> generate:models -> format -> build
 	header("Step 2/5: Updating package versions and lockfile");
-	await run(["bun", "scripts/version.ts", version]);
+	await run(["bun", "scripts/version.ts", version], { cwd: sdkRoot });
 
 	// Step 3: Verify publishability
 	header("Step 3/5: Verifying packed tarballs");
-	await run(["bun", "scripts/check-publish.ts"]);
+	await run(["bun", "scripts/check-publish.ts"], { cwd: sdkRoot });
 
 	// Step 4: Publish in dependency order
 	header("Step 4/5: Publishing packages");

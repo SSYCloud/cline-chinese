@@ -1,9 +1,9 @@
-import { StringRequest } from "@shared/proto/cline/common"
-import * as vscode from "vscode"
-import { Uri } from "@/shared/proto/host/uri"
+import { StringRequest } from "@shared/proto/cline/common";
+import * as vscode from "vscode";
+import { Uri } from "@/shared/proto/host/uri";
 
 export async function file(request: StringRequest): Promise<Uri> {
-	const uri = vscode.Uri.file(request.value)
+	const uri = vscode.Uri.file(request.value);
 	return {
 		scheme: uri.scheme,
 		authority: uri.authority,
@@ -11,5 +11,5 @@ export async function file(request: StringRequest): Promise<Uri> {
 		query: uri.query,
 		fragment: uri.fragment,
 		fsPath: uri.fsPath,
-	}
+	};
 }

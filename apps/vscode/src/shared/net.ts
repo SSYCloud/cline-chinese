@@ -146,7 +146,7 @@ export function mockFetchForTesting<T>(theFetch: typeof globalThis.fetch, callba
 				mockFetch = originalMockFetch
 			}) as typeof result
 		}
-			return result
+		return result
 	} finally {
 		if (willResetSync) {
 			mockFetch = originalMockFetch
@@ -170,10 +170,17 @@ export function mockFetchForTesting<T>(theFetch: typeof globalThis.fetch, callba
  * })
  * ```
  */
-export function getAxiosSettings(): { adapter?: any; fetch?: typeof globalThis.fetch } {
+export function getAxiosSettings(): {
+	adapter?: any
+	fetch?: typeof globalThis.fetch
+	maxBodyLength?: number
+	maxContentLength?: number
+} {
 	return {
 		adapter: "fetch" as any,
 		fetch, // Use our configured fetch
+		maxBodyLength: Number.POSITIVE_INFINITY,
+		maxContentLength: Number.POSITIVE_INFINITY,
 	}
 }
 

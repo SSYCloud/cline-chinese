@@ -1,7 +1,7 @@
 {
 	"name": "@coohu/core",
 	"description": "Cline Core SDK for Node Runtime",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/cline/cline",
