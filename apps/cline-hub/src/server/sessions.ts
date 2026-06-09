@@ -1,22 +1,22 @@
 import process from "node:process";
 import {
-    type ClineCoreStartInput,
-    type SessionRecord,
-    SessionSource,
+	type ClineCoreStartInput,
+	type SessionRecord,
+	SessionSource,
 } from "@coohu/core";
 import type { Message } from "@coohu/llms";
 import type { WebviewConfig, WebviewReasonLevel } from "../webview-protocol";
 import { rejectPendingApprovalsForSession } from "./approvals";
 import { providerSettingsManager, workspaceRoot } from "./deps";
 import {
-    loadProviders,
-    resolveBrowserDefaults,
-    sendProviderCatalog,
+	loadProviders,
+	resolveBrowserDefaults,
+	sendProviderCatalog,
 } from "./providers";
 import {
-    mapHistoryToWebviewMessages,
-    trackSession,
-    webviewSessionsPayload,
+	mapHistoryToWebviewMessages,
+	trackSession,
+	webviewSessionsPayload,
 } from "./session-mapping";
 import type { HubContext } from "./state";
 import { broadcastHubState, hubStatePayload } from "./state-payloads";

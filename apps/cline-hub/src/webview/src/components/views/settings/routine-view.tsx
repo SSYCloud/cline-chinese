@@ -1051,7 +1051,9 @@ export function RoutineSchedulesContent() {
 										)}
 										{schedule.cwd && (
 											<p>
-												<span className="text-muted-foreground/70">工作目录:</span>{" "}
+												<span className="text-muted-foreground/70">
+													工作目录:
+												</span>{" "}
 												{schedule.cwd}
 											</p>
 										)}
@@ -1070,7 +1072,7 @@ export function RoutineSchedulesContent() {
 										{lastExecution?.sessionId && (
 											<p>
 												<span className="text-muted-foreground/70">
-												上次会话:
+													上次会话:
 												</span>{" "}
 												{lastExecution.sessionId}
 											</p>
@@ -1078,7 +1080,7 @@ export function RoutineSchedulesContent() {
 										{lastExecution?.errorMessage && (
 											<p className="text-destructive">
 												<span className="text-muted-foreground/70">
-												上次错误:
+													上次错误:
 												</span>{" "}
 												{lastExecution.errorMessage}
 											</p>
@@ -1093,9 +1095,7 @@ export function RoutineSchedulesContent() {
 										</p>
 										{activeExecution && (
 											<p>
-												<span className="text-muted-foreground/70">
-												活跃:
-												</span>{" "}
+												<span className="text-muted-foreground/70">活跃:</span>{" "}
 												{activeExecution.executionId} since{" "}
 												{formatDateTime(activeExecution.startedAt)}
 											</p>
@@ -1125,7 +1125,8 @@ export function RoutineSchedulesContent() {
 					<AlertDialogHeader>
 						<AlertDialogTitle>删除定时任务</AlertDialogTitle>
 						<AlertDialogDescription>
-							将删除 "{schedulePendingDelete?.name ?? "此定时任务"}" 并移除未来的计划运行。
+							将删除 "{schedulePendingDelete?.name ?? "此定时任务"}"
+							并移除未来的计划运行。
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
@@ -1171,9 +1172,7 @@ export function RoutineSchedulesContent() {
 							{editingSchedule ? "编辑定时任务" : "创建定时任务"}
 						</DialogTitle>
 						<DialogDescription>
-							{editingSchedule
-								? "更新此定时任务。"
-								: "创建一个定时任务。"}
+							{editingSchedule ? "更新此定时任务。" : "创建一个定时任务。"}
 						</DialogDescription>
 					</DialogHeader>
 
@@ -1440,9 +1439,7 @@ export function RoutineSchedulesContent() {
 						</div>
 
 						<div className="sm:col-span-2">
-							<Label htmlFor="routine-system-prompt">
-								系统提示词（可选）
-							</Label>
+							<Label htmlFor="routine-system-prompt">系统提示词（可选）</Label>
 							<Textarea
 								id="routine-system-prompt"
 								value={createForm.systemPrompt}
@@ -1474,9 +1471,7 @@ export function RoutineSchedulesContent() {
 						</div>
 
 						<div>
-							<Label htmlFor="routine-timeout">
-								超时秒数（可选）
-							</Label>
+							<Label htmlFor="routine-timeout">超时秒数（可选）</Label>
 							<Input
 								id="routine-timeout"
 								value={createForm.timeoutSeconds}
@@ -1506,9 +1501,7 @@ export function RoutineSchedulesContent() {
 						</div>
 
 						<div>
-							<Label htmlFor="routine-tags">
-								标签（逗号分隔，可选）
-							</Label>
+							<Label htmlFor="routine-tags">标签（逗号分隔，可选）</Label>
 							<Input
 								id="routine-tags"
 								value={createForm.tags}

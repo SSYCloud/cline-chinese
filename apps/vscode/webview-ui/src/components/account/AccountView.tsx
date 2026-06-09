@@ -16,6 +16,7 @@ import CreditsHistoryTable from "./CreditsHistoryTable"
 import { getClineUris, getMainRole } from "./helpers"
 import { RemoteConfigToggle } from "./RemoteConfigToggle"
 import { SSYAccountView } from "./SSYAccountView"
+import { TabButton } from "../mcp/configuration/McpConfigurationView"
 
 type AccountViewProps = {
 	onDone: () => void
@@ -39,12 +40,21 @@ const ClineEnvOptions = ["Production", "Staging", "Local"] as const
 
 const AccountView = ({ onDone }: AccountViewProps) => {
 	const { environment } = useExtensionState()
+	const [accountTab, setAccountTab] = useState<"personal" | "enterprise">("personal")
 
 	return (
 		<div className="fixed inset-0 flex flex-col overflow-hidden">
 			<ViewHeader environment={environment} onDone={onDone} showEnvironmentSuffix title="账户" />
+			<div className="flex border-b border-(--vscode-panel-border) px-5">
+				<TabButton isActive={accountTab === "personal"} onClick={() => setAccountTab("personal")}>
+					个人账户
+				</TabButton>
+				<TabButton isActive={accountTab === "enterprise"} onClick={() => setAccountTab("enterprise")}>
+					企业账户
+				</TabButton>
+			</div>
 			<div className="grow flex flex-col px-5 overflow-y-auto">
-				<SSYAccountView />
+				<SSYAccountView mode={accountTab} />
 			</div>
 		</div>
 	)

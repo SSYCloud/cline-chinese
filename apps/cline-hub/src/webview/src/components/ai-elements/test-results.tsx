@@ -313,9 +313,7 @@ export const TestSuiteStats = ({
 					</span>
 				)}
 				{failed > 0 && (
-					<span className="text-red-600 dark:text-red-400">
-						{failed} 失败
-					</span>
+					<span className="text-red-600 dark:text-red-400">{failed} 失败</span>
 				)}
 				{skipped > 0 && (
 					<span className="text-yellow-600 dark:text-yellow-400">

@@ -1,8 +1,8 @@
 import type {
-    ApiHandler,
-    ApiStreamChunk,
-    HandlerModelInfo,
-    Message,
+	ApiHandler,
+	ApiStreamChunk,
+	HandlerModelInfo,
+	Message,
 } from "@coohu/llms";
 import type { AgentModelEvent, AgentModelRequest } from "@coohu/shared";
 import { describe, expect, it, vi } from "vitest";

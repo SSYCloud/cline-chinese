@@ -1,4 +1,7 @@
-import type { GatewayProviderContext, GatewayStreamRequest } from "@coohu/shared";
+import type {
+	GatewayProviderContext,
+	GatewayStreamRequest,
+} from "@coohu/shared";
 import { type AiSdkProviderOptionsTarget } from "./provider-options-types";
 import { type ProviderOptionsPatch } from "./utils";
 export type { AiSdkProviderOptionsTarget } from "./provider-options-types";
@@ -7,7 +10,9 @@ export type { ProviderOptionsPatch } from "./utils";
  * Merge patches in order. Later patches override earlier ones per bucket key;
  * nested object values are replaced, not deep-merged.
  */
-export declare function mergeProviderOptionPatches(patches: ReadonlyArray<ProviderOptionsPatch | undefined>): Record<string, unknown>;
+export declare function mergeProviderOptionPatches(
+	patches: ReadonlyArray<ProviderOptionsPatch | undefined>,
+): Record<string, unknown>;
 /**
  * Compose AI SDK `providerOptions` from named provider/model-family rules.
  *
@@ -24,4 +29,8 @@ export declare function mergeProviderOptionPatches(patches: ReadonlyArray<Provid
  *   formats, such as `reasoning.exclude`, `thinking.type`, or
  *   `reasoningEffort`.
  */
-export declare function composeAiSdkProviderOptions(request: GatewayStreamRequest, context: GatewayProviderContext, target?: AiSdkProviderOptionsTarget): Record<string, unknown>;
+export declare function composeAiSdkProviderOptions(
+	request: GatewayStreamRequest,
+	context: GatewayProviderContext,
+	target?: AiSdkProviderOptionsTarget,
+): Record<string, unknown>;

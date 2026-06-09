@@ -234,8 +234,7 @@ function ChatMessagesImpl({
 			try {
 				await Promise.resolve(fn(requestId));
 			} catch (err) {
-				const message =
-					err instanceof Error ? err.message : "不能提交决策。";
+				const message = err instanceof Error ? err.message : "不能提交决策。";
 				setToolApprovalErrors((prev) => ({ ...prev, [requestId]: message }));
 			} finally {
 				setToolApprovalActions((prev) => {
@@ -263,8 +262,7 @@ function ChatMessagesImpl({
 			try {
 				await Promise.resolve(onAnswerAskQuestion(requestId, answer));
 			} catch (err) {
-				const message =
-					err instanceof Error ? err.message : "不能提交答案。";
+				const message = err instanceof Error ? err.message : "不能提交答案。";
 				setAskQuestionErrors((prev) => ({ ...prev, [requestId]: message }));
 			} finally {
 				setAskQuestionActions((prev) => {
@@ -316,8 +314,7 @@ function ChatMessagesImpl({
 			try {
 				await Promise.resolve(onRestoreCheckpoint(runCount));
 			} catch (err) {
-				const message =
-					err instanceof Error ? err.message : "无法恢复检查点。";
+				const message = err instanceof Error ? err.message : "无法恢复检查点。";
 				setCheckpointErrors((prev) => ({ ...prev, [messageId]: message }));
 			} finally {
 				setCheckpointActions((prev) => {

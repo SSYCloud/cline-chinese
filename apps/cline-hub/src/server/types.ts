@@ -1,8 +1,8 @@
 import type { SaveProviderSettingsActionRequest } from "@coohu/core";
 import type { ToolApprovalResult } from "@coohu/shared";
 import type {
-    WebviewInboundMessage,
-    WebviewReasonLevel,
+	WebviewInboundMessage,
+	WebviewReasonLevel,
 } from "../webview-protocol";
 
 export type BrowserFrame = WebviewInboundMessage | { type: "restart_hub" };

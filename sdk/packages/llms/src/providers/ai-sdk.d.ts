@@ -1,11 +1,11 @@
 import type { GatewayProviderFactory } from "@coohu/shared";
 import type { AiSdkStreamTotalUsage, AiSdkStreamUsage } from "./vendors/types";
 interface GatewayNormalizedUsage {
-    inputTokens: number;
-    outputTokens: number;
-    cacheReadTokens: number;
-    cacheWriteTokens: number;
-    totalCost?: number;
+	inputTokens: number;
+	outputTokens: number;
+	cacheReadTokens: number;
+	cacheWriteTokens: number;
+	totalCost?: number;
 }
 /**
  * Normalizes usage from various provider formats into a standard structure.
@@ -17,7 +17,15 @@ interface GatewayNormalizedUsage {
  * @param providerMetadata - Provider-specific metadata for cost extraction
  * @param pricingValue - Fallback pricing config (per 1M tokens) when no explicit cost found
  */
-export declare function normalizeUsage(usageValue: AiSdkStreamUsage | AiSdkStreamTotalUsage | Record<string, unknown> | undefined, providerMetadata?: unknown, pricingValue?: unknown): GatewayNormalizedUsage;
+export declare function normalizeUsage(
+	usageValue:
+		| AiSdkStreamUsage
+		| AiSdkStreamTotalUsage
+		| Record<string, unknown>
+		| undefined,
+	providerMetadata?: unknown,
+	pricingValue?: unknown,
+): GatewayNormalizedUsage;
 export declare const createOpenAIProvider: GatewayProviderFactory;
 export declare const createOpenAICompatibleProvider: GatewayProviderFactory;
 export declare const createAnthropicProvider: GatewayProviderFactory;

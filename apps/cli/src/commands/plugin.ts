@@ -1,31 +1,31 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
-    type Dirent,
-    existsSync,
-    mkdirSync,
-    readdirSync,
-    readFileSync,
-    renameSync,
-    rmSync,
-    statSync,
+	type Dirent,
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	renameSync,
+	rmSync,
+	statSync,
 } from "node:fs";
 import { cp, mkdir, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import {
-    basename,
-    dirname,
-    extname,
-    join,
-    relative,
-    resolve,
-    sep,
+	basename,
+	dirname,
+	extname,
+	join,
+	relative,
+	resolve,
+	sep,
 } from "node:path";
 import { type PluginUninstallOptions, uninstallPlugin } from "@coohu/core";
 import {
-    isPluginModulePath,
-    resolveClineDir,
-    resolvePluginModuleEntries,
+	isPluginModulePath,
+	resolveClineDir,
+	resolvePluginModuleEntries,
 } from "@coohu/shared/storage";
 
 export interface PluginInstallOptions {

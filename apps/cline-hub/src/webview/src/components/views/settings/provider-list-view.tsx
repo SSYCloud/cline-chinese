@@ -346,9 +346,7 @@ export function ProviderDetailContent({
 												{isSecret ? (
 													<>
 														<Button
-															aria-label={
-																isShown ? "隐藏密钥" : "显示密钥"
-															}
+															aria-label={isShown ? "隐藏密钥" : "显示密钥"}
 															className="rounded-md p-1 text-muted-foreground hover:text-foreground transition-colors"
 															onClick={() =>
 																setShownSecrets((current) => ({

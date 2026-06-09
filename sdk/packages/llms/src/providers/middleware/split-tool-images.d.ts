@@ -1,4 +1,7 @@
-import type { LanguageModelV3Message, LanguageModelV3Middleware } from "@ai-sdk/provider";
+import type {
+	LanguageModelV3Message,
+	LanguageModelV3Middleware,
+} from "@ai-sdk/provider";
 /**
  * Walk a `LanguageModelV3Prompt` and rewrite every `role:"tool"` message
  * containing image/file parts inside its tool-result `output`s. See the
@@ -7,9 +10,11 @@ import type { LanguageModelV3Message, LanguageModelV3Middleware } from "@ai-sdk/
  * Returns the (possibly new) prompt array and a `mutated` flag for
  * test/observation use.
  */
-export declare function rewritePromptToolImages(prompt: LanguageModelV3Message[]): {
-    prompt: LanguageModelV3Message[];
-    mutated: boolean;
+export declare function rewritePromptToolImages(
+	prompt: LanguageModelV3Message[],
+): {
+	prompt: LanguageModelV3Message[];
+	mutated: boolean;
 };
 /**
  * `LanguageModelV3Middleware` that splits image-carrying tool-result

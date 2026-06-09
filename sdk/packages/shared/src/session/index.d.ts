@@ -1,1 +1,4 @@
-export declare function createSessionId(prefix?: string, suffix?: string): string;
+export declare function createSessionId(
+	prefix?: string,
+	suffix?: string,
+): string;

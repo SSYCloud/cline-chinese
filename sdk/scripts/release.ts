@@ -429,7 +429,14 @@ async function releaseSDK(version: string): Promise<number> {
 		console.log(`  Publishing ${name}@${version} with tag '${npmTag}'...`);
 		const stagedReadme = await stageSdkReadmeForPublish(workspace);
 		try {
-			const bunPublishArgs = ["bun", "publish", "--tag", npmTag, "--access", "public"];
+			const bunPublishArgs = [
+				"bun",
+				"publish",
+				"--tag",
+				npmTag,
+				"--access",
+				"public",
+			];
 			if (otp) bunPublishArgs.push("--otp", otp);
 			await run(bunPublishArgs, { cwd: pkgDir });
 		} finally {

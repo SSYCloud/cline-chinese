@@ -1,1 +1,3 @@
-export declare function parseKeyPairsIntoRecord(value?: string): Record<string, string>;
+export declare function parseKeyPairsIntoRecord(
+	value?: string,
+): Record<string, string>;

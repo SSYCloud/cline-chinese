@@ -25,10 +25,10 @@
  */
 
 import type {
-    ApiHandler,
-    HandlerFactory,
-    LazyHandlerFactory,
-    ProviderConfig,
+	ApiHandler,
+	HandlerFactory,
+	LazyHandlerFactory,
+	ProviderConfig,
 } from "./types";
 
 /**

@@ -1,14 +1,14 @@
 import process from "node:process";
 import { createInterface } from "node:readline";
 import {
-    ensureDetachedHubServer,
-    type HubServerDiscoveryRecord,
-    HubSessionClient,
-    HubUIClient,
-    Llms,
-    ProviderSettingsManager,
-    stopLocalHubServerGracefully,
-    toHubHealthUrl,
+	ensureDetachedHubServer,
+	type HubServerDiscoveryRecord,
+	HubSessionClient,
+	HubUIClient,
+	Llms,
+	ProviderSettingsManager,
+	stopLocalHubServerGracefully,
+	toHubHealthUrl,
 } from "@coohu/core";
 import type { HubUINotifyPayload, SessionRecord } from "@coohu/shared";
 

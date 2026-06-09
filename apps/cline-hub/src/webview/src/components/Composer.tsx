@@ -401,9 +401,7 @@ export function Composer({
 							attachments = { userImages };
 						}
 						if (userImages.length !== message.files.length) {
-							toast.warning(
-								"目前 VS Code 运行时仅支持图片附件。",
-							);
+							toast.warning("目前 VS Code 运行时仅支持图片附件。");
 						}
 					}
 

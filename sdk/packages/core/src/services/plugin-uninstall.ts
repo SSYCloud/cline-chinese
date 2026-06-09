@@ -1,24 +1,24 @@
 import {
-    existsSync,
-    readdirSync,
-    readFileSync,
-    rmdirSync,
-    rmSync,
-    statSync,
+	existsSync,
+	readdirSync,
+	readFileSync,
+	rmdirSync,
+	rmSync,
+	statSync,
 } from "node:fs";
 import {
-    basename,
-    dirname,
-    extname,
-    isAbsolute,
-    join,
-    relative,
-    resolve,
-    sep,
+	basename,
+	dirname,
+	extname,
+	isAbsolute,
+	join,
+	relative,
+	resolve,
+	sep,
 } from "node:path";
 import {
-    discoverPluginModulePaths,
-    resolvePluginConfigSearchPaths,
+	discoverPluginModulePaths,
+	resolvePluginConfigSearchPaths,
 } from "@coohu/shared/storage";
 import { readGlobalSettings, writeGlobalSettings } from "./global-settings";
 

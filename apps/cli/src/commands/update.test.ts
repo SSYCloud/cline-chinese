@@ -81,8 +81,10 @@ describe("withMinimumReleaseAgeBypass", () => {
 			).command,
 		).toBe("npm update -g @coohu/cline --tag latest --min-release-age=0");
 		expect(
-			withMinimumReleaseAgeBypass("bun add -g @coohu/cline@latest", PackageManager.BUN)
-				.command,
+			withMinimumReleaseAgeBypass(
+				"bun add -g @coohu/cline@latest",
+				PackageManager.BUN,
+			).command,
 		).toBe("bun add -g @coohu/cline@latest --minimum-release-age=0");
 		expect(
 			withMinimumReleaseAgeBypass(

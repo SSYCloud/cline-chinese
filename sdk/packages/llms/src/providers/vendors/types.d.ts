@@ -1,9 +1,9 @@
 export interface ProviderFactoryResult {
-    model: (modelId: string) => unknown;
+	model: (modelId: string) => unknown;
 }
 export interface AiSdkStreamPart {
-    type?: string;
-    [key: string]: unknown;
+	type?: string;
+	[key: string]: unknown;
 }
 /**
  * AI SDK's normalized usage structure emitted in the finish stream part.
@@ -24,20 +24,20 @@ export interface AiSdkStreamPart {
  * @property cachedInputTokens - Alias for cache-read tokens (convenience field)
  */
 export interface AiSdkStreamTotalUsage {
-    inputTokens?: number;
-    inputTokenDetails?: {
-        noCacheTokens?: number;
-        cacheReadTokens?: number;
-        cacheWriteTokens?: number;
-    };
-    outputTokens?: number;
-    outputTokenDetails?: {
-        textTokens?: number;
-        reasoningTokens?: number;
-    };
-    totalTokens?: number;
-    reasoningTokens?: number;
-    cachedInputTokens?: number;
+	inputTokens?: number;
+	inputTokenDetails?: {
+		noCacheTokens?: number;
+		cacheReadTokens?: number;
+		cacheWriteTokens?: number;
+	};
+	outputTokens?: number;
+	outputTokenDetails?: {
+		textTokens?: number;
+		reasoningTokens?: number;
+	};
+	totalTokens?: number;
+	reasoningTokens?: number;
+	cachedInputTokens?: number;
 }
 /**
  * AI SDK's complete usage structure available via stream.usage promise after completion.
@@ -55,52 +55,52 @@ export interface AiSdkStreamTotalUsage {
  *     completion_tokens_details.reasoning_tokens, cost, is_byok, cost_details, market_cost
  */
 export interface AiSdkStreamUsage extends AiSdkStreamTotalUsage {
-    raw?: {
-        input_tokens?: number;
-        cache_creation_input_tokens?: number;
-        cache_read_input_tokens?: number;
-        cache_creation?: {
-            ephemeral_5m_input_tokens?: number;
-            ephemeral_1h_input_tokens?: number;
-        };
-        input_tokens_details?: {
-            cached_tokens?: number;
-            cache_write_tokens?: number;
-        };
-        output_tokens?: number;
-        output_tokens_details?: {
-            reasoning_tokens?: number;
-        };
-        service_tier?: string;
-        inference_geo?: string;
-        promptTokenCount?: number;
-        candidatesTokenCount?: number;
-        totalTokenCount?: number;
-        promptTokensDetails?: {
-            cached_tokens?: number;
-            cache_write_tokens?: number;
-        };
-        prompt_tokens?: number;
-        completion_tokens?: number;
-        total_tokens?: number;
-        prompt_tokens_details?: {
-            cached_tokens?: number;
-            cache_write_tokens?: number;
-        };
-        completion_tokens_details?: {
-            reasoning_tokens?: number;
-        };
-        cost?: number;
-        is_byok?: boolean;
-        cost_details?: {
-            upstream_inference_cost?: number | null;
-            upstream_inference_prompt_cost?: number;
-            upstream_inference_completions_cost?: number;
-        };
-        market_cost?: number;
-    };
-    reasoningTokens?: number;
-    cachedInputTokens?: number;
+	raw?: {
+		input_tokens?: number;
+		cache_creation_input_tokens?: number;
+		cache_read_input_tokens?: number;
+		cache_creation?: {
+			ephemeral_5m_input_tokens?: number;
+			ephemeral_1h_input_tokens?: number;
+		};
+		input_tokens_details?: {
+			cached_tokens?: number;
+			cache_write_tokens?: number;
+		};
+		output_tokens?: number;
+		output_tokens_details?: {
+			reasoning_tokens?: number;
+		};
+		service_tier?: string;
+		inference_geo?: string;
+		promptTokenCount?: number;
+		candidatesTokenCount?: number;
+		totalTokenCount?: number;
+		promptTokensDetails?: {
+			cached_tokens?: number;
+			cache_write_tokens?: number;
+		};
+		prompt_tokens?: number;
+		completion_tokens?: number;
+		total_tokens?: number;
+		prompt_tokens_details?: {
+			cached_tokens?: number;
+			cache_write_tokens?: number;
+		};
+		completion_tokens_details?: {
+			reasoning_tokens?: number;
+		};
+		cost?: number;
+		is_byok?: boolean;
+		cost_details?: {
+			upstream_inference_cost?: number | null;
+			upstream_inference_prompt_cost?: number;
+			upstream_inference_completions_cost?: number;
+		};
+		market_cost?: number;
+	};
+	reasoningTokens?: number;
+	cachedInputTokens?: number;
 }
 /**
  * Finish event part emitted when streaming completes.
@@ -112,10 +112,10 @@ export interface AiSdkStreamUsage extends AiSdkStreamTotalUsage {
  * @property totalUsage - Usage snapshot at end of stream (AiSdkStreamTotalUsage structure)
  */
 export interface AiSdkStreamFinishPart {
-    type: "finish";
-    finishReason?: string;
-    rawFinishReason?: string;
-    totalUsage?: AiSdkStreamTotalUsage | Record<string, unknown>;
+	type: "finish";
+	finishReason?: string;
+	rawFinishReason?: string;
+	totalUsage?: AiSdkStreamTotalUsage | Record<string, unknown>;
 }
 /**
  * Complete result from AI SDK's streamText() call.
@@ -129,8 +129,8 @@ export interface AiSdkStreamFinishPart {
  *   and other provider-specific metadata needed for accurate billing.
  */
 export interface AiSdkStreamResult {
-    fullStream?: AsyncIterable<AiSdkStreamPart>;
-    textStream?: AsyncIterable<string>;
-    text?: Promise<string> | string;
-    usage?: Promise<AiSdkStreamUsage | Record<string, unknown>>;
+	fullStream?: AsyncIterable<AiSdkStreamPart>;
+	textStream?: AsyncIterable<string>;
+	text?: Promise<string> | string;
+	usage?: Promise<AiSdkStreamUsage | Record<string, unknown>>;
 }

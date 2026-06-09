@@ -122,9 +122,7 @@ export function AddProviderContent({
 				...prev,
 				models: next模型,
 				defaultModel:
-					prev.defaultModel === model
-						? (next模型[0] ?? "")
-						: prev.defaultModel,
+					prev.defaultModel === model ? (next模型[0] ?? "") : prev.defaultModel,
 			};
 		});
 	};
@@ -215,9 +213,7 @@ export function AddProviderContent({
 					>
 						<ArrowLeft className="h-4 w-4" />
 					</Button>
-					<h2 className="text-lg font-semibold text-foreground">
-						添加提供商
-					</h2>
+					<h2 className="text-lg font-semibold text-foreground">添加提供商</h2>
 				</div>
 
 				<div className="flex flex-col gap-6">
@@ -297,7 +293,8 @@ export function AddProviderContent({
 							className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-1 focus:ring-ring"
 						/>
 						<p className="mt-1.5 text-xs text-muted-foreground">
-							支持的 JSON：OpenAI `/models` 格式（包含 `data` 数组），或直接的模型数组。
+							支持的 JSON：OpenAI `/models` 格式（包含 `data`
+							数组），或直接的模型数组。
 						</p>
 					</div>
 
@@ -327,9 +324,7 @@ export function AddProviderContent({
 								onChange={(e) => setModelInput(e.target.value)}
 								onKeyDown={handleAddModel}
 								placeholder={
-									form.models.length === 0
-										? "输入模型 ID 后按回车"
-										: ""
+									form.models.length === 0 ? "输入模型 ID 后按回车" : ""
 								}
 								className="min-w-35 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none"
 							/>

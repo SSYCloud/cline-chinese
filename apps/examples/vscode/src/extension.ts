@@ -1,40 +1,40 @@
 import * as os from "node:os";
 import { basename, join } from "node:path";
 import {
-    type BasicLogger,
-    buildWorkspaceMetadata,
-    ClineCore,
-    captureExtensionActivated,
-    createConfiguredTelemetryService,
-    createLocalHubScheduleRuntimeHandlers,
-    ensureHubWebSocketServer,
-    type ITelemetryService,
-    Llms,
-    NodeHubClient,
-    type ProviderModel,
-    ProviderSettingsManager,
-    probeHubServer,
-    type RuntimeCapabilities,
-    readHubDiscovery,
-    rememberRecoverableLocalHubUrl,
-    resolveSharedHubOwnerContext,
-    type ToolPolicy,
+	type BasicLogger,
+	buildWorkspaceMetadata,
+	ClineCore,
+	captureExtensionActivated,
+	createConfiguredTelemetryService,
+	createLocalHubScheduleRuntimeHandlers,
+	ensureHubWebSocketServer,
+	type ITelemetryService,
+	Llms,
+	NodeHubClient,
+	type ProviderModel,
+	ProviderSettingsManager,
+	probeHubServer,
+	type RuntimeCapabilities,
+	readHubDiscovery,
+	rememberRecoverableLocalHubUrl,
+	resolveSharedHubOwnerContext,
+	type ToolPolicy,
 } from "@coohu/core";
 import {
-    type AgentTool,
-    buildClineSystemPrompt,
-    createClineTelemetryServiceConfig,
-    createClineTelemetryServiceMetadata,
+	type AgentTool,
+	buildClineSystemPrompt,
+	createClineTelemetryServiceConfig,
+	createClineTelemetryServiceMetadata,
 } from "@coohu/shared";
 import * as vscode from "vscode";
 import { displayName, version } from "../package.json";
 import { createVsCodeRuntimeCapabilities } from "./runtime-capabilities";
 import { createVscodeTelemetry } from "./telemetry";
 import type {
-    WebviewChatMessage,
-    WebviewInboundMessage,
-    WebviewOutboundMessage,
-    WebviewSessionSummary,
+	WebviewChatMessage,
+	WebviewInboundMessage,
+	WebviewOutboundMessage,
+	WebviewSessionSummary,
 } from "./webview-protocol";
 
 const SESSION_REFRESH_INTERVAL_MS = 4_000;

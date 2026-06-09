@@ -535,7 +535,9 @@ export function McpServersContent() {
 										)}
 										{server.cwd && (
 											<p>
-												<span className="text-muted-foreground/70">工作目录:</span>{" "}
+												<span className="text-muted-foreground/70">
+													工作目录:
+												</span>{" "}
 												{server.cwd}
 											</p>
 										)}
@@ -547,14 +549,18 @@ export function McpServersContent() {
 										)}
 										{server.env && Object.keys(server.env).length > 0 && (
 											<p>
-												<span className="text-muted-foreground/70">环境变量:</span>{" "}
+												<span className="text-muted-foreground/70">
+													环境变量:
+												</span>{" "}
 												{stringifyRedactedKeyValuePairs(server.env)}
 											</p>
 										)}
 										{server.headers &&
 											Object.keys(server.headers).length > 0 && (
 												<p>
-													<span className="text-muted-foreground/70">请求头:</span>{" "}
+													<span className="text-muted-foreground/70">
+														请求头:
+													</span>{" "}
 													{stringifyKeyValuePairs(server.headers)}
 												</p>
 											)}
@@ -584,7 +590,8 @@ export function McpServersContent() {
 							更新存储在{" "}
 							<code className="font-mono">
 								{settingsPath || "cline_mcp_settings.json"}
-							</code>。
+							</code>
+							。
 						</DialogDescription>
 					</DialogHeader>
 

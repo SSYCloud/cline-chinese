@@ -8,4 +8,6 @@
  *
  * Returns `undefined` when no matching file can be located.
  */
-export declare function resolveExistingFilePath(filePath: string): string | undefined;
+export declare function resolveExistingFilePath(
+	filePath: string,
+): string | undefined;

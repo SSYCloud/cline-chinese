@@ -2,22 +2,22 @@ import { mkdir, mkdtemp, rm, symlink, writeFile } from "node:fs/promises";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import {
-    resolveGlobalAgentsRulesPath,
-    setHomeDir,
+	resolveGlobalAgentsRulesPath,
+	setHomeDir,
 } from "@coohu/shared/storage";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-    createRulesConfigDefinition,
-    createSkillsConfigDefinition,
-    createUserInstructionConfigWatcher,
-    createWorkflowsConfigDefinition,
-    parseRuleConfigFromMarkdown,
-    parseSkillConfigFromMarkdown,
-    parseWorkflowConfigFromMarkdown,
-    resolveRulesConfigSearchPaths,
-    resolveSkillsConfigSearchPaths,
-    resolveWorkflowsConfigSearchPaths,
-    type UserInstructionConfigWatcherEvent,
+	createRulesConfigDefinition,
+	createSkillsConfigDefinition,
+	createUserInstructionConfigWatcher,
+	createWorkflowsConfigDefinition,
+	parseRuleConfigFromMarkdown,
+	parseSkillConfigFromMarkdown,
+	parseWorkflowConfigFromMarkdown,
+	resolveRulesConfigSearchPaths,
+	resolveSkillsConfigSearchPaths,
+	resolveWorkflowsConfigSearchPaths,
+	type UserInstructionConfigWatcherEvent,
 } from "./user-instruction-config-loader";
 
 const WAIT_TIMEOUT_MS = 4_000;

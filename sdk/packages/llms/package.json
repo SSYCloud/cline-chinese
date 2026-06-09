@@ -1,6 +1,6 @@
 {
 	"name": "@coohu/llms",
-	"version": "0.1.7",
+	"version": "0.1.8",
 	"description": "Config-driven SDK for selecting, extending, and instantiating LLM providers and models",
 	"repository": {
 		"type": "git",
@@ -44,6 +44,7 @@
 		}
 	},
 	"dependencies": {
+		"@coohu/shared": "0.1.8",
 		"@ai-sdk/amazon-bedrock": "^4.0.89",
 		"@ai-sdk/anthropic": "^3.0.68",
 		"@ai-sdk/google": "^3.0.60",
@@ -53,7 +54,6 @@
 		"@ai-sdk/openai-compatible": "^2.0.38",
 		"@ai-sdk/provider": "^3.0.8",
 		"@aws-sdk/credential-providers": "^3.922.0",
-		"@coohu/shared": "workspace:*",
 		"@jerome-benoit/sap-ai-provider": "4.6.9",
 		"@langfuse/otel": "^4.0.0",
 		"@opentelemetry/api": "^1.9.0",

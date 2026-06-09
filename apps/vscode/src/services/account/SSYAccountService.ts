@@ -1,16 +1,6 @@
-import { UserCreditsData, UserInfo } from "@shared/proto/cline/account"
+import { UserCreditsData, UserInfo, EProjectList, EPAPIKey, EnterpriseBillResponse, EnterpriseBillRequest } from "@shared/proto/cline/account"
 import axios, { AxiosRequestConfig } from "axios"
 import { Logger } from "@/shared/services/Logger"
-
-export interface QSBills {
-    ram_user_id:  number;
-    project_id:   number;
-    page?:        number;
-    page_size?:   number;
-    start_time?:  Date;
-    end_time?:    Date;
-    model_name?:  string;
-}
 
 export class SSYAccountService {
 	private readonly baseUrl = "https://api.shengsuanyun.com"
@@ -122,47 +112,119 @@ export class SSYAccountService {
 		}
 	}
 
-	async getEProject() {
+	async getEProject(): Promise<EProjectList> {
 		try {
 			const prjs = await this.authReq("/project/list");
 			if (!Array.isArray(prjs)) {
 				Logger.log("getEProject response:", prjs);
 				throw new Error(`Invalid response from API: /project/list`);
 			}
-			const apikeys = prjs.map((it: any) => this.authReq("/apikey/list", { method: "POST", data: { project_id: it.id } }));
+			const apikeys = prjs.map((it: any) => this.authReq<any[]>("/apikey/list", { method: "POST", data: { project_id: it.id } }));
 			const results = await Promise.all(apikeys);
-			return prjs.map((it: any, idx: number) => ({
-				id: it.id,
-				name: it.projectName,
-				models: it.selectedModels,
-				routers: it.routerConfigs,
-				apiKeys: results[idx] || []
-			}));
 
+			return EProjectList.create({
+				projects: prjs.map((it: any, idx: number) => ({
+					id: it.id,
+					name: it.projectName,
+					models: (it.selectedModels ?? []).map((m: any) => ({
+						id: m.id,
+						name: m.name,
+						type: m.type,
+						inputPrice: m.inputPrice,
+						outputPrice: m.outputPrice,
+						inputPriceUnit: m.inputPriceUnit,
+						outputPriceUnit: m.outputPriceUnit,
+						otherPrice: m.otherPrice,
+						provider: m.provider,
+						supportModelId: m.supportModelId,
+						currency: m.currency,
+						contextLength: m.contextLength,
+						isByok: m.isBYOK ?? m.isByok ?? false,
+					})),
+					routers: (it.routerConfigs ?? []).map((r: any) => ({
+						id: r.id,
+						name: r.name,
+						mode: r.mode,
+						models: (r.models ?? []).map((rm: any) => ({
+							id: rm.id,
+							model: rm.model,
+							modelInfoId: rm.modelInfoId,
+							weight: rm.weight,
+						})),
+						isConfirmed: r.isConfirmed,
+						routeId: r.routeId,
+						scope: r.scope,
+						createdByRamUserId: r.createdByRamUserId,
+						creatorName: r.creatorName,
+						creatorType: r.creatorType,
+						createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : (r.createdAt ?? ""),
+						updatedAt: r.updatedAt instanceof Date ? r.updatedAt.toISOString() : (r.updatedAt ?? ""),
+						updatedByRamUserId: r.updatedByRamUserId,
+						updaterName: r.updaterName,
+						updaterType: r.updaterType,
+						canEdit: r.canEdit,
+						canDelete: r.canDelete,
+					})),
+					apiKeys: (results[idx] ?? []).map((k: any): EPAPIKey => ({
+						id: k.ID ?? k.id,
+						createdAt: k.CreatedAt instanceof Date ? k.CreatedAt.toISOString() : (k.CreatedAt ?? k.createdAt ?? ""),
+						updatedAt: k.UpdatedAt instanceof Date ? k.UpdatedAt.toISOString() : (k.UpdatedAt ?? k.updatedAt ?? ""),
+						userId: k.UserID ?? k.userId,
+						isBanned: k.IsBanned ?? k.isBanned,
+						isExpired: k.IsExpired ?? k.isExpired,
+						name: k.Name ?? k.name,
+						desc: k.Desc ?? k.desc,
+						key: k.Key ?? k.key,
+						token: k.Token ?? k.token,
+						tpm: k.Tpm ?? k.tpm,
+						rpm: k.Rpm ?? k.rpm,
+						maxQuota: k.MaxQuota ?? k.maxQuota,
+						consumedAmount: k.ConsumedAmount ?? k.consumedAmount,
+						supportedModels: k.SupportedModels ?? k.supportedModels,
+						isDefault: k.IsDefault ?? k.isDefault,
+						ramUserId: k.RamUserId ?? k.ramUserId,
+						enterpriseGatewayProjectId: k.EnterpriseGatewayProjectID ?? k.enterpriseGatewayProjectId,
+					})),
+				}))
+			})
 		} catch (error) {           
 			Logger.error("getEProject():", error);
 			throw error;
 		}
 	}
 
-	async getEBill(qs:QSBills){
-		if(!this.uid || !qs.project_id) {	
+	async getEBill(qs: EnterpriseBillRequest): Promise<EnterpriseBillResponse> {
+		if(!this.uid || !qs.projectId) {
 			throw new Error("User ID or Project ID is missing for fetching bills")
 		}
 		const data = {
-			...qs,
+			project_id: qs.projectId,
+			page: qs.page,
+			page_size: qs.pageSize,
+			model_name: qs.modelName,
 			raw_user_id: this.uid,
-			start_time: qs.start_time ? qs.start_time.toISOString() : new Date().toISOString(),
-			end_time: qs.end_time ? qs.end_time.toISOString() : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+			start_time: qs.startTime ?? new Date().toISOString(),
+			end_time: qs.endTime ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
 		}
 		try{
-			const bills = await this.authReq<{ bills: any[] }>("/statistics/enterprise/gatewaybill", { method:"POST", data})
-			if (!bills || !Array.isArray(bills.bills)) {
-				Logger.log("getEBill response:", bills)
+			const res = await this.authReq<{ bills: any[] }>("/statistics/enterprise/gatewaybill", { method:"POST", data})
+			if (!res || !Array.isArray(res.bills)) {
+				Logger.log("getEBill response:", res)
 				throw new Error(`Invalid response from API: /statistics/enterprise/gatewaybill`)
 			}
-			return bills.bills
-		} catch (error) {			
+			return EnterpriseBillResponse.create({
+				bills: res.bills.map((b: any) => ({
+					requestTime: b.request_time ?? "",
+					modelName: b.model?.name ?? b.model_name ?? "",
+					modelCompany: b.model?.company ?? b.model_company ?? "",
+					inputTokens: b.input_tokens ?? 0,
+					outputTokens: b.output_tokens ?? 0,
+					totalAmount: b.total_amount ?? 0,
+					userName: b.user_name ?? "",
+					ramUserId: b.ram_user_id ?? 0,
+				})),
+			})
+		} catch (error) {
 			Logger.error("getEBill():", error)
 			throw error
 		}

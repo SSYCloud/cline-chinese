@@ -11,6 +11,6 @@ import type { ModelInfo } from "@coohu/shared";
  * listed in @coohu/llms/src/providers/provider-keys.ts
  */
 export declare const GENERATED_PROVIDER_MODELS: {
-    version: number;
-    providers: Record<string, Record<string, ModelInfo>>;
+	version: number;
+	providers: Record<string, Record<string, ModelInfo>>;
 };

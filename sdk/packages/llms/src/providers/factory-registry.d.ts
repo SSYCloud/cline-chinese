@@ -23,7 +23,12 @@
  * const handler = createHandler({ providerId: "vscode-lm", modelId: "copilot" })
  * ```
  */
-import type { ApiHandler, HandlerFactory, LazyHandlerFactory, ProviderConfig } from "./types";
+import type {
+	ApiHandler,
+	HandlerFactory,
+	LazyHandlerFactory,
+	ProviderConfig,
+} from "./types";
 /**
  * Register a custom handler factory for a provider ID
  *
@@ -42,7 +47,10 @@ import type { ApiHandler, HandlerFactory, LazyHandlerFactory, ProviderConfig } f
  * registerHandler("anthropic", (config) => new MyCustomAnthropicHandler(config))
  * ```
  */
-export declare function registerHandler(providerId: string, factory: HandlerFactory<ProviderConfig>): void;
+export declare function registerHandler(
+	providerId: string,
+	factory: HandlerFactory<ProviderConfig>,
+): void;
 /**
  * Register an async handler factory for lazy loading
  *
@@ -60,7 +68,10 @@ export declare function registerHandler(providerId: string, factory: HandlerFact
  * })
  * ```
  */
-export declare function registerAsyncHandler(providerId: string, factory: LazyHandlerFactory<ProviderConfig>): void;
+export declare function registerAsyncHandler(
+	providerId: string,
+	factory: LazyHandlerFactory<ProviderConfig>,
+): void;
 /**
  * Check if a custom handler is registered for a provider ID
  *
@@ -74,7 +85,10 @@ export declare function hasRegisteredHandler(providerId: string): boolean;
  * @param config - The config to pass to the factory
  * @returns The handler instance, or undefined if not registered
  */
-export declare function getRegisteredHandler(providerId: string, config: ProviderConfig): ApiHandler | undefined;
+export declare function getRegisteredHandler(
+	providerId: string,
+	config: ProviderConfig,
+): ApiHandler | undefined;
 /**
  * Get a registered handler asynchronously (internal use)
  *
@@ -82,7 +96,10 @@ export declare function getRegisteredHandler(providerId: string, config: Provide
  * @param config - The config to pass to the factory
  * @returns The handler instance, or undefined if not registered
  */
-export declare function getRegisteredHandlerAsync(providerId: string, config: ProviderConfig): Promise<ApiHandler | undefined>;
+export declare function getRegisteredHandlerAsync(
+	providerId: string,
+	config: ProviderConfig,
+): Promise<ApiHandler | undefined>;
 /**
  * Check if a registered handler is async
  *

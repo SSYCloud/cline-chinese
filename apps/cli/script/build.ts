@@ -1,20 +1,20 @@
 #!/usr/bin/env bun
 
 import {
-    cpSync,
-    existsSync,
-    mkdirSync,
-    readdirSync,
-    readFileSync,
-    realpathSync,
-    statSync,
+	cpSync,
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	realpathSync,
+	statSync,
 } from "node:fs";
 import { join, relative, resolve } from "node:path";
 import { $ } from "bun";
 import {
-    parseBuildOptions,
-    shouldInstallNativeVariants,
-    validateBuildOptions,
+	parseBuildOptions,
+	shouldInstallNativeVariants,
+	validateBuildOptions,
 } from "./build-options";
 
 const cliDir = resolve(import.meta.dir, "..");

@@ -15,10 +15,10 @@
 
 import type { ApiHandler, ApiStreamChunk } from "@coohu/llms";
 import type {
-    AgentModel,
-    AgentModelEvent,
-    AgentModelFinishReason,
-    AgentModelRequest,
+	AgentModel,
+	AgentModelEvent,
+	AgentModelFinishReason,
+	AgentModelRequest,
 } from "@coohu/shared";
 import { agentMessagesToMessages } from "../../runtime/config/agent-message-codec";
 

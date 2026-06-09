@@ -166,7 +166,7 @@ export function AccountView() {
 				fetchAccountOrganizations(),
 			]);
 			const next活跃Organization =
-				orgsData.find((organization:any) => organization) ?? null;
+				orgsData.find((organization: any) => organization) ?? null;
 			const organizationBalanceData = next活跃Organization
 				? await fetchOrganizationBalance(next活跃Organization.organizationId)
 				: null;
@@ -323,7 +323,7 @@ export function AccountView() {
 
 				{/* Tabs */}
 				<div className="mb-6 flex items-center gap-0 border-b border-border">
-					{tabs.map((tab) => 
+					{tabs.map((tab) => (
 						<button
 							key={tab}
 							type="button"
@@ -340,7 +340,7 @@ export function AccountView() {
 								<span className="absolute inset-x-0 -bottom-px h-0.5 bg-foreground" />
 							)}
 						</button>
-					)}
+					))}
 				</div>
 
 				{/* Overview Tab */}
@@ -399,7 +399,7 @@ export function AccountView() {
 												className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
 											>
 												<Plus className="h-3.5 w-3.5" />
-											充值
+												充值
 											</a>
 										</div>
 										<div className="flex items-baseline gap-2">
@@ -421,7 +421,7 @@ export function AccountView() {
 										<div className="flex items-center gap-3">
 											<Building className="h-5 w-5 text-muted-foreground" />
 											<h3 className="text-sm font-semibold text-foreground">
-								组织
+												组织
 											</h3>
 										</div>
 										<a
@@ -435,9 +435,7 @@ export function AccountView() {
 										</a>
 									</div>
 									{organizations.length === 0 ? (
-										<p className="text-sm text-muted-foreground">
-											暂无组织。
-										</p>
+										<p className="text-sm text-muted-foreground">暂无组织。</p>
 									) : (
 										<div className="flex flex-col gap-2">
 											{organizations.map((org) => (

@@ -2,21 +2,21 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type {
-    AgentConfig,
-    AgentExtensionMessageBuilder,
-    AgentExtensionRule,
-    AgentTool,
-    AgentToolContext,
-    Message,
+	AgentConfig,
+	AgentExtensionMessageBuilder,
+	AgentExtensionRule,
+	AgentTool,
+	AgentToolContext,
+	Message,
 } from "@coohu/shared";
 import {
-    afterAll,
-    beforeAll,
-    beforeEach,
-    describe,
-    expect,
-    it,
-    vi,
+	afterAll,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
 } from "vitest";
 import { loadSandboxedPlugins } from "./plugin-sandbox";
 

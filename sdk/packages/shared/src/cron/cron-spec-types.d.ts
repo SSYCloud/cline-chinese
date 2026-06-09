@@ -13,46 +13,46 @@ export type CronTriggerKind = "one_off" | "schedule" | "event";
  * - everything else under `.cline/cron/*.md` -> one_off
  */
 export interface CronSpecModelSelection {
-    providerId?: string;
-    modelId?: string;
+	providerId?: string;
+	modelId?: string;
 }
 export type CronSpecMode = "act" | "plan" | "yolo";
 export type CronSpecExtensionKind = "rules" | "skills" | "plugins";
 export interface CronSpecCommonFields {
-    /** Optional explicit id from frontmatter; falls back to relative path. */
-    id?: string;
-    title?: string;
-    prompt?: string;
-    workspaceRoot?: string;
-    mode?: CronSpecMode;
-    systemPrompt?: string;
-    modelSelection?: CronSpecModelSelection;
-    maxIterations?: number;
-    timeoutSeconds?: number;
-    tools?: string[];
-    notesDirectory?: string;
-    extensions?: CronSpecExtensionKind[];
-    source?: string;
-    tags?: string[];
-    enabled?: boolean;
-    metadata?: Record<string, unknown>;
+	/** Optional explicit id from frontmatter; falls back to relative path. */
+	id?: string;
+	title?: string;
+	prompt?: string;
+	workspaceRoot?: string;
+	mode?: CronSpecMode;
+	systemPrompt?: string;
+	modelSelection?: CronSpecModelSelection;
+	maxIterations?: number;
+	timeoutSeconds?: number;
+	tools?: string[];
+	notesDirectory?: string;
+	extensions?: CronSpecExtensionKind[];
+	source?: string;
+	tags?: string[];
+	enabled?: boolean;
+	metadata?: Record<string, unknown>;
 }
 export interface CronOneOffSpec extends CronSpecCommonFields {
-    triggerKind: "one_off";
+	triggerKind: "one_off";
 }
 export interface CronScheduleSpec extends CronSpecCommonFields {
-    triggerKind: "schedule";
-    schedule: string;
-    timezone?: string;
+	triggerKind: "schedule";
+	schedule: string;
+	timezone?: string;
 }
 export interface CronEventSpec extends CronSpecCommonFields {
-    triggerKind: "event";
-    event: string;
-    filters?: Record<string, unknown>;
-    debounceSeconds?: number;
-    dedupeWindowSeconds?: number;
-    cooldownSeconds?: number;
-    maxParallel?: number;
+	triggerKind: "event";
+	event: string;
+	filters?: Record<string, unknown>;
+	debounceSeconds?: number;
+	dedupeWindowSeconds?: number;
+	cooldownSeconds?: number;
+	maxParallel?: number;
 }
 export type CronSpec = CronOneOffSpec | CronScheduleSpec | CronEventSpec;
 /**
@@ -61,20 +61,20 @@ export type CronSpec = CronOneOffSpec | CronScheduleSpec | CronEventSpec;
  * silently dropping state.
  */
 export interface CronSpecParseResult {
-    /** Stable external identity: frontmatter `id` or normalized relative path. */
-    externalId: string;
-    /** Normalized posix-style path relative to `.cline/cron/`. */
-    relativePath: string;
-    /** Trigger kind inferred from file naming. */
-    triggerKind: CronTriggerKind;
-    /** Raw file body (without frontmatter). */
-    body: string;
-    /** sha256 of canonical frontmatter JSON + body. */
-    contentHash: string;
-    /** When the parse succeeded. */
-    spec?: CronSpec;
-    /** Parse error message when the spec is invalid. */
-    error?: string;
+	/** Stable external identity: frontmatter `id` or normalized relative path. */
+	externalId: string;
+	/** Normalized posix-style path relative to `.cline/cron/`. */
+	relativePath: string;
+	/** Trigger kind inferred from file naming. */
+	triggerKind: CronTriggerKind;
+	/** Raw file body (without frontmatter). */
+	body: string;
+	/** sha256 of canonical frontmatter JSON + body. */
+	contentHash: string;
+	/** When the parse succeeded. */
+	spec?: CronSpec;
+	/** Parse error message when the spec is invalid. */
+	error?: string;
 }
 /**
  * Normalized automation event envelope. Used by the event-driven feature
@@ -82,13 +82,13 @@ export interface CronSpecParseResult {
  * agree on the shape from day one.
  */
 export interface AutomationEventEnvelope {
-    eventId: string;
-    eventType: string;
-    source: string;
-    subject?: string;
-    occurredAt: string;
-    workspaceRoot?: string;
-    payload?: Record<string, unknown>;
-    attributes?: Record<string, unknown>;
-    dedupeKey?: string;
+	eventId: string;
+	eventType: string;
+	source: string;
+	subject?: string;
+	occurredAt: string;
+	workspaceRoot?: string;
+	payload?: Record<string, unknown>;
+	attributes?: Record<string, unknown>;
+	dedupeKey?: string;
 }

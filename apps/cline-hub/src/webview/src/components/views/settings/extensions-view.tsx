@@ -27,7 +27,7 @@ type ShortcutTab =
 	| "Plugins"
 	| "Tools";
 
-	const tabLabels: Record<string, string> = {
+const tabLabels: Record<string, string> = {
 	Rules: "规则",
 	Hooks: "钩子",
 	Skills: "技能",
@@ -637,9 +637,7 @@ export function RulesView() {
 		<ScrollArea className="h-full">
 			<div className="mx-auto max-w-3xl px-8 py-6">
 				<div className="mb-4 flex items-center justify-between">
-					<h2 className="text-lg font-semibold text-foreground">
-						自定义项
-					</h2>
+					<h2 className="text-lg font-semibold text-foreground">自定义项</h2>
 					<Button
 						variant="outline"
 						size="sm"
@@ -1042,8 +1040,7 @@ export function RulesView() {
 																{tool.name}
 															</p>
 															<p className="text-xs text-muted-foreground">
-																{tool.description?.trim() ||
-																	"暂无描述。"}
+																{tool.description?.trim() || "暂无描述。"}
 															</p>
 														</div>
 														<div className="flex items-center gap-2">
@@ -1127,8 +1124,7 @@ export function RulesView() {
 																{tool.name}
 															</p>
 															<p className="text-xs text-muted-foreground">
-																{tool.description?.trim() ||
-																	"暂无描述。"}
+																{tool.description?.trim() || "暂无描述。"}
 															</p>
 														</div>
 														<div className="flex items-center gap-2">
@@ -1204,8 +1200,7 @@ export function RulesView() {
 													/>
 												</div>
 												<p className="mt-2 ml-7 text-xs text-muted-foreground">
-													{tool.description?.trim() ||
-														"暂无描述。"}
+													{tool.description?.trim() || "暂无描述。"}
 												</p>
 												{!!tool.headlessToolNames?.length && (
 													<p className="mt-1 ml-7 text-xs font-mono text-muted-foreground">
@@ -1260,8 +1255,7 @@ export function RulesView() {
 													/>
 												</div>
 												<p className="mt-2 ml-7 text-xs text-muted-foreground">
-													{tool.description?.trim() ||
-														"暂无描述。"}
+													{tool.description?.trim() || "暂无描述。"}
 												</p>
 												{tool.path && (
 													<p className="mt-1 ml-7 text-xs font-mono text-muted-foreground">

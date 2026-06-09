@@ -1,10 +1,10 @@
 import {
-    copyFileSync,
-    cpSync,
-    existsSync,
-    mkdirSync,
-    readdirSync,
-    statSync,
+	copyFileSync,
+	cpSync,
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	statSync,
 } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";

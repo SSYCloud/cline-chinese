@@ -1,6 +1,8 @@
-export type Disposable = (() => void | Promise<void>) | {
-    dispose: () => void | Promise<void>;
-};
+export type Disposable =
+	| (() => void | Promise<void>)
+	| {
+			dispose: () => void | Promise<void>;
+	  };
 /**
  * Register a disposable to be cleaned up when `disposeAll()` is called.
  * Accepts either a function or an object with a `dispose` method.

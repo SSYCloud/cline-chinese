@@ -1,10 +1,10 @@
 import { execFileSync } from "node:child_process";
 import {
-    existsSync,
-    mkdirSync,
-    readdirSync,
-    readFileSync,
-    writeFileSync,
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	writeFileSync,
 } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";

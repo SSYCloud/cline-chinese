@@ -1,6 +1,6 @@
 import type {
-    GatewayProviderContext,
-    GatewayResolvedProviderConfig,
+	GatewayProviderContext,
+	GatewayResolvedProviderConfig,
 } from "@coohu/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createAnthropicProviderModule } from "./anthropic";

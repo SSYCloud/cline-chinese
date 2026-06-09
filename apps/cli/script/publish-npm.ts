@@ -169,7 +169,9 @@ async function publishPackage(input: {
 	removePackedTarballs(input.dir);
 	await $`bun pm pack`.cwd(input.dir);
 	const otpArgs = input.otp ? ["--otp", input.otp] : [];
-	await $`npm publish *.tgz --access public --tag ${input.tag} ${otpArgs}`.cwd(input.dir);
+	await $`npm publish *.tgz --access public --tag ${input.tag} ${otpArgs}`.cwd(
+		input.dir,
+	);
 	console.log(`  Published ${input.name}@${input.version}`);
 }
 

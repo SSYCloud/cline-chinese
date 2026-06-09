@@ -206,9 +206,7 @@ export function ChannelsContent() {
 		securityValues: {},
 	});
 	const [formError, setFormError] = useState<string | null>(null);
-	const [removeTarget, set移除Target] = useState<ActiveConnector | null>(
-		null,
-	);
+	const [removeTarget, set移除Target] = useState<ActiveConnector | null>(null);
 
 	const selectedChannel = useMemo(
 		() => channels.find((channel) => channel.id === formState.channelId),

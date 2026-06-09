@@ -478,9 +478,7 @@ export function SettingsView({
 							/>
 						) : providersLoading ? (
 							<div className="flex h-full items-center justify-center">
-								<p className="text-sm text-muted-foreground">
-									加载提供商中...
-								</p>
+								<p className="text-sm text-muted-foreground">加载提供商中...</p>
 							</div>
 						) : providerCatalogError ? (
 							<div className="flex h-full items-center justify-center">

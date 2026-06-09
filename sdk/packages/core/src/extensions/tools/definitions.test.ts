@@ -1,15 +1,15 @@
 import type { ITelemetryService } from "@coohu/shared";
 import { describe, expect, it, vi } from "vitest";
 import {
-    CLINE_INTERNAL_TELEMETRY_METADATA_KEY,
-    getToolContextTelemetry,
+	CLINE_INTERNAL_TELEMETRY_METADATA_KEY,
+	getToolContextTelemetry,
 } from "../../services/telemetry/tool-context";
 import {
-    createBashTool,
-    createDefaultTools,
-    createReadFilesTool,
-    createSkillsTool,
-    createWindowsShellTool,
+	createBashTool,
+	createDefaultTools,
+	createReadFilesTool,
+	createSkillsTool,
+	createWindowsShellTool,
 } from "./definitions";
 import { TimeoutError } from "./helpers";
 import { INPUT_ARG_CHAR_LIMIT } from "./schemas";

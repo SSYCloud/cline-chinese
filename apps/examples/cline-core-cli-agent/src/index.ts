@@ -1,8 +1,8 @@
 import * as readline from "node:readline";
 import {
-    type AgentEvent,
-    ClineCore,
-    type ToolApprovalRequest,
+	type AgentEvent,
+	ClineCore,
+	type ToolApprovalRequest,
 } from "@coohu/sdk";
 
 // ClineCore does not choose a model automatically; each session config must provide one.
