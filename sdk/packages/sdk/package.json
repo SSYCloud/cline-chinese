@@ -1,7 +1,7 @@
 {
 	"name": "@coohu/sdk",
 	"description": "Cline SDK - user-facing alias for @coohu/core",
-	"version": "0.1.4",
+	"version": "0.1.7",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/SSYCloud/cline-chinese-ssy",
@@ -25,7 +25,7 @@
 		"typecheck": "bun tsc -p tsconfig.json --noEmit"
 	},
 	"dependencies": {
-		"@coohu/core": "0.1.4"
+		"@coohu/core": "0.1.7"
 	},
 	"engines": {
 		"node": ">=22"
