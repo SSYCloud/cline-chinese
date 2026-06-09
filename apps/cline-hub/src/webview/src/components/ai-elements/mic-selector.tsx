@@ -274,7 +274,7 @@ export type MicSelectorInputProps = ComponentProps<typeof CommandInput> & {
 };
 
 export const MicSelectorInput = ({ ...props }: MicSelectorInputProps) => (
-	<CommandInput placeholder="Search microphones..." {...props} />
+	<CommandInput placeholder="搜索麦克风..." {...props} />
 );
 
 export type MicSelectorListProps = Omit<
@@ -296,7 +296,7 @@ export const MicSelectorList = ({
 export type MicSelectorEmptyProps = ComponentProps<typeof CommandEmpty>;
 
 export const MicSelectorEmpty = ({
-	children = "No microphone found.",
+	children = "未找到麦克风。",
 	...props
 }: MicSelectorEmptyProps) => <CommandEmpty {...props}>{children}</CommandEmpty>;
 
@@ -358,7 +358,7 @@ export const MicSelectorValue = ({
 	if (!currentDevice) {
 		return (
 			<span className={cn("flex-1 text-left", className)} {...props}>
-				Select microphone...
+				选择麦克风...
 			</span>
 		);
 	}

@@ -1,61 +1,61 @@
 import { execFileSync, spawn } from "node:child_process";
 import {
-	existsSync,
-	mkdirSync,
-	readdirSync,
-	readFileSync,
-	rmSync,
-	writeFileSync,
+    existsSync,
+    mkdirSync,
+    readdirSync,
+    readFileSync,
+    rmSync,
+    writeFileSync,
 } from "node:fs";
 import { basename, dirname, extname, join } from "node:path";
 import type {
-	ClineAccountActionRequest,
-	ProviderCapability,
-	ProviderClient,
-	ProviderProtocol,
-	SaveProviderSettingsActionRequest,
-} from "@cline/core";
+    ClineAccountActionRequest,
+    ProviderCapability,
+    ProviderClient,
+    ProviderProtocol,
+    SaveProviderSettingsActionRequest,
+} from "@coohu/core";
 import {
-	addLocalProvider,
-	ClineAccountService,
-	createLocalHubScheduleRuntimeHandlers,
-	createUserInstructionConfigService,
-	discoverPluginModulePaths,
-	ensureCustomProvidersLoaded,
-	ensureHubServer,
-	executeClineAccountAction,
-	getCoreBuiltinToolCatalog,
-	getLocalProviderModels,
-	HubScheduleCommandService,
-	HubScheduleService,
-	listHookConfigFiles,
-	listLocalProviders,
-	listPluginTools,
-	loginLocalProvider,
-	normalizeOAuthProvider,
-	ProviderSettingsManager,
-	readGlobalSettings,
-	resolveLocalClineAuthToken,
-	resolvePluginConfigSearchPaths,
-	resolveSessionBackend,
-	resolveAgentConfigSearchPaths as resolveSharedAgentConfigSearchPaths,
-	SqliteSessionStore,
-	saveLocalProviderOAuthCredentials,
-	saveLocalProviderSettings,
-	sendHubCommand,
-	setDisabledPlugin,
-	setDisabledTools,
-	toggleDisabledTool,
-} from "@cline/core";
-import { getClineEnvironmentConfig } from "@cline/shared";
+    addLocalProvider,
+    ClineAccountService,
+    createLocalHubScheduleRuntimeHandlers,
+    createUserInstructionConfigService,
+    discoverPluginModulePaths,
+    ensureCustomProvidersLoaded,
+    ensureHubServer,
+    executeClineAccountAction,
+    getCoreBuiltinToolCatalog,
+    getLocalProviderModels,
+    HubScheduleCommandService,
+    HubScheduleService,
+    listHookConfigFiles,
+    listLocalProviders,
+    listPluginTools,
+    loginLocalProvider,
+    normalizeOAuthProvider,
+    ProviderSettingsManager,
+    readGlobalSettings,
+    resolveLocalClineAuthToken,
+    resolvePluginConfigSearchPaths,
+    resolveSessionBackend,
+    resolveAgentConfigSearchPaths as resolveSharedAgentConfigSearchPaths,
+    SqliteSessionStore,
+    saveLocalProviderOAuthCredentials,
+    saveLocalProviderSettings,
+    sendHubCommand,
+    setDisabledPlugin,
+    setDisabledTools,
+    toggleDisabledTool,
+} from "@coohu/core";
+import { getClineEnvironmentConfig } from "@coohu/shared";
 import { broadcastEvent, resolveSidecarAskQuestion } from "./context";
 import {
-	findArtifactUnderDir,
-	readSessionManifest,
-	resolveMcpSettingsPath,
-	rootSessionIdFrom,
-	sessionLogPath,
-	sharedSessionDataDir,
+    findArtifactUnderDir,
+    readSessionManifest,
+    resolveMcpSettingsPath,
+    rootSessionIdFrom,
+    sessionLogPath,
+    sharedSessionDataDir,
 } from "./paths";
 import { readSessionHooks } from "./session-data/artifacts";
 import { normalizeSessionTitle } from "./session-data/common";
@@ -63,9 +63,9 @@ import { discoverChatSessions } from "./session-data/discovery";
 import { readSessionMessages } from "./session-data/messages";
 import { searchWorkspaceFiles } from "./session-data/search";
 import type {
-	ChatSessionCommandRequest,
-	JsonRecord,
-	SidecarContext,
+    ChatSessionCommandRequest,
+    JsonRecord,
+    SidecarContext,
 } from "./types";
 
 function readProviderSettingsUpdate(

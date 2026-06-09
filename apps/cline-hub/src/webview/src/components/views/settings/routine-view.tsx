@@ -351,7 +351,7 @@ export function RoutineSchedulesContent() {
 	const [isLoading, setIsLoading] = useState(() => !routineOverviewCache);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [busyScheduleId, setBusyScheduleId] = useState<string | null>(null);
-	const [schedulePendingDelete, setSchedulePendingDelete] =
+	const [schedulePendingDelete, setSchedulePending删除] =
 		useState<RoutineSchedule | null>(null);
 	const [isCreateOpen, setIsCreateOpen] = useState(false);
 	const [editingSchedule, setEditingSchedule] =
@@ -655,7 +655,7 @@ export function RoutineSchedulesContent() {
 			await desktopClient.invoke("delete_routine_schedule", {
 				schedule_id: scheduleId,
 			});
-			setSchedulePendingDelete(null);
+			setSchedulePending删除(null);
 			await refreshSchedules({ force: true, showLoading: false });
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
@@ -758,7 +758,7 @@ export function RoutineSchedulesContent() {
 	const submitCreateForm = async () => {
 		const name = createForm.name.trim();
 		if (!name) {
-			setCreateFormError("Routine name is required.");
+			setCreateFormError("定时任务名称为必填项。");
 			return;
 		}
 		const cronPattern = buildCronPattern(
@@ -767,17 +767,17 @@ export function RoutineSchedulesContent() {
 			createForm.scheduleMinute,
 		);
 		if (!cronPattern) {
-			setCreateFormError("Select at least one day and a valid time.");
+			setCreateFormError("请至少选择一天并设置有效时间。");
 			return;
 		}
 		const prompt = createForm.prompt.trim();
 		if (!prompt) {
-			setCreateFormError("Prompt is required.");
+			setCreateFormError("提示词为必填项。");
 			return;
 		}
 		const workspaceRoot = createForm.workspaceRoot.trim();
 		if (!workspaceRoot) {
-			setCreateFormError("Workspace root is required.");
+			setCreateFormError("工作目录为必填项。");
 			return;
 		}
 		setCreateFormError(null);
@@ -876,7 +876,7 @@ export function RoutineSchedulesContent() {
 				<div className="mb-6 flex items-center justify-between gap-3">
 					<div className="flex min-w-0 items-center gap-3">
 						<h2 className="truncate text-lg font-semibold text-foreground">
-							Schedules
+							定时任务
 						</h2>
 						<span className="rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground">
 							cline schedule
@@ -895,13 +895,13 @@ export function RoutineSchedulesContent() {
 						</Button>
 						<Button size="sm" onClick={() => void openCreateDialog()}>
 							<Plus className="h-4 w-4" />
-							New Schedule
+							新定时任务
 						</Button>
 					</div>
 				</div>
 
 				<p className="mb-6 text-xs text-muted-foreground">
-					Scheduled jobs are run through the hub.
+					定时任务通过 hub 运行。
 				</p>
 
 				{errorMessage && (
@@ -912,12 +912,11 @@ export function RoutineSchedulesContent() {
 
 				{isLoading ? (
 					<div className="rounded-lg border border-border px-5 py-4 text-sm text-muted-foreground">
-						Loading routines...
+						加载定时任务中...
 					</div>
 				) : sortedSchedules.length === 0 ? (
 					<div className="rounded-lg border border-border px-5 py-4 text-sm text-muted-foreground">
-						No schedules found. Create a schedule to run routines on a recurring
-						basis.
+						暂无定时任务。创建一个定时任务以按计划运行例行程序。
 					</div>
 				) : (
 					<div className="flex flex-col gap-3">
@@ -960,7 +959,7 @@ export function RoutineSchedulesContent() {
 											<Button
 												variant="ghost"
 												size="icon-sm"
-												aria-label={`View ${schedule.name}`}
+												aria-label={`查看 ${schedule.name}`}
 												onClick={() => {
 													window.alert(JSON.stringify(schedule, null, 2));
 												}}
@@ -970,7 +969,7 @@ export function RoutineSchedulesContent() {
 											<Button
 												variant="ghost"
 												size="icon-sm"
-												aria-label={`Edit ${schedule.name}`}
+												aria-label={`编辑 ${schedule.name}`}
 												onClick={() => openEditDialog(schedule)}
 												disabled={isBusy}
 											>
@@ -979,7 +978,7 @@ export function RoutineSchedulesContent() {
 											<Button
 												variant="ghost"
 												size="icon-sm"
-												aria-label={`Run ${schedule.name} now`}
+												aria-label={`立即运行 ${schedule.name}`}
 												onClick={() =>
 													void triggerSchedule(schedule.scheduleId)
 												}
@@ -992,8 +991,8 @@ export function RoutineSchedulesContent() {
 												size="icon-sm"
 												aria-label={
 													schedule.enabled
-														? `Pause ${schedule.name}`
-														: `Resume ${schedule.name}`
+														? `暂停 ${schedule.name}`
+														: `恢复 ${schedule.name}`
 												}
 												onClick={() =>
 													void upsertScheduleEnabled(
@@ -1012,8 +1011,8 @@ export function RoutineSchedulesContent() {
 											<Button
 												variant="ghost"
 												size="icon-sm"
-												aria-label={`Delete ${schedule.name}`}
-												onClick={() => setSchedulePendingDelete(schedule)}
+												aria-label={`删除 ${schedule.name}`}
+												onClick={() => setSchedulePending删除(schedule)}
 												disabled={isBusy}
 											>
 												<Trash2 className="h-3.5 w-3.5" />
@@ -1024,7 +1023,7 @@ export function RoutineSchedulesContent() {
 													void upsertScheduleEnabled(schedule, checked)
 												}
 												disabled={isBusy}
-												aria-label={`Enable ${schedule.name}`}
+												aria-label={`启用 ${schedule.name}`}
 											/>
 										</div>
 									</div>
@@ -1035,43 +1034,43 @@ export function RoutineSchedulesContent() {
 											{schedule.scheduleId}
 										</p>
 										<p>
-											<span className="text-muted-foreground/70">Prompt:</span>{" "}
+											<span className="text-muted-foreground/70">提示词:</span>{" "}
 											{schedule.prompt}
 										</p>
 										<p>
-											<span className="text-muted-foreground/70">Model:</span>{" "}
+											<span className="text-muted-foreground/70">模型:</span>{" "}
 											{formatScheduleModel(schedule)}
 										</p>
 										{schedule.workspaceRoot && (
 											<p>
 												<span className="text-muted-foreground/70">
-													Workspace:
+													工作目录:
 												</span>{" "}
 												{schedule.workspaceRoot}
 											</p>
 										)}
 										{schedule.cwd && (
 											<p>
-												<span className="text-muted-foreground/70">CWD:</span>{" "}
+												<span className="text-muted-foreground/70">工作目录:</span>{" "}
 												{schedule.cwd}
 											</p>
 										)}
 										<p>
 											<span className="text-muted-foreground/70">
-												Last run:
+												上次运行:
 											</span>{" "}
 											{formatDateTime(schedule.lastRunAt)}
 										</p>
 										<p>
 											<span className="text-muted-foreground/70">
-												Last result:
+												上次结果:
 											</span>{" "}
 											{formatExecutionResult(lastExecution)}
 										</p>
 										{lastExecution?.sessionId && (
 											<p>
 												<span className="text-muted-foreground/70">
-													Last session:
+												上次会话:
 												</span>{" "}
 												{lastExecution.sessionId}
 											</p>
@@ -1079,14 +1078,14 @@ export function RoutineSchedulesContent() {
 										{lastExecution?.errorMessage && (
 											<p className="text-destructive">
 												<span className="text-muted-foreground/70">
-													Last error:
+												上次错误:
 												</span>{" "}
 												{lastExecution.errorMessage}
 											</p>
 										)}
 										<p>
 											<span className="text-muted-foreground/70">
-												Next run:
+												下次运行:
 											</span>{" "}
 											{formatDateTime(
 												schedule.nextRunAt || upcoming?.nextRunAt,
@@ -1095,7 +1094,7 @@ export function RoutineSchedulesContent() {
 										{activeExecution && (
 											<p>
 												<span className="text-muted-foreground/70">
-													Active:
+												活跃:
 												</span>{" "}
 												{activeExecution.executionId} since{" "}
 												{formatDateTime(activeExecution.startedAt)}
@@ -1103,7 +1102,7 @@ export function RoutineSchedulesContent() {
 										)}
 										{schedule.tags && schedule.tags.length > 0 && (
 											<p>
-												<span className="text-muted-foreground/70">Tags:</span>{" "}
+												<span className="text-muted-foreground/70">标签:</span>{" "}
 												{schedule.tags.join(", ")}
 											</p>
 										)}
@@ -1118,16 +1117,15 @@ export function RoutineSchedulesContent() {
 				open={Boolean(schedulePendingDelete)}
 				onOpenChange={(open) => {
 					if (!open) {
-						setSchedulePendingDelete(null);
+						setSchedulePending删除(null);
 					}
 				}}
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete Routine</AlertDialogTitle>
+						<AlertDialogTitle>删除定时任务</AlertDialogTitle>
 						<AlertDialogDescription>
-							This will delete "{schedulePendingDelete?.name ?? "this routine"}"
-							and remove future scheduled runs.
+							将删除 "{schedulePendingDelete?.name ?? "此定时任务"}" 并移除未来的计划运行。
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
@@ -1138,7 +1136,7 @@ export function RoutineSchedulesContent() {
 									: false
 							}
 						>
-							Cancel
+							取消
 						</AlertDialogCancel>
 						<AlertDialogAction
 							disabled={
@@ -1152,7 +1150,7 @@ export function RoutineSchedulesContent() {
 							}}
 							variant="destructive"
 						>
-							Delete
+							删除
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>
@@ -1170,18 +1168,18 @@ export function RoutineSchedulesContent() {
 				<DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
 					<DialogHeader>
 						<DialogTitle>
-							{editingSchedule ? "Edit Routine" : "Create Routine"}
+							{editingSchedule ? "编辑定时任务" : "创建定时任务"}
 						</DialogTitle>
 						<DialogDescription>
 							{editingSchedule
-								? "Update this scheduler routine."
-								: "Create a scheduler routine."}
+								? "更新此定时任务。"
+								: "创建一个定时任务。"}
 						</DialogDescription>
 					</DialogHeader>
 
 					<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<div className="sm:col-span-2">
-							<Label htmlFor="routine-name">Name</Label>
+							<Label htmlFor="routine-name">名称</Label>
 							<Input
 								id="routine-name"
 								value={createForm.name}
@@ -1191,15 +1189,15 @@ export function RoutineSchedulesContent() {
 										name: event.target.value,
 									}))
 								}
-								placeholder="Daily code review"
+								placeholder="每日代码审查"
 							/>
 						</div>
 
 						<div className="sm:col-span-2 space-y-3">
-							<Label>Schedule</Label>
+							<Label>计划</Label>
 							<div className="grid grid-cols-1 gap-3 rounded-md border border-border p-3 sm:grid-cols-2">
 								<div>
-									<Label htmlFor="routine-hour">Hour</Label>
+									<Label htmlFor="routine-hour">小时</Label>
 									<Select
 										value={createForm.scheduleHour}
 										onValueChange={(value) =>
@@ -1224,7 +1222,7 @@ export function RoutineSchedulesContent() {
 									</Select>
 								</div>
 								<div>
-									<Label htmlFor="routine-minute">Minute</Label>
+									<Label htmlFor="routine-minute">分钟</Label>
 									<Select
 										value={createForm.scheduleMinute}
 										onValueChange={(value) =>
@@ -1254,7 +1252,7 @@ export function RoutineSchedulesContent() {
 									</Select>
 								</div>
 								<div className="sm:col-span-2">
-									<Label>Days of week</Label>
+									<Label>星期</Label>
 									<div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
 										{WEEKDAY_OPTIONS.map((day) => {
 											const inputId = `routine-day-${day.value.toLowerCase()}`;
@@ -1296,14 +1294,14 @@ export function RoutineSchedulesContent() {
 								<div className="sm:col-span-2 rounded-md border border-border bg-muted/30 px-2 py-1.5 text-xs text-muted-foreground">
 									Cron:{" "}
 									<span className="font-mono text-foreground">
-										{cronPreview || "Select one or more days"}
+										{cronPreview || "请选择一天或多天"}
 									</span>
 								</div>
 							</div>
 						</div>
 
 						<div className="sm:col-span-2">
-							<Label htmlFor="routine-prompt">Prompt</Label>
+							<Label htmlFor="routine-prompt">提示词</Label>
 							<Textarea
 								id="routine-prompt"
 								value={createForm.prompt}
@@ -1318,7 +1316,7 @@ export function RoutineSchedulesContent() {
 						</div>
 
 						<div>
-							<Label>Provider</Label>
+							<Label>提供商</Label>
 							<Combobox
 								items={availableProviders}
 								onValueChange={(value) => {
@@ -1349,7 +1347,7 @@ export function RoutineSchedulesContent() {
 									showTrigger
 								/>
 								<ComboboxContent>
-									<ComboboxEmpty>No providers found.</ComboboxEmpty>
+									<ComboboxEmpty>未找到提供商。</ComboboxEmpty>
 									<ComboboxList>
 										{(item) => (
 											<ComboboxItem key={item} value={item}>
@@ -1362,7 +1360,7 @@ export function RoutineSchedulesContent() {
 						</div>
 
 						<div>
-							<Label>Model</Label>
+							<Label>模型</Label>
 							<Combobox
 								items={availableModelsForProvider}
 								onValueChange={(value) => {
@@ -1380,7 +1378,7 @@ export function RoutineSchedulesContent() {
 									showTrigger
 								/>
 								<ComboboxContent>
-									<ComboboxEmpty>No models found.</ComboboxEmpty>
+									<ComboboxEmpty>未找到模型。</ComboboxEmpty>
 									<ComboboxList>
 										{(item) => (
 											<ComboboxItem key={item} value={item}>
@@ -1393,7 +1391,7 @@ export function RoutineSchedulesContent() {
 						</div>
 
 						<div>
-							<Label>Mode</Label>
+							<Label>模式</Label>
 							<Select
 								value={createForm.mode}
 								onValueChange={(value) =>
@@ -1404,7 +1402,7 @@ export function RoutineSchedulesContent() {
 								}
 							>
 								<SelectTrigger className="w-full">
-									<SelectValue placeholder="Select mode" />
+									<SelectValue placeholder="选择模式" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="act">act</SelectItem>
@@ -1414,7 +1412,7 @@ export function RoutineSchedulesContent() {
 						</div>
 
 						<div className="sm:col-span-2">
-							<Label htmlFor="routine-workspace">Workspace root</Label>
+							<Label htmlFor="routine-workspace">工作目录</Label>
 							<Input
 								id="routine-workspace"
 								value={createForm.workspaceRoot}
@@ -1428,7 +1426,7 @@ export function RoutineSchedulesContent() {
 						</div>
 
 						<div className="sm:col-span-2">
-							<Label htmlFor="routine-cwd">CWD (optional)</Label>
+							<Label htmlFor="routine-cwd">CWD（可选）</Label>
 							<Input
 								id="routine-cwd"
 								value={createForm.cwd}
@@ -1443,7 +1441,7 @@ export function RoutineSchedulesContent() {
 
 						<div className="sm:col-span-2">
 							<Label htmlFor="routine-system-prompt">
-								System prompt (optional)
+								系统提示词（可选）
 							</Label>
 							<Textarea
 								id="routine-system-prompt"
@@ -1460,7 +1458,7 @@ export function RoutineSchedulesContent() {
 
 						<div>
 							<Label htmlFor="routine-max-iterations">
-								Max iterations (optional)
+								最大迭代次数（可选）
 							</Label>
 							<Input
 								id="routine-max-iterations"
@@ -1477,7 +1475,7 @@ export function RoutineSchedulesContent() {
 
 						<div>
 							<Label htmlFor="routine-timeout">
-								Timeout seconds (optional)
+								超时秒数（可选）
 							</Label>
 							<Input
 								id="routine-timeout"
@@ -1493,7 +1491,7 @@ export function RoutineSchedulesContent() {
 						</div>
 
 						<div>
-							<Label htmlFor="routine-max-parallel">Max parallel</Label>
+							<Label htmlFor="routine-max-parallel">最大并行数</Label>
 							<Input
 								id="routine-max-parallel"
 								value={createForm.maxParallel}
@@ -1509,7 +1507,7 @@ export function RoutineSchedulesContent() {
 
 						<div>
 							<Label htmlFor="routine-tags">
-								Tags (comma-separated, optional)
+								标签（逗号分隔，可选）
 							</Label>
 							<Input
 								id="routine-tags"
@@ -1520,7 +1518,7 @@ export function RoutineSchedulesContent() {
 										tags: event.target.value,
 									}))
 								}
-								placeholder="automation,review"
+								placeholder="自动化,审查"
 							/>
 						</div>
 					</div>
@@ -1537,7 +1535,7 @@ export function RoutineSchedulesContent() {
 							onClick={() => setIsCreateOpen(false)}
 							disabled={isCreating}
 						>
-							Cancel
+							取消
 						</Button>
 						<Button
 							onClick={() => void submitCreateForm()}
@@ -1545,11 +1543,11 @@ export function RoutineSchedulesContent() {
 						>
 							{isCreating
 								? editingSchedule
-									? "Saving..."
-									: "Creating..."
+									? "保存中..."
+									: "创建中..."
 								: editingSchedule
-									? "Save Changes"
-									: "Create Schedule"}
+									? "保存更改"
+									: "创建定时任务"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

@@ -96,10 +96,10 @@ async function main(): Promise<void> {
 					private: true,
 					type: "module",
 					dependencies: {
-						"@cline/core": `file:${tarballs.core}`,
-						"@cline/agents": `file:${tarballs.agents}`,
-						"@cline/llms": `file:${tarballs.llms}`,
-						"@cline/shared": `file:${tarballs.shared}`,
+						"@coohu/core": `file:${tarballs.core}`,
+						"@coohu/agents": `file:${tarballs.agents}`,
+						"@coohu/llms": `file:${tarballs.llms}`,
+						"@coohu/shared": `file:${tarballs.shared}`,
 					},
 				},
 				null,
@@ -118,7 +118,7 @@ async function main(): Promise<void> {
 		const smokeSource =
 			nodeMajor >= 24
 				? `
-					const { SqliteSessionStore } = await import("@cline/core");
+					const { SqliteSessionStore } = await import("@coohu/core");
 					const store = new SqliteSessionStore({ sessionsDir: process.env.CLINE_DATA_DIR });
 					try {
 						store.init();
@@ -128,7 +128,7 @@ async function main(): Promise<void> {
 					}
 				`
 				: `
-					const { resolveSessionBackend } = await import("@cline/core");
+					const { resolveSessionBackend } = await import("@coohu/core");
 					await resolveSessionBackend({ backendMode: "local" });
 					console.log("Node compatibility smoke test passed");
 				`;

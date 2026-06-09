@@ -1,4 +1,4 @@
-import { CORE_BUILD_VERSION } from "@cline/core";
+import { CORE_BUILD_VERSION } from "@coohu/core";
 import { isNonLocalBindHost } from "./options";
 import {
 	handleToolApprovalResponse,

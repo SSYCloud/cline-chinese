@@ -1,6 +1,6 @@
 # Agent Runtime
 
-The `Agent` class (also exported as `AgentRuntime`) is the lightweight, stateless agent loop from `@cline/agents`. It handles the core iteration cycle: send messages to an LLM, execute tool calls, collect results, and repeat until the task is done.
+The `Agent` class (also exported as `AgentRuntime`) is the lightweight, stateless agent loop from `@coohu/agents`. It handles the core iteration cycle: send messages to an LLM, execute tool calls, collect results, and repeat until the task is done.
 
 ## When to Use Agent
 
@@ -15,7 +15,7 @@ The `Agent` class (also exported as `AgentRuntime`) is the lightweight, stateles
 ## Quick Start
 
 ```typescript
-import { Agent } from "@cline/sdk"
+import { Agent } from "@coohu/sdk"
 
 const agent = new Agent({
   providerId: "anthropic",

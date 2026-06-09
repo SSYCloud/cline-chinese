@@ -200,7 +200,7 @@ export const SchemaDisplayParameters = ({
 		<Collapsible className={cn(className)} defaultOpen {...props}>
 			<CollapsibleTrigger className="group flex w-full items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-muted/50">
 				<ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-90" />
-				<span className="font-medium text-sm">Parameters</span>
+				<span className="font-medium text-sm">参数</span>
 				<Badge className="ml-auto text-xs" variant="secondary">
 					{parameters?.length}
 				</Badge>
@@ -332,7 +332,7 @@ export const SchemaDisplayRequest = ({
 		<Collapsible className={cn(className)} defaultOpen {...props}>
 			<CollapsibleTrigger className="group flex w-full items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-muted/50">
 				<ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-90" />
-				<span className="font-medium text-sm">Request Body</span>
+				<span className="font-medium text-sm">请求体</span>
 			</CollapsibleTrigger>
 			<CollapsibleContent>
 				<div className="border-t">
@@ -359,7 +359,7 @@ export const SchemaDisplayResponse = ({
 		<Collapsible className={cn(className)} defaultOpen {...props}>
 			<CollapsibleTrigger className="group flex w-full items-center gap-2 px-4 py-3 text-left transition-colors hover:bg-muted/50">
 				<ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-90" />
-				<span className="font-medium text-sm">Response</span>
+				<span className="font-medium text-sm">响应</span>
 			</CollapsibleTrigger>
 			<CollapsibleContent>
 				<div className="border-t">

@@ -1,6 +1,6 @@
 # Model Providers
 
-The Cline SDK supports every major LLM provider out of the box via `@cline/llms`.
+The Cline SDK supports every major LLM provider out of the box via `@coohu/llms`.
 
 ## Supported Providers
 
@@ -19,7 +19,7 @@ The Cline SDK supports every major LLM provider out of the box via `@cline/llms`
 ### With Agent
 
 ```typescript
-import { Agent } from "@cline/sdk"
+import { Agent } from "@coohu/sdk"
 
 const agent = new Agent({
   providerId: "anthropic",
@@ -33,7 +33,7 @@ const agent = new Agent({
 ### With ClineCore
 
 ```typescript
-import { ClineCore } from "@cline/sdk"
+import { ClineCore } from "@coohu/sdk"
 
 const cline = await ClineCore.create({ clientName: "my-app" })
 
@@ -158,7 +158,7 @@ Pass additional headers to API requests:
 For advanced multi-provider setups, use the Gateway directly:
 
 ```typescript
-import { createGateway, DefaultGateway } from "@cline/llms"
+import { createGateway, DefaultGateway } from "@coohu/llms"
 
 const gateway = createGateway({
   providerConfigs: [
@@ -201,7 +201,7 @@ import {
   registerProvider,
   registerModel,
   createHandler,
-} from "@cline/llms"
+} from "@coohu/llms"
 
 // List all registered providers
 const providers = getAllProviders()
@@ -222,7 +222,7 @@ registerProvider({
 Access model info (context window, pricing, capabilities):
 
 ```typescript
-import { getModelsForProvider } from "@cline/llms"
+import { getModelsForProvider } from "@coohu/llms"
 
 const models = getModelsForProvider("anthropic")
 for (const model of models) {

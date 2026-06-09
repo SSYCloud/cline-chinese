@@ -221,7 +221,7 @@ export const ContextContentFooter = ({
 		>
 			{children ?? (
 				<>
-					<span className="text-muted-foreground">Total cost</span>
+					<span className="text-muted-foreground">总费用</span>
 					<span>{totalCost}</span>
 				</>
 			)}
@@ -282,7 +282,7 @@ export const ContextInputUsage = ({
 			className={cn("flex items-center justify-between text-xs", className)}
 			{...props}
 		>
-			<span className="text-muted-foreground">Input</span>
+			<span className="text-muted-foreground">输入</span>
 			<TokensWithCost costText={inputCostText} tokens={inputTokens} />
 		</div>
 	);
@@ -322,7 +322,7 @@ export const ContextOutputUsage = ({
 			className={cn("flex items-center justify-between text-xs", className)}
 			{...props}
 		>
-			<span className="text-muted-foreground">Output</span>
+			<span className="text-muted-foreground">输出</span>
 			<TokensWithCost costText={outputCostText} tokens={outputTokens} />
 		</div>
 	);
@@ -362,7 +362,7 @@ export const ContextReasoningUsage = ({
 			className={cn("flex items-center justify-between text-xs", className)}
 			{...props}
 		>
-			<span className="text-muted-foreground">Reasoning</span>
+			<span className="text-muted-foreground">推理</span>
 			<TokensWithCost costText={reasoningCostText} tokens={reasoningTokens} />
 		</div>
 	);
@@ -402,7 +402,7 @@ export const ContextCacheUsage = ({
 			className={cn("flex items-center justify-between text-xs", className)}
 			{...props}
 		>
-			<span className="text-muted-foreground">Cache</span>
+			<span className="text-muted-foreground">缓存</span>
 			<TokensWithCost costText={cacheCostText} tokens={cacheTokens} />
 		</div>
 	);

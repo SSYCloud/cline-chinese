@@ -1,38 +1,38 @@
 import {
-	addLocalProvider,
-	type ClineAccountActionRequest,
-	ClineAccountService,
-	ensureCustomProvidersLoaded,
-	executeClineAccountAction,
-	getLocalProviderModels,
-	listLocalProviders,
-	loginLocalProvider,
-	normalizeOAuthProvider,
-	type ProviderCapability,
-	type ProviderClient,
-	type ProviderProtocol,
-	readGlobalSettings,
-	resolveLocalClineAuthToken,
-	saveLocalProviderOAuthCredentials,
-	saveLocalProviderSettings,
-	setDisabledPlugin,
-	setDisabledTools,
-	setTelemetryOptOutGlobally,
-	toggleDisabledTool,
-} from "@cline/core";
-import { getClineEnvironmentConfig } from "@cline/shared";
+    addLocalProvider,
+    type ClineAccountActionRequest,
+    ClineAccountService,
+    ensureCustomProvidersLoaded,
+    executeClineAccountAction,
+    getLocalProviderModels,
+    listLocalProviders,
+    loginLocalProvider,
+    normalizeOAuthProvider,
+    type ProviderCapability,
+    type ProviderClient,
+    type ProviderProtocol,
+    readGlobalSettings,
+    resolveLocalClineAuthToken,
+    saveLocalProviderOAuthCredentials,
+    saveLocalProviderSettings,
+    setDisabledPlugin,
+    setDisabledTools,
+    setTelemetryOptOutGlobally,
+    toggleDisabledTool,
+} from "@coohu/core";
+import { getClineEnvironmentConfig } from "@coohu/shared";
 import {
-	connectorChannelsPayload,
-	startConnectorChannel,
-	stopConnectorChannel,
+    connectorChannelsPayload,
+    startConnectorChannel,
+    stopConnectorChannel,
 } from "./connectors";
 import { providerSettingsManager, workspaceRoot } from "./deps";
 import {
-	deleteMcpServer,
-	ensureMcpSettingsFile,
-	readMcpServersResponse,
-	setMcpServerDisabled,
-	upsertMcpServer,
+    deleteMcpServer,
+    ensureMcpSettingsFile,
+    readMcpServersResponse,
+    setMcpServerDisabled,
+    upsertMcpServer,
 } from "./mcp";
 import { handleRoutineScheduleCommand } from "./schedules";
 import { toWebviewSessionSummary } from "./session-mapping";

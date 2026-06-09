@@ -15,7 +15,7 @@ try {
 
 ## Node.js 22 Required
 
-ClineCore and `@cline/core` require Node.js 22 or later. If you're on an older version, you'll get runtime errors. Check with `node --version`.
+ClineCore and `@coohu/core` require Node.js 22 or later. If you're on an older version, you'll get runtime errors. Check with `node --version`.
 
 ## Session Config vs Global Config
 

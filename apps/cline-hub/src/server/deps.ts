@@ -1,6 +1,6 @@
 import { dirname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ProviderSettingsManager } from "@cline/core";
+import { ProviderSettingsManager } from "@coohu/core";
 import { buildInviteUrl, resolveClineHubServerOptions } from "../options";
 import type { BrowserConfig } from "./types";
 

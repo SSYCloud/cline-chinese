@@ -137,7 +137,7 @@ function ComposerSettings({
 			<div className="grid gap-2 md:grid-cols-2">
 				<div className="grid gap-2">
 					<Label className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-						Provider
+						提供商
 					</Label>
 					<Select
 						onValueChange={(value) => {
@@ -148,7 +148,7 @@ function ComposerSettings({
 						value={provider}
 					>
 						<SelectTrigger className="w-full">
-							<SelectValue placeholder="Select provider" />
+							<SelectValue placeholder="选择提供商" />
 						</SelectTrigger>
 						<SelectContent>
 							{providers.map((item) => (
@@ -164,7 +164,7 @@ function ComposerSettings({
 				</div>
 				<div className="grid gap-2">
 					<Label className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-						Model
+						模型
 					</Label>
 					<ModelSelector
 						onOpenChange={onModelSelectorOpenChange}
@@ -175,15 +175,15 @@ function ComposerSettings({
 								<div className="flex min-w-0 items-center gap-2">
 									{selectedProvider && renderProviderLogo(selectedProvider.id)}
 									<span className="truncate">
-										{selectedModel?.name || selectedModel?.id || "Select model"}
+										{selectedModel?.name || selectedModel?.id || "选择模型"}
 									</span>
 								</div>
 							</Button>
 						</ModelSelectorTrigger>
 						<ModelSelectorContent>
-							<ModelSelectorInput placeholder="Search models..." />
+							<ModelSelectorInput placeholder="搜索模型..." />
 							<ModelSelectorList>
-								<ModelSelectorEmpty>No models found.</ModelSelectorEmpty>
+								<ModelSelectorEmpty>未找到模型。</ModelSelectorEmpty>
 								<ModelSelectorGroup
 									heading={selectedProvider?.name || "Models"}
 								>
@@ -224,7 +224,7 @@ function ComposerSettings({
 						className="text-xs uppercase tracking-[0.16em] text-muted-foreground"
 						htmlFor="workspace-root"
 					>
-						Workspace
+						工作区
 					</Label>
 					<Input id="workspace-root" readOnly value={workspaceRoot} />
 				</div>
@@ -232,17 +232,17 @@ function ComposerSettings({
 			<div className="grid gap-2 md:grid-cols-2">
 				<Toggle
 					checked={enableSpawn}
-					label="Subagents"
+					label="子代理"
 					onChange={onEnableSpawnChange}
 				/>
 				<Toggle
 					checked={enableTeams}
-					label="Agent Teams"
+					label="团队代理"
 					onChange={onEnableTeamsChange}
 				/>
 				<Toggle
 					checked={autoApproveTools}
-					label="Auto-approves"
+					label="自动批准"
 					onChange={onAutoApproveToolsChange}
 				/>
 			</div>
@@ -290,10 +290,10 @@ const ReasonLevel = {
 } as const;
 
 const reasonLevels = [
-	{ value: ReasonLevel.None, label: "Thinking Off", icon: SignalHigh },
-	{ value: ReasonLevel.Low, label: "Low", icon: SignalLow },
-	{ value: ReasonLevel.Medium, label: "Medium", icon: SignalMedium },
-	{ value: ReasonLevel.High, label: "High", icon: SignalHigh },
+	{ value: ReasonLevel.None, label: "关闭思考", icon: SignalHigh },
+	{ value: ReasonLevel.Low, label: "低", icon: SignalLow },
+	{ value: ReasonLevel.Medium, label: "中", icon: SignalMedium },
+	{ value: ReasonLevel.High, label: "高", icon: SignalHigh },
 ];
 
 export function Composer({
@@ -402,7 +402,7 @@ export function Composer({
 						}
 						if (userImages.length !== message.files.length) {
 							toast.warning(
-								"Only image attachments are currently sent in the VS Code chat runtime.",
+								"目前 VS Code 运行时仅支持图片附件。",
 							);
 						}
 					}
@@ -427,7 +427,7 @@ export function Composer({
 						onChange={(event) =>
 							controller.textInput.setInput(event.target.value)
 						}
-						placeholder="Type @ for context and / for skills"
+						placeholder="输入 @ 添加上下文，输入 / 添加技能"
 						value={controller.textInput.value}
 						className="text-sm outline-none ring-0"
 					/>
@@ -518,7 +518,7 @@ export function Composer({
 						<div className="flex items-center gap-2">
 							{sending ? (
 								<Button onClick={onAbort} type="button" variant="destructive">
-									Abort
+									中止
 								</Button>
 							) : null}
 							<PromptInputSubmit

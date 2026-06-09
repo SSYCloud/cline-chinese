@@ -163,16 +163,16 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           EXPECTED=(
-            "@cline/cli-darwin-arm64"
-            "@cline/cli-darwin-x64"
-            "@cline/cli-linux-arm64"
-            "@cline/cli-linux-x64"
-            "@cline/cli-windows-arm64"
-            "@cline/cli-windows-x64"
+            "@coohu/cli-darwin-arm64"
+            "@coohu/cli-darwin-x64"
+            "@coohu/cli-linux-arm64"
+            "@coohu/cli-linux-x64"
+            "@coohu/cli-windows-arm64"
+            "@coohu/cli-windows-x64"
           )
 
           for package_name in "${EXPECTED[@]}"; do
-            dir="apps/cli/dist/${package_name#@cline/}"
+            dir="apps/cli/dist/${package_name#@coohu/}"
             if [ ! -f "$dir/package.json" ]; then
               echo "Missing package manifest: $dir/package.json"
               exit 1
@@ -392,16 +392,16 @@ jobs:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
           EXPECTED=(
-            "@cline/cli-darwin-arm64"
-            "@cline/cli-darwin-x64"
-            "@cline/cli-linux-arm64"
-            "@cline/cli-linux-x64"
-            "@cline/cli-windows-arm64"
-            "@cline/cli-windows-x64"
+            "@coohu/cli-darwin-arm64"
+            "@coohu/cli-darwin-x64"
+            "@coohu/cli-linux-arm64"
+            "@coohu/cli-linux-x64"
+            "@coohu/cli-windows-arm64"
+            "@coohu/cli-windows-x64"
           )
 
           for package_name in "${EXPECTED[@]}"; do
-            dir="apps/cli/dist/${package_name#@cline/}"
+            dir="apps/cli/dist/${package_name#@coohu/}"
             if [ ! -f "$dir/package.json" ]; then
               echo "Missing package manifest: $dir/package.json"
               exit 1

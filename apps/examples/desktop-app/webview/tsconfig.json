@@ -3,15 +3,15 @@
 	"compilerOptions": {
 		"paths": {
 			"@/*": ["./*"],
-			"@cline/agents": ["../../../../sdk/packages/agents/src/index.ts"],
-			"@cline/core": ["../../../../sdk/packages/core/src/index.ts"],
-			"@cline/llms": ["../../../../sdk/packages/llms/src/index.ts"],
-			"@cline/shared": ["../../../../sdk/packages/shared/src/index.ts"],
-			"@cline/shared/storage": [
+			"@coohu/agents": ["../../../../sdk/packages/agents/src/index.ts"],
+			"@coohu/core": ["../../../../sdk/packages/core/src/index.ts"],
+			"@coohu/llms": ["../../../../sdk/packages/llms/src/index.ts"],
+			"@coohu/shared": ["../../../../sdk/packages/shared/src/index.ts"],
+			"@coohu/shared/storage": [
 				"../../../../sdk/packages/shared/src/storage/index.ts"
 			],
-			"@cline/shared/db": ["../../../../sdk/packages/shared/src/db/index.ts"],
-			"@cline/shared/*": [
+			"@coohu/shared/db": ["../../../../sdk/packages/shared/src/db/index.ts"],
+			"@coohu/shared/*": [
 				"../../../../sdk/packages/shared/src/*",
 				"../../../../sdk/packages/shared/src/*/index.ts"
 			]

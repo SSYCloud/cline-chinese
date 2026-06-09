@@ -3,7 +3,7 @@ import type {
 	ClineCore,
 	NodeHubClient,
 	ToolApprovalResult,
-} from "@cline/core";
+} from "@coohu/core";
 
 export type JsonRecord = Record<string, unknown>;
 

@@ -467,7 +467,7 @@ async function releaseSDK(version: string): Promise<number> {
 	} else {
 		console.log(`  Published SDK packages with tag '${npmTag}':`);
 		for (const workspace of SDK_PUBLISH_ORDER) {
-			console.log(`    - @cline/${workspace}@${version}`);
+			console.log(`    - @coohu/${workspace}@${version}`);
 		}
 	}
 	console.log(`${"═".repeat(60)}\n`);

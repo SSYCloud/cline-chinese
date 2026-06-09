@@ -1,16 +1,16 @@
 import process from "node:process";
 import { createInterface } from "node:readline";
 import {
-	ensureDetachedHubServer,
-	type HubServerDiscoveryRecord,
-	HubSessionClient,
-	HubUIClient,
-	Llms,
-	ProviderSettingsManager,
-	stopLocalHubServerGracefully,
-	toHubHealthUrl,
-} from "@cline/core";
-import type { HubUINotifyPayload, SessionRecord } from "@cline/shared";
+    ensureDetachedHubServer,
+    type HubServerDiscoveryRecord,
+    HubSessionClient,
+    HubUIClient,
+    Llms,
+    ProviderSettingsManager,
+    stopLocalHubServerGracefully,
+    toHubHealthUrl,
+} from "@coohu/core";
+import type { HubUINotifyPayload, SessionRecord } from "@coohu/shared";
 
 interface TrackedClient {
 	clientId: string;
@@ -934,7 +934,7 @@ async function main(): Promise<void> {
 }
 
 if (isBundledDaemonEntryInvocation()) {
-	await import("@cline/core/hub/daemon-entry");
+	await import("@coohu/core/hub/daemon-entry");
 } else {
 	main().catch((err) => {
 		const msg = err instanceof Error ? err.message : String(err);

@@ -12094,22 +12094,6 @@ export const GENERATED_PROVIDER_MODELS: {
 				releaseDate: "2026-04-21",
 				family: "kimi-k2.6",
 			},
-			"moonshotai/kimi-k2.6:free": {
-				id: "moonshotai/kimi-k2.6:free",
-				name: "Kimi K2.6 (free)",
-				contextWindow: 262144,
-				maxInputTokens: 262144,
-				maxTokens: 262144,
-				capabilities: ["images", "tools", "reasoning"],
-				pricing: {
-					input: 0,
-					output: 0,
-					cacheRead: 0,
-					cacheWrite: 0,
-				},
-				releaseDate: "2026-04-21",
-				family: "kimi-k2.6",
-			},
 			"x-ai/grok-4.3": {
 				id: "x-ai/grok-4.3",
 				name: "Grok 4.3",

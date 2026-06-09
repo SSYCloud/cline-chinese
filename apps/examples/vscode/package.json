@@ -1,5 +1,5 @@
 {
-	"name": "@cline/vscode",
+	"name": "@coohu/vscode",
 	"displayName": "Cline Chat",
 	"description": "Autonomous coding agent right in your IDE, capable of creating/editing files, running commands, using the browser, and more with your permission every step of the way. Backed by the Cline CLI runtime.",
 	"version": "0.0.0",

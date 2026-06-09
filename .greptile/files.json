@@ -26,7 +26,7 @@
 		},
 		{
 			"path": "sdk/AGENTS.md",
-			"description": "Package boundary rules. Telemetry runtime services live in @cline/core; @cline/agents must not own stateful telemetry. Use to evaluate whether a telemetry change is being made in the correct package."
+			"description": "Package boundary rules. Telemetry runtime services live in @coohu/core; @coohu/agents must not own stateful telemetry. Use to evaluate whether a telemetry change is being made in the correct package."
 		}
 	]
 }

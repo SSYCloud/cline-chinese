@@ -2,7 +2,7 @@ import {
 	type ClineCore,
 	CORE_BUILD_VERSION,
 	type HubUIClient,
-} from "@cline/core";
+} from "@coohu/core";
 import type { WebviewHubEvent } from "../webview-protocol";
 import type {
 	BrowserPeer,

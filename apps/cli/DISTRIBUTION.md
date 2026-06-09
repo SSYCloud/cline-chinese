@@ -18,19 +18,19 @@ Publishing the CLI publishes 7 packages to npm:
 
 | Package | Description |
 |---|---|
-| `@cline/cli-darwin-arm64` | macOS Apple Silicon binary |
-| `@cline/cli-darwin-x64` | macOS Intel binary |
-| `@cline/cli-linux-arm64` | Linux ARM binary |
-| `@cline/cli-linux-x64` | Linux x64 binary |
-| `@cline/cli-windows-x64` | Windows x64 binary |
-| `@cline/cli-windows-arm64` | Windows ARM binary |
+| `@coohu/cli-darwin-arm64` | macOS Apple Silicon binary |
+| `@coohu/cli-darwin-x64` | macOS Intel binary |
+| `@coohu/cli-linux-arm64` | Linux ARM binary |
+| `@coohu/cli-linux-x64` | Linux x64 binary |
+| `@coohu/cli-windows-x64` | Windows x64 binary |
+| `@coohu/cli-windows-arm64` | Windows ARM binary |
 | `cline` | Wrapper package (pulls the right binary via `optionalDependencies`) |
 
 Each platform package contains a compiled binary and a minimal `package.json` with `os` and `cpu` fields:
 
 ```json
 {
-  "name": "@cline/cli-darwin-arm64",
+  "name": "@coohu/cli-darwin-arm64",
   "version": "0.1.0",
   "os": ["darwin"],
   "cpu": ["arm64"],
@@ -55,12 +55,12 @@ The `cline` wrapper package contains no binary -- just the resolver script, post
     "postinstall": "node ./postinstall.mjs || true"
   },
   "optionalDependencies": {
-    "@cline/cli-darwin-arm64": "0.1.0",
-    "@cline/cli-darwin-x64": "0.1.0",
-    "@cline/cli-linux-arm64": "0.1.0",
-    "@cline/cli-linux-x64": "0.1.0",
-    "@cline/cli-windows-x64": "0.1.0",
-    "@cline/cli-windows-arm64": "0.1.0"
+    "@coohu/cli-darwin-arm64": "0.1.0",
+    "@coohu/cli-darwin-x64": "0.1.0",
+    "@coohu/cli-linux-arm64": "0.1.0",
+    "@coohu/cli-linux-x64": "0.1.0",
+    "@coohu/cli-windows-x64": "0.1.0",
+    "@coohu/cli-windows-arm64": "0.1.0"
   }
 }
 ```
@@ -142,12 +142,12 @@ User runs: npm i -g cline
   v
 npm installs cline (wrapper package)
   + optionalDependencies (only the matching platform gets installed):
-    - @cline/cli-darwin-arm64
-    - @cline/cli-darwin-x64
-    - @cline/cli-linux-arm64
-    - @cline/cli-linux-x64
-    - @cline/cli-windows-x64
-    - @cline/cli-windows-arm64
+    - @coohu/cli-darwin-arm64
+    - @coohu/cli-darwin-x64
+    - @coohu/cli-linux-arm64
+    - @coohu/cli-linux-x64
+    - @coohu/cli-windows-x64
+    - @coohu/cli-windows-arm64
   |
   v
 postinstall script runs:
@@ -195,7 +195,7 @@ Direct `bun pm pack` and `bun pm pack --dry-run` from `apps/cli` are blocked bec
 Cross-compiles the CLI for all target platforms:
 
 1. When `--install-native-variants` is passed, pre-installs all platform variants of `@opentui/core` using `bun install --os="*" --cpu="*"` so Bun can resolve native FFI binaries for cross-compilation. Without this, Bun only has the host platform's native binary and cross-compiled builds fail.
-2. Builds SDK packages (`bun run build:sdk`) and the CLI JS bundle (`bun -F @cline/cli build`)
+2. Builds SDK packages (`bun run build:sdk`) and the CLI JS bundle (`bun -F @coohu/cli build`)
 3. For each target platform:
    - Runs `bun build --compile --target bun-{os}-{arch}` to create a standalone executable
    - Generates a `package.json` with `os` and `cpu` fields for npm platform filtering
@@ -213,7 +213,7 @@ Flags:
 Orchestrates publishing all packages to npm:
 
 1. Reads built packages from `dist/`
-2. Publishes all 6 platform packages in parallel (`@cline/cli-darwin-arm64`, etc.)
+2. Publishes all 6 platform packages in parallel (`@coohu/cli-darwin-arm64`, etc.)
 3. Generates a clean main package (`cline`) with:
    - `bin.cline` pointing to the resolver script
    - `postinstall` running the binary caching script

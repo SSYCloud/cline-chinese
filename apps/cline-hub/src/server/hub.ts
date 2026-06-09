@@ -1,23 +1,23 @@
 import {
-	ClineCore,
-	ensureDetachedHubServer,
-	type HubServerDiscoveryRecord,
-	HubUIClient,
-	stopLocalHubServerGracefully,
-	toHubHealthUrl,
-} from "@cline/core";
-import type { HubUINotifyPayload } from "@cline/shared";
+    ClineCore,
+    ensureDetachedHubServer,
+    type HubServerDiscoveryRecord,
+    HubUIClient,
+    stopLocalHubServerGracefully,
+    toHubHealthUrl,
+} from "@coohu/core";
+import type { HubUINotifyPayload } from "@coohu/shared";
 import { handleSessionEvent } from "./agent-events";
 import {
-	rejectAllPendingApprovals,
-	requestToolApprovalFromWebview,
+    rejectAllPendingApprovals,
+    requestToolApprovalFromWebview,
 } from "./approvals";
 import { workspaceRoot } from "./deps";
 import {
-	formatClientName,
-	formatSessionCreator,
-	parseSessionContext,
-	trackSession,
+    formatClientName,
+    formatSessionCreator,
+    parseSessionContext,
+    trackSession,
 } from "./session-mapping";
 import type { HubContext } from "./state";
 import { broadcastHubState } from "./state-payloads";

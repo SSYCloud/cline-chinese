@@ -120,7 +120,7 @@ export type VoiceSelectorContentProps = ComponentProps<typeof DialogContent> & {
 export const VoiceSelectorContent = ({
 	className,
 	children,
-	title = "Voice Selector",
+	title = "语音选择器",
 	...props
 }: VoiceSelectorContentProps) => (
 	<DialogContent
@@ -518,7 +518,7 @@ export const VoiceSelectorPreview = ({
 
 	return (
 		<Button
-			aria-label={playing ? "Pause preview" : "Play preview"}
+			aria-label={playing ? "暂停预览" : "播放预览"}
 			className={cn("size-6", className)}
 			disabled={loading}
 			onClick={handleClick}

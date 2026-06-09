@@ -1,4 +1,4 @@
-import { Agent } from "@cline/sdk";
+import { Agent } from "@coohu/sdk";
 
 const agent = new Agent({
 	providerId: "cline",

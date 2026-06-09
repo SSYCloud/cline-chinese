@@ -1,9 +1,9 @@
 import * as readline from "node:readline";
 import {
-	type AgentEvent,
-	ClineCore,
-	type ToolApprovalRequest,
-} from "@cline/sdk";
+    type AgentEvent,
+    ClineCore,
+    type ToolApprovalRequest,
+} from "@coohu/sdk";
 
 // ClineCore does not choose a model automatically; each session config must provide one.
 // These example defaults use the Cline gateway with Claude Sonnet, and can be overridden with env vars.

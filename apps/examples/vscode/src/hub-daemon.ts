@@ -1,16 +1,16 @@
 import * as os from "node:os";
 import {
-	type ConfiguredTelemetryHandle,
-	createConfiguredTelemetryHandle,
-	createLocalHubScheduleRuntimeHandlers,
-	ensureHubWebSocketServer,
-	resolveSharedHubOwnerContext,
-} from "@cline/core/hub";
+    type ConfiguredTelemetryHandle,
+    createConfiguredTelemetryHandle,
+    createLocalHubScheduleRuntimeHandlers,
+    ensureHubWebSocketServer,
+    resolveSharedHubOwnerContext,
+} from "@coohu/core/hub";
 import {
-	createClineTelemetryServiceConfig,
-	createClineTelemetryServiceMetadata,
-	type TelemetryMetadata,
-} from "@cline/shared";
+    createClineTelemetryServiceConfig,
+    createClineTelemetryServiceMetadata,
+    type TelemetryMetadata,
+} from "@coohu/shared";
 
 type DetachedHubDaemonConfig = {
 	workspaceRoot: string;

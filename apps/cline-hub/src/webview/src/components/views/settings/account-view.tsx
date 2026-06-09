@@ -8,7 +8,7 @@ import type {
 	ClineAccountPaymentTransaction,
 	ClineAccountUsageTransaction,
 	ClineAccountUser,
-} from "@cline/core";
+} from "@coohu/core";
 import {
 	AlertCircle,
 	Building,
@@ -122,7 +122,7 @@ async function fetchPaymentTransactions(): Promise<
 // ---------------------------------------------------------------------------
 
 export function AccountView() {
-	const [activeTab, setActiveTab] = useState<"overview" | "usage" | "billing">(
+	const [activeTab, set活跃Tab] = useState<"overview" | "usage" | "billing">(
 		"overview",
 	);
 
@@ -165,10 +165,10 @@ export function AccountView() {
 				fetchAccountBalance(),
 				fetchAccountOrganizations(),
 			]);
-			const nextActiveOrganization =
-				orgsData.find((organization) => organization.active) ?? null;
-			const organizationBalanceData = nextActiveOrganization
-				? await fetchOrganizationBalance(nextActiveOrganization.organizationId)
+			const next活跃Organization =
+				orgsData.find((organization:any) => organization) ?? null;
+			const organizationBalanceData = next活跃Organization
+				? await fetchOrganizationBalance(next活跃Organization.organizationId)
 				: null;
 			setUser(userData);
 			setBalance(balanceData);
@@ -276,6 +276,11 @@ export function AccountView() {
 		? (organizationBalance?.balance ?? balance?.balance ?? null)
 		: (balance?.balance ?? null);
 
+	const tabLabels: Record<string, string> = {
+		overview: "概览",
+		usage: "用量",
+		billing: "账单",
+	};
 	const tabs = ["overview", "usage", "billing"] as const;
 
 	// -- Shared error / loading UI --
@@ -290,7 +295,7 @@ export function AccountView() {
 				className="flex items-center gap-2 rounded-lg border border-border px-3.5 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
 			>
 				<RefreshCw className="h-4 w-4" />
-				Retry
+				重试
 			</button>
 		</div>
 	);
@@ -306,23 +311,23 @@ export function AccountView() {
 			<div className="mx-auto max-w-3xl px-8 py-6">
 				{/* Header */}
 				<div className="mb-6 flex items-center justify-between">
-					<h2 className="text-lg font-semibold text-foreground">Account</h2>
+					<h2 className="text-lg font-semibold text-foreground">账户</h2>
 					<button
 						type="button"
 						className="flex items-center gap-2 rounded-lg border border-border px-3.5 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
 					>
 						<LogOut className="h-4 w-4" />
-						Sign Out
+						退出登录
 					</button>
 				</div>
 
 				{/* Tabs */}
 				<div className="mb-6 flex items-center gap-0 border-b border-border">
-					{tabs.map((tab) => (
+					{tabs.map((tab) => 
 						<button
 							key={tab}
 							type="button"
-							onClick={() => setActiveTab(tab)}
+							onClick={() => set活跃Tab(tab)}
 							className={cn(
 								"relative px-4 py-2.5 text-sm font-medium capitalize transition-colors",
 								activeTab === tab
@@ -330,12 +335,12 @@ export function AccountView() {
 									: "text-muted-foreground hover:text-foreground",
 							)}
 						>
-							{tab}
+							{tabLabels[tab] || tab}
 							{activeTab === tab && (
 								<span className="absolute inset-x-0 -bottom-px h-0.5 bg-foreground" />
 							)}
 						</button>
-					))}
+					)}
 				</div>
 
 				{/* Overview Tab */}
@@ -361,7 +366,7 @@ export function AccountView() {
 												{user.email}
 											</p>
 											<p className="mt-2 text-xs text-muted-foreground">
-												Member since {formatDate(user.createdAt)}
+												注册于 {formatDate(user.createdAt)}
 											</p>
 										</div>
 										<a
@@ -383,8 +388,8 @@ export function AccountView() {
 												<CreditCard className="h-5 w-5 text-primary" />
 												<h3 className="text-sm font-semibold text-foreground">
 													{activeOrganization
-														? `${activeOrganization.name} Balance`
-														: "Credits Balance"}
+														? `${activeOrganization.name} 余额`
+														: "信用额度"}
 												</h3>
 											</div>
 											<a
@@ -394,7 +399,7 @@ export function AccountView() {
 												className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
 											>
 												<Plus className="h-3.5 w-3.5" />
-												Credit
+											充值
 											</a>
 										</div>
 										<div className="flex items-baseline gap-2">
@@ -404,8 +409,7 @@ export function AccountView() {
 										</div>
 										{activeOrganization && balance && (
 											<p className="mt-2 text-xs text-muted-foreground">
-												Personal account: {formatCreditBalance(balance.balance)}{" "}
-												credits
+												个人账户: {formatCreditBalance(balance.balance)} 信用
 											</p>
 										)}
 									</div>
@@ -417,7 +421,7 @@ export function AccountView() {
 										<div className="flex items-center gap-3">
 											<Building className="h-5 w-5 text-muted-foreground" />
 											<h3 className="text-sm font-semibold text-foreground">
-												Organizations
+								组织
 											</h3>
 										</div>
 										<a
@@ -427,12 +431,12 @@ export function AccountView() {
 											className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
 										>
 											<Plus className="h-3.5 w-3.5" />
-											Create
+											创建
 										</a>
 									</div>
 									{organizations.length === 0 ? (
 										<p className="text-sm text-muted-foreground">
-											No organizations yet.
+											暂无组织。
 										</p>
 									) : (
 										<div className="flex flex-col gap-2">
@@ -454,7 +458,7 @@ export function AccountView() {
 													</div>
 													{org.active && (
 														<span className="rounded-full bg-primary/20 px-2 py-0.5 text-xs font-medium text-primary">
-															Active
+															活跃
 														</span>
 													)}
 												</div>
@@ -472,8 +476,8 @@ export function AccountView() {
 					<div>
 						<p className="mb-6 text-sm text-muted-foreground">
 							{activeOrganization
-								? `Recent API usage and token consumption for ${activeOrganization.name}.`
-								: "Recent API usage and token consumption across all providers."}
+								? `${activeOrganization.name} 的近期 API 用量和令牌消耗。`
+								: "所有提供商的近期 API 用量和令牌消耗。"}
 						</p>
 						{usageLoading && renderLoading()}
 						{usageError && renderError(usageError, loadUsage)}
@@ -482,15 +486,15 @@ export function AccountView() {
 							usageLoaded &&
 							(usageTransactions.length === 0 ? (
 								<p className="py-8 text-center text-sm text-muted-foreground">
-									No usage transactions yet.
+									暂无用量记录。
 								</p>
 							) : (
 								<div className="rounded-lg border border-border overflow-hidden">
 									<div className="grid grid-cols-[1fr_auto_auto_auto] gap-4 border-b border-border bg-secondary/50 px-4 py-2.5 text-xs font-medium text-muted-foreground">
-										<span>Model</span>
-										<span className="text-right">Tokens</span>
-										<span className="text-right">Credits</span>
-										<span className="text-right">Time</span>
+										<span>模型</span>
+										<span className="text-right">令牌</span>
+										<span className="text-right">信用</span>
+										<span className="text-right">时间</span>
 									</div>
 									<div className="divide-y divide-border">
 										{usageTransactions.map((tx) => (
@@ -528,7 +532,7 @@ export function AccountView() {
 				{activeTab === "billing" && (
 					<div>
 						<p className="mb-6 text-sm text-muted-foreground">
-							Payment history and credit purchases.
+							支付记录和信用购买记录。
 						</p>
 						{billingLoading && renderLoading()}
 						{billingError && renderError(billingError, loadBilling)}
@@ -537,14 +541,14 @@ export function AccountView() {
 							billingLoaded &&
 							(paymentTransactions.length === 0 ? (
 								<p className="py-8 text-center text-sm text-muted-foreground">
-									No payment transactions yet.
+									暂无支付记录。
 								</p>
 							) : (
 								<div className="rounded-lg border border-border overflow-hidden">
 									<div className="grid grid-cols-[1fr_auto_auto] gap-4 border-b border-border bg-secondary/50 px-4 py-2.5 text-xs font-medium text-muted-foreground">
-										<span>Date</span>
-										<span className="text-right">Amount</span>
-										<span className="text-right">Credits</span>
+										<span>日期</span>
+										<span className="text-right">金额</span>
+										<span className="text-right">信用</span>
 									</div>
 									<div className="divide-y divide-border">
 										{paymentTransactions.map((tx) => (

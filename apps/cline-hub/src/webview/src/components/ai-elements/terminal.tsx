@@ -58,7 +58,7 @@ export const TerminalTitle = ({
 		{...props}
 	>
 		<TerminalIcon className="size-4" />
-		{children ?? "Terminal"}
+		{children ?? "终端"}
 	</div>
 );
 

@@ -211,7 +211,7 @@ export default function TeamTasks({
 	}
 
 	const title =
-		events.length === 1 ? "Team activity" : `Team activity (${events.length})`;
+		events.length === 1 ? "团队活动" : `团队活动 (${events.length})`;
 
 	return (
 		<Task className={className} defaultOpen={defaultOpen} {...props}>

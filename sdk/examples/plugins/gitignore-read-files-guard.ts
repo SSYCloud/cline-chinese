@@ -11,7 +11,7 @@
 
 import { spawn } from "node:child_process";
 import { isAbsolute, relative, resolve, sep } from "node:path";
-import type { AgentPlugin } from "@cline/core";
+import type { AgentPlugin } from "@coohu/core";
 
 const FILE_ACCESS_TOOL_NAMES = new Set(["read_files", "editor", "apply_patch"]);
 

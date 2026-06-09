@@ -17,7 +17,7 @@
  */
 
 import { basename } from "node:path";
-import type { AgentPlugin } from "@cline/core";
+import type { AgentPlugin } from "@coohu/core";
 
 // .env.example / .env.sample / .env.template hold placeholders, not secrets.
 const TEMPLATE = /\.env\.(example|sample|template)$/i;

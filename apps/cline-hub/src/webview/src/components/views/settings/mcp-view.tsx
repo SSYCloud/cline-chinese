@@ -271,7 +271,7 @@ export function McpServersContent() {
 	const buildServerInput = useCallback((form: McpServerFormState) => {
 		const name = form.name.trim();
 		if (!name) {
-			throw new Error("Server name is required.");
+			throw new Error("服务器名称为必填项。");
 		}
 		const env = form.envEntries.reduce<Record<string, string>>((acc, entry) => {
 			const key = entry.key.trim();
@@ -410,10 +410,10 @@ export function McpServersContent() {
 				<div className="mb-6 flex items-center justify-between gap-3">
 					<div className="flex min-w-0 items-center gap-3">
 						<h2 className="truncate text-lg font-semibold text-foreground">
-							MCP Servers
+							MCP 服务器
 						</h2>
 						<span className="rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground">
-							From settings file
+							来自设置文件
 						</span>
 					</div>
 					<div className="flex items-center gap-2">
@@ -429,26 +429,26 @@ export function McpServersContent() {
 						</Button>
 						<Button size="sm" onClick={openCreateDialog}>
 							<Plus className="h-4 w-4" />
-							Add MCP Server
+							添加 MCP 服务器
 						</Button>
 					</div>
 				</div>
 
 				<div className="mb-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-					<span>MCP settings path:</span>
+					<span>MCP 设置路径:</span>
 					<Button
 						variant="link"
 						className="h-auto p-0 font-mono text-xs"
 						onClick={() => void openSettingsFile()}
 						disabled={isOpeningSettingsFile}
 					>
-						{settingsPath || "Open settings file"}
+						{settingsPath || "打开设置文件"}
 					</Button>
 				</div>
 				<p className="mb-6 text-xs text-muted-foreground">
 					{hasSettingsFile
-						? "Editing this list updates cline_mcp_settings.json."
-						: "No MCP settings file found yet. Add a server to create it."}
+						? "编辑此列表将更新 cline_mcp_settings.json。"
+						: "尚未找到 MCP 设置文件。添加服务器以创建它。"}
 				</p>
 
 				{errorMessage && (
@@ -459,11 +459,11 @@ export function McpServersContent() {
 
 				{isLoading ? (
 					<div className="rounded-lg border border-border px-5 py-4 text-sm text-muted-foreground">
-						Loading MCP servers...
+						加载 MCP 服务器中...
 					</div>
 				) : sortedServers.length === 0 ? (
 					<div className="rounded-lg border border-border px-5 py-4 text-sm text-muted-foreground">
-						No MCP servers configured.
+						尚未配置 MCP 服务器。
 					</div>
 				) : (
 					<div className="flex flex-col gap-3">
@@ -494,7 +494,7 @@ export function McpServersContent() {
 											<Button
 												variant="ghost"
 												size="icon-sm"
-												aria-label={`Edit ${server.name}`}
+												aria-label={`编辑 ${server.name}`}
 												onClick={() => openEditDialog(server)}
 												disabled={isBusy}
 											>
@@ -503,7 +503,7 @@ export function McpServersContent() {
 											<Button
 												variant="ghost"
 												size="icon-sm"
-												aria-label={`Delete ${server.name}`}
+												aria-label={`删除 ${server.name}`}
 												onClick={() => setDeleteTarget(server)}
 												disabled={isBusy}
 											>
@@ -515,7 +515,7 @@ export function McpServersContent() {
 													toggleServer(server, !enabled)
 												}
 												disabled={isBusy}
-												aria-label={`Enable ${server.name}`}
+												aria-label={`启用 ${server.name}`}
 											/>
 										</div>
 									</div>
@@ -523,21 +523,19 @@ export function McpServersContent() {
 									<div className="mt-2.5 ml-5.5 flex flex-col gap-1 text-xs text-muted-foreground">
 										{server.command && (
 											<p>
-												<span className="text-muted-foreground/70">
-													Command:
-												</span>{" "}
+												<span className="text-muted-foreground/70">命令:</span>{" "}
 												{server.command}
 											</p>
 										)}
 										{server.args && server.args.length > 0 && (
 											<p>
-												<span className="text-muted-foreground/70">Args:</span>{" "}
+												<span className="text-muted-foreground/70">参数:</span>{" "}
 												{server.args.join(", ")}
 											</p>
 										)}
 										{server.cwd && (
 											<p>
-												<span className="text-muted-foreground/70">CWD:</span>{" "}
+												<span className="text-muted-foreground/70">工作目录:</span>{" "}
 												{server.cwd}
 											</p>
 										)}
@@ -549,16 +547,14 @@ export function McpServersContent() {
 										)}
 										{server.env && Object.keys(server.env).length > 0 && (
 											<p>
-												<span className="text-muted-foreground/70">Env:</span>{" "}
+												<span className="text-muted-foreground/70">环境变量:</span>{" "}
 												{stringifyRedactedKeyValuePairs(server.env)}
 											</p>
 										)}
 										{server.headers &&
 											Object.keys(server.headers).length > 0 && (
 												<p>
-													<span className="text-muted-foreground/70">
-														Headers:
-													</span>{" "}
+													<span className="text-muted-foreground/70">请求头:</span>{" "}
 													{stringifyKeyValuePairs(server.headers)}
 												</p>
 											)}
@@ -582,20 +578,19 @@ export function McpServersContent() {
 				<DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
 					<DialogHeader>
 						<DialogTitle>
-							{editorMode === "edit" ? "Edit MCP Server" : "Add MCP Server"}
+							{editorMode === "edit" ? "编辑 MCP 服务器" : "添加 MCP 服务器"}
 						</DialogTitle>
 						<DialogDescription>
-							Update the MCP server stored in{" "}
+							更新存储在{" "}
 							<code className="font-mono">
 								{settingsPath || "cline_mcp_settings.json"}
-							</code>
-							.
+							</code>。
 						</DialogDescription>
 					</DialogHeader>
 
 					<div className="grid gap-4">
 						<div className="grid gap-2">
-							<Label htmlFor="mcp-name">Server name</Label>
+							<Label htmlFor="mcp-name">服务器名称</Label>
 							<Input
 								id="mcp-name"
 								value={formState.name}
@@ -610,7 +605,7 @@ export function McpServersContent() {
 						</div>
 
 						<div className="grid gap-2">
-							<Label>Transport type</Label>
+							<Label>传输类型</Label>
 							<Select
 								value={formState.transportType}
 								onValueChange={(value) =>
@@ -621,7 +616,7 @@ export function McpServersContent() {
 								}
 							>
 								<SelectTrigger className="w-full">
-									<SelectValue placeholder="Select transport" />
+									<SelectValue placeholder="选择传输类型" />
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="stdio">stdio</SelectItem>
@@ -634,7 +629,7 @@ export function McpServersContent() {
 						{formState.transportType === "stdio" ? (
 							<>
 								<div className="grid gap-2">
-									<Label htmlFor="mcp-command">Command</Label>
+									<Label htmlFor="mcp-command">命令</Label>
 									<Input
 										id="mcp-command"
 										value={formState.command}
@@ -648,7 +643,7 @@ export function McpServersContent() {
 									/>
 								</div>
 								<div className="grid gap-2">
-									<Label htmlFor="mcp-args">Args</Label>
+									<Label htmlFor="mcp-args">参数</Label>
 									<Textarea
 										id="mcp-args"
 										value={formState.argsText}
@@ -662,7 +657,7 @@ export function McpServersContent() {
 									/>
 								</div>
 								<div className="grid gap-2">
-									<Label htmlFor="mcp-cwd">Working directory</Label>
+									<Label htmlFor="mcp-cwd">工作目录</Label>
 									<Input
 										id="mcp-cwd"
 										value={formState.cwd}
@@ -677,7 +672,7 @@ export function McpServersContent() {
 								</div>
 								<div className="grid gap-2">
 									<div className="flex items-center justify-between gap-3">
-										<Label>Environment variables</Label>
+										<Label>环境变量</Label>
 										<Button
 											type="button"
 											variant="ghost"
@@ -695,7 +690,7 @@ export function McpServersContent() {
 													variant="ghost"
 													size="icon-sm"
 													onClick={() => removeEnvEntry(entry.id)}
-													aria-label={`Remove env var ${entry.key || "row"}`}
+													aria-label={`移除环境变量 ${entry.key || "行"}`}
 												>
 													<Minus className="h-3.5 w-3.5" />
 												</Button>
@@ -726,7 +721,7 @@ export function McpServersContent() {
 						) : (
 							<>
 								<div className="grid gap-2">
-									<Label htmlFor="mcp-url">Server URL</Label>
+									<Label htmlFor="mcp-url">服务器 URL</Label>
 									<Input
 										id="mcp-url"
 										value={formState.url}
@@ -740,7 +735,7 @@ export function McpServersContent() {
 									/>
 								</div>
 								<div className="grid gap-2">
-									<Label htmlFor="mcp-headers">Headers</Label>
+									<Label htmlFor="mcp-headers">请求头</Label>
 									<Textarea
 										id="mcp-headers"
 										value={formState.headersText}
@@ -757,7 +752,7 @@ export function McpServersContent() {
 						)}
 
 						<div className="grid gap-2">
-							<Label htmlFor="mcp-metadata">Metadata JSON</Label>
+							<Label htmlFor="mcp-metadata">元数据 JSON</Label>
 							<Textarea
 								id="mcp-metadata"
 								value={formState.metadataText}
@@ -773,9 +768,9 @@ export function McpServersContent() {
 
 						<div className="flex items-center justify-between rounded-md border border-border px-3 py-2">
 							<div>
-								<p className="text-sm font-medium text-foreground">Enabled</p>
+								<p className="text-sm font-medium text-foreground">已启用</p>
 								<p className="text-xs text-muted-foreground">
-									Disable the server without removing it from settings.
+									禁用在不从设置中移除服务器。
 								</p>
 							</div>
 							<Switch
@@ -786,7 +781,7 @@ export function McpServersContent() {
 										disabled: !enabled,
 									}))
 								}
-								aria-label="Enable MCP server"
+								aria-label="启用 MCP 服务器"
 							/>
 						</div>
 
@@ -810,10 +805,10 @@ export function McpServersContent() {
 							disabled={busyServerName !== null}
 						>
 							{busyServerName !== null
-								? "Saving..."
+								? "保存中..."
 								: editorMode === "edit"
-									? "Save changes"
-									: "Add server"}
+									? "保存更改"
+									: "添加服务器"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
@@ -829,11 +824,11 @@ export function McpServersContent() {
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Delete MCP Server</AlertDialogTitle>
+						<AlertDialogTitle>删除 MCP 服务器</AlertDialogTitle>
 						<AlertDialogDescription>
 							{deleteTarget
-								? `Delete MCP server "${deleteTarget.name}" from settings?`
-								: "Delete this MCP server from settings?"}
+								? `从设置中删除 MCP 服务器 "${deleteTarget.name}"？`
+								: "从设置中删除此 MCP 服务器？"}
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
@@ -849,7 +844,7 @@ export function McpServersContent() {
 								}
 							}}
 						>
-							Delete
+							删除
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

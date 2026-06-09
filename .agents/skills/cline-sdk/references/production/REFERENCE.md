@@ -98,7 +98,7 @@ agent.subscribe((event) => {
 The SDK supports OpenTelemetry for traces, metrics, and logs:
 
 ```typescript
-import { ClineCore } from "@cline/sdk"
+import { ClineCore } from "@coohu/sdk"
 
 const cline = await ClineCore.create({
   clientName: "my-app",
@@ -112,7 +112,7 @@ const cline = await ClineCore.create({
 Use the `BasicLogger` interface for injectable logging:
 
 ```typescript
-import type { BasicLogger } from "@cline/sdk"
+import type { BasicLogger } from "@coohu/sdk"
 
 const logger: BasicLogger = {
   debug: (msg, meta) => console.debug(msg, meta),

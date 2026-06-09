@@ -31,8 +31,8 @@ service ModelsService {
   rpc refreshRequestyModels(EmptyRequest) returns (OpenRouterCompatibleModelInfo);
   // Refreshes and returns ShengSuanYun models
   rpc refreshShengSuanYunModels(EmptyRequest) returns (ShengSuanYunCompatibleModelInfo);
-  // Refreshes and returns ShengSuanYun enterprise models
-  rpc refreshShengSuanYunEModels(EmptyRequest) returns (ShengSuanYunCompatibleModelInfo);
+  // Refreshes and returns ShengSuanYun enterprise models grouped by project
+  rpc refreshShengSuanYunEnterpriseModels(EmptyRequest) returns (ShengSuanYunEnterpriseModelInfo);
   // Refreshes and returns Hicap models
   rpc refreshHicapModels(EmptyRequest) returns (OpenRouterCompatibleModelInfo);
   // Refreshes and returns LiteLLM models
@@ -713,10 +713,23 @@ message ShengSuanYunModelInfo {
   optional string description = 9;
   optional ThinkingConfig thinking_config = 10;
   optional bool supports_global_endpoint = 11;
-  optional string end_points = 12;
+  repeated string end_points = 12;
 }
 
 // Wrapper for multiple ShengSuanYun models
 message ShengSuanYunCompatibleModelInfo {
   map<string, ShengSuanYunModelInfo> models = 1;
+}
+
+// A ShengSuanYun enterprise project with its available models
+message ShengSuanYunProject {
+  int32 id = 1;
+  string name = 2;
+  map<string, ShengSuanYunModelInfo> models = 3;
+}
+
+// Response for enterprise models, grouped by project
+message ShengSuanYunEnterpriseModelInfo {
+  // key: project id (as string)
+  map<string, ShengSuanYunProject> projects = 1;
 }

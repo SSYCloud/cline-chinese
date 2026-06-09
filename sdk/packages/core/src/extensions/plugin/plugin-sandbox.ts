@@ -3,14 +3,14 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type {
-	AgentConfig,
-	AgentExtensionAutomationEventType,
-	AgentExtensionRule,
-	AgentRuntimeHooks,
-	AgentTool,
-	Message,
-	PluginSetupContext,
-	WorkspaceInfo,
+    AgentConfig,
+    AgentExtensionAutomationEventType,
+    AgentExtensionRule,
+    AgentRuntimeHooks,
+    AgentTool,
+    Message,
+    PluginSetupContext,
+    WorkspaceInfo,
 } from "@coohu/shared";
 import { SubprocessSandbox } from "../../runtime/tools/subprocess-sandbox";
 import type { PluginLoadDiagnostics } from "./plugin-load-report";
@@ -130,7 +130,7 @@ function isUnknownPluginIdError(error: unknown): boolean {
 
 function getPlatformPackageName(): string {
 	const platform = process.platform === "win32" ? "windows" : process.platform;
-	return `@cline/cli-${platform}-${process.arch}`;
+	return `@coohu/cli-${platform}-${process.arch}`;
 }
 
 function resolveBootstrapFromWrapper(): string | undefined {

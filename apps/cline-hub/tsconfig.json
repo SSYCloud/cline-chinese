@@ -4,13 +4,13 @@
 		"noEmit": true,
 		"types": ["bun", "node"],
 		"paths": {
-			"@cline/core": ["../../sdk/packages/core/src/index.ts"],
-			"@cline/core/*": [
+			"@coohu/core": ["../../sdk/packages/core/src/index.ts"],
+			"@coohu/core/*": [
 				"../../sdk/packages/core/src/*",
 				"../../sdk/packages/core/src/*/index.ts"
 			],
-			"@cline/shared": ["../../sdk/packages/shared/src/index.ts"],
-			"@cline/shared/*": [
+			"@coohu/shared": ["../../sdk/packages/shared/src/index.ts"],
+			"@coohu/shared/*": [
 				"../../sdk/packages/shared/src/*",
 				"../../sdk/packages/shared/src/*/index.ts"
 			]

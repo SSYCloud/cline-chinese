@@ -1,5 +1,5 @@
 {
-	"name": "@cline/cline-hub-webview",
+	"name": "@coohu/cline-hub-webview",
 	"private": true,
 	"version": "0.0.0",
 	"type": "module",

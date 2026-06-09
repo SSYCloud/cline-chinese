@@ -179,62 +179,62 @@ jobs:
       # Pack with Bun so workspace/catalog protocols are resolved in the tarball,
       # then publish that tarball with npm so npm trusted publishing can use GitHub OIDC.
       # Publish sequentially in dependency order: shared → llms → agents → core → sdk
-      - name: Publish @cline/shared
+      - name: Publish @coohu/shared
         if: steps.check_commits.outputs.skip != 'true'
         env:
           NPM_CONFIG_PROVENANCE: "true"
           CHANNEL: ${{ steps.channel.outputs.channel }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          echo "Publishing @cline/shared@${VERSION} with tag '${CHANNEL}'..."
+          echo "Publishing @coohu/shared@${VERSION} with tag '${CHANNEL}'..."
           cd sdk/packages/shared
           TARBALL=$(bun pm pack --destination "$RUNNER_TEMP/sdk-npm-packs" --quiet)
           npm publish "$RUNNER_TEMP/sdk-npm-packs/$(basename "$TARBALL")" --tag "$CHANNEL" --access public
 
-      - name: Publish @cline/llms
+      - name: Publish @coohu/llms
         if: steps.check_commits.outputs.skip != 'true'
         env:
           NPM_CONFIG_PROVENANCE: "true"
           CHANNEL: ${{ steps.channel.outputs.channel }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          echo "Publishing @cline/llms@${VERSION} with tag '${CHANNEL}'..."
+          echo "Publishing @coohu/llms@${VERSION} with tag '${CHANNEL}'..."
           cd sdk/packages/llms
           TARBALL=$(bun pm pack --destination "$RUNNER_TEMP/sdk-npm-packs" --quiet)
           npm publish "$RUNNER_TEMP/sdk-npm-packs/$(basename "$TARBALL")" --tag "$CHANNEL" --access public
 
-      - name: Publish @cline/agents
+      - name: Publish @coohu/agents
         if: steps.check_commits.outputs.skip != 'true'
         env:
           NPM_CONFIG_PROVENANCE: "true"
           CHANNEL: ${{ steps.channel.outputs.channel }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          echo "Publishing @cline/agents@${VERSION} with tag '${CHANNEL}'..."
+          echo "Publishing @coohu/agents@${VERSION} with tag '${CHANNEL}'..."
           cd sdk/packages/agents
           TARBALL=$(bun pm pack --destination "$RUNNER_TEMP/sdk-npm-packs" --quiet)
           npm publish "$RUNNER_TEMP/sdk-npm-packs/$(basename "$TARBALL")" --tag "$CHANNEL" --access public
 
-      - name: Publish @cline/core
+      - name: Publish @coohu/core
         if: steps.check_commits.outputs.skip != 'true'
         env:
           NPM_CONFIG_PROVENANCE: "true"
           CHANNEL: ${{ steps.channel.outputs.channel }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          echo "Publishing @cline/core@${VERSION} with tag '${CHANNEL}'..."
+          echo "Publishing @coohu/core@${VERSION} with tag '${CHANNEL}'..."
           cd sdk/packages/core
           TARBALL=$(bun pm pack --destination "$RUNNER_TEMP/sdk-npm-packs" --quiet)
           npm publish "$RUNNER_TEMP/sdk-npm-packs/$(basename "$TARBALL")" --tag "$CHANNEL" --access public
 
-      - name: Publish @cline/sdk
+      - name: Publish @coohu/sdk
         if: steps.check_commits.outputs.skip != 'true'
         env:
           NPM_CONFIG_PROVENANCE: "true"
           CHANNEL: ${{ steps.channel.outputs.channel }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          echo "Publishing @cline/sdk@${VERSION} with tag '${CHANNEL}'..."
+          echo "Publishing @coohu/sdk@${VERSION} with tag '${CHANNEL}'..."
           cd sdk/packages/sdk
           TARBALL=$(bun pm pack --destination "$RUNNER_TEMP/sdk-npm-packs" --quiet)
           npm publish "$RUNNER_TEMP/sdk-npm-packs/$(basename "$TARBALL")" --tag "$CHANNEL" --access public
@@ -252,7 +252,7 @@ jobs:
             if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
               echo "Tag already exists locally: ${TAG}"
             else
-              git tag -a "${TAG}" -m "@cline/${PKG}@${VERSION}"
+              git tag -a "${TAG}" -m "@coohu/${PKG}@${VERSION}"
               echo "Created tag: ${TAG}"
             fi
 
@@ -267,11 +267,11 @@ jobs:
           CHANNEL: ${{ steps.channel.outputs.channel }}
         run: |
           echo "Published SDK packages with tag '${CHANNEL}':"
-          echo "  - @cline/shared@${VERSION}"
-          echo "  - @cline/llms@${VERSION}"
-          echo "  - @cline/agents@${VERSION}"
-          echo "  - @cline/core@${VERSION}"
-          echo "  - @cline/sdk@${VERSION}"
+          echo "  - @coohu/shared@${VERSION}"
+          echo "  - @coohu/llms@${VERSION}"
+          echo "  - @coohu/agents@${VERSION}"
+          echo "  - @coohu/core@${VERSION}"
+          echo "  - @coohu/sdk@${VERSION}"
           if [ "$CHANNEL" = "latest" ]; then
             echo "Created git tags:"
             echo "  - sdk/shared/v${VERSION}"

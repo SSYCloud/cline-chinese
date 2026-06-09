@@ -15,7 +15,7 @@ export const OAUTH_MANAGED_PROVIDERS = new Set([
 	"openai-codex",
 ]);
 
-// Default Cline model — keep in sync with @cline/llms CLINE_DEFAULT_MODEL
+// Default Cline model — keep in sync with @coohu/llms CLINE_DEFAULT_MODEL
 const CLINE_DEFAULT_MODEL = "anthropic/claude-sonnet-4.6";
 
 export const DEFAULT_CHAT_CONFIG: ChatSessionConfig = {

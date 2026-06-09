@@ -117,11 +117,11 @@ function resolveInstalledPlatformPackageWebviewCandidates(): string[] {
 
 function resolvePlatformPackageName(): string {
 	const platformName = platform() === "win32" ? "windows" : platform();
-	return `@cline/cli-${platformName}-${arch()}`;
+	return `@coohu/cli-${platformName}-${arch()}`;
 }
 
 async function startDefaultDashboardServer(): Promise<DashboardServerHandle> {
-	const { startClineHubDashboardServer } = await import("@cline/cline-hub");
+	const { startClineHubDashboardServer } = await import("@coohu/cline-hub");
 	return await startClineHubDashboardServer();
 }
 

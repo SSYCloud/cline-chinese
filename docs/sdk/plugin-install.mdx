@@ -71,7 +71,7 @@ cline plugin install ./my-custom-plugin
 cline plugin install https://github.com/cline/cline/blob/main/sdk/examples/plugins/weather-metrics.ts
 
 # Install an npm package as a plugin
-cline plugin install --npm @cline/plugin-sql
+cline plugin install --npm @coohu/plugin-sql
 
 # Install from a GitHub repo
 cline plugin install --git https://github.com/my-org/my-plugin.git
@@ -119,7 +119,7 @@ Global plugins are discovered from `~/.cline/plugins/`, and Cline may also disco
 In SDK code, load plugins from file paths using the `pluginPaths` session config option:
 
 ```typescript
-import { ClineCore } from "@cline/sdk"
+import { ClineCore } from "@coohu/sdk"
 
 const cline = await ClineCore.create({ clientName: "my-app" })
 
@@ -139,7 +139,7 @@ Plugin files must export an `AgentPlugin` as the default export. `pluginPaths` a
 When using the `Agent` or `AgentRuntime` directly, pass plugin instances in the `plugins` array:
 
 ```typescript
-import { Agent } from "@cline/sdk"
+import { Agent } from "@coohu/sdk"
 import { myPlugin } from "./my-plugin"
 
 const agent = new Agent({
@@ -154,7 +154,7 @@ const agent = new Agent({
 With `ClineCore`, use the `extensions` config array instead:
 
 ```typescript
-import { ClineCore } from "@cline/sdk"
+import { ClineCore } from "@coohu/sdk"
 
 const cline = await ClineCore.create({ clientName: "my-app" })
 

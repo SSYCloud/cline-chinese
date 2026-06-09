@@ -1,23 +1,23 @@
 import { existsSync, readFileSync } from "node:fs";
 import { basename, join } from "node:path";
 import {
-	buildWorkspaceMetadata,
-	type ClineCore,
-	type CoreSessionConfig,
-	type SessionPendingPrompt,
-	SessionSource,
-	splitCoreSessionConfig,
-} from "@cline/core";
-import type { Message } from "@cline/llms";
-import { buildClineSystemPrompt } from "@cline/shared";
+    buildWorkspaceMetadata,
+    type ClineCore,
+    type CoreSessionConfig,
+    type SessionPendingPrompt,
+    SessionSource,
+    splitCoreSessionConfig,
+} from "@coohu/core";
+import type { Message } from "@coohu/llms";
+import { buildClineSystemPrompt } from "@coohu/shared";
 import { emitChunk, nowMs, sendEvent } from "./context";
 import { readSessionManifest, sharedSessionDataDir } from "./paths";
 import type {
-	ChatSessionCommandRequest,
-	JsonRecord,
-	LiveSession,
-	PromptInQueue,
-	SidecarContext,
+    ChatSessionCommandRequest,
+    JsonRecord,
+    LiveSession,
+    PromptInQueue,
+    SidecarContext,
 } from "./types";
 
 // ---------------------------------------------------------------------------

@@ -100,7 +100,7 @@ export const TestResultsSummary = ({
 						variant="secondary"
 					>
 						<CheckCircle2Icon className="size-3" />
-						{summary.passed} passed
+						{summary.passed} 通过
 					</Badge>
 					{summary.failed > 0 && (
 						<Badge
@@ -108,7 +108,7 @@ export const TestResultsSummary = ({
 							variant="secondary"
 						>
 							<XCircleIcon className="size-3" />
-							{summary.failed} failed
+							{summary.failed} 失败
 						</Badge>
 					)}
 					{summary.skipped > 0 && (
@@ -117,7 +117,7 @@ export const TestResultsSummary = ({
 							variant="secondary"
 						>
 							<CircleIcon className="size-3" />
-							{summary.skipped} skipped
+							{summary.skipped} 跳过
 						</Badge>
 					)}
 				</>
@@ -188,7 +188,7 @@ export const TestResultsProgress = ({
 					</div>
 					<div className="flex justify-between text-muted-foreground text-xs">
 						<span>
-							{summary.passed}/{summary.total} tests passed
+							{summary.passed}/{summary.total} 测试通过
 						</span>
 						<span>{passedPercent.toFixed(0)}%</span>
 					</div>
@@ -309,17 +309,17 @@ export const TestSuiteStats = ({
 			<>
 				{passed > 0 && (
 					<span className="text-green-600 dark:text-green-400">
-						{passed} passed
+						{passed} 通过
 					</span>
 				)}
 				{failed > 0 && (
 					<span className="text-red-600 dark:text-red-400">
-						{failed} failed
+						{failed} 失败
 					</span>
 				)}
 				{skipped > 0 && (
 					<span className="text-yellow-600 dark:text-yellow-400">
-						{skipped} skipped
+						{skipped} 跳过
 					</span>
 				)}
 			</>

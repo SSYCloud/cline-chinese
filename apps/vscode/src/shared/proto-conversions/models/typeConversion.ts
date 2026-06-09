@@ -4,7 +4,9 @@ import {
 	LiteLLMModelInfo as ProtoLiteLLMModelInfo,
 	OcaModelInfo as ProtoOcaModelInfo,
 	OpenAiCompatibleModelInfo as ProtoOpenAiCompatibleModelInfo,
+	ShengSuanYunEnterpriseModelInfo,
 	ShengSuanYunModelInfo,
+	ShengSuanYunProject,
 	ThinkingConfig,
 } from "@shared/proto/cline/models"
 
@@ -193,6 +195,30 @@ export function fromProtobufShengSuanYunModels(protoModels: Record<string, Sheng
 	const result: Record<string, ModelInfo> = {}
 	for (const [key, value] of Object.entries(protoModels)) {
 		result[key] = fromProtobufShengSuanYunModelInfo(value)
+	}
+	return result
+}
+
+export interface EnterpriseProject {
+	id: number
+	name: string
+	models: Record<string, ModelInfo>
+}
+
+export function fromProtobufShengSuanYunProject(project: ShengSuanYunProject): EnterpriseProject {
+	return {
+		id: project.id,
+		name: project.name,
+		models: fromProtobufShengSuanYunModels(project.models),
+	}
+}
+
+export function fromProtobufShengSuanYunEnterpriseModels(
+	info: ShengSuanYunEnterpriseModelInfo,
+): Record<string, EnterpriseProject> {
+	const result: Record<string, EnterpriseProject> = {}
+	for (const [key, project] of Object.entries(info.projects)) {
+		result[key] = fromProtobufShengSuanYunProject(project)
 	}
 	return result
 }

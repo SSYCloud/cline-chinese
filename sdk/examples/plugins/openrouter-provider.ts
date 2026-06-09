@@ -22,7 +22,7 @@
  *     (required by the `providers` capability) so hosts can advertise it.
  */
 
-import { type AgentPlugin, Llms } from "@cline/core";
+import { type AgentPlugin, Llms } from "@coohu/core";
 
 // ---------------------------------------------------------------------------
 // Provider definition

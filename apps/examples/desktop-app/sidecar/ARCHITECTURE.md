@@ -1,10 +1,10 @@
-# Sidecar Architecture — @cline/code
+# Sidecar Architecture — @coohu/code
 
 ## Overview
 
 The sidecar is a single Bun process that handles the desktop backend runtime directly.
 
-It imports `@cline/core` directly and serves the Next.js frontend over HTTP + WebSocket.
+It imports `@coohu/core` directly and serves the Next.js frontend over HTTP + WebSocket.
 
 ## Directory Structure
 
@@ -36,7 +36,7 @@ Event:    { "type": "event", "event": { "name": string, "payload": unknown } }
 Instead of spawning a separate runtime bridge process, we use `LocalRuntimeHost` directly:
 
 ```typescript
-import { LocalRuntimeHost } from "@cline/core";
+import { LocalRuntimeHost } from "@coohu/core";
 
 const sessionManager = await ClineCore.create({
   backendMode: "hub",
@@ -83,14 +83,14 @@ const pendingApprovals = new Map<string, {
 ### 3. Provider Management — Direct ProviderSettingsManager
 
 ```typescript
-import { ProviderSettingsManager, listLocalProviders, ... } from "@cline/core";
+import { ProviderSettingsManager, listLocalProviders, ... } from "@coohu/core";
 const manager = new ProviderSettingsManager();
 ```
 
 ### 4. Session Storage — Direct SqliteSessionStore
 
 ```typescript
-import { SqliteSessionStore, resolveSessionBackend } from "@cline/core";
+import { SqliteSessionStore, resolveSessionBackend } from "@coohu/core";
 const store = new SqliteSessionStore();
 ```
 
@@ -99,7 +99,7 @@ const store = new SqliteSessionStore();
 Routine operations now ensure the local hub server in-process and issue hub schedule commands directly. They are still called in-process, not via child script:
 
 ```typescript
-import { ensureHubServer, sendHubCommand } from "@cline/core";
+import { ensureHubServer, sendHubCommand } from "@coohu/core";
 await ensureHubServer({ runtimeHandlers: createLocalHubScheduleRuntimeHandlers() });
 await sendHubCommand({}, { command: "schedule.list", payload: { limit: 200 } });
 ```

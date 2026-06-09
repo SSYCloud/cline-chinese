@@ -1,4 +1,4 @@
-# `apps/examples/vscode` (`@cline/vscode`)
+# `apps/examples/vscode` (`@coohu/vscode`)
 
 VS Code extension that opens a chat webview and runs Cline sessions over the RPC runtime.
 
@@ -18,15 +18,15 @@ VS Code extension that opens a chat webview and runs Cline sessions over the RPC
 
 ```bash
 # Build extension bundle
-bun -F @cline/vscode build
+bun -F @coohu/vscode build
 
 # Typecheck
-bun -F @cline/vscode typecheck
+bun -F @coohu/vscode typecheck
 ```
 
 To run locally in VS Code:
 
-1. Build the extension: `bun -F @cline/vscode build`.
+1. Build the extension: `bun -F @coohu/vscode build`.
 2. Open `apps/examples/vscode` in VS Code.
 3. Press `F5` to launch the Extension Development Host.
 4. Run command `Cline: Open Chat in Editor`.

@@ -19,7 +19,7 @@
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
-import { type AgentPlugin, createTool } from "@cline/core";
+import { type AgentPlugin, createTool } from "@coohu/core";
 
 // ---------------------------------------------------------------------------
 // TypeScript Language Service setup

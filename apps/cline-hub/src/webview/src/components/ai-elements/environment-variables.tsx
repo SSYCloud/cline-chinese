@@ -100,7 +100,7 @@ export const EnvironmentVariablesTitle = ({
 	...props
 }: EnvironmentVariablesTitleProps) => (
 	<h3 className={cn("font-medium text-sm", className)} {...props}>
-		{children ?? "Environment Variables"}
+		{children ?? "环境变量"}
 	</h3>
 );
 
@@ -118,7 +118,7 @@ export const EnvironmentVariablesToggle = ({
 				{showValues ? <EyeIcon size={14} /> : <EyeOffIcon size={14} />}
 			</span>
 			<Switch
-				aria-label="Toggle value visibility"
+				aria-label="切换值可见性"
 				checked={showValues}
 				onCheckedChange={setShowValues}
 				{...props}
@@ -319,6 +319,6 @@ export const EnvironmentVariableRequired = ({
 	...props
 }: EnvironmentVariableRequiredProps) => (
 	<Badge className={cn("text-xs", className)} variant="secondary" {...props}>
-		{children ?? "Required"}
+		{children ?? "必需"}
 	</Badge>
 );

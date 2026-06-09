@@ -108,7 +108,7 @@ export function ProviderListContent({
 						variant="ghost"
 					>
 						<PlusCircle className="h-4 w-4" />
-						Add Provider
+						添加提供商
 					</Button>
 				</div>
 
@@ -124,12 +124,12 @@ export function ProviderListContent({
 								</p>
 								<p className="text-xs text-muted-foreground">
 									{prov.models === null
-										? "Models load on demand"
-										: `${prov.models} Model${prov.models !== 1 ? "s" : ""}`}
+										? "按需加载模型"
+										: `${prov.models} 个模型`}
 								</p>
 							</div>
 							<Button
-								aria-label={`Configure ${prov.name}`}
+								aria-label={`配置 ${prov.name}`}
 								className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
 								onClick={() => onConfigure(prov.id)}
 								variant="ghost"
@@ -137,7 +137,7 @@ export function ProviderListContent({
 								<Settings2 className="h-4 w-4" />
 							</Button>
 							<Switch
-								aria-label={`Toggle ${prov.name}`}
+								aria-label={`切换 ${prov.name}`}
 								checked={prov.enabled}
 								onCheckedChange={() => onToggle(prov.id)}
 							/>
@@ -176,7 +176,7 @@ export function ProviderDetailContent({
 		providerId: string;
 		value: string;
 	} | null>(null);
-	const [copiedModelState, setCopiedModelState] = useState<{
+	const [copiedModelState, set已复制ModelState] = useState<{
 		modelId: string;
 		providerId: string;
 	} | null>(null);
@@ -237,12 +237,12 @@ export function ProviderDetailContent({
 			return;
 		}
 		void navigator.clipboard.writeText(modelId).then(() => {
-			setCopiedModelState({ modelId, providerId: provider.id });
+			set已复制ModelState({ modelId, providerId: provider.id });
 			if (copiedModelTimeoutRef.current !== undefined) {
 				window.clearTimeout(copiedModelTimeoutRef.current);
 			}
 			copiedModelTimeoutRef.current = window.setTimeout(
-				() => setCopiedModelState(null),
+				() => set已复制ModelState(null),
 				1600,
 			);
 		});
@@ -254,7 +254,7 @@ export function ProviderDetailContent({
 				{/* Back + title */}
 				<div className="mb-8 flex items-center gap-3">
 					<Button
-						aria-label="Back to providers"
+						aria-label="返回提供商列表"
 						className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
 						onClick={onBack}
 						variant="ghost"
@@ -306,7 +306,7 @@ export function ProviderDetailContent({
 												}
 												value={valueText}
 											>
-												<option value="">Not set</option>
+												<option value="">未设置</option>
 												{field.options?.map((option) => (
 													<option
 														key={String(option.value)}
@@ -347,7 +347,7 @@ export function ProviderDetailContent({
 													<>
 														<Button
 															aria-label={
-																isShown ? "Hide secret" : "Show secret"
+																isShown ? "隐藏密钥" : "显示密钥"
 															}
 															className="rounded-md p-1 text-muted-foreground hover:text-foreground transition-colors"
 															onClick={() =>
@@ -365,7 +365,7 @@ export function ProviderDetailContent({
 															)}
 														</Button>
 														<Button
-															aria-label={`Copy ${field.label}`}
+															aria-label={`复制 ${field.label}`}
 															className="rounded-md p-1 text-muted-foreground hover:text-foreground transition-colors"
 															onClick={() =>
 																navigator.clipboard.writeText(valueText)
@@ -396,24 +396,23 @@ export function ProviderDetailContent({
 							{oauthLoginPending ? (
 								<Loader2 className="h-4 w-4 animate-spin" />
 							) : null}
-							<span>Login via Browser</span>
+							<span>通过浏览器登录</span>
 						</Button>
 					</div>
 				) : null}
 				{provider.oauthAccessTokenPresent ? (
 					<p className="mb-8 text-xs text-muted-foreground">
-						OAuth is connected. Manual credentials remain available when this
-						provider supports them.
+						OAuth 已连接。当此提供商支持时，手动凭据仍可用。
 					</p>
 				) : null}
 
 				{/* Models section */}
 				<section>
 					<div className="mb-4 flex items-center justify-between">
-						<h3 className="text-sm font-semibold text-foreground">Models</h3>
+						<h3 className="text-sm font-semibold text-foreground">模型</h3>
 						<div className="flex items-center gap-1">
 							<Button
-								aria-label="Refresh models"
+								aria-label="刷新模型"
 								className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
 								disabled={modelsLoading}
 								onClick={onLoadModels}
@@ -435,7 +434,7 @@ export function ProviderDetailContent({
 							<div className="flex items-center gap-2 rounded-lg border border-border bg-input px-3 py-2">
 								<Search className="size-4 shrink-0 text-muted-foreground" />
 								<Input
-									aria-label="Search models"
+									aria-label="搜索模型"
 									className="h-7 flex-1 border-0 text-sm text-foreground placeholder:text-muted-foreground"
 									onChange={(event) =>
 										setModelSearchState({
@@ -443,7 +442,7 @@ export function ProviderDetailContent({
 											value: event.target.value,
 										})
 									}
-									placeholder="Search models by name or ID"
+									placeholder="按名称或 ID 搜索模型"
 									spellCheck={false}
 									value={modelSearch}
 								/>
@@ -460,28 +459,28 @@ export function ProviderDetailContent({
 													<span className="truncate">{model.name}</span>
 													{/* Capability icons */}
 													{model.supportsAttachments && (
-														<div title="File Support">
+														<div title="文件支持">
 															<FileIcon className="h-3.5 w-3.5 text-muted-foreground" />
 														</div>
 													)}
 													{model.supportsVision && (
-														<div title="Image Support">
+														<div title="图像支持">
 															<ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />
 														</div>
 													)}
 												</div>
 												<button
-													aria-label={`Copy model ID ${model.id}`}
+													aria-label={`复制模型 ID ${model.id}`}
 													className="mt-1 flex max-w-full items-center gap-1.5 px-1 text-left text-xs text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
 													onClick={() => copyModelId(model.id)}
-													title="Copy model ID"
+													title="复制模型 ID"
 													type="button"
 												>
 													<span className="min-w-0 truncate">{model.id}</span>
 													<Copy className="size-3 shrink-0" />
 													{copiedModelId === model.id ? (
 														<span className="shrink-0 text-foreground">
-															Copied
+															已复制
 														</span>
 													) : null}
 												</button>
@@ -490,7 +489,7 @@ export function ProviderDetailContent({
 											{/* Action icons */}
 											<div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
 												<Button
-													aria-label={`Favorite ${model.name}`}
+													aria-label={`收藏 ${model.name}`}
 													className="rounded-md p-1 text-muted-foreground hover:text-foreground transition-colors"
 													variant="ghost"
 												>
@@ -503,7 +502,7 @@ export function ProviderDetailContent({
 							) : (
 								<div className="rounded-lg border border-border px-4 py-8 text-center">
 									<p className="text-sm text-muted-foreground">
-										No models match "{modelSearch.trim()}".
+										没有匹配 "{modelSearch.trim()}" 的模型。
 									</p>
 								</div>
 							)}
@@ -512,8 +511,8 @@ export function ProviderDetailContent({
 						<div className="rounded-lg border border-border px-4 py-8 text-center">
 							<p className="text-sm text-muted-foreground">
 								{modelsLoading
-									? "Loading models..."
-									: "No models available. Click refresh to load models."}
+									? "加载模型中..."
+									: "暂无可用模型。点击刷新加载模型。"}
 							</p>
 						</div>
 					)}

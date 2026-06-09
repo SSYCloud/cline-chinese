@@ -27,6 +27,15 @@ type ShortcutTab =
 	| "Plugins"
 	| "Tools";
 
+	const tabLabels: Record<string, string> = {
+	Rules: "规则",
+	Hooks: "钩子",
+	Skills: "技能",
+	Agents: "代理",
+	Plugins: "插件",
+	Tools: "工具",
+};
+
 type RuleItem = {
 	name: string;
 	instructions: string;
@@ -486,7 +495,7 @@ export function RulesView() {
 
 	const formatExecutionTs = useCallback((value: string | null): string => {
 		if (!value) {
-			return "never";
+			return "从未";
 		}
 		const asNumber = Number(value);
 		const date = Number.isFinite(asNumber)
@@ -629,7 +638,7 @@ export function RulesView() {
 			<div className="mx-auto max-w-3xl px-8 py-6">
 				<div className="mb-4 flex items-center justify-between">
 					<h2 className="text-lg font-semibold text-foreground">
-						Customizations
+						自定义项
 					</h2>
 					<Button
 						variant="outline"
@@ -659,7 +668,7 @@ export function RulesView() {
 									: "text-muted-foreground hover:text-foreground",
 							)}
 						>
-							{tab}
+							{tabLabels[tab] || tab}
 							{activeTab === tab && (
 								<span className="absolute inset-x-0 -bottom-px h-0.5 bg-foreground" />
 							)}
@@ -669,7 +678,7 @@ export function RulesView() {
 
 				{errorMessage && (
 					<div className="mb-4 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-						Failed to load configuration lists: {errorMessage}
+						加载配置列表失败: {errorMessage}
 					</div>
 				)}
 
@@ -677,7 +686,7 @@ export function RulesView() {
 					<div className="mb-4 rounded-lg border border-yellow-500/40 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-700 dark:text-yellow-300">
 						<div className="mb-2 flex items-center gap-2 font-medium">
 							<TriangleAlert className="h-4 w-4" />
-							Partial results
+							部分结果
 						</div>
 						<ul className="list-disc space-y-1 pl-5">
 							{warnings.map((warning) => (
@@ -690,13 +699,12 @@ export function RulesView() {
 				{activeTab === "Rules" && (
 					<div>
 						<p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-							Enabled rules discovered from configured workspace/global
-							directories.
+							从配置的工作空间/全局目录中发现的已启用规则。
 						</p>
 
 						<div className="mb-6">
 							<h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-								Global Rules
+								全局规则
 							</h3>
 							<div className="flex flex-col gap-2">
 								{globalRules.map((rule) => (
@@ -720,7 +728,7 @@ export function RulesView() {
 								))}
 								{globalRules.length === 0 && (
 									<p className="rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-										No global rules found.
+										暂无全局规则。
 									</p>
 								)}
 							</div>
@@ -728,7 +736,7 @@ export function RulesView() {
 
 						<div className="mb-2">
 							<h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-								Project Rules
+								项目规则
 							</h3>
 							<div className="flex flex-col gap-2">
 								{projectRules.map((rule) => (
@@ -752,7 +760,7 @@ export function RulesView() {
 								))}
 								{projectRules.length === 0 && (
 									<p className="rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-										No project rules found.
+										暂无项目规则。
 									</p>
 								)}
 							</div>
@@ -763,18 +771,18 @@ export function RulesView() {
 				{activeTab === "Hooks" && (
 					<div>
 						<p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-							Hook config files from workspace and global hook directories.
+							来自工作空间和全局钩子目录的钩子配置文件。
 						</p>
 						{hookExecutionLoading && hookExecutionSessionId && (
 							<p className="mb-4 text-xs text-muted-foreground">
-								Execution status is based on hook events in session{" "}
+								执行状态基于会话中的钩子事件{" "}
 								<span className="font-mono">{hookExecutionSessionId}</span>.
 							</p>
 						)}
 
 						<div className="mb-6">
 							<h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-								Global Hooks
+								全局钩子
 							</h3>
 							<div className="flex flex-col gap-2">
 								{globalHooks.map((hook) => (
@@ -806,8 +814,8 @@ export function RulesView() {
 																)}
 															>
 																{executed
-																	? `${stats?.count ?? 0} executed`
-																	: "never executed"}
+																	? `${stats?.count ?? 0} 已执行`
+																	: "从未执行"}
 															</span>
 														);
 													})()}
@@ -816,7 +824,7 @@ export function RulesView() {
 										</div>
 										{hook.hookEventName ? (
 											<p className="mt-1 text-xs text-muted-foreground">
-												Last run:{" "}
+												最后运行:{" "}
 												{formatExecutionTs(
 													hookExecutionByEvent[hook.hookEventName]?.lastTs ??
 														null,
@@ -830,7 +838,7 @@ export function RulesView() {
 								))}
 								{globalHooks.length === 0 && (
 									<p className="rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-										No global hooks found.
+										暂无全局钩子。
 									</p>
 								)}
 							</div>
@@ -839,7 +847,7 @@ export function RulesView() {
 						<div>
 							<div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
 								<FolderOpen className="h-3.5 w-3.5" />
-								Project Hooks
+								项目钩子
 							</div>
 							<div className="flex flex-col gap-2">
 								{projectHooks.map((hook) => (
@@ -871,8 +879,8 @@ export function RulesView() {
 																)}
 															>
 																{executed
-																	? `${stats?.count ?? 0} executed`
-																	: "never executed"}
+																	? `${stats?.count ?? 0} 已执行`
+																	: "从未执行"}
 															</span>
 														);
 													})()}
@@ -881,7 +889,7 @@ export function RulesView() {
 										</div>
 										{hook.hookEventName ? (
 											<p className="mt-1 text-xs text-muted-foreground">
-												Last run:{" "}
+												最后运行:{" "}
 												{formatExecutionTs(
 													hookExecutionByEvent[hook.hookEventName]?.lastTs ??
 														null,
@@ -895,7 +903,7 @@ export function RulesView() {
 								))}
 								{projectHooks.length === 0 && (
 									<p className="rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-										No project hooks found.
+										暂无项目钩子。
 									</p>
 								)}
 							</div>
@@ -906,11 +914,11 @@ export function RulesView() {
 				{activeTab === "Skills" && (
 					<div>
 						<p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-							Skills can be invoked in chat with{" "}
+							技能可以在聊天中使用{" "}
 							<code className="rounded bg-secondary px-1.5 py-0.5 text-xs font-mono text-foreground">
 								/SKILL
 							</code>
-							.
+							调用。
 						</p>
 
 						<div className="flex flex-col gap-3">
@@ -942,7 +950,7 @@ export function RulesView() {
 							))}
 							{commandItems.length === 0 && (
 								<p className="rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-									No enabled skills or workflows found.
+									暂无可用的技能或工作流。
 								</p>
 							)}
 						</div>
@@ -952,8 +960,7 @@ export function RulesView() {
 				{activeTab === "Agents" && (
 					<div>
 						<p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-							Configured agents discovered from Documents and settings
-							directories.
+							从文档和设置目录中发现的已配置代理。
 						</p>
 
 						<div className="flex flex-col gap-3">
@@ -975,7 +982,7 @@ export function RulesView() {
 							))}
 							{agents.length === 0 && (
 								<p className="rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-									No configured agents found.
+									暂未配置代理。
 								</p>
 							)}
 						</div>
@@ -985,12 +992,12 @@ export function RulesView() {
 				{activeTab === "Plugins" && (
 					<div>
 						<p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-							Plugins discovered from workspace and global plugin directories.
+							从工作空间和全局插件目录中发现的插件。
 						</p>
 
 						<div className="mb-6">
 							<h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-								Global Plugins
+								全局插件
 							</h3>
 							<div className="flex flex-col gap-3">
 								{globalPlugins.map((plugin) => (
@@ -1004,7 +1011,7 @@ export function RulesView() {
 												{plugin.name}
 											</h3>
 											<span className="text-xs text-muted-foreground">
-												{plugin.enabled ? "Enabled" : "Disabled"}
+												{plugin.enabled ? "已启用" : "已禁用"}
 											</span>
 											<Switch
 												checked={plugin.enabled}
@@ -1012,7 +1019,7 @@ export function RulesView() {
 													void setPluginEnabled(plugin);
 												}}
 												disabled={togglingPluginPaths.has(plugin.path)}
-												aria-label={`Toggle ${plugin.name}`}
+												aria-label={`切换 ${plugin.name}`}
 											/>
 										</div>
 										<p className="mt-1 ml-7 text-xs font-mono text-muted-foreground">
@@ -1036,12 +1043,12 @@ export function RulesView() {
 															</p>
 															<p className="text-xs text-muted-foreground">
 																{tool.description?.trim() ||
-																	"No description available."}
+																	"暂无描述。"}
 															</p>
 														</div>
 														<div className="flex items-center gap-2">
 															<span className="text-xs text-muted-foreground">
-																{tool.enabled ? "Enabled" : "Disabled"}
+																{tool.enabled ? "已启用" : "已禁用"}
 															</span>
 															<Switch
 																checked={tool.enabled}
@@ -1049,7 +1056,7 @@ export function RulesView() {
 																	void setToolEnabled(tool);
 																}}
 																disabled={isToggling || !plugin.enabled}
-																aria-label={`Toggle ${tool.name}`}
+																aria-label={`切换 ${tool.name}`}
 															/>
 														</div>
 													</div>
@@ -1059,7 +1066,7 @@ export function RulesView() {
 												`${plugin.name}:${plugin.path}`,
 											)?.length ?? 0) === 0 && (
 												<p className="text-xs text-muted-foreground">
-													No plugin tools found.
+													暂无插件工具。
 												</p>
 											)}
 										</div>
@@ -1067,7 +1074,7 @@ export function RulesView() {
 								))}
 								{globalPlugins.length === 0 && (
 									<p className="rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-										No global plugins found.
+										暂无全局插件。
 									</p>
 								)}
 							</div>
@@ -1075,7 +1082,7 @@ export function RulesView() {
 
 						<div>
 							<h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-								Project Plugins
+								项目插件
 							</h3>
 							<div className="flex flex-col gap-3">
 								{projectPlugins.map((plugin) => (
@@ -1089,7 +1096,7 @@ export function RulesView() {
 												{plugin.name}
 											</h3>
 											<span className="text-xs text-muted-foreground">
-												{plugin.enabled ? "Enabled" : "Disabled"}
+												{plugin.enabled ? "已启用" : "已禁用"}
 											</span>
 											<Switch
 												checked={plugin.enabled}
@@ -1097,7 +1104,7 @@ export function RulesView() {
 													void setPluginEnabled(plugin);
 												}}
 												disabled={togglingPluginPaths.has(plugin.path)}
-												aria-label={`Toggle ${plugin.name}`}
+												aria-label={`切换 ${plugin.name}`}
 											/>
 										</div>
 										<p className="mt-1 ml-7 text-xs font-mono text-muted-foreground">
@@ -1121,12 +1128,12 @@ export function RulesView() {
 															</p>
 															<p className="text-xs text-muted-foreground">
 																{tool.description?.trim() ||
-																	"No description available."}
+																	"暂无描述。"}
 															</p>
 														</div>
 														<div className="flex items-center gap-2">
 															<span className="text-xs text-muted-foreground">
-																{tool.enabled ? "Enabled" : "Disabled"}
+																{tool.enabled ? "已启用" : "已禁用"}
 															</span>
 															<Switch
 																checked={tool.enabled}
@@ -1134,7 +1141,7 @@ export function RulesView() {
 																	void setToolEnabled(tool);
 																}}
 																disabled={isToggling || !plugin.enabled}
-																aria-label={`Toggle ${tool.name}`}
+																aria-label={`切换 ${tool.name}`}
 															/>
 														</div>
 													</div>
@@ -1144,7 +1151,7 @@ export function RulesView() {
 												`${plugin.name}:${plugin.path}`,
 											)?.length ?? 0) === 0 && (
 												<p className="text-xs text-muted-foreground">
-													No plugin tools found.
+													暂无插件工具。
 												</p>
 											)}
 										</div>
@@ -1152,7 +1159,7 @@ export function RulesView() {
 								))}
 								{projectPlugins.length === 0 && (
 									<p className="rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-										No project plugins found.
+										暂无项目插件。
 									</p>
 								)}
 							</div>
@@ -1163,13 +1170,12 @@ export function RulesView() {
 				{activeTab === "Tools" && (
 					<div>
 						<p className="mb-6 text-sm leading-relaxed text-muted-foreground">
-							Builtin tool groups and plugin-contributed tools available to the
-							runtime.
+							运行时可用的内置工具组和插件贡献的工具。
 						</p>
 
 						<div className="mb-6">
 							<h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-								Builtin Tools
+								内置工具
 							</h3>
 							<div className="flex flex-col gap-3">
 								{builtinTools.map((tool) =>
@@ -1186,7 +1192,7 @@ export function RulesView() {
 														{tool.name}
 													</h3>
 													<span className="text-xs text-muted-foreground">
-														{tool.enabled ? "Enabled" : "Disabled"}
+														{tool.enabled ? "已启用" : "已禁用"}
 													</span>
 													<Switch
 														checked={tool.enabled}
@@ -1194,12 +1200,12 @@ export function RulesView() {
 															void setToolEnabled(tool);
 														}}
 														disabled={isToggling}
-														aria-label={`Toggle ${tool.name}`}
+														aria-label={`切换 ${tool.name}`}
 													/>
 												</div>
 												<p className="mt-2 ml-7 text-xs text-muted-foreground">
 													{tool.description?.trim() ||
-														"No description available."}
+														"暂无描述。"}
 												</p>
 												{!!tool.headlessToolNames?.length && (
 													<p className="mt-1 ml-7 text-xs font-mono text-muted-foreground">
@@ -1212,7 +1218,7 @@ export function RulesView() {
 								)}
 								{builtinTools.length === 0 && (
 									<p className="rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-										No builtin tools found.
+										暂无内置工具。
 									</p>
 								)}
 							</div>
@@ -1220,7 +1226,7 @@ export function RulesView() {
 
 						<div>
 							<h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-								Plugin Tools
+								插件工具
 							</h3>
 							<div className="flex flex-col gap-3">
 								{pluginTools.map((tool) =>
@@ -1237,12 +1243,12 @@ export function RulesView() {
 														{tool.name}
 													</h3>
 													{tool.pluginName && (
-														<span className="rounded border border-border px-2 py-0.5 text-xs text-muted-foreground">
-															plugin: {tool.pluginName}
+														<span className="rounded-md border bg-background px-1.5 py-0.5 text-[11px] text-muted-foreground">
+															插件: {tool.pluginName}
 														</span>
 													)}
 													<span className="text-xs text-muted-foreground">
-														{tool.enabled ? "Enabled" : "Disabled"}
+														{tool.enabled ? "已启用" : "已禁用"}
 													</span>
 													<Switch
 														checked={tool.enabled}
@@ -1250,12 +1256,12 @@ export function RulesView() {
 															void setToolEnabled(tool);
 														}}
 														disabled={isToggling}
-														aria-label={`Toggle ${tool.name}`}
+														aria-label={`切换 ${tool.name}`}
 													/>
 												</div>
 												<p className="mt-2 ml-7 text-xs text-muted-foreground">
 													{tool.description?.trim() ||
-														"No description available."}
+														"暂无描述。"}
 												</p>
 												{tool.path && (
 													<p className="mt-1 ml-7 text-xs font-mono text-muted-foreground">
@@ -1268,7 +1274,7 @@ export function RulesView() {
 								)}
 								{pluginTools.length === 0 && (
 									<p className="rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground">
-										No plugin tools found.
+										暂无插件工具。
 									</p>
 								)}
 							</div>

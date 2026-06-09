@@ -1,24 +1,24 @@
 # Provider VCR fixtures
 
-These cassettes exercise the real provider adapters in `@cline/llms` without
+These cassettes exercise the real provider adapters in `@coohu/llms` without
 requiring credentials during normal test runs.
 
 Run playback from `sdk/`:
 
 ```sh
-bun -F @cline/llms test:vcr
+bun -F @coohu/llms test:vcr
 ```
 
 Refresh the cassettes from local provider credentials:
 
 ```sh
-LLMS_PROVIDER_VCR_RECORD=1 bun -F @cline/llms test:vcr
+LLMS_PROVIDER_VCR_RECORD=1 bun -F @coohu/llms test:vcr
 ```
 
 Refresh one cassette by provider id or cassette name:
 
 ```sh
-LLMS_PROVIDER_VCR_RECORD=1 LLMS_PROVIDER_VCR_TARGET=cline bun -F @cline/llms test:vcr
+LLMS_PROVIDER_VCR_RECORD=1 LLMS_PROVIDER_VCR_TARGET=cline bun -F @coohu/llms test:vcr
 ```
 
 Record mode prefers the normal Cline CLI provider settings path. To use another

@@ -207,7 +207,7 @@ export const PackageInfoDependencies = ({
 }: PackageInfoDependenciesProps) => (
 	<div className={cn("space-y-2", className)} {...props}>
 		<span className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-			Dependencies
+			依赖
 		</span>
 		<div className="space-y-1">{children}</div>
 	</div>

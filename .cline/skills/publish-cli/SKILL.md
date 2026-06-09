@@ -15,7 +15,7 @@ The skill should guide the user through one release preparation flow, then offer
 
 ## Release contract
 
-- SDK prerequisite: the CLI depends on the SDK via `workspace:*` (`@cline/core`, `@cline/shared`, and friends). If the SDK changed since its last release, release the SDK first and wait for it to finish publishing before releasing the CLI. See "Step 0: Release the SDK first if it changed" below.
+- SDK prerequisite: the CLI depends on the SDK via `workspace:*` (`@coohu/core`, `@coohu/shared`, and friends). If the SDK changed since its last release, release the SDK first and wait for it to finish publishing before releasing the CLI. See "Step 0: Release the SDK first if it changed" below.
 - Version source: `apps/cli/package.json`.
 - Main release tag: `cli-vX.Y.Z`, where `X.Y.Z` matches `apps/cli/package.json`.
 - Nightly release version: `X.Y.Z-nightly.TIMESTAMP`.
@@ -35,12 +35,12 @@ The skill should guide the user through one release preparation flow, then offer
 
 Do this before anything else in the Workflow below.
 
-The CLI builds and ships against the SDK source in the monorepo (`workspace:*` for `@cline/core`, `@cline/shared`, and the rest), so a CLI release always contains the latest SDK code whether or not the SDK was released. The build and tests use that source too, not anything from npm. Releasing the SDK alongside the CLI is still worth doing for two reasons:
+The CLI builds and ships against the SDK source in the monorepo (`workspace:*` for `@coohu/core`, `@coohu/shared`, and the rest), so a CLI release always contains the latest SDK code whether or not the SDK was released. The build and tests use that source too, not anything from npm. Releasing the SDK alongside the CLI is still worth doing for two reasons:
 
-- Hub freshness. The hub daemon lives in `@cline/core` and stamps a `buildId` that defaults to the `@cline/core` package version (`resolveHubBuildId` in `sdk/packages/core/src/hub/discovery/index.ts`). A running hub is only retired and respawned when that `buildId` changes (`isCompatibleHubRecord` / `retireIncompatibleHub` in `sdk/packages/core/src/hub/daemon/index.ts`). So if the SDK code changed but the version did not, a user who upgrades the CLI keeps talking to their already-running hub, which is still executing the old SDK code. Bumping the SDK version makes the new CLI's `buildId` differ, so the stale hub is detected as incompatible and respawned with the fresh code.
+- Hub freshness. The hub daemon lives in `@coohu/core` and stamps a `buildId` that defaults to the `@coohu/core` package version (`resolveHubBuildId` in `sdk/packages/core/src/hub/discovery/index.ts`). A running hub is only retired and respawned when that `buildId` changes (`isCompatibleHubRecord` / `retireIncompatibleHub` in `sdk/packages/core/src/hub/daemon/index.ts`). So if the SDK code changed but the version did not, a user who upgrades the CLI keeps talking to their already-running hub, which is still executing the old SDK code. Bumping the SDK version makes the new CLI's `buildId` differ, so the stale hub is detected as incompatible and respawned with the fresh code.
 - Release hygiene. We want regular SDK releases; cutting one whenever we cut a CLI release keeps the published SDK in step with what the CLI ships.
 
-So when the SDK has changed, release it first (which bumps the `@cline/core` version), then cut the CLI release on top of that bump. Leave the CLI's SDK dependency as `workspace:*` — the fix is to release the SDK, not to pin the CLI.
+So when the SDK has changed, release it first (which bumps the `@coohu/core` version), then cut the CLI release on top of that bump. Leave the CLI's SDK dependency as `workspace:*` — the fix is to release the SDK, not to pin the CLI.
 
 1. Check for unreleased SDK changes.
 
@@ -94,7 +94,7 @@ gh workflow run sdk-publish.yml -f channel=latest -f confirm_publish=publish
 gh run list --workflow=sdk-publish.yml --limit=1 --json databaseId,url,status,createdAt --jq '.[0]'
 ```
 
-The workflow runs the SDK tests, publishes `@cline/shared`, `@cline/llms`, `@cline/agents`, `@cline/core`, and `@cline/sdk` to npm with the `latest` dist-tag in dependency order, and pushes `sdk/<pkg>/v<version>` git tags.
+The workflow runs the SDK tests, publishes `@coohu/shared`, `@coohu/llms`, `@coohu/agents`, `@coohu/core`, and `@coohu/sdk` to npm with the `latest` dist-tag in dependency order, and pushes `sdk/<pkg>/v<version>` git tags.
 
 7. Wait for the SDK workflow to succeed before starting the CLI release.
 
@@ -102,7 +102,7 @@ The workflow runs the SDK tests, publishes `@cline/shared`, `@cline/llms`, `@cli
 gh run watch <run-id> --exit-status
 ```
 
-Do not start the CLI release until this run has finished successfully. The CLI does not install the SDK from npm, but cutting the CLI release on top of a clean, completed SDK release keeps the two in step: the CLI release commit then sits on top of the `@cline/core` version bump, so the shipped CLI carries the new version that forces a running hub to respawn with the new code, and you are not building a CLI release on top of an SDK release that failed midway.
+Do not start the CLI release until this run has finished successfully. The CLI does not install the SDK from npm, but cutting the CLI release on top of a clean, completed SDK release keeps the two in step: the CLI release commit then sits on top of the `@coohu/core` version bump, so the shipped CLI carries the new version that forces a running hub to respawn with the new code, and you are not building a CLI release on top of an SDK release that failed midway.
 
 After the SDK release succeeds, pull `main` so the CLI release is prepared on top of the SDK version bump:
 
@@ -160,8 +160,8 @@ Prepend a section to `apps/cli/CHANGELOG.md` for the approved version using the 
 Run focused checks first:
 
 ```sh
-bun -F @cline/cli typecheck
-bun -F @cline/cli test:unit
+bun -F @coohu/cli typecheck
+bun -F @coohu/cli test:unit
 ```
 
 For higher confidence, run:

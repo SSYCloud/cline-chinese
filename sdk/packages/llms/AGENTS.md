@@ -1,10 +1,10 @@
 ---
-description: Development guidance for the @cline/llms package.
+description: Development guidance for the @coohu/llms package.
 globs: "src/**/*.ts,src/**/*.tsx,*.md"
 alwaysApply: true
 ---
 
-# @cline/llms Development Guidance
+# @coohu/llms Development Guidance
 
 ## Provider Option Routing
 

@@ -424,7 +424,7 @@ export type PromptInputActionAddAttachmentsProps = ComponentProps<
 };
 
 export const PromptInputActionAddAttachments = ({
-	label = "Add photos or files",
+	label = "添加图片或文件",
 	...props
 }: PromptInputActionAddAttachmentsProps) => {
 	const attachments = usePromptInputAttachments();
@@ -455,7 +455,7 @@ export type PromptInputActionAddScreenshotProps = ComponentProps<
 };
 
 export const PromptInputActionAddScreenshot = ({
-	label = "Take screenshot",
+	label = "截取屏幕",
 	onSelect,
 	...props
 }: PromptInputActionAddScreenshotProps) => {
@@ -939,12 +939,12 @@ export const PromptInput = ({
 		<>
 			<input
 				accept={accept}
-				aria-label="Upload files"
+				aria-label="上传文件"
 				className="hidden"
 				multiple={multiple}
 				onChange={handleChange}
 				ref={inputRef}
-				title="Upload files"
+				title="上传文件"
 				type="file"
 			/>
 			<form
@@ -989,7 +989,7 @@ export const PromptInputTextarea = ({
 	onChange,
 	onKeyDown,
 	className,
-	placeholder = "How can I help you?",
+	placeholder = "有什么可以帮你的？",
 	...props
 }: PromptInputTextareaProps) => {
 	const controller = useOptionalPromptInputController();
@@ -1285,7 +1285,7 @@ export const PromptInputSubmit = ({
 
 	return (
 		<InputGroupButton
-			aria-label={isGenerating ? "Stop" : "Submit"}
+			aria-label={isGenerating ? "停止" : "提交"}
 			className={cn(className)}
 			onClick={handleClick}
 			size={size}

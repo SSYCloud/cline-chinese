@@ -67,7 +67,7 @@ export const AgentInstructions = memo(
 	({ className, children, ...props }: AgentInstructionsProps) => (
 		<div className={cn("space-y-2", className)} {...props}>
 			<span className="font-medium text-muted-foreground text-sm">
-				Instructions
+				指令
 			</span>
 			<div className="rounded-md bg-muted/50 p-3 text-muted-foreground text-sm">
 				<p>{children}</p>
@@ -80,7 +80,7 @@ export type AgentToolsProps = ComponentProps<typeof Accordion>;
 
 export const AgentTools = memo(({ className, ...props }: AgentToolsProps) => (
 	<div className={cn("space-y-2", className)}>
-		<span className="font-medium text-muted-foreground text-sm">Tools</span>
+		<span className="font-medium text-muted-foreground text-sm">工具</span>
 		<Accordion className="rounded-md border" {...props} />
 	</div>
 ));
@@ -103,7 +103,7 @@ export const AgentTool = memo(
 				{...props}
 			>
 				<AccordionTrigger className="px-3 py-2 text-sm hover:no-underline">
-					{tool.description ?? "No description"}
+					{tool.description ?? "无描述"}
 				</AccordionTrigger>
 				<AccordionContent className="px-3 pb-3">
 					<div className="rounded-md bg-muted/50">
@@ -123,7 +123,7 @@ export const AgentOutput = memo(
 	({ className, schema, ...props }: AgentOutputProps) => (
 		<div className={cn("space-y-2", className)} {...props}>
 			<span className="font-medium text-muted-foreground text-sm">
-				Output Schema
+				输出结构
 			</span>
 			<div className="rounded-md bg-muted/50">
 				<CodeBlock code={schema} language="typescript" />

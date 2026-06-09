@@ -54,7 +54,7 @@ cd apps/cli
 bun link
 ```
 
-The `build:sdk` step is required because `bun link` runs without the `--conditions=development` flag, so Bun resolves workspace packages (`@cline/llms`, `@cline/core`, etc.) via their `package.json` exports which point to `dist/`. Without the build, those dist files don't exist and you'll get "Cannot find module" errors.
+The `build:sdk` step is required because `bun link` runs without the `--conditions=development` flag, so Bun resolves workspace packages (`@coohu/llms`, `@coohu/core`, etc.) via their `package.json` exports which point to `dist/`. Without the build, those dist files don't exist and you'll get "Cannot find module" errors.
 
 After linking, you can run `cline` from any directory:
 
@@ -416,7 +416,7 @@ Then attach VS Code or Chrome DevTools to `ws://127.0.0.1:6499`.
 
 ## Publishing
 
-The CLI is published as the `cline` wrapper package on npm with platform-specific binaries under `@cline/cli-*`. The release flow lives in the `publish-cli` skill (`.cline/skills/publish-cli/SKILL.md` at the repo root).
+The CLI is published as the `cline` wrapper package on npm with platform-specific binaries under `@coohu/cli-*`. The release flow lives in the `publish-cli` skill (`.cline/skills/publish-cli/SKILL.md` at the repo root).
 
 From the `apps/cli` workspace:
 
@@ -453,11 +453,11 @@ See [DISTRIBUTION.md](./DISTRIBUTION.md) for details on how the CLI is packaged.
 
 `cline` uses a `pino`-backed adapter that targets the core `BasicLogger` contract:
 
-- CLI runtime passes `logger` directly into local `@cline/core` sessions.
+- CLI runtime passes `logger` directly into local `@coohu/core` sessions.
 - Hub-backed sessions include a serialized logger payload in `ChatStartSessionRequest.logger`; the runtime reconstructs the same `pino` settings and injects them into core.
 - Hosts can attach stable runtime logger bindings (for example `clientId`, `clientType`, `clientApp`) through `RuntimeLoggerConfig.bindings`.
 
-After login, OAuth credentials are persisted with `auth.expiresAt`, and `@cline/core` refreshes these tokens automatically during session turns. Provider auth and model settings should be changed through `cline auth`, the interactive config UI, or core provider-settings APIs rather than editing provider settings files directly.
+After login, OAuth credentials are persisted with `auth.expiresAt`, and `@coohu/core` refreshes these tokens automatically during session turns. Provider auth and model settings should be changed through `cline auth`, the interactive config UI, or core provider-settings APIs rather than editing provider settings files directly.
 
 On startup, `cline` also attempts a legacy settings import:
 

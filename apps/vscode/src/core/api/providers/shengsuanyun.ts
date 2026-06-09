@@ -157,8 +157,10 @@ export class ShengSuanYunHandler implements ApiHandler {
 	async *createMessageResponsesApi(systemPrompt: string, messages: ClineStorageMessage[], tools?: OpenAITool[]): ApiStream {
 		const client = this.ensureOpenAIClient()
 		const model = this.getModel()
-		const { input: inputMessages } = convertToOpenAIResponsesInput(messages, { usePreviousResponseId: false })
-		const input: OpenAI.Responses.ResponseInputItem[] = [{ role: "system", content: systemPrompt }, ...inputMessages]
+		const { input: rawInput } = convertToOpenAIResponsesInput(messages, { usePreviousResponseId: false })
+		const input = rawInput
+			.filter((item: any) => item.type !== "reasoning")
+			.map((item: any) => (item.type === "message" && item.id ? (({ id: _id, ...rest }) => rest)(item) : item))
 
 		const responseTools = tools
 			?.filter((tool) => tool?.type === "function")
@@ -172,6 +174,7 @@ export class ShengSuanYunHandler implements ApiHandler {
 
 		const stream = await client.responses.create({
 			model: model.id,
+			instructions: systemPrompt,
 			input,
 			stream: true,
 			tools: responseTools,

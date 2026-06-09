@@ -5,7 +5,7 @@
 A multi-turn conversational agent in the terminal with streaming output:
 
 ```typescript
-import { Agent } from "@cline/sdk"
+import { Agent } from "@coohu/sdk"
 import * as readline from "node:readline"
 
 const agent = new Agent({
@@ -56,7 +56,7 @@ prompt()
 Maintain per-thread agents with conversation memory:
 
 ```typescript
-import { Agent } from "@cline/sdk"
+import { Agent } from "@coohu/sdk"
 
 const agents = new Map<string, Agent>()
 
@@ -120,7 +120,7 @@ const result = await agent.run("Hello!")
 Use a tool with `completesRun: true` to extract structured data:
 
 ```typescript
-import { Agent, createTool } from "@cline/sdk"
+import { Agent, createTool } from "@coohu/sdk"
 import { z } from "zod"
 
 const submitReview = createTool({
@@ -179,8 +179,8 @@ try {
 ## Agent with Plugins
 
 ```typescript
-import { Agent } from "@cline/sdk"
-import type { AgentPlugin } from "@cline/sdk"
+import { Agent } from "@coohu/sdk"
+import type { AgentPlugin } from "@coohu/sdk"
 
 const loggingPlugin: AgentPlugin = {
   name: "logging",
@@ -228,8 +228,8 @@ For automatic persistence, use `ClineCore` instead.
 For advanced provider configuration:
 
 ```typescript
-import { Agent } from "@cline/sdk"
-import { createGateway } from "@cline/llms"
+import { Agent } from "@coohu/sdk"
+import { createGateway } from "@coohu/llms"
 
 const gateway = createGateway({
   providerConfigs: [

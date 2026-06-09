@@ -39,6 +39,16 @@ const navCategories = [
 	"Account",
 ] as const;
 
+const navLabels: Record<string, string> = {
+	General: "通用",
+	Providers: "提供商",
+	Customizations: "自定义项",
+	MCP: "MCP",
+	Channels: "频道",
+	Schedules: "定时任务",
+	Account: "账户",
+};
+
 export type SettingsSection = (typeof navCategories)[number];
 type Theme = "dark" | "light";
 type GlobalSettingsResponse = {
@@ -168,7 +178,7 @@ export function SettingsView({
 				});
 			} catch (error) {
 				const message = error instanceof Error ? error.message : String(error);
-				window.alert(`Failed to save provider settings for ${id}: ${message}`);
+				window.alert(`保存提供商 ${id} 设置时失败：${message}`);
 			}
 		},
 		[],
@@ -280,7 +290,7 @@ export function SettingsView({
 			setSelectedProviderId(id);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
-			window.alert(`Failed to sign in to ${id}: ${message}`);
+			window.alert(`登录 ${id} 时失败：${message}`);
 		} finally {
 			setOauthSigningProviderId(null);
 		}
@@ -352,9 +362,9 @@ export function SettingsView({
 		<div className="flex h-full flex-col overflow-hidden bg-background">
 			{/* Header bar */}
 			<div className="flex shrink-0 items-center justify-between border-b border-border px-6 py-3">
-				<h1 className="text-lg font-semibold text-foreground">Settings</h1>
+				<h1 className="text-lg font-semibold text-foreground">设置</h1>
 				<Button
-					aria-label="Close settings"
+					aria-label="关闭设置"
 					className="justify-start"
 					onClick={onClose}
 					variant="ghost"
@@ -372,7 +382,7 @@ export function SettingsView({
 							{navCategories.map((cat) => {
 								if (cat === "Providers") {
 									return (
-										<div key={cat}>
+										<div key={navLabels[cat] || cat}>
 											<Button
 												className={cn(
 													"flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors",
@@ -386,7 +396,7 @@ export function SettingsView({
 												}}
 												variant="ghost"
 											>
-												<span>Providers</span>
+												<span>提供商</span>
 												{providersExpanded ? (
 													<ChevronDown className="size-3" />
 												) : (
@@ -424,13 +434,13 @@ export function SettingsView({
 												? "bg-accent text-accent-foreground font-medium"
 												: "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
 										)}
-										key={cat}
+										key={navLabels[cat] || cat}
 										onClick={() => {
 											selectSection(cat);
 										}}
 										variant="ghost"
 									>
-										{cat}
+										{navLabels[cat] || cat}
 									</Button>
 								);
 							})}
@@ -469,13 +479,13 @@ export function SettingsView({
 						) : providersLoading ? (
 							<div className="flex h-full items-center justify-center">
 								<p className="text-sm text-muted-foreground">
-									Loading providers...
+									加载提供商中...
 								</p>
 							</div>
 						) : providerCatalogError ? (
 							<div className="flex h-full items-center justify-center">
 								<p className="max-w-xl px-4 text-center text-sm text-destructive">
-									Failed to load providers: {providerCatalogError}
+									加载提供商失败：{providerCatalogError}
 								</p>
 							</div>
 						) : (
@@ -504,7 +514,7 @@ export function SettingsView({
 					) : (
 						<div className="flex h-full items-center justify-center">
 							<p className="text-sm text-muted-foreground">
-								{activeNav} settings coming soon.
+								{activeNav} 设置即将推出。
 							</p>
 						</div>
 					)}
@@ -575,14 +585,14 @@ function GeneralSettingsContent({
 		<ScrollArea className="h-full">
 			<div className="mx-auto max-w-3xl px-8 py-6">
 				<div className="mb-6">
-					<h2 className="text-lg font-semibold text-foreground">General</h2>
+					<h2 className="text-lg font-semibold text-foreground">通用</h2>
 				</div>
 				<section className="rounded-lg border border-border p-5">
 					<div className="flex items-center justify-between gap-5 max-[720px]:flex-col max-[720px]:items-stretch">
 						<div>
-							<p className="text-sm font-medium text-foreground">Theme</p>
+							<p className="text-sm font-medium text-foreground">主题</p>
 							<p className="mt-1 text-xs text-muted-foreground">
-								Use the light or dark Cline Hub interface.
+								使用 Cline Hub 的浅色或深色界面。
 							</p>
 						</div>
 						<div className="flex items-center gap-2 max-[720px]:justify-start">
@@ -592,7 +602,7 @@ function GeneralSettingsContent({
 								variant={theme === "dark" ? "default" : "outline"}
 							>
 								<Moon className="size-4" />
-								Dark
+								深色
 							</Button>
 							<Button
 								onClick={() => onThemeChange("light")}
@@ -600,7 +610,7 @@ function GeneralSettingsContent({
 								variant={theme === "light" ? "default" : "outline"}
 							>
 								<Sun className="size-4" />
-								Light
+								浅色
 							</Button>
 						</div>
 					</div>
@@ -608,18 +618,18 @@ function GeneralSettingsContent({
 				<section className="mt-4 rounded-lg border border-border p-5">
 					<div className="flex items-center justify-between gap-5 max-[720px]:flex-col max-[720px]:items-stretch">
 						<div>
-							<p className="text-sm font-medium text-foreground">Telemetry</p>
+							<p className="text-sm font-medium text-foreground">遥测</p>
 							<p className="mt-1 text-xs text-muted-foreground">
-								Enable error and usage report to help us improve Cline.
+								启用错误和使用报告以帮助我们改进 Cline。
 							</p>
 							{telemetryError ? (
 								<p className="mt-2 text-xs text-destructive">
-									Failed to update telemetry setting: {telemetryError}
+									更新遥测设置失败：{telemetryError}
 								</p>
 							) : null}
 						</div>
 						<Switch
-							aria-label="Telemetry opt-out"
+							aria-label="遥测选择退出"
 							checked={!telemetryOptOut} // If opt-out is true, the switch should be off (unchecked)
 							disabled={telemetryLoading || telemetrySaving}
 							onCheckedChange={(checked) => void updateTelemetryOptOut(checked)}

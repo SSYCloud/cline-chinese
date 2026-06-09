@@ -206,7 +206,7 @@ export function ChannelsContent() {
 		securityValues: {},
 	});
 	const [formError, setFormError] = useState<string | null>(null);
-	const [removeTarget, setRemoveTarget] = useState<ActiveConnector | null>(
+	const [removeTarget, set移除Target] = useState<ActiveConnector | null>(
 		null,
 	);
 
@@ -277,7 +277,7 @@ export function ChannelsContent() {
 
 	const startConnector = async () => {
 		if (!selectedChannel) {
-			setFormError("Choose a channel");
+			setFormError("请选择一个频道");
 			return;
 		}
 		for (const field of selectedChannel.fields) {
@@ -285,7 +285,7 @@ export function ChannelsContent() {
 				continue;
 			}
 			if (field.required && !formState.values[field.flag]?.trim()) {
-				setFormError(`${field.label} is required`);
+				setFormError(`${field.label} 为必填项`);
 				return;
 			}
 		}
@@ -331,7 +331,7 @@ export function ChannelsContent() {
 				{ channel: connector.type },
 			);
 			applyResponse(response);
-			setRemoveTarget(null);
+			set移除Target(null);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
 			setErrorMessage(message);
@@ -345,9 +345,9 @@ export function ChannelsContent() {
 			<div className="mx-auto flex max-w-5xl flex-col gap-6 p-6">
 				<div className="flex items-center justify-between gap-3">
 					<div>
-						<h2 className="text-lg font-semibold">Channels</h2>
+						<h2 className="text-lg font-semibold">频道</h2>
 						<p className="text-sm text-muted-foreground">
-							{activeConnectors.length} connected
+							{activeConnectors.length} 已连接
 						</p>
 					</div>
 					<div className="flex items-center gap-2">
@@ -369,7 +369,7 @@ export function ChannelsContent() {
 							type="button"
 						>
 							<Plus className="size-4" />
-							Add Channel
+							添加频道
 						</Button>
 					</div>
 				</div>
@@ -384,11 +384,11 @@ export function ChannelsContent() {
 					<div className="grid gap-2 p-2.5">
 						{isLoading ? (
 							<p className="px-1 py-4 text-[13px] text-muted-foreground">
-								Loading channels...
+								加载频道中...
 							</p>
 						) : activeConnectors.length === 0 ? (
 							<p className="px-1 py-4 text-[13px] text-muted-foreground">
-								No channels connected.
+								暂无已连接的频道。
 							</p>
 						) : (
 							activeConnectors.map((connector) => (
@@ -436,13 +436,13 @@ export function ChannelsContent() {
 									</div>
 									<Button
 										disabled={busyChannel === connector.type}
-										onClick={() => setRemoveTarget(connector)}
+										onClick={() => set移除Target(connector)}
 										size="sm"
 										type="button"
 										variant="outline"
 									>
 										<Trash2 className="size-4" />
-										Remove...
+										移除...
 									</Button>
 								</div>
 							))
@@ -454,14 +454,14 @@ export function ChannelsContent() {
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 				<DialogContent className="max-h-[86vh] overflow-y-auto sm:max-w-xl">
 					<DialogHeader>
-						<DialogTitle>Add Channel</DialogTitle>
+						<DialogTitle>添加频道</DialogTitle>
 						<DialogDescription>
-							Start a connector channel for Cline Hub.
+							为 Cline Hub 启动一个连接器频道。
 						</DialogDescription>
 					</DialogHeader>
 					<div className="grid gap-4 py-2">
 						<div className="grid gap-2">
-							<Label>Channel</Label>
+							<Label>频道</Label>
 							<Select
 								onValueChange={(value) => {
 									if (!value) {
@@ -479,7 +479,7 @@ export function ChannelsContent() {
 								value={formState.channelId}
 							>
 								<SelectTrigger>
-									<SelectValue placeholder="Select channel" />
+									<SelectValue placeholder="选择频道" />
 								</SelectTrigger>
 								<SelectContent>
 									{channels.map((channel) => (
@@ -546,7 +546,7 @@ export function ChannelsContent() {
 						{selectedChannel?.security ? (
 							<div className="grid gap-3 rounded-lg border p-3">
 								<div className="flex items-center justify-between gap-3">
-									<Label className="text-sm">Restrict access</Label>
+									<Label className="text-sm">限制访问</Label>
 									<Switch
 										checked={formState.securityEnabled}
 										onCheckedChange={(checked: boolean) =>
@@ -598,7 +598,7 @@ export function ChannelsContent() {
 							onClick={() => void startConnector()}
 							type="button"
 						>
-							{busyChannel ? "Starting..." : "Add Channel"}
+							{busyChannel ? "启动中..." : "添加频道"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
@@ -608,17 +608,17 @@ export function ChannelsContent() {
 				open={removeTarget !== null}
 				onOpenChange={(open: boolean) => {
 					if (!open) {
-						setRemoveTarget(null);
+						set移除Target(null);
 					}
 				}}
 			>
 				<AlertDialogContent>
 					<AlertDialogHeader>
-						<AlertDialogTitle>Remove Channel</AlertDialogTitle>
+						<AlertDialogTitle>移除频道</AlertDialogTitle>
 						<AlertDialogDescription>
-							Confirm that you want to stop the active{" "}
+							确认要停止活跃的{" "}
 							{removeTarget ? connectorName(removeTarget, channels) : "channel"}{" "}
-							channel for {removeTarget ? connectorIdentity(removeTarget) : ""}.
+							channel 为 {removeTarget ? connectorIdentity(removeTarget) : ""}。
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>
@@ -634,7 +634,7 @@ export function ChannelsContent() {
 							}}
 							variant="destructive"
 						>
-							Remove
+							移除
 						</AlertDialogAction>
 					</AlertDialogFooter>
 				</AlertDialogContent>

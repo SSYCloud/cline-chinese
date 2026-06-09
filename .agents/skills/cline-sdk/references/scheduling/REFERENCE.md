@@ -1,6 +1,6 @@
 # Scheduling and Automation
 
-The Cline SDK supports scheduled, one-off, and event-driven agent execution through the automation subsystem in `@cline/core`.
+The Cline SDK supports scheduled, one-off, and event-driven agent execution through the automation subsystem in `@coohu/core`.
 
 ## Overview
 

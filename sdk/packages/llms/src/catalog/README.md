@@ -132,7 +132,7 @@ src/catalog/catalog.generated.ts
 Use the package script when regenerating:
 
 ```bash
-bun -F @cline/llms generate:models
+bun -F @coohu/llms generate:models
 ```
 
 Catalog changes should usually include tests in `catalog-live.test.ts` that

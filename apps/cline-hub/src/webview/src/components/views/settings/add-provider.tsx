@@ -86,13 +86,13 @@ export function AddProviderContent({
 
 	const duplicateProviderId =
 		existingProviderIds.includes(normalizedProviderId);
-	const hasManualModels = form.models.length > 0;
-	const hasModelsSource = form.modelsSourceUrl.trim().length > 0;
+	const hasManual模型 = form.models.length > 0;
+	const has模型Source = form.modelsSourceUrl.trim().length > 0;
 	const canSave =
 		normalizedProviderId.length > 0 &&
 		form.name.trim().length > 0 &&
 		form.baseUrl.trim().length > 0 &&
-		(hasManualModels || hasModelsSource) &&
+		(hasManual模型 || has模型Source) &&
 		!duplicateProviderId;
 
 	const handleAddModel = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -117,13 +117,13 @@ export function AddProviderContent({
 
 	const removeModel = (model: string) => {
 		setForm((prev) => {
-			const nextModels = prev.models.filter((m) => m !== model);
+			const next模型 = prev.models.filter((m) => m !== model);
 			return {
 				...prev,
-				models: nextModels,
+				models: next模型,
 				defaultModel:
 					prev.defaultModel === model
-						? (nextModels[0] ?? "")
+						? (next模型[0] ?? "")
 						: prev.defaultModel,
 			};
 		});
@@ -211,24 +211,24 @@ export function AddProviderContent({
 						onClick={onBack}
 						variant="secondary"
 						className="rounded-md p-1.5 transition-colors"
-						aria-label="Back to providers"
+						aria-label="返回提供商列表"
 					>
 						<ArrowLeft className="h-4 w-4" />
 					</Button>
 					<h2 className="text-lg font-semibold text-foreground">
-						Add Provider
+						添加提供商
 					</h2>
 				</div>
 
 				<div className="flex flex-col gap-6">
 					<div className="rounded-lg border border-border p-5">
 						<h3 className="mb-4 text-sm font-semibold text-foreground">
-							OpenAI-Compatible Provider
+							OpenAI 兼容提供商
 						</h3>
 						<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 							<div>
 								<Label className="mb-2 block text-xs font-medium text-muted-foreground">
-									Provider ID
+									提供商 ID
 								</Label>
 								<input
 									type="text"
@@ -240,17 +240,17 @@ export function AddProviderContent({
 									className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-1 focus:ring-ring"
 								/>
 								<p className="mt-1.5 text-xs text-muted-foreground">
-									Lowercase ID used in provider registry.
+									用于提供商注册的小写 ID。
 								</p>
 								{duplicateProviderId ? (
 									<p className="mt-1 text-xs text-destructive">
-										This provider ID already exists.
+										此提供商 ID 已存在。
 									</p>
 								) : null}
 							</div>
 							<div>
 								<Label className="mb-2 block text-xs font-medium text-muted-foreground">
-									Provider Name
+									提供商名称
 								</Label>
 								<input
 									type="text"
@@ -267,7 +267,7 @@ export function AddProviderContent({
 
 					<div className="rounded-lg border border-border p-5">
 						<Label className="mb-2 block text-xs font-medium text-muted-foreground">
-							Base URL
+							基础 URL
 						</Label>
 						<input
 							type="url"
@@ -282,7 +282,7 @@ export function AddProviderContent({
 
 					<div className="rounded-lg border border-border p-5">
 						<Label className="mb-2 block text-xs font-medium text-muted-foreground">
-							Model Source URL (Optional)
+							模型来源 URL（可选）
 						</Label>
 						<input
 							type="url"
@@ -297,14 +297,13 @@ export function AddProviderContent({
 							className="w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-1 focus:ring-ring"
 						/>
 						<p className="mt-1.5 text-xs text-muted-foreground">
-							Supported JSON: OpenAI `/models` shape with a `data` array, or a
-							direct model array.
+							支持的 JSON：OpenAI `/models` 格式（包含 `data` 数组），或直接的模型数组。
 						</p>
 					</div>
 
 					<div className="rounded-lg border border-border p-5">
 						<Label className="mb-2 block text-xs font-medium text-muted-foreground">
-							Models
+							模型
 						</Label>
 						<div className="flex min-h-11 flex-wrap content-start gap-1.5 rounded-lg border border-border bg-input px-3 py-2 focus-within:ring-1 focus-within:ring-ring">
 							{form.models.map((model) => (
@@ -316,7 +315,7 @@ export function AddProviderContent({
 									<Button
 										onClick={() => removeModel(model)}
 										className="text-primary/60 hover:text-primary transition-colors"
-										aria-label={`Remove ${model}`}
+										aria-label={`移除 ${model}`}
 									>
 										<X className="h-3 w-3" />
 									</Button>
@@ -329,21 +328,21 @@ export function AddProviderContent({
 								onKeyDown={handleAddModel}
 								placeholder={
 									form.models.length === 0
-										? "Type model ID and press Enter"
+										? "输入模型 ID 后按回车"
 										: ""
 								}
 								className="min-w-35 flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/50 outline-none"
 							/>
 						</div>
 						<p className="mt-1.5 text-xs text-muted-foreground">
-							Add at least one model or set a Model Source URL.
+							至少添加一个模型或设置模型来源 URL。
 						</p>
 					</div>
 
 					{form.models.length > 1 ? (
 						<div className="rounded-lg border border-border p-5">
 							<Label className="mb-2 block text-xs font-medium text-muted-foreground">
-								Default Model
+								默认模型
 							</Label>
 							<select
 								value={form.defaultModel}
@@ -363,7 +362,7 @@ export function AddProviderContent({
 
 					<div className="rounded-lg border border-border p-5">
 						<Label className="mb-2 block text-xs font-medium text-muted-foreground">
-							API Key (Optional)
+							API 密钥（可选）
 						</Label>
 						<div className="relative">
 							<input
@@ -380,7 +379,7 @@ export function AddProviderContent({
 									onClick={() => setShowApiKey(!showApiKey)}
 									variant="ghost"
 									className="rounded-md p-1 transition-colors"
-									aria-label={showApiKey ? "Hide API key" : "Show API key"}
+									aria-label={showApiKey ? "隐藏 API 密钥" : "显示 API 密钥"}
 								>
 									{showApiKey ? (
 										<EyeOff className="h-4 w-4" />
@@ -392,7 +391,7 @@ export function AddProviderContent({
 									onClick={() => navigator.clipboard.writeText(form.apiKey)}
 									variant="ghost"
 									className="rounded-md p-1 transition-colors"
-									aria-label="Copy API key"
+									aria-label="复制 API 密钥"
 								>
 									<Copy className="h-4 w-4" />
 								</Button>
@@ -402,7 +401,7 @@ export function AddProviderContent({
 
 					<div className="rounded-lg border border-border p-5">
 						<Label className="mb-3 block text-xs font-medium text-muted-foreground">
-							Capabilities
+							能力
 						</Label>
 						<div className="flex flex-wrap gap-2">
 							{CAPABILITY_OPTIONS.map((cap) => (
@@ -428,7 +427,7 @@ export function AddProviderContent({
 							className="flex w-full items-center justify-between px-5 py-4 text-sm font-medium transition-colors text-foreground/40"
 							variant="ghost"
 						>
-							Advanced Settings
+							高级设置
 							<ChevronDown
 								className={cn(
 									"h-4 w-4 text-muted-foreground transition-transform",
@@ -441,7 +440,7 @@ export function AddProviderContent({
 							<div className="border-t border-border px-5 py-5 flex flex-col gap-5">
 								<div>
 									<Label className="mb-2 block text-xs font-medium text-muted-foreground">
-										Timeout (ms)
+										超时（毫秒）
 									</Label>
 									<input
 										type="number"
@@ -459,7 +458,7 @@ export function AddProviderContent({
 
 								<div>
 									<Label className="mb-2 block text-xs font-medium text-muted-foreground">
-										Custom Headers
+										自定义请求头
 									</Label>
 									<div className="flex flex-col gap-2">
 										{Object.entries(form.headers).map(([key, value], idx) => (
@@ -470,7 +469,7 @@ export function AddProviderContent({
 													onChange={(e) =>
 														updateHeaderKey(key, e.target.value, idx)
 													}
-													placeholder="Header name"
+													placeholder="请求头名称"
 													className="flex-1 rounded-lg border border-border bg-input px-3 py-2 font-mono text-xs text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-1 focus:ring-ring"
 												/>
 												<input
@@ -479,13 +478,13 @@ export function AddProviderContent({
 													onChange={(e) =>
 														updateHeaderValue(key, e.target.value)
 													}
-													placeholder="Value"
+													placeholder="值"
 													className="flex-1 rounded-lg border border-border bg-input px-3 py-2 font-mono text-xs text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-1 focus:ring-ring"
 												/>
 												<Button
 													onClick={() => removeHeader(key)}
 													className="rounded-md p-2 text-muted-foreground hover:text-destructive transition-colors"
-													aria-label="Remove header"
+													aria-label="移除请求头"
 												>
 													<Trash2 className="h-4 w-4" />
 												</Button>
@@ -496,7 +495,7 @@ export function AddProviderContent({
 											className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors w-fit"
 										>
 											<Plus className="h-3 w-3" />
-											Add Header
+											添加请求头
 										</Button>
 									</div>
 								</div>
@@ -511,7 +510,7 @@ export function AddProviderContent({
 							onClick={onBack}
 							className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
 						>
-							Cancel
+							取消
 						</Button>
 						<Button
 							onClick={() => void handleSave()}
@@ -523,7 +522,7 @@ export function AddProviderContent({
 									: "bg-muted text-muted-foreground cursor-not-allowed",
 							)}
 						>
-							{saving ? "Saving..." : "Add Provider"}
+							{saving ? "保存中..." : "添加提供商"}
 						</Button>
 					</div>
 				</div>

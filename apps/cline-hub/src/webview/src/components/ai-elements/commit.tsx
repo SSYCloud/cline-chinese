@@ -149,7 +149,7 @@ export type CommitTimestampProps = HTMLAttributes<HTMLTimeElement> & {
 	date: Date;
 };
 
-const relativeTimeFormat = new Intl.RelativeTimeFormat("en", {
+const relativeTimeFormat = new Intl.RelativeTimeFormat("zh", {
 	numeric: "auto",
 });
 

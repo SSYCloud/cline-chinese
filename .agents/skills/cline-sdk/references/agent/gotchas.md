@@ -36,10 +36,10 @@ execute: async (input) => {
 
 ## Browser Compatibility
 
-`@cline/agents` (and by extension, the `Agent` class) is browser-safe with no Node.js dependencies. However, `@cline/core` and `ClineCore` require Node.js 22+. If you import from `@cline/sdk`, you get everything including the Node-only code. For browser usage, import directly from `@cline/agents`:
+`@coohu/agents` (and by extension, the `Agent` class) is browser-safe with no Node.js dependencies. However, `@coohu/core` and `ClineCore` require Node.js 22+. If you import from `@coohu/sdk`, you get everything including the Node-only code. For browser usage, import directly from `@coohu/agents`:
 
 ```typescript
-import { Agent } from "@cline/agents"
+import { Agent } from "@coohu/agents"
 ```
 
 ## No Top-Level onEvent on Agent Config

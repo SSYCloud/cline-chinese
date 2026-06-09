@@ -44,9 +44,9 @@
 		"test:watch": "vitest --config vitest.config.ts"
 	},
 	"dependencies": {
-		"@coohu/agents": "0.1.3",
-		"@coohu/shared": "0.1.3",
-		"@coohu/llms": "0.1.3",
+		"@coohu/agents": "0.1.4",
+		"@coohu/shared": "0.1.4",
+		"@coohu/llms": "0.1.4",
 		"@modelcontextprotocol/sdk": "^1.29.0",
 		"@opentelemetry/api": "^1.9.0",
 		"@opentelemetry/api-logs": "^0.214.0",

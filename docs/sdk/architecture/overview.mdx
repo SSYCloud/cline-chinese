@@ -12,22 +12,22 @@ The SDK is split into layered packages. Dependencies flow downward: `core` depen
 Your application / CLI / VS Code / JetBrains
           │
           ▼
-@cline/core
+@coohu/core
 Sessions, storage, built-in tools, hub, automation, telemetry
           │
-          ├── @cline/agents
+          ├── @coohu/agents
           │   Browser-compatible AgentRuntime / Agent loop
           │
-          ├── @cline/llms
+          ├── @coohu/llms
           │   Provider handlers, gateway, model catalogs
           │
-          └── @cline/shared
+          └── @coohu/shared
               Types, schemas, tools, hooks, extension contracts
 ```
 
 ## Packages
 
-### @cline/core
+### @coohu/core
 
 Node runtime/orchestration layer.
 
@@ -54,9 +54,9 @@ Capabilities include:
 - plugin/extension loading
 - team/sub-agent tools
 
-Depends on: `@cline/shared`, `@cline/llms`, `@cline/agents`.
+Depends on: `@coohu/shared`, `@coohu/llms`, `@coohu/agents`.
 
-### @cline/agents
+### @coohu/agents
 
 Browser-compatible agent execution loop.
 
@@ -69,13 +69,13 @@ Key exports include:
 | `createAgentRuntime`, `createAgent` | Factory functions |
 | `AgentRuntimeConfig` | Constructor config union |
 | `AgentRunInput`, `AgentEventListener` | Runtime helper types |
-| `createTool` | Re-export from `@cline/shared` |
+| `createTool` | Re-export from `@coohu/shared` |
 
 Methods on `AgentRuntime` include `run`, `continue`, `abort`, `subscribe`, `restore`, and `snapshot`.
 
-Depends on: `@cline/shared`, `@cline/llms`.
+Depends on: `@coohu/shared`, `@coohu/llms`.
 
-### @cline/llms
+### @coohu/llms
 
 Provider and model layer.
 
@@ -89,9 +89,9 @@ Key exports include:
 | `registerProvider`, `registerModel` | Runtime registry extension |
 | `ModelInfo`, `ProviderInfo` | Provider/model metadata |
 
-Depends on: `@cline/shared`.
+Depends on: `@coohu/shared`.
 
-### @cline/shared
+### @coohu/shared
 
 Foundation package for shared contracts and utilities.
 
@@ -113,10 +113,10 @@ No higher-layer dependencies.
 ## Install
 
 ```bash
-npm install @cline/sdk
+npm install @coohu/sdk
 ```
 
-`@cline/sdk` re-exports everything from `@cline/core`. Install `@cline/agents` or `@cline/llms` directly only if you need lower-level control.
+`@coohu/sdk` re-exports everything from `@coohu/core`. Install `@coohu/agents` or `@coohu/llms` directly only if you need lower-level control.
 
 ## Design Principles
 
@@ -126,8 +126,8 @@ Dependencies flow downward only. Lower layers stay embeddable without pulling in
 
 ### Browser-compatible agent loop
 
-`@cline/agents` exposes a browser-compatible runtime. It does not own session storage, built-in file/shell tools, hub transports, or Node-specific orchestration.
+`@coohu/agents` exposes a browser-compatible runtime. It does not own session storage, built-in file/shell tools, hub transports, or Node-specific orchestration.
 
 ### Core as orchestration layer
 
-`@cline/core` owns Node runtime integration: session persistence, built-in tools, automation, hub/remote transports, telemetry, and extension loading.
+`@coohu/core` owns Node runtime integration: session persistence, built-in tools, automation, hub/remote transports, telemetry, and extension loading.

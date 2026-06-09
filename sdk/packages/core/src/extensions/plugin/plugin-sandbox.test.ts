@@ -2,21 +2,21 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type {
-	AgentConfig,
-	AgentExtensionMessageBuilder,
-	AgentExtensionRule,
-	AgentTool,
-	AgentToolContext,
-	Message,
+    AgentConfig,
+    AgentExtensionMessageBuilder,
+    AgentExtensionRule,
+    AgentTool,
+    AgentToolContext,
+    Message,
 } from "@coohu/shared";
 import {
-	afterAll,
-	beforeAll,
-	beforeEach,
-	describe,
-	expect,
-	it,
-	vi,
+    afterAll,
+    beforeAll,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
 } from "vitest";
 import { loadSandboxedPlugins } from "./plugin-sandbox";
 
@@ -526,7 +526,7 @@ describe("plugin-sandbox", () => {
 			await writeFile(
 				join(packageRoot, "package.json"),
 				JSON.stringify({
-					name: `@cline/cli-${platform}-${process.arch}`,
+					name: `@coohu/cli-${platform}-${process.arch}`,
 					version: "0.0.0-test",
 					type: "module",
 				}),

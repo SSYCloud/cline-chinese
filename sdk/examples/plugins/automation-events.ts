@@ -12,7 +12,7 @@
  *   CLINE_LOCAL_EVENT_INTERVAL_MS=2000 cline -i "wait for the plugin event"
  */
 
-import type { AgentPlugin } from "@cline/core";
+import type { AgentPlugin } from "@coohu/core";
 
 const stopLocalEmitters = new Map<string, () => void>();
 

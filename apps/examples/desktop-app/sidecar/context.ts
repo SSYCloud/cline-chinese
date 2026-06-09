@@ -3,23 +3,23 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname } from "node:path";
 import {
-	type AgentToolContext,
-	ClineCore,
-	type CoreSessionEvent,
-	NodeHubClient,
-	type RuntimeCapabilities,
-	setHomeDirIfUnset,
-	type ToolApprovalRequest,
-	type ToolApprovalResult,
-} from "@cline/core";
-import type { AgentEvent } from "@cline/shared";
+    type AgentToolContext,
+    ClineCore,
+    type CoreSessionEvent,
+    NodeHubClient,
+    type RuntimeCapabilities,
+    setHomeDirIfUnset,
+    type ToolApprovalRequest,
+    type ToolApprovalResult,
+} from "@coohu/core";
+import type { AgentEvent } from "@coohu/shared";
 import { sessionLogPath } from "./paths";
 import type {
-	LiveSession,
-	PendingAskQuestion,
-	PendingToolApproval,
-	PromptInQueue,
-	SidecarContext,
+    LiveSession,
+    PendingAskQuestion,
+    PendingToolApproval,
+    PromptInQueue,
+    SidecarContext,
 } from "./types";
 
 const ASK_QUESTION_TIMEOUT_MS = 5 * 60_000;

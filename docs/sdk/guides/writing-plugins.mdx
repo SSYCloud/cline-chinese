@@ -17,8 +17,8 @@ A GitHub integration plugin that:
 
 ```typescript
 // github-plugin.ts
-import { type AgentPlugin } from "@cline/sdk"
-import { createTool } from "@cline/sdk"
+import { type AgentPlugin } from "@coohu/sdk"
+import { createTool } from "@coohu/sdk"
 
 interface GitHubConfig {
   token: string
@@ -189,7 +189,7 @@ function createPostCommentTool(config: GitHubConfig) {
 ## Step 3: Use the Plugin
 
 ```typescript
-import { Agent } from "@cline/sdk"
+import { Agent } from "@coohu/sdk"
 import { createGitHubPlugin } from "./github-plugin"
 
 const agent = new Agent({
@@ -215,7 +215,7 @@ To load this plugin from a file in ClineCore, pass its path in `pluginPaths`:
 
 ```typescript
 // /absolute/path/to/github.ts
-import { type AgentPlugin, createTool } from "@cline/sdk"
+import { type AgentPlugin, createTool } from "@coohu/sdk"
 
 const plugin: AgentPlugin = {
   name: "github",
@@ -236,7 +236,7 @@ export default plugin
 Then include it in session config:
 
 ```typescript
-import { ClineCore } from "@cline/sdk"
+import { ClineCore } from "@coohu/sdk"
 
 const cline = await ClineCore.create({ clientName: "my-app" })
 
@@ -257,7 +257,7 @@ Single-file plugins can be installed directly from a file URL:
 cline plugin install https://github.com/your-org/your-repo/blob/main/plugins/github-plugin.ts
 ```
 
-Single-file plugins can only import Node builtins and `@cline/*`. As soon as you need an npm dependency (`zod`, an HTTP client, etc.) you must ship as a package: a directory with a `package.json` that declares a `cline` field for entry points and your runtime `dependencies`. Dependencies under the `@cline/` scope are provided by the host runtime -- the installer strips these and runs `npm install` for the rest, so declare any `@cline/*` package you import as an optional peer dependency:
+Single-file plugins can only import Node builtins and `@coohu/*`. As soon as you need an npm dependency (`zod`, an HTTP client, etc.) you must ship as a package: a directory with a `package.json` that declares a `cline` field for entry points and your runtime `dependencies`. Dependencies under the `@coohu/` scope are provided by the host runtime -- the installer strips these and runs `npm install` for the rest, so declare any `@coohu/*` package you import as an optional peer dependency:
 
 ```json
 {
@@ -268,10 +268,10 @@ Single-file plugins can only import Node builtins and `@cline/*`. As soon as you
     "@octokit/rest": "^21.0.0"
   },
   "peerDependencies": {
-    "@cline/sdk": "*"
+    "@coohu/sdk": "*"
   },
   "peerDependenciesMeta": {
-    "@cline/sdk": {
+    "@coohu/sdk": {
       "optional": true
     }
   }

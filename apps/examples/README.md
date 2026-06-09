@@ -55,10 +55,10 @@ Requires Node.js 22+.
 When building your own app, install the public SDK package:
 
 ```bash
-npm add @cline/sdk
+npm add @coohu/sdk
 ```
 
-`@cline/sdk` re-exports everything from `@cline/core`. You only need `@cline/agents` or `@cline/llms` if you want lower-level control over the agent runtime or model gateway directly.
+`@coohu/sdk` re-exports everything from `@coohu/core`. You only need `@coohu/agents` or `@coohu/llms` if you want lower-level control over the agent runtime or model gateway directly.
 
 ## Learn more
 

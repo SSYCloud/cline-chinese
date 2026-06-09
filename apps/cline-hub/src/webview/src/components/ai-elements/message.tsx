@@ -259,7 +259,7 @@ export const MessageBranchPrevious = ({
 
 	return (
 		<Button
-			aria-label="Previous branch"
+			aria-label="上一个分支"
 			disabled={totalBranches <= 1}
 			onClick={goToPrevious}
 			size="icon-sm"
@@ -282,7 +282,7 @@ export const MessageBranchNext = ({
 
 	return (
 		<Button
-			aria-label="Next branch"
+			aria-label="下一个分支"
 			disabled={totalBranches <= 1}
 			onClick={goToNext}
 			size="icon-sm"
@@ -311,7 +311,7 @@ export const MessageBranchPage = ({
 			)}
 			{...props}
 		>
-			{currentBranch + 1} of {totalBranches}
+			{currentBranch + 1} / {totalBranches}
 		</ButtonGroupText>
 	);
 };

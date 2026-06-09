@@ -81,8 +81,8 @@ ANTHROPIC_API_KEY=sk-... bun run examples/plugins/weather-metrics.ts
 ## Anatomy of a plugin
 
 ```ts
-import type { AgentPlugin } from "@cline/core";
-import { createTool } from "@cline/core";
+import type { AgentPlugin } from "@coohu/core";
+import { createTool } from "@coohu/core";
 
 const myPlugin: AgentPlugin = {
   name: "my-plugin",
@@ -108,7 +108,7 @@ Pass it to the SDK:
 
 ```ts
 import plugin from "./my-plugin";
-import { ClineCore } from "@cline/core";
+import { ClineCore } from "@coohu/core";
 
 const host = await ClineCore.create({ backendMode: "local" });
 await host.start({
@@ -145,7 +145,7 @@ The setup `ctx` may include `session`, `client`, `user`, `workspaceInfo`, `autom
 
 ## Runtime hooks
 
-Hooks are typed, in-process callbacks on the same hook layer as `@cline/agents`. They run inside the agent loop with full type information.
+Hooks are typed, in-process callbacks on the same hook layer as `@coohu/agents`. They run inside the agent loop with full type information.
 
 | Hook          | When it fires |
 | ------------- | ------------- |

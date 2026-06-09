@@ -1,15 +1,15 @@
-# [experimental] @cline/shared
+# [experimental] @coohu/shared
 
 Package-level docs are centralized:
 
 - Overview: [`packages/README.md`](../README.md)
 - Architecture and interactions: [`ARCHITECTURE.md`](./ARCHITECTURE.md)
 
-`@cline/shared` owns shared cross-package primitives (session common types/utilities).
+`@coohu/shared` owns shared cross-package primitives (session common types/utilities).
 
 Node-only filesystem path resolvers live under the storage subpath export:
 
-- `@cline/shared/storage`
+- `@coohu/shared/storage`
 - examples: `resolveClineDataDir`, `resolveDbDataDir`, `resolveSessionDataDir`, `resolveTeamDataDir`
 
 It also exports cross-client logging contracts, including `BasicLogger`, so
@@ -31,7 +31,7 @@ It now also exports hook session context primitives used across agents/core/CLI:
 - `resolveHookLogPath(...)`
 
 It also exports cross-client runtime payload DTOs used by multiple hosts
-(`@cline/cli`, `@cline/code`) so request/response contracts are not duplicated
+(`@coohu/cli`, `@coohu/code`) so request/response contracts are not duplicated
 outside transport wiring:
 
 - chat runtime payloads (`ChatStartSessionRequest`, `ChatRunTurnRequest`, `ChatTurnResult`)

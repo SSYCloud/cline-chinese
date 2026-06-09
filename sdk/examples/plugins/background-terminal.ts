@@ -14,7 +14,7 @@ import {
 	type AgentPlugin,
 	type AgentToolContext,
 	createTool,
-} from "@cline/core";
+} from "@coohu/core";
 
 /**
  * Background Terminal Plugin Example

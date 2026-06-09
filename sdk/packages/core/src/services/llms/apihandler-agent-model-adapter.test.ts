@@ -1,10 +1,10 @@
 import type {
-	ApiHandler,
-	ApiStreamChunk,
-	HandlerModelInfo,
-	Message,
-} from "@cline/llms";
-import type { AgentModelEvent, AgentModelRequest } from "@cline/shared";
+    ApiHandler,
+    ApiStreamChunk,
+    HandlerModelInfo,
+    Message,
+} from "@coohu/llms";
+import type { AgentModelEvent, AgentModelRequest } from "@coohu/shared";
 import { describe, expect, it, vi } from "vitest";
 import { createAgentModelFromApiHandler } from "./apihandler-agent-model-adapter";
 

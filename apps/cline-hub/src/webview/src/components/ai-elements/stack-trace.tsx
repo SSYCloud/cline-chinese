@@ -513,7 +513,7 @@ export const StackTraceFrames = memo(
 					</div>
 				))}
 				{framesToShow.length === 0 && (
-					<div className="text-muted-foreground text-xs">No stack frames</div>
+					<div className="text-muted-foreground text-xs">无堆栈帧</div>
 				)}
 			</div>
 		);

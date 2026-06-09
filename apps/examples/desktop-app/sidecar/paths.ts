@@ -1,14 +1,14 @@
 import { execFileSync } from "node:child_process";
 import {
-	existsSync,
-	mkdirSync,
-	readdirSync,
-	readFileSync,
-	writeFileSync,
+    existsSync,
+    mkdirSync,
+    readdirSync,
+    readFileSync,
+    writeFileSync,
 } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
-import { resolveSessionDataDir } from "@cline/shared/storage";
+import { resolveSessionDataDir } from "@coohu/shared/storage";
 import type { JsonRecord } from "./types";
 
 // ---------------------------------------------------------------------------

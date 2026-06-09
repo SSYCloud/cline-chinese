@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import { SqliteSessionStore } from "@cline/core";
+import { SqliteSessionStore } from "@coohu/core";
 import { readSessionManifest, sharedSessionDataDir } from "../paths";
 import type { JsonRecord } from "../types";
 import {

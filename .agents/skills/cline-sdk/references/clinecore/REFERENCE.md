@@ -1,6 +1,6 @@
 # ClineCore Runtime
 
-`ClineCore` is the full-featured runtime from `@cline/core`. It wraps the `Agent` loop with session persistence, built-in tools (bash, editor, file reading, search, web fetch), config discovery, plugin loading, and optional hub-backed multi-process support.
+`ClineCore` is the full-featured runtime from `@coohu/core`. It wraps the `Agent` loop with session persistence, built-in tools (bash, editor, file reading, search, web fetch), config discovery, plugin loading, and optional hub-backed multi-process support.
 
 ## When to Use ClineCore
 
@@ -16,7 +16,7 @@
 ## Quick Start
 
 ```typescript
-import { ClineCore } from "@cline/sdk"
+import { ClineCore } from "@coohu/sdk"
 
 const cline = await ClineCore.create({ clientName: "my-app" })
 

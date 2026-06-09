@@ -86,8 +86,8 @@ function findBinary(startDir) {
 		const modules = path.join(current, "node_modules");
 		if (fs.existsSync(modules)) {
 			for (const name of names) {
-				// Scoped package: @cline/cli-darwin-arm64 lives at
-				// node_modules/@cline/cli-darwin-arm64
+				// Scoped package: @coohu/cli-darwin-arm64 lives at
+				// node_modules/@coohu/cli-darwin-arm64
 				const candidate = path.join(modules, name, "bin", binary);
 				if (fs.existsSync(candidate)) return candidate;
 			}

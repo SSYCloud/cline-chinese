@@ -2,7 +2,7 @@ import {
 	createLocalHubScheduleRuntimeHandlers,
 	HubScheduleCommandService,
 	HubScheduleService,
-} from "@cline/core";
+} from "@coohu/core";
 import { asTrimmedString, toPositiveInt } from "./utils";
 
 let scheduleService: HubScheduleService | undefined;

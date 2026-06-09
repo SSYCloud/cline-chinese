@@ -217,7 +217,7 @@ npm install -g @coohu/cline@nightly
 
 - Fix crash when pressing Escape to cancel a running turn
 - Add plugin and SDK tool toggles to the settings panel
-- Add `@cline/sdk` as a user-facing alias for `@cline/core`
+- Add `@coohu/sdk` as a user-facing alias for `@coohu/core`
 - Improve hub recovery with better error handling, logging, and recovery timeouts
 - Show session summary (ID, model, cost, resume command) on exit
 - Fix OAuth browser-launch failure
