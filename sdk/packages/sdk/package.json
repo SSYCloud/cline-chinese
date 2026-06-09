@@ -21,8 +21,8 @@
 		}
 	},
 	"scripts": {
-		"build": "bun run bun.mts && bun tsc -p tsconfig.build.json",
-		"typecheck": "bun tsc -p tsconfig.json --noEmit"
+		"build": "bun run bun.mts && bunx tsc -p tsconfig.build.json",
+		"typecheck": "bunx tsc -p tsconfig.json --noEmit"
 	},
 	"dependencies": {
 		"@coohu/core":"workspace:*"

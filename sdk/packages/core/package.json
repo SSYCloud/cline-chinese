@@ -33,9 +33,9 @@
 		}
 	},
 	"scripts": {
-		"build": "bun run ./bun.mts && bun tsc -p tsconfig.build.json",
-		"typecheck": "bun tsc -p tsconfig.dev.json --noEmit && bun run typecheck:smoke",
-		"typecheck:smoke": "bun tsc -p tsconfig.smoke.json --noEmit",
+		"build": "bun run ./bun.mts && bunx tsc -p tsconfig.build.json",
+		"typecheck": "bunx tsc -p tsconfig.dev.json --noEmit && bun run typecheck:smoke",
+		"typecheck:smoke": "bunx tsc -p tsconfig.smoke.json --noEmit",
 		"test": "bun run test:unit && bun run test:e2e",
 		"test:live": "vitest run --config vitest.config.ts src/extensions/context/compaction.live.test.ts",
 		"test:unit": "vitest run --config vitest.config.ts",

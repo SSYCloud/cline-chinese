@@ -47,7 +47,7 @@
 	],
 	"scripts": {
 		"build": "BUILD_MODE=package bun bun.mts",
-		"typecheck": "bun tsc --noEmit",
+		"typecheck": "bunx tsc --noEmit",
 		"test": "bun run test:unit",
 		"test:unit": "vitest run --config vitest.config.ts"
 	},

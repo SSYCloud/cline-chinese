@@ -30,8 +30,8 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "bun run bun.mts && bun tsc -p tsconfig.build.json",
-		"typecheck": "bun tsc -p tsconfig.dev.json --noEmit",
+		"build": "bun run bun.mts && bunx tsc -p tsconfig.build.json",
+		"typecheck": "bunx tsc -p tsconfig.dev.json --noEmit",
 		"test": "vitest run",
 		"test:live": "vitest run src/tests/provider-live*.test.ts",
 		"test:vcr": "vitest run src/tests/provider-vcr.test.ts",
