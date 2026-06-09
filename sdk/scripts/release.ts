@@ -120,6 +120,7 @@ async function run(
 			: "";
 
 	if (exitCode !== 0) {
+		console.error(`cmd failed with exit code ${cmd}: ${exitCode}`);
 		throw new Error(`Command failed (exit ${exitCode}): ${label}`);
 	}
 	return stdout;
