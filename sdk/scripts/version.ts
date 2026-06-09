@@ -71,6 +71,7 @@ async function runCommandOrThrow(cmd: string[], cwd: string): Promise<void> {
 	});
 	const exitCode = await proc.exited;
 	if (exitCode !== 0) {
+		console.error(`Command : \n ${cmd.join("\n ")}`);
 		throw new Error(`${cmd[0]} exited with code ${exitCode}`);
 	}
 }
