@@ -25,7 +25,7 @@
 		"typecheck": "bun tsc -p tsconfig.json --noEmit"
 	},
 	"dependencies": {
-		"@coohu/core": "0.1.7"
+		"@coohu/core":"workspace:*"
 	},
 	"engines": {
 		"node": ">=22"
