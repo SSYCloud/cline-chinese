@@ -126,6 +126,11 @@ async function run(
 	return stdout;
 }
 
+async function getTarballs(dir: string): Promise<string[]> {
+	const entries = await readdir(dir);
+	return entries.filter((f) => f.endsWith(".tgz"));
+}
+
 async function stageSdkReadmeForPublish(
 	workspace: (typeof SDK_PUBLISH_ORDER)[number],
 ): Promise<string | undefined> {
@@ -429,16 +434,29 @@ async function releaseSDK(version: string): Promise<number> {
 		console.log(`  Publishing ${name}@${version} with tag '${npmTag}'...`);
 		const stagedReadme = await stageSdkReadmeForPublish(workspace);
 		try {
-			const bunPublishArgs = [
-				"bun",
+			// Remove any stale tarballs before packing
+			for (const stale of await getTarballs(pkgDir)) {
+				await unlink(join(pkgDir, stale));
+			}
+			await run(["bun", "pm", "pack"], { cwd: pkgDir });
+			const tarballs = await getTarballs(pkgDir);
+			if (tarballs.length !== 1) {
+				throw new Error(
+					`Expected exactly 1 tarball in ${pkgDir}, got: ${tarballs.join(", ")}`,
+				);
+			}
+			const npmPublishArgs = [
+				"npm",
 				"publish",
-				"--tag",
-				npmTag,
+				tarballs[0],
 				"--access",
 				"public",
+				"--tag",
+				npmTag,
 			];
-			if (otp) bunPublishArgs.push("--otp", otp);
-			await run(bunPublishArgs, { cwd: pkgDir });
+			if (otp) npmPublishArgs.push("--otp", otp);
+			await run(npmPublishArgs, { cwd: pkgDir });
+			await unlink(join(pkgDir, tarballs[0]));
 		} finally {
 			await removeStagedSdkReadme(stagedReadme);
 		}

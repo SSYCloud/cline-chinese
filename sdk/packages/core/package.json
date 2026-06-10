@@ -1,7 +1,7 @@
 {
 	"name": "@coohu/core",
 	"description": "Cline Core SDK for Node Runtime",
-	"version": "0.1.9",
+	"version": "0.1.13",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/cline/cline",
@@ -44,9 +44,9 @@
 		"test:watch": "vitest --config vitest.config.ts"
 	},
 	"dependencies": {
-		"@coohu/agents": "0.1.8",
-		"@coohu/shared": "0.1.8",
-		"@coohu/llms": "0.1.8",
+		"@coohu/agents": "0.1.13",
+		"@coohu/shared": "0.1.13",
+		"@coohu/llms": "0.1.13",
 		"@modelcontextprotocol/sdk": "^1.29.0",
 		"@opentelemetry/api": "^1.9.0",
 		"@opentelemetry/api-logs": "^0.214.0",

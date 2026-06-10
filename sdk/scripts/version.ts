@@ -99,7 +99,10 @@ function replaceWorkspaceDeps(
 ): void {
 	if (!deps) return;
 	for (const [name, value] of Object.entries(deps)) {
-		if (workspacePackageNames.has(name) && (value.startsWith("workspace:") || /^\d+\.\d+\.\d+/.test(value))) {
+		if (
+			workspacePackageNames.has(name) &&
+			(value.startsWith("workspace:") || /^\d+\.\d+\.\d+/.test(value))
+		) {
 			deps[name] = ver;
 		}
 	}

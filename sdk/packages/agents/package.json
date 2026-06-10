@@ -1,6 +1,6 @@
 {
 	"name": "@coohu/agents",
-	"version": "0.1.9",
+	"version": "0.1.13",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/cline/cline",
@@ -8,8 +8,8 @@
 	},
 	"main": "dist/index.js",
 	"dependencies": {
-		"@coohu/llms": "0.1.8",
-		"@coohu/shared": "0.1.8",
+		"@coohu/llms": "0.1.13",
+		"@coohu/shared": "0.1.13",
 		"nanoid": "^5.1.7"
 	},
 	"exports": {

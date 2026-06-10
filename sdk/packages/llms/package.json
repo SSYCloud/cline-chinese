@@ -1,6 +1,6 @@
 {
 	"name": "@coohu/llms",
-	"version": "0.1.9",
+	"version": "0.1.13",
 	"description": "Config-driven SDK for selecting, extending, and instantiating LLM providers and models",
 	"repository": {
 		"type": "git",
@@ -44,7 +44,7 @@
 		}
 	},
 	"dependencies": {
-		"@coohu/shared": "0.1.8",
+		"@coohu/shared": "0.1.13",
 		"@ai-sdk/amazon-bedrock": "^4.0.89",
 		"@ai-sdk/anthropic": "^3.0.68",
 		"@ai-sdk/google": "^3.0.60",
