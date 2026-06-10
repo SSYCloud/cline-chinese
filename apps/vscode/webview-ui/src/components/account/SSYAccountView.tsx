@@ -69,7 +69,7 @@ export const SSYAccountView = ({ mode = "personal" }: SSYAccountViewProps) => {
 		if (mode !== "enterprise" || selectedProjectId === null) return
 		setIsEnterpriseLoading(true)
 		AccountServiceClient.getEnterpriseBill(
-			EnterpriseBillRequest.create({ projectId: selectedProjectId }),
+			EnterpriseBillRequest.create({ projectId: 65,  ramUserId:106}),
 		)
 			.then((res) => {
 				setEnterpriseBills(res.bills)

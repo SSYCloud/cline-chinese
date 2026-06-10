@@ -31,13 +31,12 @@ export class SSYAccountService {
 		}
 		try {
 			const res = await axios(reqConfig)
-			// Logger.log(url, res.data)
 			if (!res.data || !res.data.data || res.data.code == 103) {
 				throw new Error(`Invalid response from ${endpoint} API`)
 			}
 			return res.data.data
 		} catch (error) {
-			Logger.error(`Request failed [${method}] ${url}:`, error)
+			console.error(`Request failed [${method}] ${url}:`, error)
 			throw error;
 		}
 	}
@@ -112,14 +111,14 @@ export class SSYAccountService {
 		}
 	}
 
-	async getEProject(): Promise<EProjectList> {
+	async getEnterpriseProjectList(): Promise<EProjectList> {
 		try {
 			const prjs = await this.authReq("/project/list");
 			if (!Array.isArray(prjs)) {
-				Logger.log("getEProject response:", prjs);
+				Logger.log("getEnterpriseProjectList response:", prjs);
 				throw new Error(`Invalid response from API: /project/list`);
 			}
-			const apikeys = prjs.map((it: any) => this.authReq<any[]>("/apikey/list", { method: "POST", data: { project_id: it.id } }));
+			const apikeys = prjs.map((it: any) => this.authReq<any[]>("/project/apikey/list", { method: "POST", data: { project_id: it.id } }));
 			const results = await Promise.all(apikeys);
 
 			return EProjectList.create({
@@ -188,44 +187,51 @@ export class SSYAccountService {
 				}))
 			})
 		} catch (error) {           
-			Logger.error("getEProject():", error);
+			console.error("getEnterpriseProjectList():", error);
 			throw error;
 		}
 	}
 
-	async getEBill(qs: EnterpriseBillRequest): Promise<EnterpriseBillResponse> {
-		if(!this.uid || !qs.projectId) {
-			throw new Error("User ID or Project ID is missing for fetching bills")
+	async getEnterpriseBill(qs: EnterpriseBillRequest): Promise<EnterpriseBillResponse> {
+		if(!qs.projectId) {
+			throw new Error("Project ID is missing for fetching bills")
 		}
-		const data = {
+		const endTime = qs.endTime ?? new Date().toISOString()
+		const startTime = qs.startTime ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+		const data: Record<string, unknown> = {
 			project_id: qs.projectId,
-			page: qs.page,
-			page_size: qs.pageSize,
-			model_name: qs.modelName,
-			raw_user_id: this.uid,
-			start_time: qs.startTime ?? new Date().toISOString(),
-			end_time: qs.endTime ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+			page: qs.page ?? 1,
+			page_size: qs.pageSize ?? 20,
+			start_time: startTime,
+			end_time: endTime,
 		}
+		if (qs.modelName) data.model_name = qs.modelName
+		if (qs.ramUserId) data.raw_user_id = qs.ramUserId
+		console.log(data, "---getEnterpriseBill()")
 		try{
 			const res = await this.authReq<{ bills: any[] }>("/statistics/enterprise/gatewaybill", { method:"POST", data})
+			console.log(res, "+++getEnterpriseBill()")
 			if (!res || !Array.isArray(res.bills)) {
-				Logger.log("getEBill response:", res)
-				throw new Error(`Invalid response from API: /statistics/enterprise/gatewaybill`)
+				throw new Error(`Invalid response from API: /statistics/enterprise/gatewaybill` + JSON.stringify(res))
 			}
 			return EnterpriseBillResponse.create({
 				bills: res.bills.map((b: any) => ({
-					requestTime: b.request_time ?? "",
-					modelName: b.model?.name ?? b.model_name ?? "",
-					modelCompany: b.model?.company ?? b.model_company ?? "",
-					inputTokens: b.input_tokens ?? 0,
-					outputTokens: b.output_tokens ?? 0,
-					totalAmount: b.total_amount ?? 0,
-					userName: b.user_name ?? "",
-					ramUserId: b.ram_user_id ?? 0,
+					hourTime: b.hour_time,
+					userName: b.user_name,
+					modelName: b.model_name,
+					userId: b.user_id,
+					ramUserId: b.ram_user_id,
+					requestCount: b.request_count,
+					providerName: b.provider_name,
+					totalDeductionAmount: b.total_deduction_amount,
+					cachedAmount: b.cached_amount,
+					totalPromptTokens: b.total_prompt_tokens,
+					totalCompletionTokens: b.total_completion_tokens,
+					totalTokens: b.total_tokens,
 				})),
 			})
 		} catch (error) {
-			Logger.error("getEBill():", error)
+			console.error("getEnterpriseBill():", error)
 			throw error
 		}
 	}

@@ -258,17 +258,22 @@ message EnterpriseBillRequest {
   optional string start_time = 4;
   optional string end_time = 5;
   optional string model_name = 6;
+  optional int32 ram_user_id = 7;
 }
 
 message EnterpriseBillItem {
-  string request_time = 1;
-  string model_name = 2;
-  string model_company = 3;
-  int32 input_tokens = 4;
-  int32 output_tokens = 5;
-  int32 total_amount = 6;
-  string user_name = 7;
-  int32 ram_user_id = 8;
+  string hour_time = 1;
+  string user_name = 2;
+  string model_name = 3;
+  int32 user_id = 4;
+  int32 ram_user_id = 5;
+  int32 request_count = 6;
+  string provider_name = 7;
+  int32 total_deduction_amount = 8;
+  int32 cached_amount = 9;
+  int32 total_prompt_tokens = 10;
+  int32 total_completion_tokens = 11;
+  int32 total_tokens = 12;
 }
 
 message EnterpriseBillResponse {

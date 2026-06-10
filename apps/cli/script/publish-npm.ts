@@ -39,7 +39,6 @@ const expectedPlatformPackages = [
 	"@coohu/cline-darwin-x64",
 	"@coohu/cline-linux-arm64",
 	"@coohu/cline-linux-x64",
-	"@coohu/cline-windows-arm64",
 	"@coohu/cline-windows-x64",
 ] as const;
 

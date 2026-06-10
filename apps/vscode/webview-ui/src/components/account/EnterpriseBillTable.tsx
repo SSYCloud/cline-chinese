@@ -31,27 +31,27 @@ const EnterpriseBillTable = memo(({ bills, isLoading }: EnterpriseBillTableProps
 								模型
 							</VSCodeDataGridCell>
 							<VSCodeDataGridCell cell-type="columnheader" grid-column="3">
-								输入
+								输入 Tokens
 							</VSCodeDataGridCell>
 							<VSCodeDataGridCell cell-type="columnheader" grid-column="4">
-								输出
+								输出 Tokens
 							</VSCodeDataGridCell>
 							<VSCodeDataGridCell cell-type="columnheader" grid-column="5">
-								用量
+								总 Tokens
 							</VSCodeDataGridCell>
 						</VSCodeDataGridRow>
 						{bills.map((bill, index) => (
 							// biome-ignore lint/suspicious/noArrayIndexKey: use index as key
 							<VSCodeDataGridRow key={index}>
 								<VSCodeDataGridCell grid-column="1">
-									{formatTimestamp(bill.requestTime, "zh-CN")}
+									{formatTimestamp(bill.hourTime, "zh-CN")}
 								</VSCodeDataGridCell>
 								<VSCodeDataGridCell grid-column="2">
-									{bill.modelCompany ? `${bill.modelCompany}/${bill.modelName}` : bill.modelName}
+									{bill.modelName}
 								</VSCodeDataGridCell>
-								<VSCodeDataGridCell grid-column="3">{bill.inputTokens}</VSCodeDataGridCell>
-								<VSCodeDataGridCell grid-column="4">{bill.outputTokens}</VSCodeDataGridCell>
-								<VSCodeDataGridCell grid-column="5">{bill.totalAmount}</VSCodeDataGridCell>
+								<VSCodeDataGridCell grid-column="3">{bill.totalPromptTokens}</VSCodeDataGridCell>
+								<VSCodeDataGridCell grid-column="4">{bill.totalCompletionTokens}</VSCodeDataGridCell>
+								<VSCodeDataGridCell grid-column="5">{bill.totalTokens}</VSCodeDataGridCell>
 							</VSCodeDataGridRow>
 						))}
 					</VSCodeDataGrid>

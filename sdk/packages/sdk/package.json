@@ -1,7 +1,7 @@
 {
 	"name": "@coohu/sdk",
 	"description": "Cline SDK - user-facing alias for @coohu/core",
-	"version": "0.1.8",
+	"version": "0.1.9",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/SSYCloud/cline-chinese-ssy",

@@ -166,6 +166,7 @@
 				"!!**/*.test.ts",
 				"!!**/*.stories.ts",
 				"!!src/dev/**",
+				"!!src/services/account/SSYAccountService.ts",
 				"!!**/*.mjs",
 				"!!**/*.js",
 				"!!**/scripts/**",

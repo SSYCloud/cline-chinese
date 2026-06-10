@@ -3,7 +3,9 @@ dist
 dist-standalone
 node_modules
 tmp
+target
 .vscode-test/
+.next/
 *.vsix
 
 .DS_Store

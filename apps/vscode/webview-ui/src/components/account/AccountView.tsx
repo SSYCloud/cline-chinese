@@ -8,7 +8,7 @@ import { useInterval } from "react-use"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { type ClineUser, handleSignOut } from "@/context/ClineAuthContext"
 import { useExtensionState } from "@/context/ExtensionStateContext"
-import ViewHeader from "../common/ViewHeader"
+// import ViewHeader from "../common/ViewHeader"
 import VSCodeButtonLink from "../common/VSCodeButtonLink"
 import { updateSetting } from "../settings/utils/settingsHandlers"
 import { CreditBalance } from "./CreditBalance"
@@ -17,6 +17,7 @@ import { getClineUris, getMainRole } from "./helpers"
 import { RemoteConfigToggle } from "./RemoteConfigToggle"
 import { SSYAccountView } from "./SSYAccountView"
 import { TabButton } from "../mcp/configuration/McpConfigurationView"
+import { Button } from "../ui/button"
 
 type AccountViewProps = {
 	onDone: () => void
@@ -39,19 +40,23 @@ type CachedData = {
 const ClineEnvOptions = ["Production", "Staging", "Local"] as const
 
 const AccountView = ({ onDone }: AccountViewProps) => {
-	const { environment } = useExtensionState()
+	// const { environment } = useExtensionState()
 	const [accountTab, setAccountTab] = useState<"personal" | "enterprise">("personal")
 
 	return (
 		<div className="fixed inset-0 flex flex-col overflow-hidden">
-			<ViewHeader environment={environment} onDone={onDone} showEnvironmentSuffix title="账户" />
-			<div className="flex border-b border-(--vscode-panel-border) px-5">
-				<TabButton isActive={accountTab === "personal"} onClick={() => setAccountTab("personal")}>
-					个人账户
-				</TabButton>
-				<TabButton isActive={accountTab === "enterprise"} onClick={() => setAccountTab("enterprise")}>
-					企业账户
-				</TabButton>
+			<div className="flex justify-between items-center py-2.5 px-5 mb-[17px]">
+				<div className="flex border-b border-(--vscode-panel-border) px-5">
+					<TabButton isActive={accountTab === "personal"} onClick={() => setAccountTab("personal")}>
+						个人账户
+					</TabButton>
+					<TabButton isActive={accountTab === "enterprise"} onClick={() => setAccountTab("enterprise")}>
+						企业账户
+					</TabButton>
+				</div>
+				<Button size="header" onClick={onDone}>
+					确定
+				</Button>
 			</div>
 			<div className="grow flex flex-col px-5 overflow-y-auto">
 				<SSYAccountView mode={accountTab} />

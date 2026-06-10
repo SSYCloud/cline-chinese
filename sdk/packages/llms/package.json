@@ -1,6 +1,6 @@
 {
 	"name": "@coohu/llms",
-	"version": "0.1.8",
+	"version": "0.1.9",
 	"description": "Config-driven SDK for selecting, extending, and instantiating LLM providers and models",
 	"repository": {
 		"type": "git",

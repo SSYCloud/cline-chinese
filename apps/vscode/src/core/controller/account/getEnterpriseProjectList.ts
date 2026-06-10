@@ -11,7 +11,7 @@ export async function getEnterpriseProjectList(
 		if (!controller.accountServiceSSY) {
 			throw new Error("Account service not available");
 		}
-		return await controller.accountServiceSSY.getEProject();
+		return await controller.accountServiceSSY.getEnterpriseProjectList();
 	} catch (error) {
 		Logger.error(`Failed to fetch enterprise project list: ${error}`);
 		throw error;

@@ -13,7 +13,7 @@ export async function getEnterpriseBill(
 		if (!controller.accountServiceSSY) {
 			throw new Error("Account service not available");
 		}
-		return await controller.accountServiceSSY.getEBill(request);
+		return await controller.accountServiceSSY.getEnterpriseBill(request);
 	} catch (error) {
 		Logger.error(`Failed to fetch enterprise bill: ${error}`);
 		throw error;
