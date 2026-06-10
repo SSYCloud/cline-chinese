@@ -30,7 +30,6 @@ const { values, positionals } = parseArgs({
 		tag: { type: "string", default: "latest" },
 		"skip-tests": { type: "boolean", default: false },
 		"skip-git-tags": { type: "boolean", default: false },
-		otp: { type: "string" },
 	},
 	allowPositionals: true,
 	strict: true,
@@ -40,7 +39,6 @@ const dryRun = values["dry-run"]!;
 const npmTag = values.tag!;
 const skipTests = values["skip-tests"]!;
 const skipGitTags = values["skip-git-tags"]!;
-const otp = values.otp;
 
 const target = positionals[0] as "sdk" | "cli" | undefined;
 const explicitVersion = positionals[1];
@@ -57,7 +55,6 @@ if (!target || !["sdk", "cli"].includes(target)) {
 		"  [version]        Semver version (omit to auto-increment patch)",
 	);
 	console.error('  --tag <tag>      npm dist-tag (default: "latest")');
-	console.error("  --otp <code>     npm one-time password (for 2FA accounts)");
 	console.error("  --dry-run        Preview all steps without side effects");
 	console.error("  --skip-tests     Skip running the test suite");
 	console.error("  --skip-git-tags  Skip git tag creation");
@@ -454,7 +451,6 @@ async function releaseSDK(version: string): Promise<number> {
 				"--tag",
 				npmTag,
 			];
-			if (otp) npmPublishArgs.push("--otp", otp);
 			await run(npmPublishArgs, { cwd: pkgDir });
 			await unlink(join(pkgDir, tarballs[0]));
 		} finally {
@@ -540,9 +536,6 @@ async function releaseCLI(version: string): Promise<number> {
 	const npmArgs = ["bun", "script/publish-npm.ts", "--tag", npmTag];
 	if (dryRun) {
 		npmArgs.push("--dry-run");
-	}
-	if (otp) {
-		npmArgs.push("--otp", otp);
 	}
 	await run(npmArgs, { cwd: cliDir });
 
