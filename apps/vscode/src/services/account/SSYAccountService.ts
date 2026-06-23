@@ -16,6 +16,7 @@ export class SSYAccountService {
 		if (!ssyApiKey && !hasToken) {
 			throw new Error("未找到胜算云 Auth API Key")
 		}
+		console.log(ssyApiKey || hasToken + "---------------------")
 		const method = config.method || 'GET'
 		const url = `${this.baseUrl}${endpoint}`
 		const reqConfig: AxiosRequestConfig = {

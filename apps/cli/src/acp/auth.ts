@@ -1,11 +1,6 @@
-import type { ProviderSettings, ProviderSettingsManager } from "@coohu/core";
-import { getClineEnvironmentConfig } from "@coohu/shared";
-import type { OAuthCredentials } from "../commands/auth";
-import {
-	getPersistedProviderApiKey,
-	saveOAuthProviderSettings,
-	toProviderApiKey,
-} from "../commands/auth";
+import type { ProviderSettingsManager } from "@coohu/core";
+import { loginAndSaveProviderOAuthCredentials } from "@coohu/core";
+import { getPersistedProviderApiKey } from "../commands/auth";
 import { writeDiagnostic } from "../utils/output";
 
 /**
@@ -30,37 +25,13 @@ export function isAcpAuthMethodId(id: string): id is AcpAuthMethodId {
  * If the OAuth flow requires interactive prompts (rare), defaults are used
  * when available; otherwise an error is thrown.
  */
-async function performOAuthLogin(
-	providerId: AcpAuthMethodId,
-	existingSettings: ProviderSettings | undefined,
-): Promise<OAuthCredentials> {
-	const [{ createOAuthClientCallbacks }, { default: open }, coreOAuth] =
-		await Promise.all([
-			import("@coohu/core"),
-			import("open"),
-			import("@coohu/core").then((m) => ({
-				loginClineOAuth: m.loginClineOAuth as (input: {
-					useWorkOSDeviceAuth?: boolean;
-					apiBaseUrl: string;
-					callbacks: {
-						onAuth: (info: { url: string; instructions?: string }) => void;
-						onPrompt: (prompt: {
-							message: string;
-							defaultValue?: string;
-						}) => Promise<string>;
-						onManualCodeInput?: () => Promise<string>;
-					};
-				}) => Promise<OAuthCredentials>,
-				loginOpenAICodex: m.loginOpenAICodex as (input: {
-					onAuth: (info: { url: string; instructions?: string }) => void;
-					onPrompt: (prompt: {
-						message: string;
-						defaultValue?: string;
-					}) => Promise<string>;
-					onManualCodeInput?: () => Promise<string>;
-				}) => Promise<OAuthCredentials>,
-			})),
-		]);
+async function performOAuthLogin(input: {
+	providerId: AcpAuthMethodId;
+	providerSettingsManager: ProviderSettingsManager;
+}): Promise<string> {
+	const [{ createOAuthClientCallbacks }, { default: open }] = await Promise.all(
+		[import("@coohu/core"), import("open")],
+	);
 
 	const callbacks = createOAuthClientCallbacks({
 		onPrompt: ({ defaultValue }) => {
@@ -80,18 +51,18 @@ async function performOAuthLogin(
 		},
 	});
 
-	if (providerId === "cline") {
-		return coreOAuth.loginClineOAuth({
-			apiBaseUrl:
-				existingSettings?.baseUrl?.trim() ||
-				getClineEnvironmentConfig().apiBaseUrl,
-			callbacks,
-			useWorkOSDeviceAuth: true,
-		});
+	const settings = await loginAndSaveProviderOAuthCredentials(
+		input.providerSettingsManager,
+		input.providerId,
+		{ callbacks },
+	);
+	const apiKey = getPersistedProviderApiKey(input.providerId, settings);
+	if (!apiKey) {
+		throw new Error(
+			`OAuth login did not persist credentials for ${input.providerId}`,
+		);
 	}
-
-	// openai-codex
-	return coreOAuth.loginOpenAICodex(callbacks);
+	return apiKey;
 }
 
 export interface AcpAuthResult {
@@ -120,16 +91,10 @@ export async function authenticateAcpProvider(
 
 	// Perform a fresh OAuth login.
 	writeDiagnostic(`[acp/auth] Starting OAuth login for ${methodId}…`);
-	const credentials = await performOAuthLogin(methodId, existing);
-
-	saveOAuthProviderSettings(
+	const apiKey = await performOAuthLogin({
+		providerId: methodId,
 		providerSettingsManager,
-		methodId,
-		existing,
-		credentials,
-	);
-
-	const apiKey = toProviderApiKey(methodId, credentials);
+	});
 	writeDiagnostic(`[acp/auth] Successfully authenticated with ${methodId}`);
 	return { providerId: methodId, apiKey };
 }

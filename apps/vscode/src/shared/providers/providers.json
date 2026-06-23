@@ -5,6 +5,10 @@
 			"label": "胜算云"
 		},
 		{
+			"value": "cline-pass",
+			"label": "ClinePass"
+		},
+		{
 			"value": "openai-codex",
 			"label": "ChatGPT Subscription"
 		},

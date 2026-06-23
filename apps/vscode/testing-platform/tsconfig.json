@@ -17,7 +17,7 @@
 			"@generated/*": [
 				"../src/generated/*"
 			],
-			"@cline-grpc/*": [
+			"@coohu-grpc/*": [
 				"../src/generated/grpc-js/cline/*"
 			],
 			"@harness/*": [

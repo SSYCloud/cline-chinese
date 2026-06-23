@@ -14,8 +14,10 @@ import path from "path";
 import { StateManager } from "@/core/storage/StateManager";
 import {
 	ANTHROPIC_MAX_THINKING_BUDGET,
+	CLAUDE_FABLE_1M_TIERS,
 	CLAUDE_OPUS_1M_TIERS,
 	CLAUDE_SONNET_1M_TIERS,
+	openRouterClaudeFable51mModelId,
 	openRouterClaudeOpus461mModelId,
 	openRouterClaudeOpus471mModelId,
 	openRouterClaudeOpus481mModelId,
@@ -196,11 +198,19 @@ async function fetchAndCacheModels(
 					case "anthropic/claude-opus-4.6":
 					case "anthropic/claude-opus-4.7":
 					case "anthropic/claude-opus-4.8":
-						modelInfo.contextWindow = 200_000; // restrict to 200k, 1m variant created below
-						modelInfo.supportsPromptCache = true;
-						modelInfo.cacheWritesPrice = 6.25;
-						modelInfo.cacheReadsPrice = 0.5;
-						break;
+						modelInfo.contextWindow = 200_000 // restrict to 200k, 1m variant created below
+						modelInfo.supportsPromptCache = true
+						modelInfo.cacheWritesPrice = 6.25
+						modelInfo.cacheReadsPrice = 0.5
+						break
+					case "anthropic/claude-fable-5":
+						modelInfo.contextWindow = 200_000 // restrict to 200k, 1m variant created below
+						modelInfo.supportsPromptCache = true
+						modelInfo.inputPrice = 10
+						modelInfo.outputPrice = 50
+						modelInfo.cacheWritesPrice = 12.5
+						modelInfo.cacheReadsPrice = 1
+						break
 					case "anthropic/claude-opus-4.5":
 						modelInfo.supportsPromptCache = true;
 						modelInfo.cacheWritesPrice = 6.25;
@@ -357,6 +367,12 @@ async function fetchAndCacheModels(
 					if (rawModel.id === "anthropic/claude-opus-4.8") {
 						models[openRouterClaudeOpus481mModelId] = claudeOpus1mModelInfo;
 					}
+				}
+				if (rawModel.id === "anthropic/claude-fable-5") {
+					const claudeFable1mModelInfo = cloneDeep(modelInfo)
+					claudeFable1mModelInfo.contextWindow = 1_000_000
+					claudeFable1mModelInfo.tiers = CLAUDE_FABLE_1M_TIERS
+					models[openRouterClaudeFable51mModelId] = claudeFable1mModelInfo
 				}
 			}
 			// Save models and cache them in memory

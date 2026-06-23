@@ -3,11 +3,12 @@ import {
 	BUILT_IN_PROVIDER,
 	createOAuthClientCallbacks,
 	ensureCustomProvidersLoaded,
-	listLocalProviders,
+	getProviderAuthHandler,
+	loginAndSaveProviderOAuthCredentials,
 	type ProviderSettings,
 	type ProviderSettingsManager,
+	saveProviderOAuthCredentials,
 } from "@coohu/core";
-import { getClineEnvironmentConfig } from "@coohu/shared";
 import { Command } from "commander";
 import open from "open";
 import React from "react";
@@ -20,6 +21,8 @@ import {
 	type OAuthCredentials,
 	toProviderApiKey,
 } from "../utils/provider-auth";
+import { listLocalProviders } from "../utils/provider-catalog";
+import { identifyTelemetryAccount } from "../utils/telemetry";
 
 export {
 	getPersistedProviderApiKey,
@@ -37,40 +40,6 @@ const c = {
 	green: "\x1b[32m",
 };
 
-type CoreOAuthApi = {
-	loginClineOAuth: (input: {
-		apiBaseUrl: string;
-		useWorkOSDeviceAuth?: boolean;
-		callbacks: {
-			onAuth: (info: { url: string; instructions?: string }) => void;
-			onPrompt: (prompt: {
-				message: string;
-				defaultValue?: string;
-			}) => Promise<string>;
-			onManualCodeInput?: () => Promise<string>;
-		};
-	}) => Promise<OAuthCredentials>;
-	loginOcaOAuth: (input: {
-		mode?: "internal" | "external";
-		callbacks: {
-			onAuth: (info: { url: string; instructions?: string }) => void;
-			onPrompt: (prompt: {
-				message: string;
-				defaultValue?: string;
-			}) => Promise<string>;
-			onManualCodeInput?: () => Promise<string>;
-		};
-	}) => Promise<OAuthCredentials>;
-	loginOpenAICodex: (input: {
-		onAuth: (info: { url: string; instructions?: string }) => void;
-		onPrompt: (prompt: {
-			message: string;
-			defaultValue?: string;
-		}) => Promise<string>;
-		onManualCodeInput?: () => Promise<string>;
-	}) => Promise<OAuthCredentials>;
-};
-
 type AuthIo = {
 	writeln: (text?: string) => void;
 	writeErr: (text: string) => void;
@@ -81,6 +50,7 @@ type AuthQuickSetupInput = {
 	apikey: string;
 	modelid: string;
 	baseurl?: string;
+	azureApiVersion?: string;
 };
 
 type AuthCommandInput = {
@@ -90,6 +60,7 @@ type AuthCommandInput = {
 	apikey?: string;
 	modelid?: string;
 	baseurl?: string;
+	azureApiVersion?: string;
 };
 
 type ParsedAuthCommandArgs = {
@@ -97,9 +68,11 @@ type ParsedAuthCommandArgs = {
 	apikey?: string;
 	modelid?: string;
 	baseurl?: string;
+	azureApiVersion?: string;
 	parseError?: string;
 };
 
+<<<<<<< HEAD
 let cachedCoreOAuthApi: Promise<CoreOAuthApi> | undefined;
 
 async function getCoreOAuthApi(): Promise<CoreOAuthApi> {
@@ -121,6 +94,8 @@ async function getCoreOAuthApi(): Promise<CoreOAuthApi> {
 	return cachedCoreOAuthApi;
 }
 
+=======
+>>>>>>> ee59f81706981e0a64c8b32f8f0415c9d39561fa
 /**
  * Create the `auth` subcommand for Commander.
  *
@@ -136,8 +111,14 @@ export function createAuthCommand(): Command {
 		.argument("[provider]", "供应商 id (-p 简写)")
 		.option("-p, --provider <id>", "供应商 id")
 		.option("-k, --apikey <key>", "API key")
+<<<<<<< HEAD
 		.option("-m, --modelid <id>", "模型 id")
 		.option("-b, --baseurl <url>", "base URL");
+=======
+		.option("-m, --modelid <id>", "model id")
+		.option("-b, --baseurl <url>", "base URL")
+		.option("--azure-api-version <version>", "Azure API version");
+>>>>>>> ee59f81706981e0a64c8b32f8f0415c9d39561fa
 	return cmd;
 }
 
@@ -154,6 +135,7 @@ export function parseAuthCommandArgs(args: string[]): ParsedAuthCommandArgs {
 		apikey?: string;
 		modelid?: string;
 		baseurl?: string;
+		azureApiVersion?: string;
 	}>();
 	const positionalProvider = cmd.args[0];
 	return {
@@ -161,6 +143,7 @@ export function parseAuthCommandArgs(args: string[]): ParsedAuthCommandArgs {
 		apikey: opts.apikey,
 		modelid: opts.modelid,
 		baseurl: opts.baseurl,
+		azureApiVersion: opts.azureApiVersion,
 	};
 }
 
@@ -200,6 +183,12 @@ async function ensureQuickSetupInputValid(
 	) {
 		return "Base URL 仅支持 OpenAI 及兼容 OpenAI 的服务提供商。";
 	}
+	if (
+		input.azureApiVersion?.trim() &&
+		normalizedProvider !== BUILT_IN_PROVIDER.OPENAI_COMPATIBLE
+	) {
+		return "Azure API version is only supported for OpenAI-compatible providers";
+	}
 	return undefined;
 }
 
@@ -209,6 +198,7 @@ function saveQuickAuthProviderSettings(input: {
 	apikey: string;
 	modelid: string;
 	baseurl?: string;
+	azureApiVersion?: string;
 }): void {
 	const existing = input.providerSettingsManager.getProviderSettings(
 		input.providerId,
@@ -223,6 +213,12 @@ function saveQuickAuthProviderSettings(input: {
 	};
 	if (input.baseurl?.trim()) {
 		nextSettings.baseUrl = input.baseurl.trim();
+	}
+	if (input.azureApiVersion?.trim()) {
+		nextSettings.azure = {
+			...(nextSettings.azure ?? {}),
+			apiVersion: input.azureApiVersion.trim(),
+		};
 	}
 	input.providerSettingsManager.saveProviderSettings(nextSettings);
 }
@@ -272,6 +268,7 @@ function createOAuthCallbacks(io: AuthIo): {
 	});
 }
 
+<<<<<<< HEAD
 async function loginWithOAuthProvider(
 	providerId: string,
 	existing: ProviderSettings | undefined,
@@ -306,30 +303,20 @@ async function loginWithOAuthProvider(
 	);
 }
 
+=======
+>>>>>>> ee59f81706981e0a64c8b32f8f0415c9d39561fa
 export function saveOAuthProviderSettings(
 	providerSettingsManager: ProviderSettingsManager,
 	providerId: string,
 	existing: ProviderSettings | undefined,
 	credentials: OAuthCredentials,
 ): ProviderSettings {
-	const auth = {
-		...(existing?.auth ?? {}),
-		accessToken: toProviderApiKey(providerId, credentials),
-		refreshToken: credentials.refresh,
-		accountId: credentials.accountId,
-	} as ProviderSettings["auth"] & { expiresAt?: number };
-	auth.expiresAt = credentials.expires;
-	const merged: ProviderSettings = {
-		...(existing ?? {
-			provider: providerId as ProviderSettings["provider"],
-		}),
-		provider: providerId as ProviderSettings["provider"],
-		auth,
-	};
-	providerSettingsManager.saveProviderSettings(merged, {
-		tokenSource: "oauth",
+	return saveProviderOAuthCredentials({
+		manager: providerSettingsManager,
+		providerId,
+		settings: existing,
+		credentials,
 	});
-	return merged;
 }
 
 export async function ensureOAuthProviderApiKey(input: {
@@ -348,19 +335,14 @@ export async function ensureOAuthProviderApiKey(input: {
 			selectedProviderSettings: input.existingSettings,
 		};
 	}
-	const credentials = await loginWithOAuthProvider(
-		input.providerId,
-		input.existingSettings,
-		input.io,
-	);
-	const selectedProviderSettings = saveOAuthProviderSettings(
+	const selectedProviderSettings = await loginAndSaveProviderOAuthCredentials(
 		input.providerSettingsManager,
 		input.providerId,
-		input.existingSettings,
-		credentials,
+		{ callbacks: createOAuthCallbacks(input.io) },
 	);
+	const handler = getProviderAuthHandler(input.providerId);
 	return {
-		apiKey: toProviderApiKey(input.providerId, credentials),
+		apiKey: handler?.getApiKey(selectedProviderSettings),
 		selectedProviderSettings,
 	};
 }
@@ -370,12 +352,14 @@ async function runQuickAuthSetup(input: AuthCommandInput): Promise<number> {
 	const apikey = input.apikey?.trim() ?? "";
 	const modelid = input.modelid?.trim() ?? "";
 	const baseurl = input.baseurl?.trim();
+	const azureApiVersion = input.azureApiVersion?.trim();
 	const validationError = await ensureQuickSetupInputValid(
 		{
 			provider: providerId,
 			apikey,
 			modelid,
 			baseurl,
+			azureApiVersion,
 		},
 		input.providerSettingsManager,
 	);
@@ -389,6 +373,7 @@ async function runQuickAuthSetup(input: AuthCommandInput): Promise<number> {
 		apikey,
 		modelid,
 		baseurl,
+		azureApiVersion,
 	});
 	input.io.writeln(
 		`${c.green}提供商已配置:${c.reset} ${c.cyan}${providerId}${c.reset} (${modelid})`,
@@ -473,12 +458,17 @@ export async function runAuthCommand(input: AuthCommandInput): Promise<number> {
 	const hasQuickSetupFlags =
 		typeof input.apikey === "string" ||
 		typeof input.modelid === "string" ||
-		typeof input.baseurl === "string";
+		typeof input.baseurl === "string" ||
+		typeof input.azureApiVersion === "string";
 
 	if (hasQuickSetupFlags) {
 		if (!input.explicitProvider?.trim()) {
 			input.io.writeErr(
+<<<<<<< HEAD
 				"当使用 --apikey、--modelid 或 --baseurl 时，认证快速安装必须指定 --provider <id>。",
+=======
+				"auth quick setup requires --provider <id> when using --apikey/--modelid/--baseurl/--azure-api-version",
+>>>>>>> ee59f81706981e0a64c8b32f8f0415c9d39561fa
 			);
 			return 1;
 		}
@@ -515,15 +505,22 @@ export async function runAuthProviderCommand(
 		return 1;
 	}
 	try {
-		const existing = providerSettingsManager.getProviderSettings(providerId);
-		const credentials = await loginWithOAuthProvider(providerId, existing, io);
-		saveOAuthProviderSettings(
+		const settings = await loginAndSaveProviderOAuthCredentials(
 			providerSettingsManager,
 			providerId,
-			existing,
-			credentials,
+			{ callbacks: createOAuthCallbacks(io) },
 		);
+<<<<<<< HEAD
 		io.writeln(`${c.green}您已成功登录到 ${c.cyan}${providerId}${c.reset}`);
+=======
+		identifyTelemetryAccount({
+			id: settings.auth?.accountId,
+			provider: providerId,
+		});
+		io.writeln(
+			`${c.green}You are now logged in to ${c.cyan}${providerId}${c.reset}`,
+		);
+>>>>>>> ee59f81706981e0a64c8b32f8f0415c9d39561fa
 		return 0;
 	} catch (error) {
 		io.writeErr(error instanceof Error ? error.message : String(error));

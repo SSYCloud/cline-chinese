@@ -29,7 +29,9 @@ const authMocks = vi.hoisted(() => ({
 	runAuthCommand: vi.fn(),
 }));
 const providerSettingsMocks = vi.hoisted(() => ({
-	getLastUsedProviderSettings: vi.fn<() => unknown>(() => undefined),
+	getLastUsedProviderSettings: vi.fn<(options?: unknown) => unknown>(
+		() => undefined,
+	),
 	getProviderConfig: vi.fn<(providerId: string, options?: unknown) => unknown>(
 		() => undefined,
 	),
@@ -82,6 +84,11 @@ const historyMocks = vi.hoisted(() => ({
 	runHistoryExport: vi.fn(async () => 0),
 	runHistoryUpdate: vi.fn(async () => 0),
 }));
+const historyResumeMocks = vi.hoisted(() => ({
+	spawnHistoryResume: vi.fn<() => Promise<number | undefined>>(
+		async () => undefined,
+	),
+}));
 const loggingMocks = vi.hoisted(() => ({
 	createCliLoggerAdapter: vi.fn(() => ({
 		core: {
@@ -101,9 +108,13 @@ const hubRuntimeMocks = vi.hoisted(() => ({
 }));
 const telemetryMocks = vi.hoisted(() => ({
 	captureCliExtensionActivated: vi.fn(),
-	identifyCliTelemetryAccount: vi.fn(),
+	identifyTelemetryAccount: vi.fn(),
 	getCliTelemetryService: vi.fn(),
 	disposeCliTelemetryService: vi.fn(async () => {}),
+}));
+const featureFlagMocks = vi.hoisted(() => ({
+	getBooleanFlagEnabled: vi.fn(() => false),
+	setCliFeatureFlagsAccountContext: vi.fn(),
 }));
 
 function forcePromptModeInput() {
@@ -148,8 +159,8 @@ vi.mock("@coohu/core", () => {
 			stop: vi.fn(),
 		})),
 		ProviderSettingsManager: class {
-			getLastUsedProviderSettings() {
-				return providerSettingsMocks.getLastUsedProviderSettings();
+			getLastUsedProviderSettings(options?: unknown) {
+				return providerSettingsMocks.getLastUsedProviderSettings(options);
 			}
 			getProviderSettings(providerId: string) {
 				return providerSettingsMocks.getProviderSettings(providerId);
@@ -164,6 +175,14 @@ vi.mock("@coohu/core", () => {
 	};
 });
 vi.mock("./utils/provider-auth", () => authMocks);
+vi.mock("./utils/feature-flags", () => ({
+	getCliFeatureFlagsService: () => ({
+		getBooleanFlagEnabled: featureFlagMocks.getBooleanFlagEnabled,
+	}),
+	refreshCliFeatureFlagsInBackground: vi.fn(),
+	setCliFeatureFlagsAccountContext:
+		featureFlagMocks.setCliFeatureFlagsAccountContext,
+}));
 vi.mock("./runtime/prompt", () => ({
 	resolveSystemPrompt: promptMocks.resolveSystemPrompt,
 }));
@@ -172,6 +191,7 @@ vi.mock("./commands/dashboard", () => dashboardMocks);
 vi.mock("./kanban-migration/notice", () => migrationNoticeMocks);
 vi.mock("./commands/update", () => updateMocks);
 vi.mock("./commands/history", () => historyMocks);
+vi.mock("./utils/history-resume", () => historyResumeMocks);
 vi.mock("./logging/adapter", () => loggingMocks);
 vi.mock("./utils/hub-runtime", () => hubRuntimeMocks);
 vi.mock("./utils/telemetry", () => telemetryMocks);
@@ -191,6 +211,8 @@ describe("runCli lightweight command dispatch", () => {
 		historyMocks.runHistoryExport.mockResolvedValue(0);
 		historyMocks.runHistoryUpdate.mockReset();
 		historyMocks.runHistoryUpdate.mockResolvedValue(0);
+		historyResumeMocks.spawnHistoryResume.mockReset();
+		historyResumeMocks.spawnHistoryResume.mockResolvedValue(undefined);
 		sessionMocks.getSessionRow.mockReset();
 		sessionMocks.getSessionRow.mockResolvedValue({
 			sessionId: "sess_123",
@@ -233,6 +255,9 @@ describe("runCli lightweight command dispatch", () => {
 		providerSettingsMocks.getProviderSettings.mockReset();
 		providerSettingsMocks.getProviderSettings.mockReturnValue(undefined);
 		providerSettingsMocks.saveProviderSettings.mockReset();
+		featureFlagMocks.getBooleanFlagEnabled.mockReset();
+		featureFlagMocks.getBooleanFlagEnabled.mockReturnValue(false);
+		featureFlagMocks.setCliFeatureFlagsAccountContext.mockReset();
 		kanbanMocks.launchKanban.mockReset();
 		kanbanMocks.launchKanban.mockResolvedValue(0);
 		dashboardMocks.runDashboardCommand.mockReset();
@@ -246,7 +271,7 @@ describe("runCli lightweight command dispatch", () => {
 		updateMocks.getPreferredKanbanInstaller.mockReset();
 		updateMocks.getPreferredKanbanInstaller.mockReturnValue(undefined);
 		telemetryMocks.captureCliExtensionActivated.mockReset();
-		telemetryMocks.identifyCliTelemetryAccount.mockReset();
+		telemetryMocks.identifyTelemetryAccount.mockReset();
 		telemetryMocks.getCliTelemetryService.mockReset();
 		telemetryMocks.disposeCliTelemetryService.mockReset();
 		telemetryMocks.disposeCliTelemetryService.mockResolvedValue(undefined);
@@ -389,6 +414,61 @@ describe("runCli lightweight command dispatch", () => {
 		await expect(runCli()).resolves.toBeUndefined();
 		expect(runtimeMocks.runAgent).toHaveBeenCalledTimes(1);
 		expect(mockState.runAgentImports).toBe(1);
+		expect(mockState.runInteractiveImports).toBe(0);
+	});
+
+	it("rejects multiple bare positional prompt tokens", async () => {
+		const consoleError = vi
+			.spyOn(console, "error")
+			.mockImplementation(() => undefined);
+		forcePromptModeInput();
+		process.argv = ["bun", "src/index.ts", "hello", "world"];
+
+		const { runCli } = await import("./main");
+
+		await expect(runCli()).resolves.toBeUndefined();
+		expect(process.exitCode).toBe(1);
+		expect(consoleError).toHaveBeenCalledWith(
+			expect.stringContaining(
+				"Unknown command or extra arguments: hello world",
+			),
+		);
+		expect(runtimeMocks.runAgent).not.toHaveBeenCalled();
+		expect(mockState.runAgentImports).toBe(0);
+		expect(mockState.runInteractiveImports).toBe(0);
+	});
+
+	it("runs quoted positional prompt text", async () => {
+		forcePromptModeInput();
+		process.argv = ["bun", "src/index.ts", "hello world"];
+
+		const { runCli } = await import("./main");
+
+		await expect(runCli()).resolves.toBeUndefined();
+		expect(runtimeMocks.runAgent).toHaveBeenCalledTimes(1);
+		expect(runtimeMocks.runAgent).toHaveBeenCalledWith(
+			"hello world",
+			expect.any(Object),
+			expect.anything(),
+		);
+	});
+
+	it("rejects unknown root flags before loading runtime modules", async () => {
+		const consoleError = vi
+			.spyOn(console, "error")
+			.mockImplementation(() => undefined);
+		forcePromptModeInput();
+		process.argv = ["bun", "src/index.ts", "--made-up-flag"];
+
+		const { runCli } = await import("./main");
+
+		await expect(runCli()).resolves.toBeUndefined();
+		expect(process.exitCode).toBe(1);
+		expect(consoleError).toHaveBeenCalledWith(
+			expect.stringContaining("unknown option '--made-up-flag'"),
+		);
+		expect(runtimeMocks.runAgent).not.toHaveBeenCalled();
+		expect(mockState.runAgentImports).toBe(0);
 		expect(mockState.runInteractiveImports).toBe(0);
 	});
 
@@ -719,10 +799,47 @@ describe("runCli lightweight command dispatch", () => {
 		);
 	});
 
-	it("forces chat view when resuming from history picker", async () => {
+	it("resumes a history-picked session in a child process", async () => {
 		historyMocks.runHistoryList.mockImplementationOnce(
 			async () => "sess_from_history",
 		);
+		historyResumeMocks.spawnHistoryResume.mockResolvedValueOnce(0);
+		process.argv = ["bun", "src/index.ts", "history"];
+
+		const { runCli } = await import("./main");
+
+		await expect(runCli()).resolves.toBeUndefined();
+		expect(historyResumeMocks.spawnHistoryResume).toHaveBeenCalledTimes(1);
+		expect(historyResumeMocks.spawnHistoryResume).toHaveBeenCalledWith(
+			expect.objectContaining({
+				sessionId: "sess_from_history",
+				normalizedArgs: ["history"],
+				remainingArgs: ["history"],
+			}),
+		);
+		expect(runtimeMocks.runInteractive).not.toHaveBeenCalled();
+		expect(process.exitCode).toBe(0);
+	});
+
+	it("propagates the child exit code when resuming from history picker", async () => {
+		historyMocks.runHistoryList.mockImplementationOnce(
+			async () => "sess_from_history",
+		);
+		historyResumeMocks.spawnHistoryResume.mockResolvedValueOnce(3);
+		process.argv = ["bun", "src/index.ts", "history"];
+
+		const { runCli } = await import("./main");
+
+		await expect(runCli()).resolves.toBeUndefined();
+		expect(process.exitCode).toBe(3);
+		expect(runtimeMocks.runInteractive).not.toHaveBeenCalled();
+	});
+
+	it("forces chat view when the history-picker child cannot launch", async () => {
+		historyMocks.runHistoryList.mockImplementationOnce(
+			async () => "sess_from_history",
+		);
+		historyResumeMocks.spawnHistoryResume.mockResolvedValueOnce(undefined);
 		process.argv = ["bun", "src/index.ts", "history"];
 
 		const { runCli } = await import("./main");
@@ -801,6 +918,33 @@ describe("runCli lightweight command dispatch", () => {
 		);
 	});
 
+	it("seeds feature flag identity from persisted Cline account id before checking flags", async () => {
+		const clineSettings = {
+			provider: "cline",
+			model: "anthropic/claude-sonnet-4.6",
+			auth: {
+				accountId: "acct-startup",
+				accessToken: "workos:token",
+				refreshToken: "refresh-token",
+			},
+		};
+		providerSettingsMocks.getProviderSettings.mockReturnValue(clineSettings);
+		process.argv = ["bun", "src/index.ts"];
+
+		const { runCli } = await import("./main");
+
+		await expect(runCli()).resolves.toBeUndefined();
+		expect(
+			featureFlagMocks.setCliFeatureFlagsAccountContext,
+		).toHaveBeenCalledWith({ id: "acct-startup" });
+		expect(
+			featureFlagMocks.setCliFeatureFlagsAccountContext.mock
+				.invocationCallOrder[0],
+		).toBeLessThan(
+			featureFlagMocks.getBooleanFlagEnabled.mock.invocationCallOrder[0],
+		);
+	});
+
 	it("runs kanban before loading runtime modules", async () => {
 		process.argv = ["bun", "src/index.ts", "kanban"];
 
@@ -818,6 +962,10 @@ describe("runCli lightweight command dispatch", () => {
 			"bun",
 			"src/index.ts",
 			"dashboard",
+			"--config",
+			"/tmp/cline-config",
+			"--data-dir",
+			".cline-dashboard-data",
 			"--port",
 			"9090",
 			"--no-open",
@@ -828,6 +976,8 @@ describe("runCli lightweight command dispatch", () => {
 		await expect(runCli()).resolves.toBeUndefined();
 		expect(dashboardMocks.runDashboardCommand).toHaveBeenCalledWith(
 			expect.objectContaining({
+				configDir: "/tmp/cline-config",
+				dataDir: ".cline-dashboard-data",
 				port: "9090",
 				openBrowser: false,
 				io: expect.any(Object),
@@ -876,7 +1026,7 @@ describe("runCli lightweight command dispatch", () => {
 		runtimeMocks.runAgent.mockClear();
 
 		forcePromptModeInput();
-		process.argv = ["bun", "src/index.ts", "/team", "find", "the", "bug"];
+		process.argv = ["bun", "src/index.ts", "/team find the bug"];
 
 		const { runCli } = await import("./main");
 

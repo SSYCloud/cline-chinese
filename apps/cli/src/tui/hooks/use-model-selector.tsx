@@ -179,7 +179,6 @@ async function runProviderChange(
 
 			config.providerId = newProviderId;
 			config.apiKey = newApiKey;
-
 			const resolved = await resolveProviderConfig(
 				newProviderId,
 				{
@@ -324,6 +323,7 @@ export function useModelSelector(opts: {
 									currentModel={config.modelId}
 									currentProviderName={providerDisplayName}
 									models={modelOptions}
+									showCustomModelId={config.providerId !== "cline-pass"}
 								/>
 							),
 						});
@@ -414,6 +414,7 @@ export function useModelSelector(opts: {
 							currentModel={config.modelId}
 							currentProviderName={providerDisplayName}
 							models={modelOptions}
+							showCustomModelId={config.providerId !== "cline-pass"}
 						/>
 					),
 				});

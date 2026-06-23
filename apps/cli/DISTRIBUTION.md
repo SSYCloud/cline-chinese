@@ -262,7 +262,7 @@ When building for a different platform (e.g., compiling for Linux on a Mac), Bun
 All 7 packages (6 platform + 1 wrapper) must have the same version. The build script reads the version from `apps/cli/package.json`. The publish script verifies that the built package versions match each other and `apps/cli/package.json`.
 
 ### Package naming and scoping
-Platform packages are published under the `@cline` scope. The generated wrapper package is published as `cline`, so npm trusted publishing must be configured for all 7 package names.
+Platform packages are published under the `@coohu` scope. The generated wrapper package is published as `cline`, so npm trusted publishing must be configured for all 7 package names.
 
 ### postinstall reliability
 The postinstall script runs in diverse environments (CI, Docker, restricted permissions, network-mounted filesystems where hard links fail). It always wraps operations in try/catch and exits 0. The resolver script is the ultimate fallback.

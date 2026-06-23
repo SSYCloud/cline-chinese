@@ -1,4 +1,4 @@
-import { createGateway } from "@coohu/llms";
+import { createGateway, type GatewayProviderSettings } from "@coohu/llms";
 import type {
 	AgentAfterToolResult,
 	AgentBeforeModelResult,
@@ -23,7 +23,11 @@ import type {
 	ToolApprovalResult,
 	ToolPolicy,
 } from "@coohu/shared";
-import { captureSdkError, estimateTokens } from "@coohu/shared";
+import {
+	captureSdkError,
+	estimateTokens,
+	mergeModelOptions,
+} from "@coohu/shared";
 import { nanoid } from "nanoid";
 
 // Local `createUID` helper. The clinee source imports this from
@@ -64,6 +68,8 @@ export interface AgentRuntimeConfigWithProvider
 	baseUrl?: string;
 	/** Additional headers for API requests */
 	headers?: Record<string, string>;
+	/** Provider-specific gateway options */
+	options?: GatewayProviderSettings["options"];
 }
 
 /**
@@ -88,9 +94,10 @@ function resolveRuntimeConfig(
 	if (hasPrebuiltModel(config)) {
 		return config;
 	}
-	const { providerId, modelId, apiKey, baseUrl, headers, ...rest } = config;
+	const { providerId, modelId, apiKey, baseUrl, headers, options, ...rest } =
+		config;
 	const gateway = createGateway({
-		providerConfigs: [{ providerId, apiKey, baseUrl, headers }],
+		providerConfigs: [{ providerId, apiKey, baseUrl, headers, options }],
 		telemetry: rest.telemetry,
 	});
 	const model = gateway.createAgentModel({ providerId, modelId });
@@ -775,7 +782,7 @@ export class AgentRuntime {
 			if (result?.options) {
 				request = {
 					...request,
-					options: { ...(request.options ?? {}), ...result.options },
+					options: mergeModelOptions(request.options, result.options),
 				};
 			}
 		}
@@ -1126,6 +1133,7 @@ export class AgentRuntime {
 			skipReason = `Tool execution is disabled for provider ${providerId}`;
 		}
 
+		let policyOverride: ToolPolicy | undefined;
 		if (tool && !skipReason) {
 			for (const hook of this.hooks.beforeTool) {
 				const result = (await hook({
@@ -1137,6 +1145,12 @@ export class AgentRuntime {
 				if (result?.input !== undefined) {
 					input = result.input;
 				}
+				if (result?.policy) {
+					policyOverride = {
+						...policyOverride,
+						...result.policy,
+					};
+				}
 				this.applyStopControl(result);
 				if (result?.skip) {
 					skipReason =
@@ -1147,10 +1161,10 @@ export class AgentRuntime {
 		}
 
 		if (tool && !skipReason) {
-			const policy = resolveToolPolicy(
-				toolCall.toolName,
-				this.config.toolPolicies,
-			);
+			const policy = {
+				...resolveToolPolicy(toolCall.toolName, this.config.toolPolicies),
+				...policyOverride,
+			};
 			if (policy.enabled === false) {
 				skipReason = `Tool "${toolCall.toolName}" is disabled by policy`;
 			} else if (policy.autoApprove === false) {

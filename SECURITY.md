@@ -20,6 +20,6 @@ Please keep the details private until a resolution has been reached.
 
 ## Escalation
 
-If you are unable to submit through Bugcrowd, you may send an email to security@cline.bot.
+If you are unable to submit through Bugcrowd, you may send an email to security@coohu.bot.
 
 Thank you for helping us keep Cline users safe.

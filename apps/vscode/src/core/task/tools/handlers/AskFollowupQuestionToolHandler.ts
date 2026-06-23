@@ -45,18 +45,18 @@ export class AskFollowupQuestionToolHandler implements IToolHandler, IPartialBlo
 			// Log the question that was asked but auto-respond
 			await config.callbacks.say(
 				"info",
-				`[YOLO MODE] Auto-responding to question: "${question.substring(0, 100)}${question.length > 100 ? "..." : ""}"`,
+				`[YOLO 模式] 自动回复问题： "${question.substring(0, 100)}${question.length > 100 ? "..." : ""}"`,
 			)
 
 			return formatResponse.toolResult(
-				`[YOLO MODE: User input is not available in non-interactive mode. You must use available tools (read_file, list_files, search_files, etc.) to gather the information you need instead of asking the user. Proceed with using tools to find the answer to your question: "${question}"]`,
+				`[YOLO 模式：非交互模式下无法获取用户输入。您必须使用可用工具（如 read_file、list_files、search_files 等）来收集所需信息，而不能向用户提问。请继续使用工具来寻找问题的答案：]"${question}"]`,
 			)
 		}
 
 		// Show notification if enabled
 		if (config.autoApprovalSettings.enableNotifications) {
 			showSystemNotification({
-				subtitle: "Cline has a question...",
+				subtitle: "Cline 有个疑问...",
 				message: question.replace(/\n/g, " "),
 			})
 		}

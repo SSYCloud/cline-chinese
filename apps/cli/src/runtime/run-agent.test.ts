@@ -27,7 +27,28 @@ const outputMocks = vi.hoisted(() => ({
 	c: { dim: "", reset: "" },
 }));
 
+const sessionEventsMocks = vi.hoisted(() => ({
+	listener: undefined as ((event: unknown) => void) | undefined,
+	subscribeToAgentEvents: vi.fn(
+		(_: unknown, listener: (event: unknown) => void) => {
+			sessionEventsMocks.listener = listener;
+			return () => {};
+		},
+	),
+}));
+
+const CLINE_PASS_SUBSCRIPTION_URL =
+	"https://app.cline.bot/dashboard/subscription/";
+const CLINE_PASS_SUBSCRIPTION_MESSAGE = `No access to ClinePass subscription models yet. Subscribe to ClinePass, the low cost open weights model coding plan: ${CLINE_PASS_SUBSCRIPTION_URL}`;
+
 vi.mock("@coohu/core", () => ({
+	getClinePassSubscriptionUrl: () => CLINE_PASS_SUBSCRIPTION_URL,
+	isClineNotSubscribedError: (error: unknown) =>
+		error instanceof Error && error.name === "ClineNotSubscribedError",
+	isClineNotSubscribedMessage: (text: string) =>
+		text
+			.toLowerCase()
+			.includes("the user is not subscribed to required model plan"),
 	prewarmFileIndex: vi.fn(async () => undefined),
 	SessionSource: {
 		CLI: "cli",
@@ -77,7 +98,7 @@ vi.mock("./prompt", () => ({
 }));
 
 vi.mock("./session-events", () => ({
-	subscribeToAgentEvents: vi.fn(() => () => {}),
+	subscribeToAgentEvents: sessionEventsMocks.subscribeToAgentEvents,
 }));
 
 describe("runAgent", () => {
@@ -101,6 +122,9 @@ describe("runAgent", () => {
 		outputMocks.writeln.mockReset();
 		outputMocks.emitJsonLine.mockReset();
 		outputMocks.setActiveCliSession.mockReset();
+		sessionEventsMocks.listener = undefined;
+		sessionEventsMocks.subscribeToAgentEvents.mockClear();
+		vi.unstubAllGlobals();
 	});
 
 	afterEach(() => {
@@ -511,6 +535,39 @@ describe("runAgent", () => {
 		expect(outputMocks.writeErr).toHaveBeenCalledWith("Missing API key");
 	});
 
+	it("renders ClinePass subscription errors with friendly copy when startup throws", async () => {
+		const error = new Error(CLINE_PASS_SUBSCRIPTION_MESSAGE);
+		error.name = "ClineNotSubscribedError";
+		sessionManagerMocks.start.mockRejectedValue(error);
+
+		const { runAgent } = await import("./run-agent");
+
+		await expect(
+			runAgent("test prompt", {
+				cwd: process.cwd(),
+				enableAgentTeams: false,
+				enableSpawnAgent: false,
+				enableTools: [],
+				execution: { maxConsecutiveMistakes: 3 },
+				logger: undefined,
+				mode: "yolo",
+				modelId: "premium-model",
+				outputMode: "text",
+				providerId: "cline-pass",
+				systemPrompt: "system",
+				thinking: false,
+				toolPolicies: { "*": { autoApprove: true } },
+				verbose: false,
+				workspaceRoot: process.cwd(),
+			} as never),
+		).resolves.toBeUndefined();
+
+		expect(process.exitCode).toBe(1);
+		expect(outputMocks.writeErr).toHaveBeenCalledWith(
+			CLINE_PASS_SUBSCRIPTION_MESSAGE,
+		);
+	});
+
 	it("emits JSON error lines for non-completed results", async () => {
 		const startedAt = new Date("2026-03-22T00:00:00.000Z");
 		const endedAt = new Date("2026-03-22T00:00:01.000Z");
@@ -573,6 +630,63 @@ describe("runAgent", () => {
 		expect(process.exitCode).toBe(1);
 		expect(outputMocks.writeErr).toHaveBeenCalledWith(
 			'Missing API key for provider "cline".',
+		);
+	});
+
+	it("renders ClinePass subscription errors with friendly copy for failed results", async () => {
+		const startedAt = new Date("2026-03-22T00:00:00.000Z");
+		const endedAt = new Date("2026-03-22T00:00:01.000Z");
+		sessionManagerMocks.start.mockResolvedValue({
+			sessionId: "session-1",
+			manifestPath: "/tmp/manifest.json",
+			messagesPath: "/tmp/messages.json",
+			manifest: { session_id: "session-1" },
+			result: {
+				text: CLINE_PASS_SUBSCRIPTION_MESSAGE,
+				usage: {
+					inputTokens: 0,
+					outputTokens: 0,
+					cacheReadTokens: 0,
+					cacheWriteTokens: 0,
+					totalCost: 0,
+				},
+				messages: [],
+				toolCalls: [],
+				iterations: 1,
+				finishReason: "error",
+				model: { id: "premium-model", provider: "cline-pass", info: {} },
+				startedAt,
+				endedAt,
+				durationMs: 1000,
+			},
+		});
+		sessionManagerMocks.getAccumulatedUsage.mockResolvedValue(undefined);
+
+		const { runAgent } = await import("./run-agent");
+
+		await expect(
+			runAgent("test prompt", {
+				cwd: process.cwd(),
+				enableAgentTeams: false,
+				enableSpawnAgent: false,
+				enableTools: [],
+				execution: { maxConsecutiveMistakes: 3 },
+				logger: undefined,
+				mode: "yolo",
+				modelId: "premium-model",
+				outputMode: "text",
+				providerId: "cline-pass",
+				systemPrompt: "system",
+				thinking: false,
+				toolPolicies: { "*": { autoApprove: true } },
+				verbose: false,
+				workspaceRoot: process.cwd(),
+			} as never),
+		).resolves.toBeUndefined();
+
+		expect(process.exitCode).toBe(1);
+		expect(outputMocks.writeErr).toHaveBeenCalledWith(
+			CLINE_PASS_SUBSCRIPTION_MESSAGE,
 		);
 	});
 
@@ -835,6 +949,123 @@ describe("runAgent", () => {
 
 		expect(outputMocks.writeln).not.toHaveBeenCalledWith(
 			expect.stringContaining("est. cost"),
+		);
+	});
+
+	it("zeros Cline free model costs in JSON results and agent events", async () => {
+		const startedAt = new Date("2026-03-22T00:00:00.000Z");
+		const endedAt = new Date("2026-03-22T00:00:01.000Z");
+		vi.stubGlobal(
+			"fetch",
+			vi.fn(async () => {
+				return new Response(
+					JSON.stringify({
+						free: [{ id: "deepseek/deepseek-v4-flash" }],
+					}),
+					{ status: 200, headers: { "content-type": "application/json" } },
+				);
+			}),
+		);
+		sessionManagerMocks.start.mockResolvedValue({
+			sessionId: "session-1",
+			manifestPath: "/tmp/manifest.json",
+			messagesPath: "/tmp/messages.json",
+			manifest: {
+				session_id: "session-1",
+			},
+			result: {
+				text: "completed text",
+				usage: {
+					inputTokens: 1,
+					outputTokens: 1,
+					cacheReadTokens: 0,
+					cacheWriteTokens: 0,
+					totalCost: 0.25,
+				},
+				messages: [],
+				toolCalls: [],
+				iterations: 1,
+				finishReason: "completed",
+				model: {
+					id: "deepseek/deepseek-v4-flash",
+					provider: "cline",
+					info: {},
+				},
+				startedAt,
+				endedAt,
+				durationMs: 1000,
+			},
+		});
+		sessionManagerMocks.getAccumulatedUsage.mockResolvedValue({
+			usage: {
+				inputTokens: 1,
+				outputTokens: 1,
+				cacheReadTokens: 0,
+				cacheWriteTokens: 0,
+				totalCost: 0.25,
+			},
+			aggregateUsage: {
+				inputTokens: 1,
+				outputTokens: 1,
+				cacheReadTokens: 0,
+				cacheWriteTokens: 0,
+				totalCost: 0.25,
+			},
+		});
+
+		const { runAgent } = await import("./run-agent");
+		const { handleEvent } = await import("../utils/events");
+
+		await expect(
+			runAgent("test prompt", {
+				baseUrl: "https://cline.test/api/v1",
+				cwd: process.cwd(),
+				enableAgentTeams: false,
+				enableSpawnAgent: false,
+				enableTools: [],
+				execution: {
+					maxConsecutiveMistakes: 3,
+				},
+				logger: undefined,
+				mode: "yolo",
+				modelId: "deepseek/deepseek-v4-flash",
+				outputMode: "json",
+				providerId: "cline",
+				systemPrompt: "system",
+				thinking: false,
+				toolPolicies: { "*": { autoApprove: true } },
+				verbose: false,
+				workspaceRoot: process.cwd(),
+			} as never),
+		).resolves.toBeUndefined();
+
+		const runResult = outputMocks.emitJsonLine.mock.calls.find(
+			([, payload]) =>
+				(payload as { type?: string } | undefined)?.type === "run_result",
+		)?.[1] as
+			| {
+					usage?: { totalCost?: number };
+					aggregateUsage?: { totalCost?: number };
+			  }
+			| undefined;
+		expect(runResult?.usage?.totalCost).toBe(0);
+		expect(runResult?.aggregateUsage?.totalCost).toBe(0);
+
+		sessionEventsMocks.listener?.({
+			type: "usage",
+			inputTokens: 1,
+			outputTokens: 1,
+			cost: 0.25,
+			totalCost: 0.25,
+		});
+
+		expect(handleEvent).toHaveBeenLastCalledWith(
+			expect.objectContaining({
+				type: "usage",
+				cost: 0,
+				totalCost: 0,
+			}),
+			expect.any(Object),
 		);
 	});
 });

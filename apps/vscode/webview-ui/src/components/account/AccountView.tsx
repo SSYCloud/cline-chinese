@@ -50,9 +50,9 @@ const AccountView = ({ onDone }: AccountViewProps) => {
 					<TabButton isActive={accountTab === "personal"} onClick={() => setAccountTab("personal")}>
 						个人账户
 					</TabButton>
-					<TabButton isActive={accountTab === "enterprise"} onClick={() => setAccountTab("enterprise")}>
+					{/* <TabButton isActive={accountTab === "enterprise"} onClick={() => setAccountTab("enterprise")}>
 						企业账户
-					</TabButton>
+					</TabButton> */}
 				</div>
 				<Button size="header" onClick={onDone}>
 					确定

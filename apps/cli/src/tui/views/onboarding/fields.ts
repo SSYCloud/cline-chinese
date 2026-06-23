@@ -4,6 +4,7 @@ import type { ProviderConfigFieldKey } from "@coohu/core";
 export const FIELD_ORDER: ProviderConfigFieldKey[] = [
 	"awsRegion",
 	"baseUrl",
+	"azureApiVersion",
 	"apiKey",
 	"awsProfile",
 	"sapClientId",

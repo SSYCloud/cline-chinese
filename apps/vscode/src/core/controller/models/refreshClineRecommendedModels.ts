@@ -19,6 +19,7 @@ export interface ClineRecommendedModelData {
 export interface ClineRecommendedModelsData {
 	recommended: ClineRecommendedModelData[];
 	free: ClineRecommendedModelData[];
+	clinePass: ClineRecommendedModelData[];
 }
 
 const RECOMMENDED_MODELS_CACHE_TTL_MS = 60 * 60 * 1000;
@@ -64,7 +65,8 @@ function normalizeRecommendedModelsResponse(
 	const data = raw as Record<string, unknown>;
 	if (
 		(data.recommended !== undefined && !Array.isArray(data.recommended)) ||
-		(data.free !== undefined && !Array.isArray(data.free))
+		(data.free !== undefined && !Array.isArray(data.free)) ||
+		(data.clinePass !== undefined && !Array.isArray(data.clinePass))
 	) {
 		return null;
 	}
@@ -73,6 +75,7 @@ function normalizeRecommendedModelsResponse(
 		? data.recommended
 		: [];
 	const freeRaw = Array.isArray(data.free) ? data.free : [];
+	const clinePassRaw = Array.isArray(data.clinePass) ? data.clinePass : [];
 
 	const recommended = recommendedRaw
 		.map((model) => normalizeRecommendedModel(model))
@@ -82,7 +85,11 @@ function normalizeRecommendedModelsResponse(
 		.map((model) => normalizeRecommendedModel(model))
 		.filter((model): model is ClineRecommendedModelData => model !== null);
 
-	return { recommended, free };
+	const clinePass = clinePassRaw
+		.map((model) => normalizeRecommendedModel(model))
+		.filter((model): model is ClineRecommendedModelData => model !== null);
+
+	return { recommended, free, clinePass };
 }
 
 export async function refreshClineRecommendedModels(): Promise<ClineRecommendedModelsData> {
@@ -118,7 +125,11 @@ async function fetchAndCacheClineRecommendedModels(): Promise<ClineRecommendedMo
 		await ensureCacheDirectoryExists(),
 		GlobalFileNames.clineRecommendedModels,
 	);
-	let result: ClineRecommendedModelsData = { recommended: [], free: [] };
+	let result: ClineRecommendedModelsData = {
+		recommended: [],
+		free: [],
+		clinePass: [],
+	};
 
 	try {
 		const apiBaseUrl = ClineEnv.config().apiBaseUrl;
@@ -151,7 +162,13 @@ async function fetchAndCacheClineRecommendedModels(): Promise<ClineRecommendedMo
 				);
 				const parsed = JSON.parse(fileContents);
 				if (parsed) {
-					result = parsed;
+					result = {
+						recommended: Array.isArray(parsed.recommended)
+							? parsed.recommended
+							: [],
+						free: Array.isArray(parsed.free) ? parsed.free : [],
+						clinePass: Array.isArray(parsed.clinePass) ? parsed.clinePass : [],
+					};
 					Logger.log("Loaded Cline recommended models from cache");
 				}
 			}
@@ -164,7 +181,11 @@ async function fetchAndCacheClineRecommendedModels(): Promise<ClineRecommendedMo
 	}
 
 	// Avoid pinning empty results in memory for the full TTL after a transient API/cache miss.
-	if (result.recommended.length > 0 || result.free.length > 0) {
+	if (
+		result.recommended.length > 0 ||
+		result.free.length > 0 ||
+		result.clinePass.length > 0
+	) {
 		inMemoryCache = { data: result, timestamp: Date.now() };
 	}
 	return result;

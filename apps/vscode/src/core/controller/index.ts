@@ -76,6 +76,12 @@ export class Controller {
 	mcpHub: McpHub;
 	// accountService: ClineAccountService
 	accountServiceSSY: SSYAccountService;
+
+	get accountService() {
+		return {
+			switchAccount: async (_organizationId: string | null) => {},
+		}
+	}
 	// authService: AuthService
 	// ocaAuthService: OcaAuthService
 	readonly stateManager: StateManager;
@@ -564,8 +570,6 @@ export class Controller {
 			Logger.log("handleAuthCallback:", customToken, provider);
 			// await this.authService.handleAuthCallback(customToken, provider ? provider : "google")
 
-			const clineProvider: ApiProvider = "cline";
-
 			// Get current settings to determine how to update providers
 			const planActSeparateModelsSetting =
 				this.stateManager.getGlobalSettingsKey("planActSeparateModelsSetting");
@@ -575,19 +579,27 @@ export class Controller {
 			// Get current API configuration from cache
 			const currentApiConfiguration = this.stateManager.getApiConfiguration();
 
-			const updatedConfig = { ...currentApiConfiguration };
+			// On login we route the user to the managed "cline" provider, but preserve a
+			// "cline-pass" selection made during onboarding (otherwise it would be clobbered).
+			// A "cline-pass" provider can only be set when the ext-cline-pass flag is on, so
+			// non-ClinePass logins are unaffected.
+			const planProvider: ApiProvider =
+				currentApiConfiguration.planModeApiProvider === "cline-pass" ? "cline-pass" : "cline"
+			const actProvider: ApiProvider = currentApiConfiguration.actModeApiProvider === "cline-pass" ? "cline-pass" : "cline"
+
+			const updatedConfig = { ...currentApiConfiguration }
 
 			if (planActSeparateModelsSetting) {
 				// Only update the current mode's provider
 				if (currentMode === "plan") {
-					updatedConfig.planModeApiProvider = clineProvider;
+					updatedConfig.planModeApiProvider = planProvider
 				} else {
-					updatedConfig.actModeApiProvider = clineProvider;
+					updatedConfig.actModeApiProvider = actProvider
 				}
 			} else {
 				// Update both modes to keep them in sync
-				updatedConfig.planModeApiProvider = clineProvider;
-				updatedConfig.actModeApiProvider = clineProvider;
+				updatedConfig.planModeApiProvider = planProvider
+				updatedConfig.actModeApiProvider = actProvider
 			}
 
 			// Update the API configuration through cache service

@@ -12,14 +12,14 @@ jobs:
     runs-on: ubuntu-latest
     environment: cline-actions
     steps:
-      - name: Check for @cline mention
+      - name: Check for @coohu mention
         id: detect
         uses: actions/github-script@v7
         with:
           script: |
             const body = context.payload.comment?.body || "";
             const isPR = !!context.payload.issue?.pull_request;
-            const hit = body.toLowerCase().includes("@cline");
+            const hit = body.toLowerCase().includes("@coohu");
             core.setOutput("hit", (!isPR && hit) ? "true" : "false");
             core.setOutput("issue_number", String(context.payload.issue?.number || ""));
             core.setOutput("issue_url", context.payload.issue?.html_url || "");

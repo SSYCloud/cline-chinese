@@ -1,7 +1,7 @@
 import {
 	completeClineDeviceAuth,
 	getProviderConfigFields,
-	listLocalProviders,
+	isOAuthProvider,
 	loginLocalProvider,
 	type ProviderConfigFieldKey,
 	type ProviderConfigFieldRequirement,
@@ -21,12 +21,14 @@ import {
 	checkCodexCliInstalled,
 	isOpenAICodexCliProvider,
 } from "../../../utils/codex-cli";
-import { isOAuthProvider } from "../../../utils/provider-auth";
+import { listLocalProviders } from "../../../utils/provider-catalog";
 import { palette } from "../../palette";
 import {
 	getDefaultAwsRegion,
 	type ProviderConfigValues,
 	resolveProviderConfigAwsRegion,
+	resolveProviderConfigAzure,
+	resolveProviderConfigGcp,
 	resolveProviderConfigSap,
 	updateProviderConfigValue,
 } from "../../utils/provider-config-values";
@@ -313,8 +315,11 @@ export function UseExistingOrReconfigureContent(
 const DEFAULT_FIELD_LABELS: Partial<Record<ProviderConfigFieldKey, string>> = {
 	apiKey: "API key",
 	baseUrl: "Base URL",
+	azureApiVersion: "Azure API Version",
 	awsRegion: "AWS Region",
 	awsProfile: "AWS Profile Name",
+	gcpProjectId: "Google Cloud Project ID",
+	gcpRegion: "Google Cloud Region",
 	sapClientId: "Client ID",
 	sapClientSecret: "Client Secret",
 	sapTokenUrl: "Token URL",
@@ -327,8 +332,11 @@ const DEFAULT_FIELD_PLACEHOLDERS: Partial<
 > = {
 	apiKey: "sk-...",
 	baseUrl: "",
+	azureApiVersion: "2025-01-01-preview",
 	awsRegion: "us-east-1",
 	awsProfile: "default",
+	gcpProjectId: "my-gcp-project",
+	gcpRegion: "us-central1",
 	sapClientId: "sb-...|xsuaa_std!b...",
 	sapClientSecret: "SAP AI Core client secret",
 	sapTokenUrl: "https://<subdomain>.authentication.sap.hana.ondemand.com",
@@ -339,7 +347,10 @@ const DEFAULT_FIELD_PLACEHOLDERS: Partial<
 /** Render order for cycling focus with Tab. */
 const FIELD_ORDER: ProviderConfigFieldKey[] = [
 	"awsRegion",
+	"gcpProjectId",
+	"gcpRegion",
 	"baseUrl",
+	"azureApiVersion",
 	"apiKey",
 	"awsProfile",
 	"sapClientId",
@@ -396,11 +407,22 @@ export function ProviderConfigInputContent(
 				config.fields.baseUrl?.defaultValue ??
 				"";
 		}
+		if (config.fields.azureApiVersion) {
+			initial.azureApiVersion =
+				existingSettings?.azure?.apiVersion?.trim() ?? "";
+		}
 		if (config.fields.awsRegion) {
 			const ep = existingSettings?.aws?.profile?.trim() ?? "";
 			initial.awsRegion =
 				existingSettings?.aws?.region?.trim() || getDefaultAwsRegion(ep);
 		}
+		if (config.fields.gcpProjectId)
+			initial.gcpProjectId = existingSettings?.gcp?.projectId?.trim() ?? "";
+		if (config.fields.gcpRegion)
+			initial.gcpRegion =
+				existingSettings?.gcp?.region?.trim() ??
+				config.fields.gcpRegion.defaultValue ??
+				"us-central1";
 		if (config.fields.apiKey)
 			initial.apiKey = existingSettings?.apiKey?.trim() ?? "";
 		if (config.fields.awsProfile)
@@ -428,7 +450,9 @@ export function ProviderConfigInputContent(
 	const submit = () => {
 		const apiKey = values.apiKey?.trim();
 		const awsProfile = values.awsProfile?.trim();
+		const hasAzureFields = config.fields.azureApiVersion;
 		const hasAwsFields = config.fields.awsRegion || config.fields.awsProfile;
+		const hasGcpFields = config.fields.gcpProjectId || config.fields.gcpRegion;
 		const hasSapFields =
 			config.fields.sapClientId ||
 			config.fields.sapClientSecret ||
@@ -439,6 +463,7 @@ export function ProviderConfigInputContent(
 			providerId,
 			apiKey: config.fields.apiKey ? apiKey : undefined,
 			baseUrl: config.fields.baseUrl ? values.baseUrl?.trim() : undefined,
+			azure: hasAzureFields ? resolveProviderConfigAzure(values) : undefined,
 			aws: hasAwsFields
 				? {
 						region: resolveProviderConfigAwsRegion(values),
@@ -446,6 +471,7 @@ export function ProviderConfigInputContent(
 						profile: apiKey ? undefined : awsProfile || undefined,
 					}
 				: undefined,
+			gcp: hasGcpFields ? resolveProviderConfigGcp(values) : undefined,
 			sap: hasSapFields ? resolveProviderConfigSap(values) : undefined,
 		});
 		resolve(true);
@@ -669,7 +695,7 @@ export function OAuthLoginContent(
 						if (!isActiveAuthAttempt(attempt)) return;
 						saveLocalProviderOAuthCredentials(
 							manager,
-							providerId as "cline" | "oca" | "openai-codex",
+							providerId,
 							existing,
 							credentials,
 						);
@@ -703,26 +729,24 @@ export function OAuthLoginContent(
 		const manager = new ProviderSettingsManager();
 		const existing = manager.getProviderSettings(providerId);
 
-		loginLocalProvider(
-			providerId as "shengsuanyun" | "oca" | "openai-codex",
-			existing,
-			(url: string) => {
-				setAuthUrl(url);
-				setStatus("等待浏览器认证...");
-				try {
-					void open(url, { wait: false }).catch(() => {
-						setStatus("无法自动打开浏览器。请打开下方链接。");
-					});
-				} catch {
-					setStatus("无法自动打开浏览器。请打开下方链接。");
-				}
-			},
-		)
+		loginLocalProvider(providerId, existing, (url: string) => {
+			setAuthUrl(url);
+			setStatus("Waiting for authentication in browser...");
+			try {
+				void open(url, { wait: false }).catch(() => {
+					setStatus(
+						"Could not open browser automatically. Open the URL below.",
+					);
+				});
+			} catch {
+				setStatus("Could not open browser automatically. Open the URL below.");
+			}
+		})
 			.then((credentials) => {
 				if (!isActiveAuthAttempt(attempt)) return;
 				saveLocalProviderOAuthCredentials(
 					manager,
-					providerId as "cline" | "oca" | "openai-codex",
+					providerId,
 					existing,
 					credentials,
 				);

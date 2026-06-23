@@ -400,7 +400,7 @@ describe("discordConnector", () => {
 			__test__.resolveDiscordOutboundMentions({
 				botToken: "token",
 				threadId: "discord:guild-123:channel-123:thread-123",
-				text: "@cline-test-bot how is your day?",
+				text: "@coohu-test-bot how is your day?",
 			}),
 		).resolves.toBe("<@1509620637721821224> how is your day?");
 		expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -429,7 +429,7 @@ describe("discordConnector", () => {
 			__test__.resolveDiscordOutboundMentions({
 				botToken: "token",
 				threadId: "discord:guild-123:channel-123:thread-123",
-				text: "<@cline>-test-bot how is your day?",
+				text: "<@coohu>-test-bot how is your day?",
 			}),
 		).resolves.toBe("<@1509620637721821224> how is your day?");
 	});

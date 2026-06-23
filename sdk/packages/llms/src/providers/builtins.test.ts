@@ -53,10 +53,62 @@ describe("shengsuanyun builtin spec defaults.baseUrl", () => {
 	});
 });
 
+describe("cline builtin models", () => {
+	it("prefers Vercel-style Z.ai model ids over equivalent OpenRouter ids", async () => {
+		const models = await getModelsForProvider("cline");
+
+		expect(models["zai/glm-5.2"]).toMatchObject({
+			id: "zai/glm-5.2",
+			name: "GLM 5.2",
+			contextWindow: 1_000_000,
+			maxInputTokens: 1_000_000,
+		});
+		expect(models["zai/glm-5.1"]).toMatchObject({
+			id: "zai/glm-5.1",
+		});
+		expect(models["z-ai/glm-5.2"]).toBeUndefined();
+	});
+});
+
+describe("cline-pass builtin spec", () => {
+	it("registers a distinct Cline-compatible provider with a custom model list", async () => {
+		const models = await getModelsForProvider("cline-pass");
+		const provider = await getProvider("cline-pass");
+
+		expect(provider).toMatchObject({
+			id: "cline-pass",
+			name: "ClinePass",
+			baseUrl: `${CLINE_ENVIRONMENTS.production.apiBaseUrl}/api/v1`,
+			client: "openai-compatible",
+			capabilities: expect.arrayContaining([
+				"oauth",
+				"tools",
+				"reasoning",
+				"prompt-cache",
+			]),
+		});
+		expect(models).toHaveProperty(provider?.defaultModelId ?? "");
+		expect(Object.keys(models).length).toBeGreaterThan(0);
+		for (const model of Object.values(models)) {
+			expect(model.contextWindow).toBeGreaterThan(0);
+			expect(model.maxInputTokens).toBeGreaterThan(0);
+			expect(model.maxTokens).toBeGreaterThan(0);
+			expect(model.capabilities).toEqual(expect.arrayContaining(["tools"]));
+			expect(model.pricing).toBeDefined();
+		}
+	});
+});
+
 describe("built-in provider metadata", () => {
 	it("marks popular providers with a provider capability and rank", async () => {
 		await expect(getProvider("shengsuanyun")).resolves.not.toMatchObject({
 			capabilities: expect.arrayContaining(["popular"]),
+		});
+	});
+
+	it("uses the current Hugging Face router endpoint", async () => {
+		await expect(getProvider("huggingface")).resolves.toMatchObject({
+			baseUrl: "https://router.huggingface.co/v1",
 		});
 	});
 
@@ -69,15 +121,15 @@ describe("built-in provider metadata", () => {
 			expect.arrayContaining([
 				"gpt-5.5",
 				"gpt-5.5-pro",
-				"gpt-5.2",
-				"gpt-5.3-codex",
-				"gpt-5.3-codex-spark",
 				"gpt-5.4",
 				"gpt-5.4-mini",
 			]),
 		);
 		expect(modelIds).not.toContain("gpt-5.1-codex-max");
+		expect(modelIds).not.toContain("gpt-5.2");
 		expect(modelIds).not.toContain("gpt-5.2-codex");
+		expect(modelIds).not.toContain("gpt-5.3-codex");
+		expect(modelIds).not.toContain("gpt-5.3-codex-spark");
 		expect(modelIds).not.toContain("gpt-5.4-nano");
 		expect(modelIds).not.toContain("o3");
 		expect(chatGptModels["gpt-5.5"]).toEqual(
@@ -90,13 +142,6 @@ describe("built-in provider metadata", () => {
 		expect(chatGptModels["gpt-5.4"]).toEqual(
 			expect.objectContaining({
 				name: "GPT-5.4",
-				maxInputTokens: expect.any(Number),
-				contextWindow: expect.any(Number),
-			}),
-		);
-		expect(chatGptModels["gpt-5.3-codex"]).toEqual(
-			expect.objectContaining({
-				name: "GPT-5.3 Codex",
 				maxInputTokens: expect.any(Number),
 				contextWindow: expect.any(Number),
 			}),
@@ -121,5 +166,23 @@ describe("built-in provider metadata", () => {
 				expect(model.family?.startsWith("glm")).toBe(true);
 			}
 		}
+	});
+
+	it("routes direct MiniMax M3 through MiniMax thinking metadata", async () => {
+		await expect(getProvider("minimax")).resolves.toMatchObject({
+			metadata: {
+				routing: {
+					reasoning: {
+						format: "minimax-thinking",
+						routes: [
+							expect.objectContaining({
+								matcher: "model-id",
+								modelId: "MiniMax-M3",
+							}),
+						],
+					},
+				},
+			},
+		});
 	});
 });

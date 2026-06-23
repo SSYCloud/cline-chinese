@@ -1090,6 +1090,22 @@ describe("listLocalProviders", () => {
 		expect(ids).toContain("list-provider-b");
 	});
 
+	it("hides ClinePass when the ClinePass feature flag is disabled", async () => {
+		const { providers } = await listLocalProviders(manager, {
+			isClinePassEnabled: false,
+		});
+
+		expect(providers.map((p) => p.id)).not.toContain("cline-pass");
+	});
+
+	it("includes ClinePass when the ClinePass feature flag is enabled", async () => {
+		const { providers } = await listLocalProviders(manager, {
+			isClinePassEnabled: true,
+		});
+
+		expect(providers.map((p) => p.id)).toContain("cline-pass");
+	});
+
 	it("marks enabled providers correctly", async () => {
 		await addLocalProvider(manager, {
 			providerId: "enabled-check-provider",
@@ -1177,7 +1193,7 @@ describe("listLocalProviders", () => {
 		).toBe(false);
 	});
 
-	it("uses the same built-in model list for cline as openrouter", async () => {
+	it("uses Cline-specific Z.ai aliases in the built-in model list", async () => {
 		manager.saveProviderSettings(
 			{
 				provider: "cline",
@@ -1193,9 +1209,17 @@ describe("listLocalProviders", () => {
 		const openrouter = providers.find(
 			(provider) => provider.id === "openrouter",
 		);
+		const clineModelIds = new Set(
+			cline?.modelList?.map((model) => model.id) ?? [],
+		);
+		const openrouterModelIds = new Set(
+			openrouter?.modelList?.map((model) => model.id) ?? [],
+		);
 
 		expect(cline?.modelList?.length).toBeGreaterThan(0);
-		expect(cline?.modelList).toEqual(openrouter?.modelList);
+		expect(clineModelIds).toContain("zai/glm-5.2");
+		expect(clineModelIds).not.toContain("z-ai/glm-5.2");
+		expect(openrouterModelIds).toContain("z-ai/glm-5.2");
 	});
 
 	it("does not eagerly fetch LiteLLM private models while listing providers", async () => {
@@ -1230,6 +1254,34 @@ describe("listLocalProviders", () => {
 		expect(
 			litellm?.modelList?.some((model) => model.id === "team/private-model"),
 		).toBe(false);
+	});
+});
+
+// ===========================================================================
+// normalizeOAuthProvider
+// ===========================================================================
+
+describe("normalizeOAuthProvider", () => {
+	it("normalizes 'cline' to 'cline'", () => {
+		expect(normalizeOAuthProvider("cline")).toBe("cline");
+		expect(normalizeOAuthProvider("  CLINE  ")).toBe("cline");
+	});
+
+	it("normalizes 'oca' to 'oca'", () => {
+		expect(normalizeOAuthProvider("oca")).toBe("oca");
+		expect(normalizeOAuthProvider("OCA")).toBe("oca");
+	});
+
+	it("normalizes 'openai-codex' to 'openai-codex'", () => {
+		expect(normalizeOAuthProvider("openai-codex")).toBe("openai-codex");
+		expect(normalizeOAuthProvider("OPENAI-CODEX")).toBe("openai-codex");
+	});
+
+	it("throws for unsupported providers", () => {
+		expect(() => normalizeOAuthProvider("anthropic")).toThrow(
+			"does not support OAuth login",
+		);
+		expect(() => normalizeOAuthProvider("")).toThrow();
 	});
 });
 

@@ -1,7 +1,7 @@
 {
 	"name": "@coohu/cline",
 	"displayName": "cline",
-	"version": "3.0.20",
+	"version": "3.0.29",
 	"description": "自主编程 Agent CLI —— 具备创建/编辑文件、执行命令、使用浏览器等功能.",
 	"type": "module",
 	"publishConfig": {
@@ -89,6 +89,7 @@
 		"open": "^10.2.0",
 		"opentui-spinner": "^0.0.6",
 		"pino": "^10.3.1",
+		"posthog-node": "^5.8.0",
 		"react": "19.2.4",
 		"react-devtools-core": "^7.0.1",
 		"react-reconciler": "0.32.0",

@@ -20,7 +20,7 @@ import {
 import { useTerminalBackground } from "../../hooks/use-terminal-background";
 import { getDefaultForeground, palette } from "../../palette";
 import { FIELD_ORDER } from "./fields";
-import { MAIN_MENU, THINKING_LEVELS } from "./model";
+import { type MenuOption, THINKING_LEVELS } from "./model";
 
 type MouseTrackerState = ReturnType<typeof useMouseTracker>;
 
@@ -222,6 +222,7 @@ import type {
 const DEFAULT_FIELD_LABELS: Partial<Record<ProviderConfigFieldKey, string>> = {
 	apiKey: "API key",
 	baseUrl: "Base URL",
+	azureApiVersion: "Azure API Version",
 	awsRegion: "AWS Region",
 	awsProfile: "AWS Profile Name",
 	sapClientId: "Client ID",
@@ -236,6 +237,7 @@ const DEFAULT_FIELD_PLACEHOLDERS: Partial<
 > = {
 	apiKey: "在此粘贴您的 API key...",
 	baseUrl: "",
+	azureApiVersion: "2025-01-01-preview",
 	awsRegion: "us-east-1",
 	awsProfile: "default",
 	sapClientId: "sb-...|xsuaa_std!b...",
@@ -623,6 +625,7 @@ export function OnboardingThinkingLevelScreen(props: {
 
 export function OnboardingMainMenuScreen(props: {
 	contentWidth: number;
+	menuOptions: MenuOption[];
 	menuSelected: number;
 	mouse: MouseTrackerState;
 }) {
@@ -661,7 +664,7 @@ export function OnboardingMainMenuScreen(props: {
 				marginTop={1}
 				gap={0}
 			>
-				{MAIN_MENU.map((option, i) => {
+				{props.menuOptions.map((option, i) => {
 					const isSel = i === props.menuSelected;
 					return (
 						<box

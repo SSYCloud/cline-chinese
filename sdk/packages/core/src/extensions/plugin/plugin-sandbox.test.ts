@@ -35,6 +35,7 @@ function createApiCapture() {
 		registerProvider: () => {},
 		registerAutomationEventType: (eventType: unknown) =>
 			automationEventTypes.push(eventType),
+		registerMcpServer: () => {},
 	};
 	return { tools, rules, messageBuilders, automationEventTypes, api };
 }
@@ -507,7 +508,7 @@ describe("plugin-sandbox", () => {
 		const packageRoot = join(
 			wrapperRoot,
 			"node_modules",
-			"@cline",
+			"@coohu",
 			`cli-${platform}-${process.arch}`,
 		);
 		const wrapperBinDir = join(wrapperRoot, "bin");

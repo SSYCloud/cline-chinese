@@ -44,7 +44,13 @@ export const MAIN_MENU: MenuOption[] = [
 		icon: "\u263a",
 	},
 	{
-		label: "登录 ChatGPT",
+		label: "Sign in with ClinePass",
+		value: "cline-pass",
+		detail: "Low cost subscription for everyone",
+		icon: "\u2726",
+	},
+	{
+		label: "Sign in with ChatGPT",
 		value: "openai-codex",
 		detail: "使用您的 ChatGPT Plus 订阅",
 		icon: "\u2726",
@@ -56,6 +62,14 @@ export const MAIN_MENU: MenuOption[] = [
 		icon: "\u26b7",
 	},
 ];
+
+export function getMainMenuOptions(options?: {
+	isClinePassEnabled?: boolean;
+}): MenuOption[] {
+	return MAIN_MENU.filter(
+		(option) => option.value !== "cline-pass" || options?.isClinePassEnabled,
+	);
+}
 
 export interface OnboardingResult {
 	providerId: string;
@@ -142,8 +156,18 @@ export function getOAuthProviderLabel(providerId: string): string {
 	if (providerId === "shengsuanyun") {
 		return "胜算云";
 	}
+	if (providerId === "cline-pass") {
+		return "ClinePass";
+	}
+	if (providerId === "cline") {
+		return "Cline";
+	}
 	if (providerId === "openai-codex") {
 		return "ChatGPT";
 	}
 	return providerId;
+}
+
+export function shouldUseFeaturedClineModelPicker(providerId: string): boolean {
+	return providerId === "cline";
 }

@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
 	Select,
 	SelectContent,
@@ -35,6 +34,12 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { desktopClient } from "@/lib/desktop-client";
 import { cn } from "@/lib/utils";
+import {
+	CommandBadge,
+	PageEmptyState,
+	PageFrame,
+	PageHeader,
+} from "../page-layout";
 
 type ConnectorField = {
 	flag: string;
@@ -339,16 +344,13 @@ export function ChannelsContent() {
 	};
 
 	return (
-		<ScrollArea className="h-full">
-			<div className="mx-auto flex max-w-5xl flex-col gap-6 p-6">
-				<div className="flex items-center justify-between gap-3">
-					<div>
-						<h2 className="text-lg font-semibold">频道</h2>
-						<p className="text-sm text-muted-foreground">
-							{activeConnectors.length} 已连接
-						</p>
-					</div>
-					<div className="flex items-center gap-2">
+		<PageFrame>
+			<PageHeader
+				description={`${activeConnectors.length} 已连接。启动并管理 Cline Hub 的连接器通道。`}
+				title="频道"
+				meta={<CommandBadge>cline connect</CommandBadge>}
+				actions={
+					<>
 						<Button
 							disabled={isLoading}
 							onClick={() => void refreshChannels()}
@@ -369,85 +371,81 @@ export function ChannelsContent() {
 							<Plus className="size-4" />
 							添加频道
 						</Button>
-					</div>
+					</>
+				}
+			/>
+
+			{errorMessage ? (
+				<div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+					{errorMessage}
 				</div>
+			) : null}
 
-				{errorMessage ? (
-					<div className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-						{errorMessage}
-					</div>
-				) : null}
-
+			{isLoading ? (
+				<PageEmptyState>Loading channels...</PageEmptyState>
+			) : activeConnectors.length === 0 ? (
+				<PageEmptyState>No channels connected.</PageEmptyState>
+			) : (
 				<section className="overflow-hidden rounded-lg border bg-card">
 					<div className="grid gap-2 p-2.5">
-						{isLoading ? (
-							<p className="px-1 py-4 text-[13px] text-muted-foreground">
-								加载频道中...
-							</p>
-						) : activeConnectors.length === 0 ? (
-							<p className="px-1 py-4 text-[13px] text-muted-foreground">
-								暂无已连接的频道。
-							</p>
-						) : (
-							activeConnectors.map((connector) => (
-								<div
-									className="grid gap-3 border bg-[color-mix(in_oklch,var(--background)_70%,var(--card))] p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center"
-									key={connector.id}
-								>
-									<div className="min-w-0">
-										<div className="flex items-center gap-2">
-											<Circle className="size-2 fill-emerald-300 text-emerald-300" />
-											<p className="truncate text-[13px] font-semibold leading-tight">
-												{connectorName(connector, channels)}
-											</p>
-											<span className="rounded-md border bg-background px-1.5 py-0.5 text-[11px] text-muted-foreground">
-												{connectorIdentity(connector)}
-											</span>
-										</div>
-										<div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
-											<span className="rounded-md border bg-background px-1.5 py-0.5">
-												pid={connector.pid}
-											</span>
+						{activeConnectors.map((connector) => (
+							<div
+								className="grid gap-3 border bg-[color-mix(in_oklch,var(--background)_70%,var(--card))] p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center"
+								key={connector.id}
+							>
+								<div className="min-w-0">
+									<div className="flex items-center gap-2">
+										<Circle className="size-2 fill-emerald-300 text-emerald-300" />
+										<p className="truncate text-[13px] font-semibold leading-tight">
+											{connectorName(connector, channels)}
+										</p>
+										<span className="rounded-md border bg-background px-1.5 py-0.5 text-[11px] text-muted-foreground">
+											{connectorIdentity(connector)}
+										</span>
+									</div>
+									<div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-muted-foreground">
+										<span className="rounded-md border bg-background px-1.5 py-0.5">
+											pid={connector.pid}
+										</span>
+										<span
+											className="max-w-full break-all rounded-md border bg-background px-1.5 py-0.5"
+											title={connector.hubUrl}
+										>
+											{connector.hubUrl}
+										</span>
+										{connector.baseUrl ? (
 											<span
 												className="max-w-full break-all rounded-md border bg-background px-1.5 py-0.5"
-												title={connector.hubUrl}
+												title={connector.baseUrl}
 											>
-												{connector.hubUrl}
+												{connector.baseUrl}
 											</span>
-											{connector.baseUrl ? (
-												<span
-													className="max-w-full break-all rounded-md border bg-background px-1.5 py-0.5"
-													title={connector.baseUrl}
-												>
-													{connector.baseUrl}
-												</span>
-											) : null}
+										) : null}
+										<span className="rounded-md border bg-background px-1.5 py-0.5">
+											{formatDateTime(connector.startedAt)}
+										</span>
+										{connector.connectionMode ? (
 											<span className="rounded-md border bg-background px-1.5 py-0.5">
-												{formatDateTime(connector.startedAt)}
+												{connector.connectionMode}
 											</span>
-											{connector.connectionMode ? (
-												<span className="rounded-md border bg-background px-1.5 py-0.5">
-													{connector.connectionMode}
-												</span>
-											) : null}
-										</div>
+										) : null}
 									</div>
-									<Button
-										disabled={busyChannel === connector.type}
-										onClick={() => set移除Target(connector)}
-										size="sm"
-										type="button"
-										variant="outline"
-									>
-										<Trash2 className="size-4" />
-										移除...
-									</Button>
 								</div>
-							))
-						)}
+								<Button
+									disabled={busyChannel === connector.type}
+									onClick={() => setRemoveTarget(connector)}
+									size="sm"
+									type="button"
+									variant="outline"
+								>
+									<Trash2 className="size-4" />
+									Remove...
+								</Button>
+							</div>
+						))}
 					</div>
 				</section>
-			</div>
+			)}
 
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 				<DialogContent className="max-h-[86vh] overflow-y-auto sm:max-w-xl">
@@ -637,6 +635,6 @@ export function ChannelsContent() {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
-		</ScrollArea>
+		</PageFrame>
 	);
 }

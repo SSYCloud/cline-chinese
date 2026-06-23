@@ -1,5 +1,81 @@
 # Cline CLI Changelog
 
+## 3.0.29
+
+- Costs are now hidden for Cline free models
+- Fixed Z.ai model metadata resolution for Z.ai models accessed through the Cline provider
+- Reverted the model-name-only display change from v3.0.28; the model picker, selector, and status bar return to their previous display behavior
+
+## 3.0.28
+
+- Added a ClinePass onboarding flow with selectable ClinePass models, plus improved ClinePass error handling
+- Added hub primitive catalogs and refreshed the hub dashboard design with a dedicated customizations breakout
+- Auto-approve toggles now apply immediately when changed
+- Feature flags now resolve using your user ID on startup
+- Fixed Cline model display names so they resolve by model name
+- Truncate large tool results by default (including MCP and custom tool output) to keep requests within context budget
+- Hardened parallel tool-call guidance for faster, more reliable multi-tool execution
+
+## 3.0.27
+
+- Added a `cline skill` command to install and manage skills, matching `cline plugin install` and `cline mcp` (installs default to the Cline agent directory)
+- Added a prefilled MCP install wizard command for quicker MCP server setup
+- Improved error handling and messaging when plugin MCP OAuth authorization fails
+- The CLI now rejects unknown commands and unquoted multi-word input with a clear error instead of silently treating bad arguments as a prompt
+
+## 3.0.26
+
+- Reverted the expandable model picker sections and ClinePass models, restoring the previous model-selection UI
+
+## 3.0.25
+
+- Added ClinePass support, with selectable ClinePass models in the model picker
+- Made model picker sections expandable
+- Added MCP server support to plugins, including authorizing plugin MCP OAuth during install
+- Encouraged parallel tool calls for faster task execution
+- Capped tool output for bash commands and file reads to keep large output within context limits
+- Allowed ranged reads on large files
+- Fixed apply_patch to fail when a hunk is skipped
+- Fixed run_commands to return captured stdout on failure and handle split heredocs
+- Fixed search tools to treat zero results as success
+- Fixed disabled-reasoning handling for StepFun flash
+- Fixed history resume rendering isolation
+- Fixed the Hugging Face URL
+- Fixed Cline OAuth token formatting in provider config
+
+## 3.0.24
+
+- Plugin commands can now submit prompts to the agent
+- Added support for overriding the API base URL
+- Open the verification URL automatically when starting device authentication
+- Enforced a single shared Cline Hub, so a stale hub is respawned after an upgrade
+- Suppressed flickering console windows on Windows
+- Fixed truncation of structured tool operation result strings so oversized tool output stays within limits
+- Stopped echoing the full command text in run_commands tool results
+
+## 3.0.23
+
+- Fixed Vertex AI GCP settings configuration
+- Fixed the Azure Foundry API version
+- Added support for configured agents as subagent tools
+- Centralized OAuth management into the SDK
+- Fixed an error caused by disabled reasoning on Fable 5
+
+## 3.0.22
+
+- Added support for the Claude Fable 5 model
+- Fixed MiniMax M3 thinking controls so they route correctly across gateways
+
+## 3.0.21
+
+- Added a global auto-update setting that controls automatic updates on CLI startup
+- Added a Cline credits refill link
+- Fixed scrolling for inline ask-question responses
+- Fixed connector thread session routing and stale hub session handling
+- Added support for Vertex AI Application Default Credentials (ADC) with tool use
+- Fixed empty message content replay for Bedrock
+- Cleaned up the OpenAI Codex model list
+
 ## 3.0.20
 
 - Installed plugin wrappers are now named from their source (npm package name, git repo, remote filename, official slug, or local directory) instead of an opaque hash, making installed plugins easier to identify.
@@ -164,7 +240,7 @@ npm install -g @coohu/cline@nightly
 ## 0.0.13
 
 - Detect prompt-cache support from cache write pricing so providers with write-only caching are represented correctly in the model catalog
-- Dual-publish `@clinebot/cli` mirror wrapper so existing users who installed via `npm i -g @clinebot/cli` continue receiving updates
+- Dual-publish `@coohubot/cli` mirror wrapper so existing users who installed via `npm i -g @coohubot/cli` continue receiving updates
 - Fix response truncation for OpenAI Codex model responses
 
 ## 0.0.12

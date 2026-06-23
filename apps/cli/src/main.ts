@@ -20,6 +20,11 @@ import {
 	CLI_COMPACTION_MODE_EXPECTED_TEXT,
 } from "./utils/compaction-mode";
 import {
+	getCliFeatureFlagsService,
+	refreshCliFeatureFlagsInBackground,
+	setCliFeatureFlagsAccountContext,
+} from "./utils/feature-flags";
+import {
 	configureSandboxEnvironment,
 	normalizeAutoApproveArgs,
 	resolveWorkspaceRoot,
@@ -135,7 +140,7 @@ export async function runCli(): Promise<void> {
 	// Re-enable built-in help/version output for the routing program
 	program.configureOutput({
 		writeOut: (str: string) => process.stdout.write(str),
-		writeErr: (str: string) => process.stderr.write(str),
+		writeErr: () => {},
 	});
 	// Default action handles non-subcommand args (e.g. prompt text)
 	program.action(() => {});
@@ -152,6 +157,7 @@ export async function runCli(): Promise<void> {
 		.option("-k, --apikey <key>", "API key")
 		.option("-m, --modelid <id>", "Model ID")
 		.option("-b, --baseurl <url>", "Base URL")
+		.option("--azure-api-version <version>", "Azure API version")
 		.option("--config <dir>", "configuration directory")
 		.option("-c, --cwd <path>", "Working directory")
 		.option(
@@ -165,6 +171,7 @@ export async function runCli(): Promise<void> {
 				apikey?: string;
 				modelid?: string;
 				baseurl?: string;
+				azureApiVersion?: string;
 				config?: string;
 				cwd?: string;
 				dataDir?: string;
@@ -195,6 +202,7 @@ export async function runCli(): Promise<void> {
 				apikey: opts.apikey,
 				modelid: opts.modelid,
 				baseurl: opts.baseurl,
+				azureApiVersion: opts.azureApiVersion,
 				io,
 			});
 		});
@@ -308,6 +316,28 @@ export async function runCli(): Promise<void> {
 				io,
 			});
 		});
+	const skillCmd = program
+		.command("skill")
+		.description("Manage Cline Skills via the open skills CLI (npx skills)")
+		.allowUnknownOption()
+		.passThroughOptions()
+		.argument("[args...]", "arguments forwarded to the skills CLI")
+		.addHelpText(
+			"after",
+			"\nForwards to the open skills CLI via npx. Examples:\n" +
+				"  cline skill add <owner/repo>       Add a skill into Cline\n" +
+				"  cline skill install <owner/repo>   Alias for add\n" +
+				"  cline skill list                   List installed skills\n" +
+				"  cline skill remove                 Remove installed skills\n" +
+				"  cline skill uninstall              Alias for remove\n" +
+				"\nadd/install and remove/uninstall default to '--agent cline' unless you pass your own --agent.\n" +
+				"Run 'npx skills --help' for the full command reference.",
+		)
+		.action(async () => {
+			const { runSkillCommand } = await import("./commands/skill");
+			ctx.exitCode = await runSkillCommand(skillCmd.args, io);
+		});
+
 	const connectCmd = program
 		.command("connect")
 		.description("Connect to an external channel")
@@ -349,7 +379,7 @@ export async function runCli(): Promise<void> {
 			}
 		});
 
-	program
+	const mcpCmd = program
 		.command("mcp")
 		.description("Manage MCP servers")
 		.action(async () => {
@@ -360,6 +390,31 @@ export async function runCli(): Promise<void> {
 					"MCP wizard requires a TTY. Use cline config mcp to list servers.",
 				);
 			}
+		});
+	const mcpInstallCmd = mcpCmd
+		.command("install")
+		.alias("add")
+		.description("Open the MCP add wizard with server fields prefilled")
+		.argument("<name>", "MCP server name")
+		.argument(
+			"[targetArgs...]",
+			"URL for remote transports, or command and args after -- for stdio",
+		)
+		.option(
+			"--transport <transport>",
+			"stdio, sse, http, streamable-http, or streamableHttp (default: stdio)",
+		)
+		.action(async (name: string, targetArgs: string[]) => {
+			const opts = mcpInstallCmd.opts<{
+				transport?: string;
+			}>();
+			const { runMcpInstallCommand } = await import("./commands/mcp");
+			ctx.exitCode = await runMcpInstallCommand({
+				name,
+				targetArgs,
+				transport: opts.transport,
+				io,
+			});
 		});
 
 	const createDoctorRuntimeCommand = async () => {
@@ -541,7 +596,12 @@ export async function runCli(): Promise<void> {
 	const dashboardCmd = program
 		.command("dashboard")
 		.description("Start the Cline Hub dashboard and open it in a browser")
+		.option("--config <dir>", "configuration directory")
 		.option("-c, --cwd <path>", "Workspace root", process.cwd())
+		.option(
+			"--data-dir <dir>",
+			"Use isolated local state at <dir> instead of ~/.cline (enables sandbox mode)",
+		)
 		.option("--host <host>", "Dashboard bind host")
 		.option("--port <port>", "Dashboard HTTP/WebSocket port")
 		.option("--public-url <url>", "Public dashboard URL")
@@ -549,7 +609,9 @@ export async function runCli(): Promise<void> {
 		.option("--no-open", "Start the dashboard without opening a browser")
 		.action(async () => {
 			const opts = dashboardCmd.opts<{
+				config?: string;
 				cwd?: string;
+				dataDir?: string;
 				host?: string;
 				port?: string;
 				publicUrl?: string;
@@ -558,7 +620,9 @@ export async function runCli(): Promise<void> {
 			}>();
 			const { runDashboardCommand } = await import("./commands/dashboard");
 			ctx.exitCode = await runDashboardCommand({
+				configDir: opts.config,
 				cwd: opts.cwd,
+				dataDir: opts.dataDir,
 				host: opts.host,
 				port: opts.port,
 				publicUrl: opts.publicUrl,
@@ -607,6 +671,7 @@ export async function runCli(): Promise<void> {
 		if (err instanceof CommanderError) {
 			if (err.exitCode !== 0) {
 				writeErr(err.message);
+				process.exitCode = err.exitCode;
 				return;
 			}
 			return;
@@ -657,9 +722,31 @@ export async function runCli(): Promise<void> {
 
 	// Default flow: no subcommand matched, or fall-through from config/history.
 	let args = commanderToParsedArgs(program);
+	if (program.args.length > 1) {
+		writeErr(
+			`Unknown command or extra arguments: ${program.args.join(" ")}\nPrompt text with spaces must be quoted as a single argument, for example: cline "fix the tests". Use "cline --help" to see available commands and flags.`,
+		);
+		process.exitCode = 1;
+		return;
+	}
 
 	let resumeSessionId: string | undefined = ctx.resumeSessionId;
 	if (resumeSessionId) {
+		// The history picker already created (and tore down) an OpenTUI renderer
+		// in this process; starting the interactive TUI here would create a
+		// second one, which can crash natively during teardown. Resume in a
+		// fresh `cline --id <session-id>` child process instead.
+		const { spawnHistoryResume } = await import("./utils/history-resume");
+		const childExitCode = await spawnHistoryResume({
+			sessionId: resumeSessionId,
+			normalizedArgs,
+			remainingArgs: program.args,
+			configDir,
+		});
+		if (childExitCode !== undefined) {
+			process.exitCode = childExitCode;
+			return;
+		}
 		args = {
 			...args,
 			interactive: true,
@@ -833,8 +920,18 @@ export async function runCli(): Promise<void> {
 	};
 	registerDisposable(stopUserInstructionService);
 	try {
+		const persistedClineAccountId = providerSettingsManager
+			.getProviderSettings("cline")
+			?.auth?.accountId?.trim();
+		if (persistedClineAccountId) {
+			setCliFeatureFlagsAccountContext({ id: persistedClineAccountId });
+		}
+		refreshCliFeatureFlagsInBackground();
 		const lastUsedProviderSettings =
-			providerSettingsManager.getLastUsedProviderSettings();
+			providerSettingsManager.getLastUsedProviderSettings({
+				isClinePassEnabled:
+					getCliFeatureFlagsService().getBooleanFlagEnabled("ext-cline-pass"),
+			});
 		const provider = normalizeProviderId(
 			args.provider?.trim() || lastUsedProviderSettings?.provider || "cline",
 		);

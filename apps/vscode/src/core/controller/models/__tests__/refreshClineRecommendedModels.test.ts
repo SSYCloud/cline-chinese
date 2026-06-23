@@ -45,6 +45,13 @@ describe("refreshClineRecommendedModels", () => {
 					},
 				],
 				free: [{ id: "z-ai/glm-5", description: "Remote free" }],
+				clinePass: [
+					{
+						id: "cline-pass/glm-5",
+						description: "Remote ClinePass",
+						tags: ["CLINE_PASS"],
+					},
+				],
 			},
 		});
 
@@ -66,6 +73,14 @@ describe("refreshClineRecommendedModels", () => {
 					name: "z-ai/glm-5",
 					description: "Remote free",
 					tags: [],
+				},
+			],
+			clinePass: [
+				{
+					id: "cline-pass/glm-5",
+					name: "cline-pass/glm-5",
+					description: "Remote ClinePass",
+					tags: ["CLINE_PASS"],
 				},
 			],
 		});
@@ -94,6 +109,13 @@ describe("refreshClineRecommendedModels", () => {
 						id: "minimax/minimax-m2.5",
 						description: "Remote free",
 						tags: ["FREE"],
+					},
+				],
+				clinePass: [
+					{
+						id: "cline-pass/glm-5",
+						description: "Remote ClinePass",
+						tags: ["CLINE_PASS"],
 					},
 				],
 			},

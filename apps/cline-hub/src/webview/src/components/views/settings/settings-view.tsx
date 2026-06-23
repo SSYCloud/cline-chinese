@@ -1,6 +1,4 @@
-"use client";
-
-import { ChevronDown, ChevronRight, Moon, Sun, X } from "lucide-react";
+import { ChevronDown, ChevronRight, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,11 +10,17 @@ import type {
 	ProviderModelsResponse,
 	ProviderSettingsUpdate,
 } from "@/lib/provider-schema";
+import {
+	type HubTheme,
+	readStoredHubTheme,
+	readSystemHubTheme,
+	setStoredHubTheme,
+} from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { PageFrame, PageHeader } from "../page-layout";
 import { AccountView } from "./account-view";
 import { AddProviderContent, type AddProviderPayload } from "./add-provider";
 import { ChannelsContent } from "./channels-view";
-import { RulesView } from "./extensions-view";
 import { McpServersContent } from "./mcp-view";
 import {
 	ProviderDetailContent,
@@ -32,7 +36,6 @@ import { toSettingsPatch } from "./settings-patch";
 const navCategories = [
 	"General",
 	"Providers",
-	"Customizations",
 	"MCP",
 	"Channels",
 	"Schedules",
@@ -50,9 +53,9 @@ const navLabels: Record<string, string> = {
 };
 
 export type SettingsSection = (typeof navCategories)[number];
-type Theme = "dark" | "light";
 type GlobalSettingsResponse = {
 	telemetryOptOut: boolean;
+	autoUpdateEnabled: boolean;
 };
 
 const PROVIDER_CATALOG_CACHE_TTL_MS = 60_000;
@@ -67,17 +70,15 @@ let providerCatalogCache: {
 // -----------------------------------------------------------
 
 export function SettingsView({
+	chrome = "full",
 	initialSection = "General",
 	onClose,
 	onNavigateSection,
-	onThemeChange,
-	theme,
 }: {
+	chrome?: "full" | "content";
 	initialSection?: SettingsSection;
 	onClose: () => void;
 	onNavigateSection?: (section: SettingsSection) => void;
-	onThemeChange: (theme: Theme) => void;
-	theme: Theme;
 }) {
 	const [activeNav, setActiveNav] = useState<SettingsSection>(initialSection);
 	const [providersExpanded, setProvidersExpanded] = useState(true);
@@ -150,11 +151,14 @@ export function SettingsView({
 	}, [setProvidersWithCache]);
 
 	useEffect(() => {
+		if (activeNav !== "Providers") {
+			return;
+		}
 		const timeoutId = window.setTimeout(() => {
 			void loadProviderCatalog();
 		}, 0);
 		return () => window.clearTimeout(timeoutId);
-	}, [loadProviderCatalog]);
+	}, [activeNav, loadProviderCatalog]);
 
 	const persistProviderSettings = useCallback(
 		async (
@@ -358,6 +362,86 @@ export function SettingsView({
 		setAddingProvider(false);
 	};
 
+	const providerContent = addingProvider ? (
+		<AddProviderContent
+			existingProviderIds={providers.map((provider) => provider.id)}
+			onBack={backToProviderList}
+			onSave={saveNewProvider}
+		/>
+	) : providersLoading ? (
+		<div className="flex h-full items-center justify-center">
+			<p className="text-sm text-muted-foreground">Loading providers...</p>
+		</div>
+	) : providerCatalogError ? (
+		<div className="flex h-full items-center justify-center">
+			<p className="max-w-xl px-4 text-center text-sm text-destructive">
+				Failed to load providers: {providerCatalogError}
+			</p>
+		</div>
+	) : selectedProvider ? (
+		<div className="grid h-full grid-cols-[minmax(24rem,0.95fr)_minmax(28rem,1.05fr)] overflow-hidden max-[1100px]:grid-cols-1 max-[1100px]:grid-rows-[minmax(24rem,0.9fr)_minmax(26rem,1fr)]">
+			<ProviderListContent
+				onAddProvider={openAddProvider}
+				onConfigure={openProviderDetail}
+				onToggle={toggleProvider}
+				providers={providers}
+				selectedProviderId={selectedProvider.id}
+				variant="panel"
+			/>
+			<aside className="min-h-0 overflow-hidden border-l bg-background max-[1100px]:border-l-0 max-[1100px]:border-t">
+				<ProviderDetailContent
+					modelsError={modelsErrorByProvider[selectedProvider.id] ?? null}
+					modelsLoading={modelsLoadingByProvider[selectedProvider.id] ?? false}
+					oauthLoginPending={oauthSigningProviderId === selectedProvider.id}
+					onBack={backToProviderList}
+					onLoadModels={() => void loadProviderModels(selectedProvider.id)}
+					onOAuthLogin={
+						isOAuthProvider(selectedProvider.id)
+							? () => void runOAuthProviderLogin(selectedProvider.id)
+							: undefined
+					}
+					onUpdate={(updates) => updateProvider(selectedProvider.id, updates)}
+					provider={selectedProvider}
+					variant="panel"
+				/>
+			</aside>
+		</div>
+	) : (
+		<ProviderListContent
+			onAddProvider={openAddProvider}
+			onConfigure={openProviderDetail}
+			onToggle={toggleProvider}
+			providers={providers}
+		/>
+	);
+
+	const content =
+		activeNav === "Providers" ? (
+			providerContent
+		) : activeNav === "MCP" ? (
+			<McpServersContent />
+		) : activeNav === "Channels" ? (
+			<ChannelsContent />
+		) : activeNav === "Schedules" ? (
+			<RoutineSchedulesContent />
+		) : activeNav === "Account" ? (
+			<AccountView />
+		) : activeNav === "General" ? (
+			<GeneralSettingsContent />
+		) : (
+			<div className="flex h-full items-center justify-center">
+				<p className="text-sm text-muted-foreground">
+					{activeNav} settings coming soon.
+				</p>
+			</div>
+		);
+
+	if (chrome === "content") {
+		return (
+			<div className="h-full overflow-hidden bg-background">{content}</div>
+		);
+	}
+
 	return (
 		<div className="flex h-full flex-col overflow-hidden bg-background">
 			{/* Header bar */}
@@ -449,104 +533,44 @@ export function SettingsView({
 				</nav>
 
 				{/* Content area */}
-				<div className="flex-1 overflow-hidden">
-					{activeNav === "Providers" && selectedProvider ? (
-						<ProviderDetailContent
-							modelsError={modelsErrorByProvider[selectedProvider.id] ?? null}
-							modelsLoading={
-								modelsLoadingByProvider[selectedProvider.id] ?? false
-							}
-							oauthLoginPending={oauthSigningProviderId === selectedProvider.id}
-							onBack={backToProviderList}
-							onLoadModels={() => void loadProviderModels(selectedProvider.id)}
-							onOAuthLogin={
-								isOAuthProvider(selectedProvider.id)
-									? () => void runOAuthProviderLogin(selectedProvider.id)
-									: undefined
-							}
-							onUpdate={(updates) =>
-								updateProvider(selectedProvider.id, updates)
-							}
-							provider={selectedProvider}
-						/>
-					) : activeNav === "Providers" ? (
-						addingProvider ? (
-							<AddProviderContent
-								existingProviderIds={providers.map((provider) => provider.id)}
-								onBack={backToProviderList}
-								onSave={saveNewProvider}
-							/>
-						) : providersLoading ? (
-							<div className="flex h-full items-center justify-center">
-								<p className="text-sm text-muted-foreground">加载提供商中...</p>
-							</div>
-						) : providerCatalogError ? (
-							<div className="flex h-full items-center justify-center">
-								<p className="max-w-xl px-4 text-center text-sm text-destructive">
-									加载提供商失败：{providerCatalogError}
-								</p>
-							</div>
-						) : (
-							<ProviderListContent
-								onAddProvider={openAddProvider}
-								onConfigure={openProviderDetail}
-								onToggle={toggleProvider}
-								providers={providers}
-							/>
-						)
-					) : activeNav === "MCP" ? (
-						<McpServersContent />
-					) : activeNav === "Channels" ? (
-						<ChannelsContent />
-					) : activeNav === "Schedules" ? (
-						<RoutineSchedulesContent />
-					) : activeNav === "Customizations" ? (
-						<RulesView />
-					) : activeNav === "Account" ? (
-						<AccountView />
-					) : activeNav === "General" ? (
-						<GeneralSettingsContent
-							onThemeChange={onThemeChange}
-							theme={theme}
-						/>
-					) : (
-						<div className="flex h-full items-center justify-center">
-							<p className="text-sm text-muted-foreground">
-								{activeNav} 设置即将推出。
-							</p>
-						</div>
-					)}
-				</div>
+				<div className="flex-1 overflow-hidden">{content}</div>
 			</div>
 		</div>
 	);
 }
 
-function GeneralSettingsContent({
-	onThemeChange,
-	theme,
-}: {
-	onThemeChange: (theme: Theme) => void;
-	theme: Theme;
-}) {
+function GeneralSettingsContent() {
+	const [theme, setTheme] = useState<HubTheme>(() => {
+		if (typeof window === "undefined") return "light";
+		return readStoredHubTheme() ?? readSystemHubTheme();
+	});
 	const [telemetryOptOut, setTelemetryOptOut] = useState(false);
 	const [telemetryLoading, setTelemetryLoading] = useState(true);
 	const [telemetrySaving, setTelemetrySaving] = useState(false);
 	const [telemetryError, setTelemetryError] = useState<string | null>(null);
+	const [autoUpdateEnabled, setAutoUpdateEnabled] = useState(true);
+	const [autoUpdateLoading, setAutoUpdateLoading] = useState(true);
+	const [autoUpdateSaving, setAutoUpdateSaving] = useState(false);
+	const [autoUpdateError, setAutoUpdateError] = useState<string | null>(null);
 
 	const loadGlobalSettings = useCallback(async () => {
 		setTelemetryLoading(true);
 		setTelemetryError(null);
+		setAutoUpdateLoading(true);
+		setAutoUpdateError(null);
 		try {
 			const settings = await desktopClient.invoke<GlobalSettingsResponse>(
 				"get_global_settings",
 			);
 			setTelemetryOptOut(settings.telemetryOptOut);
+			setAutoUpdateEnabled(settings.autoUpdateEnabled);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
 			setTelemetryError(message);
+			setAutoUpdateError(message);
 		} finally {
 			setTelemetryLoading(false);
+			setAutoUpdateLoading(false);
 		}
 	}, []);
 
@@ -579,62 +603,99 @@ function GeneralSettingsContent({
 		}
 	};
 
+	const updateAutoUpdateEnabled = async (nextValue: boolean) => {
+		const previousValue = autoUpdateEnabled;
+		setAutoUpdateEnabled(nextValue);
+		setAutoUpdateSaving(true);
+		setAutoUpdateError(null);
+		try {
+			const settings = await desktopClient.invoke<GlobalSettingsResponse>(
+				"set_auto_update_enabled",
+				{
+					auto_update_enabled: nextValue,
+				},
+			);
+			setAutoUpdateEnabled(settings.autoUpdateEnabled);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			setAutoUpdateEnabled(previousValue);
+			setAutoUpdateError(message);
+		} finally {
+			setAutoUpdateSaving(false);
+		}
+	};
+
+	const updateTheme = (darkModeEnabled: boolean) => {
+		const nextTheme = darkModeEnabled ? "dark" : "light";
+		setTheme(setStoredHubTheme(nextTheme));
+		window.dispatchEvent(new Event("cline-hub-theme-change"));
+	};
+
 	return (
-		<ScrollArea className="h-full">
-			<div className="mx-auto max-w-3xl px-8 py-6">
-				<div className="mb-6">
-					<h2 className="text-lg font-semibold text-foreground">通用</h2>
+		<PageFrame>
+			<PageHeader
+				description="管理此浏览器和 CLI 环境的 Hub 偏好设置。"
+				title="设置"
+			/>
+			<section className="max-w-[86rem]">
+				<div className="flex min-h-20 items-center justify-between gap-5 border-b max-[720px]:flex-col max-[720px]:items-stretch max-[720px]:py-4">
+					<div>
+						<p className="text-[17px] font-semibold text-foreground">
+							深色模式
+						</p>
+						<p className="mt-1 text-[15px] text-muted-foreground">
+							在此浏览器中保持 Hub 界面处于深色模式。
+						</p>
+					</div>
+					<Switch
+						aria-label="深色模式"
+						checked={theme === "dark"}
+						onCheckedChange={updateTheme}
+					/>
 				</div>
-				<section className="rounded-lg border border-border p-5">
-					<div className="flex items-center justify-between gap-5 max-[720px]:flex-col max-[720px]:items-stretch">
-						<div>
-							<p className="text-sm font-medium text-foreground">主题</p>
-							<p className="mt-1 text-xs text-muted-foreground">
-								使用 Cline Hub 的浅色或深色界面。
+				<div className="flex min-h-20 items-center justify-between gap-5 border-b max-[720px]:flex-col max-[720px]:items-stretch max-[720px]:py-4">
+					<div>
+						<p className="text-[17px] font-semibold text-foreground">
+							自动更新
+						</p>
+						<p className="mt-1 text-[15px] text-muted-foreground">
+							在启动时自动安装 CLI 更新。
+						</p>
+						{autoUpdateError ? (
+							<p className="mt-2 text-xs text-destructive">
+								无法更新自动更新设置: {autoUpdateError}
 							</p>
-						</div>
-						<div className="flex items-center gap-2 max-[720px]:justify-start">
-							<Button
-								onClick={() => onThemeChange("dark")}
-								type="button"
-								variant={theme === "dark" ? "default" : "outline"}
-							>
-								<Moon className="size-4" />
-								深色
-							</Button>
-							<Button
-								onClick={() => onThemeChange("light")}
-								type="button"
-								variant={theme === "light" ? "default" : "outline"}
-							>
-								<Sun className="size-4" />
-								浅色
-							</Button>
-						</div>
+						) : null}
 					</div>
-				</section>
-				<section className="mt-4 rounded-lg border border-border p-5">
-					<div className="flex items-center justify-between gap-5 max-[720px]:flex-col max-[720px]:items-stretch">
-						<div>
-							<p className="text-sm font-medium text-foreground">遥测</p>
-							<p className="mt-1 text-xs text-muted-foreground">
-								启用错误和使用报告以帮助我们改进 Cline。
+					<Switch
+						aria-label="Auto update"
+						checked={autoUpdateEnabled}
+						disabled={autoUpdateLoading || autoUpdateSaving}
+						onCheckedChange={(checked) => void updateAutoUpdateEnabled(checked)}
+					/>
+				</div>
+				<div className="flex min-h-20 items-center justify-between gap-5 border-b max-[720px]:flex-col max-[720px]:items-stretch max-[720px]:py-4">
+					<div>
+						<p className="text-[17px] font-semibold text-foreground">
+							Telemetry
+						</p>
+						<p className="mt-1 text-[15px] text-muted-foreground">
+							Enable error and usage report to help us improve Cline.
+						</p>
+						{telemetryError ? (
+							<p className="mt-2 text-xs text-destructive">
+								Failed to update telemetry setting: {telemetryError}
 							</p>
-							{telemetryError ? (
-								<p className="mt-2 text-xs text-destructive">
-									更新遥测设置失败：{telemetryError}
-								</p>
-							) : null}
-						</div>
-						<Switch
-							aria-label="遥测选择退出"
-							checked={!telemetryOptOut} // If opt-out is true, the switch should be off (unchecked)
-							disabled={telemetryLoading || telemetrySaving}
-							onCheckedChange={(checked) => void updateTelemetryOptOut(checked)}
-						/>
+						) : null}
 					</div>
-				</section>
-			</div>
-		</ScrollArea>
+					<Switch
+						aria-label="Telemetry"
+						checked={!telemetryOptOut} // If opt-out is true, the switch should be off (unchecked)
+						disabled={telemetryLoading || telemetrySaving}
+						onCheckedChange={(checked) => void updateTelemetryOptOut(!checked)}
+					/>
+				</div>
+			</section>
+		</PageFrame>
 	);
 }

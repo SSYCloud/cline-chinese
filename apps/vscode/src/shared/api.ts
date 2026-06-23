@@ -22,6 +22,7 @@ export type ApiProvider =
 	| "mistral"
 	| "vscode-lm"
 	| "cline"
+	| "cline-pass"
 	| "litellm"
 	| "moonshot"
 	| "nebius"
@@ -143,6 +144,22 @@ export const CLAUDE_OPUS_1M_TIERS = [
 		outputPrice: 37.5,
 		cacheWritesPrice: 12.5,
 		cacheReadsPrice: 1.0,
+	},
+]
+export const CLAUDE_FABLE_1M_TIERS = [
+	{
+		contextWindow: 200000,
+		inputPrice: 10,
+		outputPrice: 50,
+		cacheWritesPrice: 12.5,
+		cacheReadsPrice: 1,
+	},
+	{
+		contextWindow: Number.MAX_SAFE_INTEGER,
+		inputPrice: 10,
+		outputPrice: 50,
+		cacheWritesPrice: 12.5,
+		cacheReadsPrice: 1,
 	},
 ]
 
@@ -318,6 +335,29 @@ export const anthropicModels = {
 		cacheWritesPrice: 6.25,
 		cacheReadsPrice: 0.5,
 		tiers: CLAUDE_OPUS_1M_TIERS,
+	},
+	"claude-fable-5": {
+		maxTokens: 128_000,
+		contextWindow: 200_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		supportsReasoning: true,
+		inputPrice: 10,
+		outputPrice: 50,
+		cacheWritesPrice: 12.5,
+		cacheReadsPrice: 1,
+	},
+	"claude-fable-5:1m": {
+		maxTokens: 128_000,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		supportsReasoning: true,
+		inputPrice: 10,
+		outputPrice: 50,
+		cacheWritesPrice: 12.5,
+		cacheReadsPrice: 1,
+		tiers: CLAUDE_FABLE_1M_TIERS,
 	},
 	"claude-opus-4-7": {
 		maxTokens: 128_000,
@@ -506,6 +546,17 @@ export const claudeCodeModels = {
 		supportsImages: false,
 		supportsPromptCache: false,
 	},
+	"claude-fable-5": {
+		...anthropicModels["claude-fable-5"],
+		contextWindow: 200_000,
+		supportsImages: false,
+		supportsPromptCache: false,
+	},
+	"claude-fable-5[1m]": {
+		...anthropicModels["claude-fable-5:1m"],
+		supportsImages: false,
+		supportsPromptCache: false,
+	},
 	"claude-opus-4-7": {
 		...anthropicModels["claude-opus-4-7"],
 		contextWindow: 200_000,
@@ -685,6 +736,31 @@ export const bedrockModels = {
 		cacheWritesPrice: 6.25,
 		cacheReadsPrice: 0.5,
 		tiers: CLAUDE_OPUS_1M_TIERS,
+	},
+	"anthropic.claude-fable-5": {
+		maxTokens: 128_000,
+		contextWindow: 200_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		supportsReasoning: true,
+		supportsGlobalEndpoint: true,
+		inputPrice: 10,
+		outputPrice: 50,
+		cacheWritesPrice: 12.5,
+		cacheReadsPrice: 1,
+	},
+	"anthropic.claude-fable-5:1m": {
+		maxTokens: 128_000,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		supportsReasoning: true,
+		supportsGlobalEndpoint: true,
+		inputPrice: 10,
+		outputPrice: 50,
+		cacheWritesPrice: 12.5,
+		cacheReadsPrice: 1,
+		tiers: CLAUDE_FABLE_1M_TIERS,
 	},
 	"anthropic.claude-opus-4-7": {
 		maxTokens: 128_000,
@@ -923,6 +999,7 @@ export const openRouterClaudeSonnet461mModelId = `anthropic/claude-sonnet-4.6${C
 export const openRouterClaudeOpus461mModelId = `anthropic/claude-opus-4.6${CLAUDE_SONNET_1M_SUFFIX}`
 export const openRouterClaudeOpus471mModelId = `anthropic/claude-opus-4.7${CLAUDE_SONNET_1M_SUFFIX}`
 export const openRouterClaudeOpus481mModelId = `anthropic/claude-opus-4.8${CLAUDE_SONNET_1M_SUFFIX}`
+export const openRouterClaudeFable51mModelId = `anthropic/claude-fable-5${CLAUDE_SONNET_1M_SUFFIX}`
 export const openRouterDefaultModelInfo: ModelInfo = {
 	maxTokens: 64_000,
 	contextWindow: 200_000,
@@ -946,6 +1023,58 @@ export const clineDevstralModelInfo: ModelInfo = {
 	cacheReadsPrice: 0,
 	cacheWritesPrice: 0,
 	description: "A stealth model for agentic coding tasks",
+}
+
+export type ClinePassModelId = keyof typeof clinePassModels
+export const clinePassDefaultModelId = "cline-pass/glm-5.1"
+export const clinePassModelInfoSaneDefaults: ModelInfo = {
+	maxTokens: 8_192,
+	contextWindow: 128_000,
+	supportsImages: false,
+	supportsPromptCache: false,
+	supportsReasoning: true,
+	inputPrice: 0,
+	outputPrice: 0,
+	cacheReadsPrice: 0,
+	cacheWritesPrice: 0,
+	description: "",
+}
+export const clinePassModels = {
+	"cline-pass/glm-5.1": {
+		name: "cline-pass/glm-5.1",
+		maxTokens: 131_072,
+		contextWindow: 202_752,
+		supportsImages: false,
+		supportsPromptCache: true,
+		supportsReasoning: true,
+		inputPrice: 0.98,
+		outputPrice: 3.08,
+		cacheReadsPrice: 0.182,
+		cacheWritesPrice: 0,
+		description: "",
+	},
+} as const satisfies Record<string, ModelInfo>
+
+export function getModelSlug(modelId: string): string {
+	return modelId.split("/").at(-1) ?? modelId
+}
+
+export function buildModelInfoNameMap(models: Record<string, ModelInfo>): Record<string, ModelInfo> {
+	const nameMap: Record<string, ModelInfo> = {}
+
+	for (const [id, info] of Object.entries(models)) {
+		nameMap[getModelSlug(id)] = info
+	}
+
+	return nameMap
+}
+
+export function resolveClinePassModelInfo(modelId: string, modelInfoByName?: Record<string, ModelInfo>): ModelInfo {
+	return (
+		clinePassModels[modelId as keyof typeof clinePassModels] ??
+		modelInfoByName?.[getModelSlug(modelId)] ??
+		clinePassModelInfoSaneDefaults
+	)
 }
 
 export const OPENROUTER_PROVIDER_PREFERENCES: Record<string, { order: string[]; allow_fallbacks: boolean }> = {
@@ -1207,6 +1336,31 @@ export const vertexModels = {
 		cacheReadsPrice: 0.5,
 		supportsReasoning: true,
 		tiers: CLAUDE_OPUS_1M_TIERS,
+	},
+	"claude-fable-5": {
+		maxTokens: 128_000,
+		contextWindow: 200_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		supportsGlobalEndpoint: true,
+		inputPrice: 10,
+		outputPrice: 50,
+		cacheWritesPrice: 12.5,
+		cacheReadsPrice: 1,
+		supportsReasoning: true,
+	},
+	"claude-fable-5:1m": {
+		maxTokens: 128_000,
+		contextWindow: 1_000_000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		supportsGlobalEndpoint: true,
+		inputPrice: 10,
+		outputPrice: 50,
+		cacheWritesPrice: 12.5,
+		cacheReadsPrice: 1,
+		supportsReasoning: true,
+		tiers: CLAUDE_FABLE_1M_TIERS,
 	},
 	"claude-opus-4-7": {
 		maxTokens: 128_000,
@@ -5022,17 +5176,17 @@ export const mainlandZAiModels = {
 export type FireworksModelId = keyof typeof fireworksModels
 export const fireworksDefaultModelId: FireworksModelId = "accounts/fireworks/models/kimi-k2p6"
 export const fireworksModels = {
-	"accounts/fireworks/models/kimi-k2p5": {
-		maxTokens: 256000,
-		contextWindow: 256000,
+	"accounts/fireworks/models/kimi-k2p7-code": {
+		maxTokens: 262000,
+		contextWindow: 262000,
 		supportsImages: true,
 		supportsPromptCache: true,
-		inputPrice: 0.6,
-		outputPrice: 3,
+		inputPrice: 0.95,
+		outputPrice: 4,
 		cacheWritesPrice: 0,
-		cacheReadsPrice: 0.1,
+		cacheReadsPrice: 0.19,
 		description:
-			"Moonshot's flagship open agentic model. Kimi K2.5 unifies vision and text, thinking and non-thinking modes, and single-agent and multi-agent execution.",
+			"Moonshot's latest open coding model. Kimi K2.7 Code unifies vision and text, thinking and non-thinking modes, and single-agent and multi-agent execution.",
 	},
 	"accounts/fireworks/models/kimi-k2p6": {
 		maxTokens: 262000,
@@ -5058,6 +5212,30 @@ export const fireworksModels = {
 		description:
 			"Kimi K2.6 Turbo router for high-performance agentic workloads with vision and text reasoning.",
 	},
+	"accounts/fireworks/routers/kimi-k2p6-fast": {
+		maxTokens: 262000,
+		contextWindow: 262000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 2,
+		outputPrice: 8,
+		cacheWritesPrice: 0,
+		cacheReadsPrice: 0.3,
+		description:
+			"Kimi K2.6 Fast router for high-performance agentic workloads with vision and text reasoning.",
+	},
+	"accounts/fireworks/routers/kimi-k2p7-code-fast": {
+		maxTokens: 262000,
+		contextWindow: 262000,
+		supportsImages: true,
+		supportsPromptCache: true,
+		inputPrice: 1.9,
+		outputPrice: 8,
+		cacheWritesPrice: 0,
+		cacheReadsPrice: 0.38,
+		description:
+			"Kimi K2.7 Code Fast router for high-performance coding workloads with vision and text reasoning.",
+	},
 	"accounts/fireworks/models/deepseek-v4-flash": {
 		maxTokens: 384000,
 		contextWindow: 1000000,
@@ -5066,7 +5244,7 @@ export const fireworksModels = {
 		inputPrice: 0.14,
 		outputPrice: 0.28,
 		cacheWritesPrice: 0,
-		cacheReadsPrice: 0.03,
+		cacheReadsPrice: 0.028,
 		description:
 			"DeepSeek V4 Flash is a fast, cost-efficient reasoning model with a 1M context window and strong tool-use capabilities.",
 	},
@@ -5081,6 +5259,17 @@ export const fireworksModels = {
 		cacheReadsPrice: 0.145,
 		description:
 			"DeepSeek V4 Pro is a flagship reasoning model with a 1M context window, advanced structured output, and agentic performance.",
+	},
+	"accounts/fireworks/models/glm-5p2": {
+		maxTokens: 131072,
+		contextWindow: 1048576,
+		supportsImages: false,
+		supportsPromptCache: true,
+		inputPrice: 1.4,
+		outputPrice: 4.4,
+		cacheWritesPrice: 0,
+		cacheReadsPrice: 0.26,
+		description: "GLM 5.2 is a next-generation general-purpose model optimized for coding, reasoning, and agentic workflows with a 1M context window.",
 	},
 	"accounts/fireworks/models/glm-5p1": {
 		maxTokens: 131072,
@@ -5104,16 +5293,16 @@ export const fireworksModels = {
 		cacheReadsPrice: 0.52,
 		description: "GLM 5.1 Fast router for high-throughput coding, reasoning, and agentic workflows.",
 	},
-	"accounts/fireworks/models/minimax-m2p5": {
-		maxTokens: 196608,
-		contextWindow: 196608,
-		supportsImages: false,
+	"accounts/fireworks/models/minimax-m3": {
+		maxTokens: 512000,
+		contextWindow: 512000,
+		supportsImages: true,
 		supportsPromptCache: true,
 		inputPrice: 0.3,
 		outputPrice: 1.2,
 		cacheWritesPrice: 0,
-		cacheReadsPrice: 0.03,
-		description: "MiniMax M2.5 is built for state-of-the-art coding, agentic tool use.",
+		cacheReadsPrice: 0.06,
+		description: "MiniMax M3 is built for state-of-the-art coding, agentic tool use, and long-context multimodal tasks.",
 	},
 	"accounts/fireworks/models/minimax-m2p7": {
 		maxTokens: 196608,
@@ -5126,16 +5315,16 @@ export const fireworksModels = {
 		cacheReadsPrice: 0.06,
 		description: "MiniMax M2.7 is tuned for strong real-world performance across coding, agent-driven, and workflow-heavy tasks.",
 	},
-	"accounts/fireworks/models/qwen3p6-plus": {
-		maxTokens: 65536,
+	"accounts/fireworks/models/qwen3p7-plus": {
+		maxTokens: 262144,
 		contextWindow: 262144,
 		supportsImages: true,
 		supportsPromptCache: true,
-		inputPrice: 0.5,
-		outputPrice: 3,
+		inputPrice: 0.4,
+		outputPrice: 1.6,
 		cacheWritesPrice: 0,
-		cacheReadsPrice: 0.1,
-		description: "Qwen 3.6 Plus with strong multimodal reasoning, long context support, and function calling.",
+		cacheReadsPrice: 0.08,
+		description: "Qwen 3.7 Plus with strong multimodal reasoning, long context support, and function calling.",
 	},
 	"accounts/fireworks/models/gpt-oss-120b": {
 		maxTokens: 32768,

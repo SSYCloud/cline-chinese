@@ -1,11 +1,12 @@
-import { Empty } from "@shared/proto/cline/common";
-import { convertProtoToApiProvider } from "@shared/proto-conversions/models/api-configuration-conversion";
-import { buildApiHandler } from "@/core/api";
-import { ApiHandlerOptions, ApiProvider } from "@/shared/api";
-import { UpdateApiConfigurationRequestNew } from "@/shared/proto/index.cline";
-import { Logger } from "@/shared/services/Logger";
-import { Secrets } from "@/shared/storage/state-keys";
-import type { Controller } from "../index";
+import { Empty } from "@shared/proto/cline/common"
+import { convertProtoToApiProvider } from "@shared/proto-conversions/models/api-configuration-conversion"
+import { buildApiHandler } from "@/core/api"
+import { ApiHandlerOptions, ApiProvider } from "@/shared/api"
+import { UpdateApiConfigurationRequestNew } from "@/shared/proto/index.cline"
+import { Logger } from "@/shared/services/Logger"
+import { Secrets } from "@/shared/storage/state-keys"
+import type { Controller } from "../index"
+import { clearOrganizationForClinePassProviderSelection } from "./handleClinePassProviderSelection"
 
 /**
  * Parses field mask paths into separate sets for options and secrets
@@ -40,7 +41,10 @@ function parseFieldMask(updateMask: string[]): {
  */
 function getAlternateModeField(fieldName: string): string | null {
 	if (fieldName.startsWith("planMode")) {
-		return fieldName.replace("planMode", "actMode");
+		return fieldName.replace("planMode", "actMode")
+	}
+	if (fieldName.startsWith("actMode")) {
+		return fieldName.replace("actMode", "planMode")
 	}
 	if (fieldName.startsWith("actMode")) {
 		return fieldName.replace("actMode", "planMode");
@@ -151,7 +155,8 @@ export async function updateApiConfiguration(
 			controller.stateManager.setSecretsBatch(secrets);
 		}
 		if (Object.keys(options).length > 0) {
-			controller.stateManager.setGlobalStateBatch(options);
+			controller.stateManager.setGlobalStateBatch(options)
+			await clearOrganizationForClinePassProviderSelection(controller, controller.stateManager.getApiConfiguration())
 		}
 
 		// Update the task's API handler if there's an active task

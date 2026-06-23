@@ -1,9 +1,9 @@
 ---
 title: "GitHub Actions Integration"
-description: "Automatically respond to GitHub issues by mentioning @cline in comments using Cline CLI in GitHub Actions."
+description: "Automatically respond to GitHub issues by mentioning @coohu in comments using Cline CLI in GitHub Actions."
 ---
 
-Automate GitHub issue analysis with AI. Mention `@cline` in any issue comment to trigger an autonomous investigation that reads files, analyzes code, and provides actionable insights - all running automatically in GitHub Actions.
+Automate GitHub issue analysis with AI. Mention `@coohu` in any issue comment to trigger an autonomous investigation that reads files, analyzes code, and provides actionable insights - all running automatically in GitHub Actions.
 
 
 <Note>
@@ -12,10 +12,10 @@ Automate GitHub issue analysis with AI. Mention `@cline` in any issue comment to
 
 ## The Workflow
 
-Trigger Cline by mentioning `@cline` in any issue comment:
+Trigger Cline by mentioning `@coohu` in any issue comment:
 
 <Frame>
-  <img src="https://storage.googleapis.com/cline_public_images/ss0a-comment.png" alt="Issue comment with @cline mention" width="600" />
+  <img src="https://storage.googleapis.com/cline_public_images/ss0a-comment.png" alt="Issue comment with @coohu mention" width="600" />
 </Frame>
 
 Cline's automated analysis appears as a new comment, with insights drawn from your actual codebase:
@@ -69,14 +69,14 @@ jobs:
     runs-on: ubuntu-latest
     environment: cline-actions
     steps:
-      - name: Check for @cline mention
+      - name: Check for @coohu mention
         id: detect
         uses: actions/github-script@v7
         with:
           script: |
             const body = context.payload.comment?.body || "";
             const isPR = !!context.payload.issue?.pull_request;
-            const hit = body.toLowerCase().includes("@cline");
+            const hit = body.toLowerCase().includes("@coohu");
             core.setOutput("hit", (!isPR && hit) ? "true" : "false");
             core.setOutput("issue_number", String(context.payload.issue?.number || ""));
             core.setOutput("issue_url", context.payload.issue?.html_url || "");
@@ -167,7 +167,7 @@ export GITREPO="myproject"
 This tells the workflow where to download the analysis script from your repository after you commit it in step 3.
 </Warning>
 
-The workflow will look for new or updated issues, check for `@cline` mentions, and then
+The workflow will look for new or updated issues, check for `@coohu` mentions, and then
 start up the Cline CLI to dig into the issue, providing feedback as a reply to the issue.
 
 ### 2. Configure API Keys
@@ -266,18 +266,18 @@ git push
 
 ## Usage
 
-Once set up, simply mention `@cline` in any issue comment:
+Once set up, simply mention `@coohu` in any issue comment:
 
 ```text
-@cline what's causing this error?
+@coohu what's causing this error?
 
-@cline analyze the root cause
+@coohu analyze the root cause
 
-@cline what are the security implications?
+@coohu what are the security implications?
 ```
 
 GitHub Actions will:
-1. Detect the `@cline` mention
+1. Detect the `@coohu` mention
 2. Start a Cline CLI instance
 3. Download the analysis script
 4. Analyze the issue using Act mode with auto-approval enabled
@@ -291,7 +291,7 @@ comments.
 The workflow (`cline-responder.yml`):
 
 1. **Triggers** on issue comments (created or edited)
-2. **Detects** `@cline` mentions (case-insensitive)
+2. **Detects** `@coohu` mentions (case-insensitive)
 3. **Installs** Cline CLI globally using npm
 4. **Configures** authentication using `cline auth --provider openrouter --apikey ...`
 6. **Downloads** the reusable `analyze-issue.sh` script from the

@@ -1,5 +1,6 @@
 export type {
 	ModelCollection,
+	ModelIdAliasRule,
 	ModelInfo,
 	ModelInfo as CatalogModelInfo,
 	ProviderCapability as CatalogProviderCapability,
@@ -15,11 +16,14 @@ export {
 	getProviderCollectionSync,
 	getProviderIds,
 	hasProvider,
+	isCanonicalModelIdForAliasRules,
 	MODEL_COLLECTIONS_BY_PROVIDER_ID,
+	preferCanonicalModelIds,
 	registerModel,
 	registerProvider,
 	resetRegistry,
 	unregisterProvider,
+	VERCEL_OPENROUTER_MODEL_ID_ALIAS_RULES,
 } from "./models";
 export {
 	type ProviderUsageCostDisplay,
@@ -30,4 +34,11 @@ export type {
 	ProviderCapability,
 	ProviderId,
 } from "./providers.browser";
-export { normalizeProviderId } from "./providers.browser";
+export {
+	ClineNotSubscribedError,
+	getClineNotSubscribedMessage,
+	getClinePassSubscriptionUrl,
+	isClineNotSubscribedError,
+	isClineNotSubscribedMessage,
+	normalizeProviderId,
+} from "./providers.browser";

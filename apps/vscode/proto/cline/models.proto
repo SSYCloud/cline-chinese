@@ -131,6 +131,7 @@ message ClineRecommendedModel {
 message ClineRecommendedModelsResponse {
   repeated ClineRecommendedModel recommended = 1;
   repeated ClineRecommendedModel free = 2;
+  repeated ClineRecommendedModel cline_pass = 3;
 }
 
 // Request for fetching OpenAI models
@@ -203,6 +204,7 @@ message ModelsApiSecrets {
   optional string oca_refresh_token = 37;
   optional string minimax_api_key = 38;
   optional string aihubmix_api_key = 39;
+  optional string shengsuanyun_api_key = 40;
 }
 
 // API configuration options (non-secret settings)
@@ -291,6 +293,8 @@ message ModelsApiOptions {
   optional OpenAiCompatibleModelInfo plan_mode_aihubmix_model_info = 134;
   optional string plan_mode_cline_model_id = 135;
   optional OpenRouterModelInfo plan_mode_cline_model_info = 136;
+  optional string plan_mode_cline_pass_model_id = 137;
+  optional OpenRouterModelInfo plan_mode_cline_pass_model_info = 138;
 
   // Act mode configurations
   optional ApiProvider act_mode_api_provider = 200;
@@ -330,6 +334,8 @@ message ModelsApiOptions {
   optional OpenAiCompatibleModelInfo act_mode_aihubmix_model_info = 234;
   optional string act_mode_cline_model_id = 235;
   optional OpenRouterModelInfo act_mode_cline_model_info = 236;
+  optional string act_mode_cline_pass_model_id = 237;
+  optional OpenRouterModelInfo act_mode_cline_pass_model_info = 238;
 }
 
 // Request for updating API configuration (legacy - uses combined configuration)
@@ -466,6 +472,7 @@ enum ApiProvider {
   SHENG_SUAN_YUN = 40;
   OPENAI_CODEX = 41;
   WANDB = 42;
+  CLINE_PASS = 43;
 }
 
 enum ApiFormat {
@@ -653,6 +660,8 @@ message ModelsApiConfiguration {
   optional string plan_mode_oca_reasoning_effort = 141;
   optional string plan_mode_cline_model_id = 148;
   optional OpenRouterModelInfo plan_mode_cline_model_info = 149;
+  optional string plan_mode_cline_pass_model_id = 150;
+  optional OpenRouterModelInfo plan_mode_cline_pass_model_info = 151;
 
   // Act mode configurations
   optional ApiProvider act_mode_api_provider = 200;
@@ -699,6 +708,8 @@ message ModelsApiConfiguration {
   optional string act_mode_oca_reasoning_effort = 241;
   optional string act_mode_cline_model_id = 248;
   optional OpenRouterModelInfo act_mode_cline_model_info = 249;
+  optional string act_mode_cline_pass_model_id = 250;
+  optional OpenRouterModelInfo act_mode_cline_pass_model_info = 251;
 }
 
 message ShengSuanYunModelInfo {
