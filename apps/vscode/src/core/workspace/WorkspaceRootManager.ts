@@ -247,12 +247,3 @@ export class WorkspaceRootManager {
 		return JSON.stringify({ workspaces }, null, 2)
 	}
 }
-
-// Export for use in Task and Controller
-export function createLegacyWorkspaceRoot(cwd: string): WorkspaceRoot {
-	return {
-		path: cwd,
-		name: path.basename(cwd),
-		vcs: VcsType.None, // Will be detected properly during initialization
-	}
-}

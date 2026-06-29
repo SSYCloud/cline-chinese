@@ -13,14 +13,6 @@ export const formatPrice = (price: number) => {
 }
 
 /**
- * Helper function to format token prices for display
- * @param price The price per million tokens
- */
-export const formatTokenPrice = (price: number) => {
-	return `${formatPrice(price)}/million tokens`
-}
-
-/**
  * Helper function to determine if a model supports thinking budget
  */
 export const hasThinkingBudget = (modelInfo: ModelInfo): boolean => {
@@ -46,13 +38,6 @@ export const supportsBrowserUse = (modelInfo: ModelInfo): boolean => {
  */
 export const supportsPromptCache = (modelInfo: ModelInfo): boolean => {
 	return !!modelInfo.supportsPromptCache
-}
-
-/**
- * Helper function to format token limits for display
- */
-export const formatTokenLimit = (limit: number): string => {
-	return limit.toLocaleString()
 }
 
 /**

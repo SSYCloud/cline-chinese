@@ -18,6 +18,25 @@ export {
 } from "./connectors/events";
 export type * from "./connectors/options";
 export type {
+	ActiveConnectorRecord,
+	ConfiguredConnectorRecord,
+	ConnectorCatalogEntry,
+	ConnectorChannel,
+	ConnectorChannelsResponse,
+	ConnectorFieldCondition,
+	ConnectorFieldDef,
+	ConnectorPlatformDef,
+	ConnectorSecurityDef,
+	ConnectorSecurityFieldDef,
+} from "./connectors/platforms";
+export {
+	CONNECTOR_CATALOG,
+	CONNECTOR_PLATFORMS,
+	connectorChannelsFromPlatforms,
+	listConnectorCatalog,
+	shouldIncludeConnectorField,
+} from "./connectors/platforms";
+export type {
 	AutomationEventEnvelope,
 	CronEventSpec,
 	CronOneOffSpec,
@@ -123,7 +142,7 @@ export {
 	sanitizeSurrogates,
 	toAiSdkToolResultOutput,
 } from "./llms/ai-sdk-format";
-export type * from "./llms/gateway";
+export * from "./llms/gateway";
 export {
 	createMediaBudgetState,
 	DEFAULT_MAX_IMAGE_BASE64_BYTES,
@@ -189,7 +208,7 @@ export {
 	resolveReasoningEffortRatio,
 } from "./llms/reasoning-effort";
 export { DEFAULT_REQUEST_HEADERS, serializeAbortReason } from "./llms/requests";
-export { estimateTokens } from "./llms/tokens";
+export { CHARS_PER_TOKEN, estimateTokens } from "./llms/tokens";
 export type {
 	ToolApprovalRequest,
 	ToolApprovalResult,
@@ -203,14 +222,17 @@ export {
 	noopBasicLogger,
 } from "./logging/logger";
 export {
+	normalizeJsonLikeStringsForSchema,
 	parseJsonStream,
 	safeJsonParse,
 	safeJsonStringify,
 } from "./parse/json";
+export { type OmitUndefinedValues, omitUndefinedValues } from "./parse/object";
 export { getDefaultShell, getShellArgs } from "./parse/shell";
 export {
 	maskSecret,
 	sanitizeFileName,
+	trimNonEmpty,
 	truncateSplit,
 	truncateStr,
 } from "./parse/string";
@@ -383,6 +405,7 @@ export {
 	isHubDaemonProcess,
 } from "./runtime/hub-daemon-env";
 export type {
+	CaptureAgentUnexpectedReasoningTokensInput,
 	CaptureSdkErrorInput,
 	ITelemetryService,
 	OpenTelemetryClientConfig,
@@ -396,7 +419,9 @@ export type {
 	TelemetryValue,
 } from "./services/telemetry";
 export {
+	AGENT_UNEXPECTED_REASONING_TOKENS_EVENT,
 	buildSdkErrorProperties,
+	captureAgentUnexpectedReasoningTokens,
 	captureSdkError,
 	normalizeSdkError,
 	SDK_ERROR_TELEMETRY_EVENT,

@@ -63,26 +63,26 @@ export async function selectFiles(imagesAllowed: boolean): Promise<{ images: str
 
 			return { type: "image", data: `data:${mimeType};base64,${base64}` }
 		}
-			// for standard models we will check the size of the file to ensure its not too large
-			try {
-				const stats = await fs.stat(filePath)
-				if (stats.size > 20 * 1000 * 1024) {
-					Logger.warn(`File too large, skipping: ${filePath}`)
-					HostProvider.window.showMessage({
-						type: ShowMessageType.ERROR,
-						message: `文件太大： ${path.basename(filePath)} 被忽略 (超过 20MB).`,
-					})
-					return null
-				}
-			} catch (error) {
-				Logger.error(`Error checking file size for ${filePath}:`, error)
+		// for standard models we will check the size of the file to ensure its not too large
+		try {
+			const stats = await fs.stat(filePath)
+			if (stats.size > 20 * 1000 * 1024) {
+				Logger.warn(`File too large, skipping: ${filePath}`)
 				HostProvider.window.showMessage({
 					type: ShowMessageType.ERROR,
-					message: `文件太大： ${path.basename(filePath)} 被忽略 (超过 20MB).`,
+					message: `File too large: ${path.basename(filePath)} was skipped (size exceeds 20MB).`,
 				})
 				return null
 			}
-			return { type: "file", data: filePath }
+		} catch (error) {
+			Logger.error(`Error checking file size for ${filePath}:`, error)
+			HostProvider.window.showMessage({
+				type: ShowMessageType.ERROR,
+				message: `Could not check file size for ${path.basename(filePath)}, skipping.`,
+			})
+			return null
+		}
+		return { type: "file", data: filePath }
 	})
 
 	const dataUrlsWithNulls = await Promise.all(processFilesPromises)
@@ -102,7 +102,7 @@ export async function selectFiles(imagesAllowed: boolean): Promise<{ images: str
 	return { images, files }
 }
 
-export function getMimeType(filePath: string): string {
+function getMimeType(filePath: string): string {
 	const ext = path.extname(filePath).toLowerCase()
 	switch (ext) {
 		case ".png":

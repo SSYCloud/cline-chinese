@@ -24,11 +24,11 @@ export interface MethodMetadata {
 /**
  * Generic service registry for gRPC services
  */
-export class ServiceRegistry {
-	private serviceName: string;
-	private methodRegistry: Record<string, ServiceMethodHandler> = {};
-	private streamingMethodRegistry: Record<string, StreamingMethodHandler> = {};
-	private methodMetadata: Record<string, MethodMetadata> = {};
+class ServiceRegistry {
+	private serviceName: string
+	private methodRegistry: Record<string, ServiceMethodHandler> = {}
+	private streamingMethodRegistry: Record<string, StreamingMethodHandler> = {}
+	private methodMetadata: Record<string, MethodMetadata> = {}
 
 	/**
 	 * Create a new service registry

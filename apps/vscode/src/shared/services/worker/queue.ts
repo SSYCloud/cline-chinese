@@ -6,7 +6,7 @@ import { SEVEN_DAYS_MS } from "./worker"
 /**
  * Sync queue item status.
  */
-export type SyncQueueStatus = "pending" | "synced" | "failed"
+type SyncQueueStatus = "pending" | "synced" | "failed"
 
 /**
  * Represents an item in the sync queue.

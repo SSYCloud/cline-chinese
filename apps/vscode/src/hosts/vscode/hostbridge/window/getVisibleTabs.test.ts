@@ -1,11 +1,11 @@
-import { strict as assert } from "assert";
-import * as fs from "fs/promises";
-import { afterEach, beforeEach, describe, it } from "mocha";
-import * as os from "os";
-import * as path from "path";
-import * as vscode from "vscode";
-import { getVisibleTabs } from "@/hosts/vscode/hostbridge/window/getVisibleTabs";
-import { GetVisibleTabsRequest } from "@/shared/proto/host/window";
+import { afterEach, beforeEach, describe, it } from "mocha"
+import { strict as assert } from "assert"
+import * as fs from "fs/promises"
+import * as os from "os"
+import * as path from "path"
+import * as vscode from "vscode"
+import { getVisibleTabs } from "@/hosts/vscode/hostbridge/window/getVisibleTabs"
+import { GetVisibleTabsRequest } from "@/shared/proto/host/window"
 
 describe("Hostbridge - Window - getVisibleTabs", () => {
 	/**

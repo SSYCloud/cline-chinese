@@ -1,8 +1,8 @@
-import { describe, it } from "mocha";
-import "should";
-import { GrpcRecorderNoops } from "@/core/controller/grpc-recorder/grpc-recorder";
-import { GrpcRecorderBuilder } from "@/core/controller/grpc-recorder/grpc-recorder.builder";
-import { LogFileHandler } from "@/core/controller/grpc-recorder/log-file-handler";
+import { describe, it } from "bun:test"
+import "should"
+import { GrpcRecorderNoops } from "@/core/controller/grpc-recorder/grpc-recorder"
+import { GrpcRecorderBuilder } from "@/core/controller/grpc-recorder/grpc-recorder.builder"
+import { LogFileHandler } from "@/core/controller/grpc-recorder/log-file-handler"
 
 describe("GrpcRecorderBuilder", () => {
 	describe("when not enabling", () => {

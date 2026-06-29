@@ -1,12 +1,11 @@
 import { UpdateSettingsRequest } from "@shared/proto/cline/state"
-import { memo, type ReactNode, useCallback } from "react"
+import { memo, type ReactNode } from "react"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import Section from "../Section"
-import SettingsSlider from "../SettingsSlider"
 import { updateSetting } from "../utils/settingsHandlers"
 
 // Reusable checkbox component for feature settings
@@ -28,53 +27,15 @@ interface FeatureToggle {
 	description: ReactNode
 	settingKey: keyof UpdateSettingsRequest
 	stateKey: string
-	/** If set, the setting value is nested with this key (e.g., "enabled" -> { enabled: checked }) */
-	nestedKey?: string
 }
 
 const agentFeatures: FeatureToggle[] = [
-	{
-		id: "subagents",
-		label: "子 agents",
-		description: "让 Cline 并行运行专注于特定任务的子 agent，为您探索代码库。",
-		stateKey: "subagentsEnabled",
-		settingKey: "subagentsEnabled",
-	},
-	{
-		id: "native-tool-call",
-		label: "原生工具调用",
-		description: "在可用时使用原生函数调用",
-		stateKey: "nativeToolCallSetting",
-		settingKey: "nativeToolCallEnabled",
-	},
-	{
-		id: "parallel-tool-calling",
-		label: "并行工具调用",
-		description: "同时执行多个工具调用",
-		stateKey: "enableParallelToolCalling",
-		settingKey: "enableParallelToolCalling",
-	},
-	{
-		id: "strict-plan-mode",
-		label: "严格计划模式",
-		description: "在“计划”模式下，禁止编辑文件。",
-		stateKey: "strictPlanModeEnabled",
-		settingKey: "strictPlanModeEnabled",
-	},
 	{
 		id: "auto-compact",
 		label: "自动压缩",
 		description: "自动压缩对话历史。",
 		stateKey: "useAutoCondense",
 		settingKey: "useAutoCondense",
-	},
-	{
-		id: "focus-chain",
-		label: "聚焦链",
-		description: "在交互过程中保持上下文焦点",
-		stateKey: "focusChainEnabled",
-		settingKey: "focusChainSettings",
-		nestedKey: "enabled",
 	},
 ]
 
@@ -101,13 +62,6 @@ const editorFeatures: FeatureToggle[] = [
 		settingKey: "enableCheckpointsSetting",
 	},
 	{
-		id: "cline-web-tools",
-		label: "Cline 网络工具",
-		description: "访问网页浏览与搜索功能",
-		stateKey: "clineWebToolsEnabled",
-		settingKey: "clineWebToolsEnabled",
-	},
-	{
 		id: "worktrees",
 		label: "工作树",
 		description: "为运行并行 Cline 任务启用 git 工作树管理。",
@@ -124,21 +78,6 @@ const experimentalFeatures: FeatureToggle[] = [
 			"在未经用户确认的情况下执行任务。自动从“规划”模式切换至“执行”模式，并禁用提问工具。请务必极其谨慎使用。",
 		stateKey: "yoloModeToggled",
 		settingKey: "yoloModeToggled",
-	},
-	{
-		id: "double-check-completion",
-		label: "复核完成情况",
-		description:
-			"拒绝首次完成尝试，并要求模型在接受前，依据原始任务要求重新核验其工作。",
-		stateKey: "doubleCheckCompletionEnabled",
-		settingKey: "doubleCheckCompletionEnabled",
-	},
-	{
-		id: "lazy-teammate",
-		label: "懒惰队友模式",
-		description: "有时候，Cline 今天就是没那个兴致。仅供娱乐。",
-		stateKey: "lazyTeammateModeEnabled",
-		settingKey: "lazyTeammateModeEnabled",
 	},
 ]
 
@@ -213,28 +152,14 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 		enableCheckpointsSetting,
 		hooksEnabled,
 		mcpDisplayMode,
-		strictPlanModeEnabled,
 		yoloModeToggled,
 		useAutoCondense,
 		subagentsEnabled,
-		clineWebToolsEnabled,
 		worktreesEnabled,
-		focusChainSettings,
 		remoteConfigSettings,
-		nativeToolCallSetting,
-		enableParallelToolCalling,
 		backgroundEditEnabled,
-		doubleCheckCompletionEnabled,
-		lazyTeammateModeEnabled,
 		showFeatureTips,
 	} = useExtensionState()
-
-	const handleFocusChainIntervalChange = useCallback(
-		(value: number) => {
-			updateSetting("focusChainSettings", { ...focusChainSettings, remindClineInterval: value })
-		},
-		[focusChainSettings],
-	)
 
 	const isYoloRemoteLocked = remoteConfigSettings?.yoloModeToggled !== undefined
 
@@ -242,43 +167,18 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 	const featureState: Record<string, boolean | undefined> = {
 		showFeatureTips,
 		enableCheckpointsSetting,
-		strictPlanModeEnabled,
 		hooksEnabled,
-		nativeToolCallSetting,
-		focusChainEnabled: focusChainSettings?.enabled,
 		useAutoCondense,
 		subagentsEnabled,
-		clineWebToolsEnabled: clineWebToolsEnabled?.user,
 		worktreesEnabled: worktreesEnabled?.user,
-		enableParallelToolCalling,
 		backgroundEditEnabled,
-		doubleCheckCompletionEnabled,
-		lazyTeammateModeEnabled,
 		yoloModeToggled: isYoloRemoteLocked ? remoteConfigSettings?.yoloModeToggled : yoloModeToggled,
 	}
 
 	// Visibility lookup for features with feature flags
 	const featureVisibility: Record<string, boolean | undefined> = {
-		clineWebToolsEnabled: clineWebToolsEnabled?.featureFlag,
 		worktreesEnabled: worktreesEnabled?.featureFlag,
 	}
-
-	// Handler for feature toggle changes, supports nested settings like focusChainSettings
-	const handleFeatureChange = useCallback(
-		(feature: FeatureToggle, checked: boolean) => {
-			if (feature.nestedKey) {
-				// For nested settings, spread the existing value and set the nested key
-				let currentValue = {}
-				if (feature.settingKey === "focusChainSettings") {
-					currentValue = focusChainSettings ?? {}
-				}
-				updateSetting(feature.settingKey, { ...currentValue, [feature.nestedKey]: checked })
-			} else {
-				updateSetting(feature.settingKey, checked)
-			}
-		},
-		[focusChainSettings],
-	)
 
 	return (
 		<div className="mb-2">
@@ -292,31 +192,14 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 							className="relative p-3 pt-0 my-3 rounded-md border border-editor-widget-border/50"
 							id="agent-features">
 							{agentFeatures.map((feature) => (
-								<div key={feature.id}>
-									<FeatureRow
-										checked={featureState[feature.stateKey]}
-										description={feature.description}
-										isVisible={featureVisibility[feature.stateKey] ?? true}
-										key={feature.id}
-										label={feature.label}
-										onChange={(checked) =>
-											feature.nestedKey === "enabled"
-												? handleFeatureChange(feature, checked)
-												: updateSetting(feature.settingKey, checked)
-										}
-									/>
-									{feature.id === "focus-chain" && featureState[feature.stateKey] && (
-										<SettingsSlider
-											label="Reminder Interval (1-10)"
-											max={10}
-											min={1}
-											onChange={handleFocusChainIntervalChange}
-											step={1}
-											value={focusChainSettings?.remindClineInterval || 6}
-											valueWidth="w-6"
-										/>
-									)}
-								</div>
+								<FeatureRow
+									checked={featureState[feature.stateKey]}
+									description={feature.description}
+									isVisible={featureVisibility[feature.stateKey] ?? true}
+									key={feature.id}
+									label={feature.label}
+									onChange={(checked) => updateSetting(feature.settingKey, checked)}
+								/>
 							))}
 						</div>
 					</div>
@@ -334,7 +217,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 									isVisible={featureVisibility[feature.stateKey] ?? true}
 									key={feature.id}
 									label={feature.label}
-									onChange={(checked) => handleFeatureChange(feature, checked)}
+									onChange={(checked) => updateSetting(feature.settingKey, checked)}
 								/>
 							))}
 						</div>
@@ -355,8 +238,8 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 									isVisible={featureVisibility[feature.stateKey] ?? true}
 									key={feature.id}
 									label={feature.label}
-									onChange={(checked) => handleFeatureChange(feature, checked)}
-									remoteTooltip="此设置由您组织的远程配置管理"
+									onChange={(checked) => updateSetting(feature.settingKey, checked)}
+									remoteTooltip="此设置由您组织的远程配置进行管理。"
 								/>
 							))}
 						</div>
@@ -375,7 +258,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 									isVisible={featureVisibility[feature.stateKey] ?? true}
 									key={feature.id}
 									label={feature.label}
-									onChange={(checked) => handleFeatureChange(feature, checked)}
+									onChange={(checked) => updateSetting(feature.settingKey, checked)}
 								/>
 							))}
 

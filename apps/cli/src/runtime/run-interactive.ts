@@ -8,6 +8,7 @@ import type { CliMigrationNotice } from "../kanban-migration/notice";
 import { logCliError } from "../logging/errors";
 import {
 	loadClineAccountSnapshot,
+	loadIndividualSubscriptionPlans,
 	onProviderChange,
 	switchClineAccount,
 } from "../tui/cline-account";
@@ -56,6 +57,23 @@ import { assertInteractivePreflight } from "./interactive/preflight";
 import { createInteractiveSessionRuntime } from "./interactive/session-runtime";
 import { buildUserInputMessage } from "./prompt";
 import { getUIEventEmitter } from "./session-events";
+
+type ModelChangeReasoningConfig = {
+	thinking?: boolean;
+	reasoningEffort?: Config["reasoningEffort"];
+};
+
+export function resolveReasoningForModelChange(
+	config: ModelChangeReasoningConfig,
+	existing: Pick<ProviderSettings, "reasoning">,
+): ProviderSettings["reasoning"] {
+	if (config.thinking === false) return { enabled: false };
+	if (config.reasoningEffort) {
+		return { enabled: true, effort: config.reasoningEffort };
+	}
+	if (config.thinking === true) return { enabled: true };
+	return existing.reasoning;
+}
 
 export async function runInteractive(
 	config: Config,
@@ -410,6 +428,12 @@ export async function runInteractive(
 				config,
 				clineApiBaseUrl: options?.clineApiBaseUrl,
 			}),
+		loadIndividualSubscriptionPlans: async () =>
+			await loadIndividualSubscriptionPlans({
+				config,
+				clineApiBaseUrl: options?.clineApiBaseUrl,
+				clineProviderSettings: options?.clineProviderSettings,
+			}),
 		switchClineAccount: async (organizationId) =>
 			await switchClineAccount({
 				config,
@@ -637,12 +661,11 @@ export async function runInteractive(
 			) ?? {
 				provider: config.providerId,
 			};
+			const reasoning = resolveReasoningForModelChange(config, existing);
 			providerSettingsManager.saveProviderSettings({
 				...existing,
 				model: config.modelId,
-				reasoning: config.reasoningEffort
-					? { enabled: true, effort: config.reasoningEffort }
-					: { enabled: false },
+				...(reasoning === undefined ? {} : { reasoning }),
 			});
 			await sessionRuntime.restartWithCurrentMessages();
 		},

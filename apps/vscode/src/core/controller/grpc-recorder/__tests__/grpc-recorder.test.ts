@@ -1,15 +1,13 @@
-import {
-	GrpcRecorder,
-	IRecorder,
-} from "@core/controller/grpc-recorder/grpc-recorder";
-import { expect } from "chai";
-import { ExtensionMessage } from "@/shared/ExtensionMessage";
-import { GrpcRequest } from "@/shared/WebviewMessage";
+import { beforeAll, describe, it } from "bun:test"
+import { GrpcRecorder, IRecorder } from "@core/controller/grpc-recorder/grpc-recorder"
+import { expect } from "chai"
+import { ExtensionMessage } from "@/shared/ExtensionMessage"
+import { GrpcRequest } from "@/shared/WebviewMessage"
 
 describe("grpc-recorder", () => {
 	let recorder: IRecorder;
 
-	before(async () => {
+	beforeAll(async () => {
 		recorder = GrpcRecorder.builder()
 			.withFilters((req: GrpcRequest) => req.service === "the-unwanted-service")
 			.enableIf(true)

@@ -52,7 +52,7 @@ export class MementoStore implements vscode.Memento {
 
 // Simple implementation of VSCode's EventEmitter
 type EventCallback<T> = (e: T) => any
-export class EventEmitter<T> {
+class EventEmitter<T> {
 	private listeners: EventCallback<T>[] = []
 
 	event: vscode.Event<T> = (listener: EventCallback<T>) => {

@@ -1,14 +1,14 @@
-import { expect } from "chai";
-import { before, describe, it } from "mocha";
-import { LogFileHandler } from "@/core/controller/grpc-recorder/log-file-handler";
+import { beforeAll, describe, it } from "bun:test"
+import { expect } from "chai"
+import { LogFileHandler } from "@/core/controller/grpc-recorder/log-file-handler"
 
 describe("log-file-handler", () => {
 	let logHandler: LogFileHandler;
 
-	before(async () => {
-		logHandler = new LogFileHandler();
-		expect(logHandler.getFilePath()).not.empty;
-	});
+	beforeAll(async () => {
+		logHandler = new LogFileHandler()
+		expect(logHandler.getFilePath()).not.empty
+	})
 
 	describe("LogFileHandler", () => {
 		it("returns file name with timestamp when env var not set", () => {

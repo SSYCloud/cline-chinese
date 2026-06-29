@@ -1,9 +1,10 @@
-import { ClineMessage } from "@shared/ExtensionMessage"
+import type { ClineMessage } from "@shared/ExtensionMessage"
 import { memo } from "react"
-import CreditLimitErrorSSY from "@/components/chat/CreditLimitErrorSSY"
-import { useExtensionState } from "@/context/ExtensionStateContext"
-import { useSignIn } from "@/context/ShengSuanYunAuthContext"
-import { SSYError, SSYErrorType } from "../../../../src/services/error/SSYError"
+import { ClineAuthStatus } from "@/components/account/ClineAuthStatus"
+import CreditLimitError from "@/components/chat/CreditLimitError"
+import EntitlementError from "@/components/chat/EntitlementError"
+import OrgClinePassRestrictionError from "@/components/chat/OrgClinePassRestrictionError"
+import SpendLimitError from "@/components/chat/SpendLimitError"
 import { Button } from "@/components/ui/button"
 
 // const _errorColor = "var(--vscode-errorForeground)"
@@ -18,7 +19,8 @@ interface ErrorRowProps {
 const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStreamingFailedMessage }: ErrorRowProps) => {
 	const { userInfo } = useExtensionState()
 	const rawApiError = apiRequestFailedMessage || apiReqStreamingFailedMessage
-	const { isLoginLoading, handleSignIn } = useSignIn()
+
+	const { isLoginLoading, authStatusMessage, handleSignIn } = useClineSignIn()
 
 	const renderErrorContent = () => {
 		switch (errorType) {
@@ -27,27 +29,40 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 				// Handle API request errors with special error parsing
 				if (rawApiError) {
 					// FIXME: ClineError parsing should not be applied to non-Cline providers, but it seems we're using clineErrorMessage below in the default error display
-					const ssyError = SSYError.parse(rawApiError)
-					const errorMessage = ssyError?._error?.message || ssyError?.message || rawApiError
-					const requestId = ssyError?._error?.request_id
-					const providerId = ssyError?.providerId || ssyError?._error?.providerId
-					const isClineProvider = providerId === "shengsuanyun"
-					const errorCode = ssyError?._error?.code
+					const clineError = ClineError.parse(rawApiError)
+					const errorMessage = clineError?._error?.message || clineError?.message || rawApiError
+					const requestId = clineError?._error?.request_id
+					const providerId = clineError?.providerId || clineError?._error?.providerId
+					const isClineProvider = providerId === "cline"
+					const errorCode = clineError?._error?.code
 
-					if (ssyError?.isErrorType(SSYErrorType.Balance)) {
-						const errorDetails = ssyError._error?.details
-						return (
-							<CreditLimitErrorSSY
-								buyCreditsUrl={errorDetails?.buy_credits_url}
-								currentBalance={errorDetails?.current_balance}
-								message={errorDetails?.message}
-							/>
-						)
+					if (clineError?.isErrorType(ClineErrorType.Balance)) {
+						const errorDetails = clineError._error?.details
+						if (isClineProvider || errorDetails?.buy_credits_url) {
+							return (
+								<CreditLimitError
+									buyCreditsUrl={errorDetails?.buy_credits_url}
+									currentBalance={errorDetails?.current_balance}
+									message={errorDetails?.message}
+									totalPromotions={errorDetails?.total_promotions}
+									totalSpent={errorDetails?.total_spent}
+								/>
+							)
+						}
 					}
 
 						{/* SpendLimit not supported in SSY */}
 
-					if (ssyError?.isErrorType(SSYErrorType.RateLimit)) {
+					if (clineError?.isErrorType(ClineErrorType.Entitlement)) {
+						const detailMessage = clineError?._error?.details?.message || errorMessage
+						return <EntitlementError message={detailMessage} />
+					}
+
+					if (clineError?.isErrorType(ClineErrorType.OrgClinePassRestriction)) {
+						return <OrgClinePassRestrictionError />
+					}
+
+					if (clineError?.isErrorType(ClineErrorType.RateLimit)) {
 						return (
 							<p className="m-0 whitespace-pre-wrap text-error wrap-anywhere">
 								{errorMessage}
@@ -61,8 +76,8 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 						return <p className="m-0 whitespace-pre-wrap text-error wrap-anywhere">{detailMessage}</p>
 					}
 
-					if (ssyError?.isErrorType(SSYErrorType.Auth) && isClineProvider) {
-						return !userInfo ? (
+					if (clineError?.isErrorType(ClineErrorType.Auth) && isClineProvider) {
+						return !clineUser ? (
 							// User is using Cline provider and is not logged in
 							<div className="flex flex-col gap-3">
 								<div className="flex items-center justify-center rounded border border-neutral-500/30 bg-vscode-editor-background p-6 text-center text-vscode-foreground">
@@ -76,6 +91,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 										</span>
 									)}
 								</Button>
+								<ClineAuthStatus message={authStatusMessage} />
 							</div>
 						) : (
 							// Don't show sign in button after the user has logged in, just ask them to retry
@@ -111,10 +127,6 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 
 							{/* Display raw API error if different from parsed error message */}
 							{errorMessage !== rawApiError && <div>{rawApiError}</div>}
-
-							<div className="mt-4">
-								<span className="text-description">(Click "Retry" below)</span>
-							</div>
 						</p>
 					)
 				}

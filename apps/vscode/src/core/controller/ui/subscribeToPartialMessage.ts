@@ -10,8 +10,8 @@ const activePartialMessageSubscriptions = new Set<
 >();
 
 // Keep track of callback-based subscriptions (for CLI and other non-gRPC consumers)
-export type PartialMessageCallback = (message: ClineMessage) => void;
-const callbackSubscriptions = new Set<PartialMessageCallback>();
+type PartialMessageCallback = (message: ClineMessage) => void
+const callbackSubscriptions = new Set<PartialMessageCallback>()
 
 /**
  * Subscribe to partial message events
@@ -46,41 +46,25 @@ export async function subscribeToPartialMessage(
 }
 
 /**
- * Register a callback to receive partial message events (for CLI and non-gRPC consumers)
- * @param callback The callback function to receive messages
- * @returns A function to unsubscribe
- */
-export function registerPartialMessageCallback(
-	callback: PartialMessageCallback,
-): () => void {
-	callbackSubscriptions.add(callback);
-	return () => {
-		callbackSubscriptions.delete(callback);
-	};
-}
-
-/**
  * Send a partial message event to all active subscribers
  * @param partialMessage The ClineMessage to send
  */
-export async function sendPartialMessageEvent(
-	partialMessage: ClineMessage,
-): Promise<void> {
-	// Send to gRPC stream subscribers
-	const streamPromises = Array.from(activePartialMessageSubscriptions).map(
-		async (responseStream) => {
-			try {
-				await responseStream(
-					partialMessage,
-					false, // Not the last message
-				);
-			} catch (error) {
-				Logger.error("Error sending partial message event:", error);
-				// Remove the subscription if there was an error
-				activePartialMessageSubscriptions.delete(responseStream);
-			}
-		},
-	);
+export async function sendPartialMessageEvent(partialMessage: ClineMessage): Promise<void> {
+	// FIRE-AND-FORGET: do NOT await delivery to the webview. The webview can be hidden,
+	// reloaded, or closed, and VSCode's postMessage may hang or resolve false; awaiting it
+	// could stall the backend's turn loop on a dead consumer. Correctness does not depend on
+	// any single delivery arriving — the webview is a convergent replica that merges by id/seq
+	// and reconciles from full state.
+	for (const responseStream of activePartialMessageSubscriptions) {
+		responseStream(
+			partialMessage,
+			false, // Not the last message
+		).catch((error) => {
+			Logger.error("Error sending partial message event:", error)
+			// Remove the subscription if there was an error
+			activePartialMessageSubscriptions.delete(responseStream)
+		})
+	}
 
 	// Send to callback subscribers (synchronous)
 	for (const callback of callbackSubscriptions) {
@@ -90,6 +74,4 @@ export async function sendPartialMessageEvent(
 			Logger.error("Error in partial message callback:", error);
 		}
 	}
-
-	await Promise.all(streamPromises);
 }

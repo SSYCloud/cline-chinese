@@ -33,7 +33,7 @@ export function addRootOptions(cmd: Command): Command {
 			.option("-c, --cwd <path>", "工作目录")
 			.option(
 				"--thinking <level>",
-				"设置推理努力级别在 none|low|medium|high|xhigh (默认: medium)",
+				"设置推理努力级别在: none|low|medium|high|xhigh. Bare --thinking uses medium; omitted leaves provider default.",
 			)
 			.option("--compaction <mode>", CLI_COMPACTION_MODE_OPTION_DESCRIPTION)
 			.option("-i, --tui", "打开终端用户界面 (TUI) 用于交互式会话")

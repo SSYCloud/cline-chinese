@@ -61,16 +61,10 @@ export const USER_TYPE_SELECTIONS: UserTypeSelection[] = [
 	{ title: "使用我自己的 API 密钥", description: "使用你选择的提供商", type: NEW_USER_TYPE.BYOK },
 ]
 
-/**
- * Returns the onboarding user-type options. The free option leads the list and is
- * the default selection; ClinePass is inserted as a recommended-but-optional
- * choice (labeled "Recommended") right after it, only when the `ext-cline-pass`
- * feature flag is enabled. When the flag is off, the classic Free / Frontier /
- * BYOK options are shown unchanged.
- */
-export function getUserTypeSelections(isClinePassEnabled: boolean): UserTypeSelection[] {
-	if (!isClinePassEnabled) {
-		return USER_TYPE_SELECTIONS
+/** Free leads (and is the default); ClinePass is inserted second when its models are available. */
+export function getUserTypeSelections(hasClinePassModels: boolean): UserTypeSelection[] {
+	if (!hasClinePassModels) {
+		return BASE_USER_TYPE_SELECTIONS
 	}
 	const [free, ...rest] = USER_TYPE_SELECTIONS
 	return [free, USER_TYPE_SELECTIONS[0], ...rest]

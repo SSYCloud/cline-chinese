@@ -513,6 +513,7 @@ export class SessionRuntime {
 	}
 
 	private resetConversationBoundaryTrackers(): void {
+		this.messageBuilder.resetConversationState();
 		this.mistakeTracker.reset();
 		this.loopTracker.reset();
 	}
@@ -1266,8 +1267,8 @@ export class SessionRuntime {
 			? "error"
 			: deriveFinishReason(runResult);
 		const text =
-			runResult?.outputText ||
 			(runResult?.status === "failed" ? runResult.error?.message : undefined) ||
+			runResult?.outputText ||
 			"";
 		const usage: LegacyAgentUsage = runResult
 			? {

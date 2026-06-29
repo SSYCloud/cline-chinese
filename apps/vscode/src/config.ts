@@ -4,12 +4,11 @@ import * as path from "path"
 import { Environment, type EnvironmentConfig } from "./shared/config-types"
 import { Logger } from "./shared/services/Logger"
 
-export { Environment, type EnvironmentConfig }
-
-/**
+export { Environment } /**
  * Schema for the endpoints.json configuration file used in on-premise deployments.
  * All fields are required and must be valid URLs.
  */
+
 interface EndpointsFileSchema {
 	appBaseUrl: string
 	apiBaseUrl: string

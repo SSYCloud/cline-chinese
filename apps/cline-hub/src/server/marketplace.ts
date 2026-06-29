@@ -8,7 +8,7 @@ import {
 	unlinkSync,
 	writeFileSync,
 } from "node:fs";
-import { homedir, platform } from "node:os";
+import { homedir as osHomedir, platform } from "node:os";
 import {
 	basename,
 	dirname,
@@ -18,16 +18,15 @@ import {
 	resolve,
 } from "node:path";
 import {
+	type MarketplaceActionResult,
+	type MarketplaceEntryInput,
 	resolveSkillsConfigSearchPaths,
 	resolveWorkflowsConfigSearchPaths,
+	uninstallMarketplaceEntry as uninstallCoreMarketplaceEntry,
 	uninstallPlugin as uninstallLocalPlugin,
 } from "@coohu/core";
 import { resolveClineDir } from "@coohu/shared/storage";
-import {
-	deleteMcpServer,
-	readMcpServersResponse,
-	upsertMcpServer,
-} from "./mcp";
+import { deleteMcpServer, readMcpServersResponse } from "./mcp";
 import type { JsonRecord } from "./types";
 
 type MarketplacePrimitiveType = "mcp" | "skill" | "plugin";
@@ -90,6 +89,12 @@ const MARKETPLACE_CATALOG_URL =
 	"https://cline.github.io/marketplace/catalog.json";
 const SECRET_PATTERN =
 	/(api[_ -]?key|access[_ -]?token|refresh[_ -]?token|auth(?:orization)?[_ -]?token|token|secret|password|authorization|credential)/i;
+const SECRET_KEY_VALUE_PATTERN =
+	/((?:^|[^\w])(?:[a-z0-9_]*?(?:api[_ -]?key|access[_ -]?token|refresh[_ -]?token|auth(?:orization)?[_ -]?token|token|secret|password|credential)[a-z0-9_]*)\s*[:=]\s*)(.+)$/gi;
+const SECRET_BEARER_VALUE_PATTERN =
+	/((?:^|[^\w])authorization\s*[:=]\s*)bearer\s+([^\s,"'}\]]+)/gi;
+const SECRET_AUTHORIZATION_VALUE_PATTERN =
+	/((?:^|[^\w])authorization\s*[:=])(?!\s*bearer\b)\s*(.+)$/gi;
 
 export async function fetchMarketplaceCatalog(
 	fetchImpl: CatalogFetch = fetch,
@@ -270,11 +275,10 @@ function redactOutput(value: string): string {
 	const lines = value.split(/\r?\n/).map((line) => {
 		if (!SECRET_PATTERN.test(line)) return line;
 		return line
-			.replace(
-				/((?:^|[^\w])(?:[a-z0-9_]*?(?:api[_ -]?key|access[_ -]?token|refresh[_ -]?token|auth(?:orization)?[_ -]?token|token|secret|password|authorization|credential)[a-z0-9_]*)\s*[:=]\s*)(.+)$/gi,
-				"$1[redacted]",
-			)
-			.replace(/\b(Bearer)\s+\S+/gi, "$1 [redacted]")
+			.replace(SECRET_KEY_VALUE_PATTERN, "$1[redacted]")
+			.replace(SECRET_BEARER_VALUE_PATTERN, "$1Bearer [redacted]")
+			.replace(/\b(Bearer)\s+(?!\[redacted\])([^\s,"'}\]]+)/gi, "$1 [redacted]")
+			.replace(SECRET_AUTHORIZATION_VALUE_PATTERN, "$1 [redacted]")
 			.replace(
 				/((?:^|[^\w])(?:api\s+key|access\s+token|refresh\s+token|auth(?:orization)?\s+token|secret|password|credential)\s+(?:is\s+)?)(\S+)/gi,
 				"$1[redacted]",
@@ -374,6 +378,7 @@ export function buildMarketplaceMcpInput(args: string[]): JsonRecord {
 		throw new Error("MCP marketplace install requires a server name");
 	}
 	let transportType = "stdio";
+	const headers: Record<string, string> = {};
 	const targetArgs: string[] = [];
 	let parsingMarketplaceOptions = true;
 	for (let index = 0; index < rest.length; index++) {
@@ -389,11 +394,40 @@ export function buildMarketplaceMcpInput(args: string[]): JsonRecord {
 			index++;
 			continue;
 		}
+		const shouldParseHeader =
+			parsingMarketplaceOptions ||
+			normalizeTransport(transportType) !== "stdio";
+		if (
+			shouldParseHeader &&
+			(arg === "--header" || arg?.startsWith("--header="))
+		) {
+			const rawHeader =
+				arg === "--header" ? rest[++index] : arg.slice("--header=".length);
+			if (!rawHeader) throw new Error("--header requires a value");
+			const separatorIndex = rawHeader.indexOf(":");
+			if (separatorIndex <= 0) {
+				throw new Error(
+					`Invalid MCP header "${rawHeader}". Expected "Header-Name: header value".`,
+				);
+			}
+			const headerName = rawHeader.slice(0, separatorIndex).trim();
+			const headerValue = rawHeader.slice(separatorIndex + 1).trim();
+			if (!headerName || !headerValue) {
+				throw new Error(
+					`Invalid MCP header "${rawHeader}". Expected "Header-Name: header value".`,
+				);
+			}
+			headers[headerName] = headerValue;
+			continue;
+		}
 		parsingMarketplaceOptions = false;
 		targetArgs.push(arg);
 	}
 	transportType = normalizeTransport(transportType);
 	if (transportType === "stdio") {
+		if (Object.keys(headers).length > 0) {
+			throw new Error("Stdio MCP installs do not support request headers.");
+		}
 		const [command, ...commandArgs] = targetArgs;
 		if (!command?.trim()) {
 			throw new Error("Stdio MCP install requires a command");
@@ -415,6 +449,7 @@ export function buildMarketplaceMcpInput(args: string[]): JsonRecord {
 		name,
 		transportType,
 		url,
+		headers: Object.keys(headers).length > 0 ? headers : undefined,
 		disabled: false,
 	};
 }
@@ -570,6 +605,12 @@ function isOfficialPluginInstalled(entry: MarketplaceInstallInput): boolean {
 	return Boolean(installPath && existsSync(installPath));
 }
 
+function resolveHomeDir(): string {
+	return (
+		process.env.HOME?.trim() || process.env.USERPROFILE?.trim() || osHomedir()
+	);
+}
+
 function normalizeMatchValue(value: string | undefined): string {
 	return (value ?? "")
 		.toLowerCase()
@@ -606,12 +647,12 @@ function getSkillInstallCandidates(entry: MarketplaceInstallInput): string[] {
 function getGlobalSkillPaths(skillName: string): string[] {
 	return [
 		join(resolveClineDir(), "skills", skillName, "SKILL.md"),
-		join(homedir(), ".agents", "skills", skillName, "SKILL.md"),
+		join(resolveHomeDir(), ".agents", "skills", skillName, "SKILL.md"),
 	].filter((path, index, paths) => paths.indexOf(path) === index);
 }
 
 function ensureGlobalSkillsDirWritable(): void {
-	const skillsDir = join(homedir(), ".agents", "skills");
+	const skillsDir = join(resolveHomeDir(), ".agents", "skills");
 	try {
 		mkdirSync(skillsDir, { recursive: true });
 		const probePath = join(
@@ -754,50 +795,6 @@ async function installSkill(
 	};
 }
 
-async function uninstallSkill(
-	entry: MarketplaceInstallInput,
-	spawnCommand: SpawnCommand,
-): Promise<MarketplaceInstallResult> {
-	const installedName = findInstalledGlobalSkillName(entry);
-	if (!installedName) {
-		return {
-			id: entry.id,
-			type: entry.type,
-			status: "uninstalled",
-			message: `${entry.name ?? entry.id} is not installed.`,
-		};
-	}
-	const result = await spawnCommand("npx", [
-		"-y",
-		"skills@latest",
-		"remove",
-		installedName,
-		"-g",
-		"-a",
-		"cline",
-		"-y",
-	]);
-	if (result.exitCode !== 0) {
-		const output = commandOutput(result);
-		throw new Error(
-			`Skill uninstall failed with exit code ${result.exitCode}${output ? `:\n${output}` : ""}`,
-		);
-	}
-	const output = commandOutput(result);
-	if (isGlobalSkillInstalled(entry)) {
-		throw new Error(
-			`Skill uninstall completed, but ${entry.name ?? entry.id} is still present in Cline's global skills directories.`,
-		);
-	}
-	return {
-		id: entry.id,
-		type: entry.type,
-		status: "uninstalled",
-		message: `Uninstalled ${entry.name ?? entry.id}.`,
-		output,
-	};
-}
-
 async function installPlugin(
 	entry: MarketplaceInstallInput,
 	spawnCommand: SpawnCommand,
@@ -848,47 +845,6 @@ async function installPlugin(
 	};
 }
 
-async function uninstallPlugin(
-	entry: MarketplaceInstallInput,
-	spawnCommand: SpawnCommand,
-): Promise<MarketplaceInstallResult> {
-	const installArgs = entry.install.args ?? [];
-	const target = installArgs[0]?.trim() || entry.id;
-	if (!target) {
-		throw new Error("Plugin marketplace uninstalls require a plugin name.");
-	}
-	const { command, argsPrefix } = resolveClineInvocation();
-	const result = await spawnCommand(command, [
-		...argsPrefix,
-		"plugin",
-		"uninstall",
-		target,
-		"--json",
-	]);
-	if (result.exitCode !== 0) {
-		const output = commandOutput(result);
-		throw new Error(
-			`Plugin uninstall failed with exit code ${result.exitCode}${output ? `:\n${output}` : ""}`,
-		);
-	}
-	let details: JsonRecord | undefined;
-	try {
-		details = result.stdout.trim()
-			? (JSON.parse(result.stdout.trim()) as JsonRecord)
-			: undefined;
-	} catch {
-		details = undefined;
-	}
-	return {
-		id: entry.id,
-		type: entry.type,
-		status: "uninstalled",
-		message: `Uninstalled ${entry.name ?? entry.id}.`,
-		details,
-		output: commandOutput(result),
-	};
-}
-
 export async function installMarketplaceEntry(
 	args?: Record<string, unknown>,
 	options: { spawnCommand?: SpawnCommand } = {},
@@ -896,14 +852,38 @@ export async function installMarketplaceEntry(
 	const entry = readInstallInput(args);
 	const spawnCommand = options.spawnCommand ?? defaultSpawnCommand;
 	if (entry.type === "mcp") {
-		const input = buildMarketplaceMcpInput(entry.install.args ?? []);
-		const response = upsertMcpServer(input);
+		// Validate marketplace args before handing them to the CLI-backed installer.
+		buildMarketplaceMcpInput(entry.install.args ?? []);
+		const { command, argsPrefix } = resolveClineInvocation();
+		const result = await spawnCommand(command, [
+			...argsPrefix,
+			"mcp",
+			"install",
+			"--yes",
+			"--json",
+			...(entry.install.args ?? []),
+		]);
+		if (result.exitCode !== 0) {
+			const output = commandOutput(result);
+			throw new Error(
+				`MCP install failed with exit code ${result.exitCode}${output ? `:\n${output}` : ""}`,
+			);
+		}
+		let details: JsonRecord | undefined;
+		try {
+			details = result.stdout.trim()
+				? (JSON.parse(result.stdout.trim()) as JsonRecord)
+				: undefined;
+		} catch {
+			details = undefined;
+		}
 		return {
 			id: entry.id,
 			type: entry.type,
 			status: "installed",
-			message: `Installed ${entry.name ?? input.name ?? entry.id}.`,
-			details: { mcp: response },
+			message: `Installed ${entry.name ?? entry.id}.`,
+			details,
+			output: commandOutput(result),
 		};
 	}
 	if (entry.type === "skill") {
@@ -921,24 +901,21 @@ export async function uninstallMarketplaceEntry(
 ): Promise<MarketplaceInstallResult> {
 	const entry = readInstallInput(args);
 	const spawnCommand = options.spawnCommand ?? defaultSpawnCommand;
-	if (entry.type === "mcp") {
-		const input = buildMarketplaceMcpInput(entry.install.args ?? []);
-		const response = deleteMcpServer(String(input.name ?? ""));
-		return {
-			id: entry.id,
-			type: entry.type,
-			status: "uninstalled",
-			message: `Uninstalled ${entry.name ?? input.name ?? entry.id}.`,
-			details: { mcp: response },
-		};
-	}
-	if (entry.type === "skill") {
-		return uninstallSkill(entry, spawnCommand);
-	}
-	if (entry.type === "plugin") {
-		return uninstallPlugin(entry, spawnCommand);
-	}
-	throw new Error(`Unsupported marketplace entry type: ${entry.type}`);
+	let mcpDetails: JsonRecord | undefined;
+	const result = await uninstallCoreMarketplaceEntry(
+		entry satisfies MarketplaceEntryInput,
+		{
+			deleteMcpServer: (name) => {
+				mcpDetails = deleteMcpServer(name);
+			},
+			spawnCommand: (command, commandArgs) =>
+				spawnCommand(command, commandArgs),
+		},
+	);
+	return {
+		...(result satisfies MarketplaceActionResult),
+		details: mcpDetails ? { mcp: mcpDetails } : undefined,
+	};
 }
 
 export async function installMarketplaceEntryFromCatalog(

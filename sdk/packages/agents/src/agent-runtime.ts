@@ -24,9 +24,13 @@ import type {
 	ToolPolicy,
 } from "@coohu/shared";
 import {
+	captureAgentUnexpectedReasoningTokens,
 	captureSdkError,
 	estimateTokens,
 	mergeModelOptions,
+	normalizeJsonLikeStringsForSchema,
+	omitUndefinedValues,
+	trimNonEmpty,
 } from "@coohu/shared";
 import { nanoid } from "nanoid";
 
@@ -101,7 +105,14 @@ function resolveRuntimeConfig(
 		telemetry: rest.telemetry,
 	});
 	const model = gateway.createAgentModel({ providerId, modelId });
-	return { ...rest, model };
+	// The prebuilt-model path preserves a caller-provided messageModelInfo;
+	// mirror that here so the provider/model constructor also tags assistant
+	// messages with modelInfo. An explicit caller-provided value still wins.
+	const messageModelInfo = rest.messageModelInfo ?? {
+		id: modelId,
+		provider: providerId,
+	};
+	return { ...rest, model, messageModelInfo };
 }
 
 function resolveToolPolicy(
@@ -297,6 +308,10 @@ function usageDelta(
 		0,
 		(end.cacheWriteTokens ?? 0) - (start.cacheWriteTokens ?? 0),
 	);
+	const reasoningTokenCount = Math.max(
+		0,
+		(end.reasoningTokenCount ?? 0) - (start.reasoningTokenCount ?? 0),
+	);
 	const startCost = start.totalCost ?? 0;
 	const endCost = end.totalCost ?? 0;
 	const cost = Math.max(0, endCost - startCost);
@@ -305,6 +320,7 @@ function usageDelta(
 		outputTokens === 0 &&
 		cacheReadTokens === 0 &&
 		cacheWriteTokens === 0 &&
+		reasoningTokenCount === 0 &&
 		cost === 0
 	) {
 		return undefined;
@@ -314,8 +330,13 @@ function usageDelta(
 		outputTokens: outputTokens > 0 ? outputTokens : 0,
 		cacheReadTokens: cacheReadTokens > 0 ? cacheReadTokens : 0,
 		cacheWriteTokens: cacheWriteTokens > 0 ? cacheWriteTokens : 0,
+		...(reasoningTokenCount > 0 ? { reasoningTokenCount } : {}),
 		...(cost > 0 ? { cost } : {}),
 	};
+}
+
+function reasoningWasRequestedOff(request: AgentModelRequest): boolean {
+	return request.options?.thinking === false;
 }
 
 function textFromMessage(message: AgentMessage | undefined): string {
@@ -594,6 +615,21 @@ export class AgentRuntime {
 				});
 
 				const { message, finishReason } = await this.generateAssistantMessage();
+				if (finishReason === "aborted") {
+					throw this.normalizeAbortError();
+				}
+				if (message.content.length === 0) {
+					throw new Error(
+						finishReason === "error"
+							? (this.state.lastError ?? "Model stream failed")
+							: "Model returned empty response",
+					);
+				}
+				const toolCalls = message.content.filter(
+					(part: AgentMessagePart): part is AgentToolCallPart =>
+						part.type === "tool-call",
+				);
+
 				finalAssistantMessage = message;
 				this.state.messages.push(message);
 				await this.emit({
@@ -609,14 +645,6 @@ export class AgentRuntime {
 					finishReason,
 				});
 
-				if (finishReason === "aborted") {
-					throw this.normalizeAbortError();
-				}
-
-				const toolCalls = message.content.filter(
-					(part: AgentMessagePart): part is AgentToolCallPart =>
-						part.type === "tool-call",
-				);
 				if (finishReason === "error" && toolCalls.length === 0) {
 					throw new Error(this.state.lastError ?? "Model stream failed");
 				}
@@ -747,6 +775,13 @@ export class AgentRuntime {
 		finishReason: AgentModelFinishReason;
 	}> {
 		const usageBeforeModel = cloneUsage(this.state.usage);
+		const modelRequestMetadata = omitUndefinedValues({
+			sessionId: trimNonEmpty(this.config.sessionId),
+			agentId: this.state.agentId,
+			conversationId: trimNonEmpty(this.config.conversationId),
+			runId: this.state.runId,
+			iteration: this.state.iteration,
+		});
 		let request: AgentModelRequest = {
 			systemPrompt: this.config.systemPrompt,
 			messages: cloneMessages(this.state.messages),
@@ -756,7 +791,9 @@ export class AgentRuntime {
 				inputSchema: tool.inputSchema,
 			})),
 			signal: this.abortController?.signal,
-			options: this.config.modelOptions,
+			options: mergeModelOptions(this.config.modelOptions, {
+				metadata: modelRequestMetadata,
+			}),
 		};
 
 		if (this.state.iteration > 1) {
@@ -962,6 +999,7 @@ export class AgentRuntime {
 		const metrics = usageDelta(usageBeforeModel, this.state.usage);
 		if (metrics) {
 			message.metrics = metrics;
+			this.captureUnexpectedReasoningTokens(request, metrics);
 		}
 		if (this.config.messageModelInfo) {
 			message.modelInfo = { ...this.config.messageModelInfo };
@@ -976,6 +1014,33 @@ export class AgentRuntime {
 		}
 
 		return { message, finishReason };
+	}
+
+	private captureUnexpectedReasoningTokens(
+		request: AgentModelRequest,
+		metrics: NonNullable<AgentMessage["metrics"]>,
+	): void {
+		if (
+			!reasoningWasRequestedOff(request) ||
+			(metrics.reasoningTokenCount ?? 0) <= 0
+		) {
+			return;
+		}
+		const reasoningTokenCount = metrics.reasoningTokenCount;
+		if (reasoningTokenCount === undefined) {
+			return;
+		}
+
+		captureAgentUnexpectedReasoningTokens(this.config.telemetry, {
+			sessionId: this.config.sessionId,
+			agentId: this.state.agentId,
+			runId: this.state.runId,
+			iteration: this.state.iteration,
+			providerId: this.config.messageModelInfo?.provider,
+			modelId: this.config.messageModelInfo?.id,
+			requestedThinking: false,
+			reasoningTokenCount,
+		});
 	}
 
 	private async prepareTurnForModelRequest(
@@ -1050,6 +1115,9 @@ export class AgentRuntime {
 				this.state.usage.cacheReadTokens + (usage.cacheReadTokens ?? 0),
 			cacheWriteTokens:
 				this.state.usage.cacheWriteTokens + (usage.cacheWriteTokens ?? 0),
+			reasoningTokenCount:
+				(this.state.usage.reasoningTokenCount ?? 0) +
+				(usage.reasoningTokenCount ?? 0),
 			totalCost: (this.state.usage.totalCost ?? 0) + (usage.totalCost ?? 0),
 		};
 		await this.emit({
@@ -1133,13 +1201,17 @@ export class AgentRuntime {
 			skipReason = `Tool execution is disabled for provider ${providerId}`;
 		}
 
+		if (tool && !skipReason) {
+			input = normalizeJsonLikeStringsForSchema(input, tool.inputSchema);
+		}
+
 		let policyOverride: ToolPolicy | undefined;
 		if (tool && !skipReason) {
 			for (const hook of this.hooks.beforeTool) {
 				const result = (await hook({
 					snapshot: this.snapshot(),
 					tool,
-					toolCall,
+					toolCall: { ...toolCall, input },
 					input,
 				})) as AgentBeforeToolResult | undefined;
 				if (result?.input !== undefined) {

@@ -17,8 +17,13 @@ export async function captureOnboardingProgress(
 	try {
 		telemetryService.captureOnboardingProgress({
 			step: Number(request.step),
-			model: request.modelSelected,
 			action: request.action,
+			page: request.page,
+			pageVariant: request.pageVariant,
+			userType: request.userType,
+			selectedModelId: request.modelSelected,
+			destinationStep: request.destinationStep,
+			destinationPage: request.destinationPage,
 			completed: !!request.completed,
 		});
 		return Empty.create({});

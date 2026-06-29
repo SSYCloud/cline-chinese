@@ -38,7 +38,10 @@ export async function updateAutoApprovalSettings(
 			},
 		};
 
-		controller.stateManager.setGlobalState("autoApprovalSettings", settings);
+		controller.stateManager.setGlobalState("autoApprovalSettings", settings)
+		if (controller.task?.taskId) {
+			controller.stateManager.setTaskSettings(controller.task.taskId, "autoApprovalSettings", settings)
+		}
 
 		await controller.postStateToWebview();
 	}

@@ -42,6 +42,7 @@ import {
 	isOAuthProvider,
 	normalizeProviderId,
 } from "./utils/provider-auth";
+import { resolveCliReasoning } from "./utils/reasoning";
 import { rewriteTeamPrompt, TEAM_COMMAND_USAGE } from "./utils/team-command";
 import {
 	captureCliExtensionActivated,
@@ -110,6 +111,23 @@ export function resolveConfigDirArg(argv: string[]): string | undefined {
 		}
 	}
 	return undefined;
+}
+
+function collectOption(value: string, previous: string[] = []): string[] {
+	return [...previous, value];
+}
+
+// Shells strip quote characters before argv reaches us, so a prompt that was
+// typed in quotes is only observable when it remains one argv token with spaces.
+function promptArgLooksQuoted(arg: string | undefined): boolean {
+	return !!arg && /\s/.test(arg);
+}
+
+function writePromptArgError(args: string[]): void {
+	const renderedArgs = args.join(" ");
+	writeErr(
+		`Unknown command or unquoted prompt: ${renderedArgs}\nPrompt text must be passed as a single quoted argument, for example: cline "fix the tests". Use "cline --help" to see available commands and flags.`,
+	);
 }
 
 export async function runCli(): Promise<void> {
@@ -404,15 +422,24 @@ export async function runCli(): Promise<void> {
 			"--transport <transport>",
 			"stdio, sse, http, streamable-http, or streamableHttp (default: stdio)",
 		)
+		.option("--header <header>", "Remote MCP request header", collectOption, [])
+		.option("--yes", "Install noninteractively without opening the wizard")
+		.option("--json", "Output as JSON")
 		.action(async (name: string, targetArgs: string[]) => {
 			const opts = mcpInstallCmd.opts<{
+				header?: string[];
+				json?: boolean;
 				transport?: string;
+				yes?: boolean;
 			}>();
 			const { runMcpInstallCommand } = await import("./commands/mcp");
 			ctx.exitCode = await runMcpInstallCommand({
 				name,
+				headers: opts.header,
 				targetArgs,
 				transport: opts.transport,
+				json: opts.json === true || program.opts().json === true,
+				yes: opts.yes === true,
 				io,
 			});
 		});
@@ -722,13 +749,6 @@ export async function runCli(): Promise<void> {
 
 	// Default flow: no subcommand matched, or fall-through from config/history.
 	let args = commanderToParsedArgs(program);
-	if (program.args.length > 1) {
-		writeErr(
-			`Unknown command or extra arguments: ${program.args.join(" ")}\nPrompt text with spaces must be quoted as a single argument, for example: cline "fix the tests". Use "cline --help" to see available commands and flags.`,
-		);
-		process.exitCode = 1;
-		return;
-	}
 
 	let resumeSessionId: string | undefined = ctx.resumeSessionId;
 	if (resumeSessionId) {
@@ -814,6 +834,13 @@ export async function runCli(): Promise<void> {
 	}
 	if (args.hooksDir?.trim()) {
 		process.env.CLINE_HOOKS_DIR = args.hooksDir.trim();
+	}
+	if (args.prompt && !args.interactive) {
+		if (program.args.length > 1 || !promptArgLooksQuoted(program.args[0])) {
+			writePromptArgError(program.args);
+			process.exitCode = 1;
+			return;
+		}
 	}
 	setCurrentOutputMode(args.outputMode);
 	const defaultToolAutoApprove = true;
@@ -998,19 +1025,12 @@ export async function runCli(): Promise<void> {
 			);
 		}
 		const knownModelIds = knownModels ? Object.keys(knownModels) : [];
-		const persistedReasoning = selectedProviderSettings?.reasoning;
-		const persistedReasoningEffort = persistedReasoning?.effort;
-		const reasoningEffortFromSettings =
-			persistedReasoning?.enabled === false
-				? "none"
-				: persistedReasoningEffort && persistedReasoningEffort !== "none"
-					? persistedReasoningEffort
-					: persistedReasoning?.enabled === true
-						? "medium"
-						: "none";
-		const effectiveReasoningEffort = args.thinkingExplicitlySet
-			? (args.reasoningEffort ?? "none")
-			: (args.reasoningEffort ?? reasoningEffortFromSettings);
+		const resolvedReasoning = resolveCliReasoning({
+			thinking: args.thinking,
+			thinkingExplicitlySet: args.thinkingExplicitlySet,
+			reasoningEffort: args.reasoningEffort,
+			persistedReasoning: selectedProviderSettings?.reasoning,
+		});
 		const { createCliLoggerAdapter } = await import("./logging/adapter");
 		const loggerAdapter = createCliLoggerAdapter({
 			runtime: "cli",
@@ -1046,11 +1066,8 @@ export async function runCli(): Promise<void> {
 			sandbox: sandboxEnabled,
 			sandboxDataDir,
 			verbose: args.verbose,
-			thinking: effectiveReasoningEffort !== "none",
-			reasoningEffort:
-				effectiveReasoningEffort === "none"
-					? undefined
-					: effectiveReasoningEffort,
+			thinking: resolvedReasoning.thinking,
+			reasoningEffort: resolvedReasoning.reasoningEffort,
 			outputMode: args.outputMode,
 			mode: args.mode,
 			logger: loggerAdapter.core,

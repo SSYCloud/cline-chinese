@@ -1,8 +1,4 @@
-import {
-	CommentReviewController,
-	type OnReplyCallback,
-	type ReviewComment,
-} from "@/integrations/editor/CommentReviewController";
+import { CommentReviewController, type ReviewComment } from "@/integrations/editor/CommentReviewController"
 
 /**
  * External (non-VS Code) implementation of CommentReviewController.
@@ -11,10 +7,6 @@ import {
  * inline code comments (e.g., JetBrains, CLI).
  */
 export class ExternalCommentReviewController extends CommentReviewController {
-	setOnReplyCallback(_callback: OnReplyCallback): void {
-		// No-op
-	}
-
 	async ensureCommentsViewDisabled(): Promise<void> {
 		// No-op
 	}

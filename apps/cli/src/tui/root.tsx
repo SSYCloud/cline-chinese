@@ -10,7 +10,7 @@ import {
 	useDialogState,
 } from "@opentui-ui/dialog/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { MigrationNoticeContent } from "../kanban-migration/notice-dialog";
+// import { MigrationNoticeContent } from "../kanban-migration/notice-dialog";
 import type { RepoStatus } from "../utils/repo-status";
 import { readRepoStatus } from "../utils/repo-status";
 import type { TranscriptScrollHandle } from "./components/chat-message-list";
@@ -547,19 +547,19 @@ function App(props: TuiProps) {
 		if (appView !== "home") return;
 
 		initialNoticeShownRef.current = true;
-		const timeout = setTimeout(() => {
-			void dialog
-				.choice<boolean>({
-					content: (ctx: ChoiceContext<boolean>) => (
-						<MigrationNoticeContent {...ctx} notice={notice} />
-					),
-				})
-				.finally(() => {
-					Promise.resolve(onInitialNoticeShown?.(notice)).catch(() => {});
-					refocusTextareaRef.current();
-				});
-		}, 0);
-		return () => clearTimeout(timeout);
+		// const timeout = setTimeout(() => {
+		// 	void dialog
+		// 		.choice<boolean>({
+		// 			content: (ctx: ChoiceContext<boolean>) => (
+		// 				<MigrationNoticeContent {...ctx} notice={notice} />
+		// 			),
+		// 		})
+		// 		.finally(() => {
+		// 			Promise.resolve(onInitialNoticeShown?.(notice)).catch(() => {});
+		// 			refocusTextareaRef.current();
+		// 		});
+		// }, 0);
+		// return () => clearTimeout(timeout);
 	}, [appView, dialog, notice, onInitialNoticeShown]);
 
 	const {
@@ -879,6 +879,7 @@ function App(props: TuiProps) {
 		repoStatus,
 		textareaRef: promptInput.textareaRef,
 		transcriptScrollRef,
+		loadIndividualSubscriptionPlans: props.loadIndividualSubscriptionPlans,
 		queuedPrompts,
 		selectedQueuedPromptId,
 		editingQueuedPrompt,

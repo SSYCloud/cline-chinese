@@ -1,12 +1,12 @@
-import { strict as assert } from "assert";
-import * as fs from "fs/promises";
-import { afterEach, beforeEach, describe, it } from "mocha";
-import * as os from "os";
-import pWaitFor from "p-wait-for";
-import * as path from "path";
-import * as vscode from "vscode";
-import { getOpenTabs } from "@/hosts/vscode/hostbridge/window/getOpenTabs";
-import { GetOpenTabsRequest } from "@/shared/proto/host/window";
+import { afterEach, beforeEach, describe, it } from "mocha"
+import { strict as assert } from "assert"
+import * as fs from "fs/promises"
+import * as os from "os"
+import pWaitFor from "p-wait-for"
+import * as path from "path"
+import * as vscode from "vscode"
+import { getOpenTabs } from "@/hosts/vscode/hostbridge/window/getOpenTabs"
+import { GetOpenTabsRequest } from "@/shared/proto/host/window"
 
 describe("Hostbridge - Window - getOpenTabs", () => {
 	async function createAndOpenTestDocument(

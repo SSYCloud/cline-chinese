@@ -6,7 +6,7 @@ const replaceCname = (baseUrl: string, type: URLType): string => {
 	if (type === "router") {
 		return baseUrl
 	}
-		return baseUrl.replace("router", type).replace("v1", "")
+	return baseUrl.replace("router", type).replace("v1", "")
 }
 
 export const toRequestyServiceUrl = (baseUrl?: string, service: URLType = "router"): URL | undefined => {
@@ -17,8 +17,4 @@ export const toRequestyServiceUrl = (baseUrl?: string, service: URLType = "route
 	} catch (e) {
 		return undefined
 	}
-}
-
-export const toRequestyServiceStringUrl = (baseUrl?: string, service: URLType = "router"): string | undefined => {
-	return toRequestyServiceUrl(baseUrl, service)?.toString()
 }

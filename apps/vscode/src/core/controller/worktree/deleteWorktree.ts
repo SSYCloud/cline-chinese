@@ -1,16 +1,9 @@
-import {
-	DeleteWorktreeRequest,
-	WorktreeResult,
-} from "@shared/proto/cline/worktree";
-import { deleteWorktree as deleteWorktreeUtil } from "@utils/git-worktree";
-import { getWorkspacePath } from "@utils/path";
-import { rm } from "fs/promises";
-import path from "path";
-import simpleGit from "simple-git";
-import { HostProvider } from "@/hosts/host-provider";
-import { hashWorkingDir } from "@/integrations/checkpoints/CheckpointUtils";
-import { Logger } from "@/shared/services/Logger";
-import { Controller } from "..";
+import { DeleteWorktreeRequest, WorktreeResult } from "@shared/proto/cline/worktree"
+import { deleteWorktree as deleteWorktreeUtil } from "@utils/git-worktree"
+import { getWorkspacePath } from "@utils/path"
+import simpleGit from "simple-git"
+import { Logger } from "@/shared/services/Logger"
+import { Controller } from ".."
 
 /**
  * Deletes an existing git worktree
@@ -38,22 +31,6 @@ export async function deleteWorktree(
 				success: result.success,
 				message: result.message,
 			});
-		}
-
-		// Clean up checkpoint data (shadow git repo) for the deleted worktree
-		try {
-			const cwdHash = hashWorkingDir(request.path);
-			const checkpointDir = path.join(
-				HostProvider.get().globalStorageFsPath,
-				"checkpoints",
-				cwdHash,
-			);
-			await rm(checkpointDir, { recursive: true, force: true });
-		} catch (error) {
-			// Log but don't fail - checkpoint cleanup is best-effort
-			Logger.log(
-				`Failed to cleanup checkpoints for deleted worktree: ${error}`,
-			);
 		}
 
 		// Delete the branch if requested

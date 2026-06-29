@@ -15,6 +15,9 @@ target
 pnpm-lock.yaml
 
 .clineignore
+.cline/enterprise
+.cline/remote-config
+**/.cline/remote-config
 .venv
 .actrc
 CLAUDE.local.md
@@ -84,3 +87,4 @@ apps/vscode/webview-ui/src/**/*.js.map
 .cline/**/managed.json
 .cline/**/bundle.json
 .next
+apps/vscode/tsconfig.test.generated.json
