@@ -12,7 +12,7 @@ import {
 	type PreparedRemoteConfigCoreIntegration,
 	resolveDefaultMcpSettingsPath,
 	type SessionHistoryRecord,
-	setTelemetryOptOutGlobally,
+	// setTelemetryOptOutGlobally,
 	type UserInstructionConfigService,
 } from "@coohu/core"
 import { formatDisplayUserInput, type RemoteConfig, type RemoteConfigBundle } from "@coohu/shared"
@@ -25,7 +25,7 @@ import type { HistoryItem } from "@shared/HistoryItem"
 import { DeleteAllTaskHistoryCount, type GetTaskHistoryRequest, TaskHistoryArray, TaskResponse } from "@shared/proto/cline/task"
 import type { Settings } from "@shared/storage/state-keys"
 import type { Mode } from "@shared/storage/types"
-import type { TelemetrySetting } from "@shared/TelemetrySetting"
+// import type { TelemetrySetting } from "@shared/TelemetrySetting"
 import type { ClineCheckpointRestore } from "@shared/WebviewMessage"
 import { parseMentions } from "@/core/mentions"
 import { ensureMcpServersDirectoryExists } from "@/core/storage/disk"
@@ -36,17 +36,17 @@ import type { WorkspaceRootManager } from "@/core/workspace/WorkspaceRootManager
 import { HostProvider } from "@/hosts/host-provider"
 import type { ITerminalManager } from "@/integrations/terminal/types"
 import { ExtensionRegistryInfo } from "@/registry"
-import { OcaAuthService } from "@/services/auth/oca/OcaAuthService"
+// import { OcaAuthService } from "@/services/auth/oca/OcaAuthService"
 import { UrlContentFetcher } from "@/services/browser/UrlContentFetcher"
 import { ClineError } from "@/services/error/ClineError"
 import { McpHub } from "@/services/mcp/McpHub"
-import { telemetryService } from "@/services/telemetry"
+// import { telemetryService } from "@/services/telemetry"
 import type { ClineExtensionContext } from "@/shared/cline"
 import { ShowMessageRequest, ShowMessageType } from "@/shared/proto/host/window"
 import { Logger } from "@/shared/services/Logger"
 import { arePathsEqual, getDesktopDir } from "@/utils/path"
 import { ClineAccountService } from "./account-service"
-import { AuthService, LogoutReason } from "./auth-service"
+// import { AuthService, LogoutReason } from "./auth-service"
 import { buildStartSessionInput, createHistoryItemFromSession } from "./cline-session-factory"
 import { MessageTranslatorState, reshapeErrorForWebview } from "./message-translator"
 import { createProviderCatalog } from "./model-catalog/catalog"
@@ -72,7 +72,7 @@ import { SdkSessionLifecycle } from "./sdk-session-lifecycle"
 import { SdkTaskControlCoordinator } from "./sdk-task-control-coordinator"
 import { SdkTaskHistory, sessionHistoryRecordToHistoryItem } from "./sdk-task-history"
 import { SdkTaskStartCoordinator } from "./sdk-task-start-coordinator"
-import { createVscodeSdkTelemetryHandle, type VscodeSdkTelemetryHandle } from "./sdk-telemetry"
+// import { createVscodeSdkTelemetryHandle, type VscodeSdkTelemetryHandle } from "./sdk-telemetry"
 import { isToolAutoApproved } from "./sdk-tool-policies"
 import {
 	extractSdkUserText,
@@ -86,6 +86,8 @@ import { TurnStateTracker } from "./turn-state-tracker"
 import { VscodeSessionHost } from "./vscode-session-host"
 import { WebviewGrpcBridge } from "./webview-grpc-bridge"
 import { resolveWorkspaceRootPath } from "./workspace-root"
+import { SSYAccountService } from "@/services/account/SSYAccountService"
+import axios from "axios"
 
 /**
  * Log a stub warning and return undefined.
@@ -158,7 +160,7 @@ export class Controller {
 	private compaction: SdkCompactionCoordinator
 	private sessionEvents: SdkSessionEventCoordinator
 	private sessionHistory: SdkSessionHistoryLoader
-	private readonly sdkTelemetry: VscodeSdkTelemetryHandle
+	// private readonly sdkTelemetry: VscodeSdkTelemetryHandle
 	private readonly providerConfigStore: ProviderConfigStore
 	private readonly providerCatalog: ProviderCatalog
 	private readonly providerConfigStoreSubscription: Disposable
@@ -173,8 +175,8 @@ export class Controller {
 
 	mcpHub: McpHub
 	accountService: ClineAccountService
-	authService: AuthService
-	ocaAuthService: OcaAuthService
+	accountServiceSSY: SSYAccountService
+	// ocaAuthService: OcaAuthService
 	readonly stateManager: StateManager
 
 	// Lazy terminal manager for foreground terminal execution.
@@ -216,8 +218,8 @@ export class Controller {
 	constructor(readonly context: ClineExtensionContext) {
 		// StateManager must be initialized before creating the Controller
 		this.stateManager = StateManager.get()
-		syncTelemetrySettingFromSharedGlobalSettings(this.stateManager)
-		this.sdkTelemetry = createVscodeSdkTelemetryHandle()
+		// syncTelemetrySettingFromSharedGlobalSettings(this.stateManager)
+		// this.sdkTelemetry = createVscodeSdkTelemetryHandle()
 		this.providerConfigStore = createProviderConfigStore()
 		this.providerCatalog = createProviderCatalog(this.providerConfigStore)
 		this.providerConfigStoreSubscription = this.providerConfigStore.subscribe((event) => {
@@ -237,12 +239,18 @@ export class Controller {
 				return settingsDir
 			},
 			ExtensionRegistryInfo.version,
-			telemetryService,
 		)
 
 		// Initialize SDK-backed auth and account services.
-		this.authService = AuthService.getInstance(this)
-		this.ocaAuthService = OcaAuthService.initialize(this)
+		this.accountServiceSSY = new SSYAccountService(async () => {
+			const { apiConfiguration } = await this.getStateToPostToWebview();
+			Logger.log(
+				"[ Controller.accountServiceSSY ] :",
+				apiConfiguration?.shengSuanYunToken,
+			);
+			return apiConfiguration?.shengSuanYunToken;
+		});
+		// this.ocaAuthService = OcaAuthService.initialize(this)
 		this.accountService = ClineAccountService.getInstance()
 
 		// Initialize message translator state
@@ -283,7 +291,7 @@ export class Controller {
 		})
 		this.sessions = new SdkSessionLifecycle({
 			mcpHub: this.mcpHub,
-			telemetry: this.sdkTelemetry.telemetry,
+			// telemetry: this.sdkTelemetry.telemetry,
 			requestToolApproval: (request) => this.interactions.handleRequestToolApproval(request),
 			askQuestion: (question, options, context) => this.interactions.handleAskQuestion(question, options, context),
 			onSessionEvent: (event) => {
@@ -344,7 +352,7 @@ export class Controller {
 			mcpHub: this.mcpHub,
 			sessions: this.sessions,
 			legacyExtensionStorageDir: this.context.globalStorageUri.fsPath,
-			telemetry: telemetryService,
+			// telemetry: telemetryService,
 			// History rendering mints ids from the shared authority so regenerated history ids
 			// never overlap live-session ids.
 			getMinter: () => this.messageTranslatorState.getMinter(),
@@ -506,14 +514,14 @@ export class Controller {
 		// config polling timer (enterprise policy enforcement). The timer must
 		// start after auth is restored so remote config can identify the user's
 		// organization and apply org-level policies.
-		this.authService
-			.restoreRefreshTokenAndRetrieveAuthInfo()
-			.then(() => {
-				this.startRemoteConfigTimer()
-			})
-			.catch((err) => {
-				Logger.error("[SdkController] Failed to restore auth state:", err)
-			})
+		// this.authService
+		// 	.restoreRefreshTokenAndRetrieveAuthInfo()
+		// 	.then(() => {
+		// 		this.startRemoteConfigTimer()
+		// 	})
+		// 	.catch((err) => {
+		// 		Logger.error("[SdkController] Failed to restore auth state:", err)
+		// 	})
 
 		Logger.log("[SdkController] Initialized with SDK adapter layer + gRPC bridge + auth services")
 	}
@@ -637,7 +645,7 @@ export class Controller {
 		await this.taskHistory.dispose()
 		this.mcpHub?.dispose?.()
 		this.messages.dispose()
-		await this.sdkTelemetry.dispose()
+		// await this.sdkTelemetry.dispose()
 		Logger.log("[SdkController] Disposed")
 	}
 
@@ -1343,39 +1351,39 @@ export class Controller {
 
 	// ---- Telemetry ----
 
-	async updateTelemetrySetting(telemetrySetting: TelemetrySetting): Promise<void> {
-		setTelemetryOptOutGlobally(telemetrySetting === "disabled", { telemetry: this.sdkTelemetry.telemetry })
-		// Mirror to StateManager for existing VS Code services during the transition.
-		this.stateManager.setGlobalState("telemetrySetting", telemetrySetting)
-		await this.postStateToWebview()
-	}
+	// async updateTelemetrySetting(telemetrySetting: TelemetrySetting): Promise<void> {
+	// 	setTelemetryOptOutGlobally(telemetrySetting === "disabled", { telemetry: this.sdkTelemetry.telemetry })
+	// 	// Mirror to StateManager for existing VS Code services during the transition.
+	// 	this.stateManager.setGlobalState("telemetrySetting", telemetrySetting)
+	// 	await this.postStateToWebview()
+	// }
 
-	// ---- Auth callbacks ----
+	// // ---- Auth callbacks ----
 
-	async handleSignOut(): Promise<void> {
-		await this.authService.handleDeauth(LogoutReason.USER_INITIATED)
-		clearRemoteConfig()
-		await this.setRemoteConfigCoreIntegration(undefined)
-		await this.postStateToWebview()
-	}
+	// async handleSignOut(): Promise<void> {
+	// 	await this.authService.handleDeauth(LogoutReason.USER_INITIATED)
+	// 	clearRemoteConfig()
+	// 	await this.setRemoteConfigCoreIntegration(undefined)
+	// 	await this.postStateToWebview()
+	// }
 
-	async handleOcaSignOut(): Promise<void> {
-		await this.ocaAuthService.handleDeauth(LogoutReason.USER_INITIATED)
-		await this.postStateToWebview()
-	}
+	// async handleOcaSignOut(): Promise<void> {
+	// 	await this.ocaAuthService.handleDeauth(LogoutReason.USER_INITIATED)
+	// 	await this.postStateToWebview()
+	// }
 
-	async handleAuthCallback(customToken: string, provider: string | null = null): Promise<void> {
-		await this.authService.handleAuthCallback(customToken, provider ?? "cline")
-		// Fetch remote config immediately after login so enterprise policies
-		// (provider lockdown, MCP servers, OTel, etc.) are applied right away.
-		await this.refreshRemoteConfig()
-		await this.postStateToWebview()
-	}
+	// async handleAuthCallback(customToken: string, provider: string | null = null): Promise<void> {
+	// 	await this.authService.handleAuthCallback(customToken, provider ?? "cline")
+	// 	// Fetch remote config immediately after login so enterprise policies
+	// 	// (provider lockdown, MCP servers, OTel, etc.) are applied right away.
+	// 	await this.refreshRemoteConfig()
+	// 	await this.postStateToWebview()
+	// }
 
-	async handleOcaAuthCallback(code: string, state: string): Promise<void> {
-		await this.ocaAuthService.handleAuthCallback(code, state)
-		await this.postStateToWebview()
-	}
+	// async handleOcaAuthCallback(code: string, state: string): Promise<void> {
+	// 	await this.ocaAuthService.handleAuthCallback(code, state)
+	// 	await this.postStateToWebview()
+	// }
 
 	// ---- Provider auth callbacks ----
 
@@ -1407,6 +1415,66 @@ export class Controller {
 		await this.authService.handleHicapCallback(code)
 		this.persistProviderApiKeyFromState("hicap")
 		await this.postStateToWebview()
+	}
+
+	async handleShengSuanYunCallback(code: string) {
+		// console.log("handleShengSuanYunCallback() with code:", code)
+		try {
+			let shengSuanYunApiKey: string;
+			let shengSuanYunToken: string;
+			const res = await axios.post("https://api.shengsuanyun.com/auth/keys", {
+				code: code,
+				callback_url: `vscode://shengsuan-cloud.cline-shengsuan/ssy`,
+			});
+			// console.log("https://api.shengsuanyun.com/auth/keys :", res.data)
+			if (res.data && res.data.data && res.data.data.api_key) {
+				shengSuanYunApiKey = res.data.data.api_key;
+				shengSuanYunToken = res.data.data.jwt_token;
+			} else if (!res.data.data.api_key) {
+				shengSuanYunToken = res.data.data.jwt_token;
+				shengSuanYunApiKey = "";
+				HostProvider.window.showMessage({
+					type: ShowMessageType.ERROR,
+					message:
+						"登录账户成功，获取API_Key 失败，请先登录胜算云控制台创建 API_KEY 。",
+				});
+			} else {
+				throw new Error("Invalid response from handleShengSuanYunCallback()", {
+					cause: res,
+				});
+			}
+
+			// await this.accountServiceSSY.handleAuthCallback(customToken, provider ? provider : "google")
+			const shengsuanyun: ApiProvider = "shengsuanyun";
+			const currentMode = this.stateManager.getGlobalSettingsKey("mode");
+			const currentApiConfiguration = this.stateManager.getApiConfiguration();
+
+			const updatedConfig = {
+				...currentApiConfiguration,
+				planModeApiProvider: shengsuanyun,
+				actModeApiProvider: shengsuanyun,
+				shengSuanYunApiKey,
+				shengSuanYunToken,
+			};
+			this.stateManager.setApiConfiguration(updatedConfig);
+			this.stateManager.setGlobalState("welcomeViewCompleted", true);
+			if (this.task) {
+				this.task.api = buildApiHandler(
+					{ ...updatedConfig, ulid: this.task.ulid },
+					currentMode,
+				);
+			}
+			const user: UserInfo = await this.accountServiceSSY.getUserInfo();
+			// console.log("Controller.fetchUserCreditsData().user", user)
+			this.stateManager.setGlobalState("userInfo", user);
+			await this.postStateToWebview();
+		} catch (error) {
+			Logger.error("Failed to handle auth callback:", error);
+			HostProvider.window.showMessage({
+				type: ShowMessageType.ERROR,
+				message: "登录失败",
+			});
+		}
 	}
 
 	async readOpenRouterModels(): Promise<Record<string, ModelInfo> | undefined> {

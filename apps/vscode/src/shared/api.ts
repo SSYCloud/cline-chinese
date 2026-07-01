@@ -244,3 +244,19 @@ export const requestyDefaultModelInfo: ModelInfo = {
 	cacheReadsPrice: 0.3,
 	description: "Anthropic's most intelligent model. Highest level of intelligence and capability.",
 }
+
+// ShengSuanYun
+// https://router.shengsuanyun.com/api/v1/models
+export const shengSuanYunDefaultModelId = "anthropic/claude-sonnet-5"
+export const shengSuanYunDefaultModelInfo: ShengSuanYunModelInfo = {
+	maxTokens: 64000,
+	contextWindow: 1000000,
+	supportsImages: true,
+
+	supportsPromptCache: true,
+	inputPrice: 20,
+	outputPrice: 100,
+	cacheWritesPrice: 2,
+	cacheReadsPrice: 2,
+	description: "Sonnet 5 是 Anthropic 公司最强大的 Sonnet 类模型之一，其在各种编程、代理以及专业场景中的性能表现都非常出色。",
+}
