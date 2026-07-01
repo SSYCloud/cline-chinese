@@ -280,7 +280,7 @@ message Settings {
   optional bool auto_approve_all_toggled = 173;
   map<string, string> open_ai_headers = 174;
   optional string plan_mode_cline_model_id = 175;
-  optional OpenRouterModelInfo plan_mode_cline_model_info = 176;
+  optional OpenRouterModelInfo plan_mode_cline_model_info = 180;
   optional string act_mode_cline_model_id = 177;
   optional OpenRouterModelInfo act_mode_cline_model_info = 178;
   optional bool show_feature_tips = 179;
