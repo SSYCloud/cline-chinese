@@ -526,6 +526,34 @@ export class Controller {
 		Logger.log("[SdkController] Initialized with SDK adapter layer + gRPC bridge + auth services")
 	}
 
+		async handleSignOut() {
+		try {
+			// AuthService now handles its own storage cleanup in handleDeauth()
+			this.stateManager.setGlobalState("userInfo", undefined);
+			// clearRemoteConfig()
+
+			// Update API providers through cache service
+			const apiConfiguration = this.stateManager.getApiConfiguration();
+			const updatedConfig = {
+				...apiConfiguration,
+				shengSuanYunToken: undefined,
+				userInfo: undefined,
+			};
+			this.stateManager.setApiConfiguration(updatedConfig);
+
+			await this.postStateToWebview();
+			HostProvider.window.showMessage({
+				type: ShowMessageType.INFORMATION,
+				message: "成功登出 Cline 胜算云",
+			});
+		} catch (_error) {
+			HostProvider.window.showMessage({
+				type: ShowMessageType.INFORMATION,
+				message: "登出失败",
+			});
+		}
+	}
+	
 	getProviderConfigStore(): ProviderConfigStore {
 		return this.providerConfigStore
 	}
