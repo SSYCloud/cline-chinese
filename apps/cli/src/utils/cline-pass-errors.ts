@@ -7,7 +7,7 @@ import {
 	isClineOrgIndividualInferenceSubscriptionMessage,
 } from "@coohu/core";
 
-import { getClineEnvironmentConfig } from "@cline/shared";
+import { getClineEnvironmentConfig } from "@coohu/shared";
 
 export { getClineOrgIndividualInferenceSubscriptionMessage };
 

@@ -25,7 +25,7 @@ import {
 	isPluginModulePath,
 	resolveClineDir,
 	resolvePluginModuleEntries,
-} from "@cline/shared/storage";
+} from "@coohu/shared/storage";
 import {
 	type McpServerRegistration,
 	resolveDefaultMcpSettingsPath,
@@ -106,7 +106,7 @@ const PACKAGE_DIRECTORY_NAME = "package";
 const OFFICIAL_PLUGINS_REPO = "https://github.com/cline/plugins.git";
 const REMOTE_PLUGIN_FETCH_TIMEOUT_MS = 30_000;
 const REMOTE_PLUGIN_MAX_BYTES = 10 * 1024 * 1024;
-const HOST_PROVIDED_SDK_PREFIX = "@cline/";
+const HOST_PROVIDED_SDK_PREFIX = "@coohu/";
 const DEPENDENCY_FIELDS = [
 	"dependencies",
 	"devDependencies",
@@ -657,7 +657,7 @@ function removeInstalledHostProvidedSdkDependencies(
 		return;
 	}
 	for (const entry of statSafeReadDir(clineScopeDir)) {
-		const packageName = `@cline/${entry.name}`;
+		const packageName = `@coohu/${entry.name}`;
 		if (packageName === preservePackageName) {
 			continue;
 		}

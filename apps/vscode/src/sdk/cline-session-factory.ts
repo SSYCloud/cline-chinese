@@ -15,9 +15,9 @@ import {
 	type ProviderSettings,
 	resolveProviderApiKeyFromSettings,
 	type StartSessionResult,
-} from "@cline/core"
-import { getGeneratedModelsForProvider, MODEL_COLLECTIONS_BY_PROVIDER_ID } from "@cline/llms"
-import { buildClineSystemPrompt } from "@cline/shared"
+} from "@coohu/core"
+import { getGeneratedModelsForProvider, MODEL_COLLECTIONS_BY_PROVIDER_ID } from "@coohu/llms"
+import { buildClineSystemPrompt } from "@coohu/shared"
 import type { ApiConfiguration } from "@shared/api"
 import type { HistoryItem } from "@shared/HistoryItem"
 import { DEFAULT_LANGUAGE_SETTINGS, getLanguageKey, type LanguageDisplay } from "@shared/Languages"

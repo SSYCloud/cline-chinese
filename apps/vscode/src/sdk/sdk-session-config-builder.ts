@@ -1,5 +1,5 @@
-import type { CoreSessionConfig } from "@cline/core"
-import { type AgentTool, createTool } from "@cline/shared"
+import type { CoreSessionConfig } from "@coohu/core"
+import { type AgentTool, createTool } from "@coohu/shared"
 import type { StateManager } from "@/core/storage/StateManager"
 import { buildSessionConfig, type SessionConfigInput } from "./cline-session-factory"
 import { buildAgentHooks, type HookMessageEmitter } from "./hooks-adapter"

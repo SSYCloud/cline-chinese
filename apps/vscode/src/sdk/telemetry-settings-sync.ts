@@ -1,6 +1,6 @@
 import { existsSync } from "node:fs"
-import { readGlobalSettings, setTelemetryOptOutGlobally } from "@cline/core"
-import { resolveGlobalSettingsPath } from "@cline/shared/storage"
+import { readGlobalSettings, setTelemetryOptOutGlobally } from "@coohu/core"
+import { resolveGlobalSettingsPath } from "@coohu/shared/storage"
 import type { TelemetrySetting } from "@shared/TelemetrySetting"
 import { Logger } from "@/shared/services/Logger"
 

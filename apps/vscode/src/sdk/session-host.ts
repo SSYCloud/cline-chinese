@@ -16,8 +16,8 @@ import type {
 	SessionRecord,
 	StartSessionInput,
 	StartSessionResult,
-} from "@cline/core"
-import type { AgentResult } from "@cline/shared"
+} from "@coohu/core"
+import type { AgentResult } from "@coohu/shared"
 
 export interface SdkSessionHost {
 	readonly runtimeAddress: string | undefined

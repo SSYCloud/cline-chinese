@@ -8,7 +8,7 @@
 // - Streaming subscription management
 // - workos: prefix handling
 
-import { getValidClineCredentials, type OAuthCredentials } from "@cline/core"
+import { getValidClineCredentials, type OAuthCredentials } from "@coohu/core"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { AuthService, type ClineAuthInfo, LogoutReason } from "./auth-service"
 
@@ -102,8 +102,8 @@ vi.mock("axios", () => ({
 
 const mockLoginClineOAuth = vi.hoisted(() => vi.fn())
 
-// Mock @cline/core OAuth functions
-vi.mock("@cline/core", () => ({
+// Mock @coohu/core OAuth functions
+vi.mock("@coohu/core", () => ({
 	createOAuthClientCallbacks: (opts: {
 		onOutput?: (message: string) => void
 		onPrompt: () => void

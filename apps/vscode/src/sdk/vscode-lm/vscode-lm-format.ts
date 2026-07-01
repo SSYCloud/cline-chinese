@@ -1,4 +1,4 @@
-// Converts Cline SDK messages (@cline/llms `Message`) into VS Code Language
+// Converts Cline SDK messages (@coohu/llms `Message`) into VS Code Language
 // Model API messages (`vscode.LanguageModelChatMessage`).
 //
 // SDK content blocks (text / image / tool_use / tool_result) map onto VS Code LM
@@ -6,7 +6,7 @@
 // placeholder. Tool calls and tool results round-trip as
 // `LanguageModelToolCallPart` / `LanguageModelToolResultPart`.
 
-import type { ContentBlock, Message } from "@cline/llms"
+import type { ContentBlock, Message } from "@coohu/llms"
 import * as vscode from "vscode"
 import { Logger } from "@/shared/services/Logger"
 import { extractToolOutputText } from "../message-translator"

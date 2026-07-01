@@ -12,8 +12,8 @@
 // credential chain with no region. This mirrors the structured aws block built
 // by the shared provider-settings legacy migration and the CLI.
 
-import type { ProviderSettings } from "@cline/core"
-import type { ProviderConfig } from "@cline/llms"
+import type { ProviderSettings } from "@coohu/core"
+import type { ProviderConfig } from "@coohu/llms"
 import type { ApiConfiguration } from "@shared/api"
 import type { Mode } from "@shared/storage/types"
 

@@ -38,7 +38,7 @@ process.on("SIGTERM", cleanupOnSignal(143))
 
 try {
 	// --no-dependencies: the extension is fully esbuild-bundled into dist/extension.js,
-	// so vsce must not walk node_modules (the @cline/* workspace symlinks point out of
+	// so vsce must not walk node_modules (the @coohu/* workspace symlinks point out of
 	// the package and would drag the whole monorepo into the VSIX).
 	const vsceArgs = ["publish", "--no-dependencies", "--allow-package-secrets", "sendgrid"]
 	if (isPrerelease) {

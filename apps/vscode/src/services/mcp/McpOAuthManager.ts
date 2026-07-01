@@ -1,12 +1,12 @@
 // MCP OAuth state is stored in the shared MCP settings file
 // (~/.cline/data/settings/cline_mcp_settings.json) under each server's `oauth`
-// key, in the format @cline/core (CLI, JetBrains) reads and writes:
+// key, in the format @coohu/core (CLI, JetBrains) reads and writes:
 //
 //   { "mcpServers": { "linear": { "transport": {...}, "oauth": { "tokens": {...}, ... } } } }
 //
 // This shared file is the single source of truth, which keeps the extension,
 // the CLI, and multiple extension windows interoperable:
-//  - Writes scope to ONE server's `oauth` key via @cline/core's
+//  - Writes scope to ONE server's `oauth` key via @coohu/core's
 //    updateMcpServerOAuthStateAsync, which re-reads the file under a
 //    cross-process lock and replaces it atomically (temp + rename), so
 //    concurrent writers never clobber other servers or the whole file. Lock
@@ -14,7 +14,7 @@
 //  - Reads come fresh from disk, so a token authorized by the CLI or another
 //    window is picked up without restarting.
 //  - The interactive authorization flow is HTTP-based token collection via
-//    @cline/core's authorizeMcpServerOAuth, which binds a local loopback
+//    @coohu/core's authorizeMcpServerOAuth, which binds a local loopback
 //    callback server — the same flow the CLI uses.
 
 import {
@@ -22,7 +22,7 @@ import {
 	getMcpServerOAuthState,
 	type McpServerOAuthState,
 	updateMcpServerOAuthStateAsync,
-} from "@cline/core"
+} from "@coohu/core"
 import { StateManager } from "@core/storage/StateManager"
 import { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js"
 import type { OAuthClientInformationMixed, OAuthClientMetadata, OAuthTokens } from "@modelcontextprotocol/sdk/shared/auth.js"
@@ -34,7 +34,7 @@ import { getServerAuthHash } from "@/utils/mcpAuth"
 
 /**
  * Fallback redirect URL advertised in client metadata for connection-time
- * providers. Matches @cline/core's DEFAULT_HTTP_MCP_REDIRECT_URL — the actual
+ * providers. Matches @coohu/core's DEFAULT_HTTP_MCP_REDIRECT_URL — the actual
  * redirect URL used during an interactive flow is chosen by
  * authorizeMcpServerOAuth when it binds its local callback server.
  */
@@ -42,7 +42,7 @@ const DEFAULT_HTTP_MCP_REDIRECT_URL = "http://127.0.0.1:1456/mcp/oauth/callback"
 
 /**
  * Ports the local OAuth callback server may bind. The first three match the
- * @cline/core defaults; extras tolerate concurrent flows from other Cline
+ * @coohu/core defaults; extras tolerate concurrent flows from other Cline
  * processes (CLI, another extension window) holding a port.
  */
 const MCP_OAUTH_CALLBACK_PORTS = [1456, 1457, 1458, 1459, 1460, 1461]
@@ -87,7 +87,7 @@ async function patchOAuthState(
  *
  * This provider is attached to SSE/StreamableHTTP transports so the MCP SDK
  * can read tokens (and auto-refresh them with the stored refresh_token). It
- * reads/writes the shared settings file in @cline/core's format.
+ * reads/writes the shared settings file in @coohu/core's format.
  *
  * Note: `redirectToAuthorization` here is a no-op signal — connection attempts
  * never open a browser. The interactive flow (Authenticate button) goes
@@ -204,7 +204,7 @@ class ClineOAuthClientProvider implements OAuthClientProvider {
  *
  * Creates connection-time OAuthClientProvider instances (token reads/refresh
  * writes against the shared settings file) and runs the interactive
- * HTTP-callback authorization flow via @cline/core.
+ * HTTP-callback authorization flow via @coohu/core.
  */
 export class McpOAuthManager {
 	private providers: Map<string, OAuthClientProvider> = new Map()
@@ -233,7 +233,7 @@ export class McpOAuthManager {
 	/**
 	 * Runs the interactive OAuth flow when the user clicks "Authenticate".
 	 *
-	 * Delegates to @cline/core's authorizeMcpServerOAuth (the exact flow the
+	 * Delegates to @coohu/core's authorizeMcpServerOAuth (the exact flow the
 	 * CLI uses): binds a local loopback callback server, performs discovery and
 	 * client registration, opens the browser, validates the returned state
 	 * in-process, exchanges the code, and writes tokens to the shared settings

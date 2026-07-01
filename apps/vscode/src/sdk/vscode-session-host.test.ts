@@ -1,11 +1,11 @@
-import type { ClineCoreStartInput, ITelemetryService } from "@cline/core"
+import type { ClineCoreStartInput, ITelemetryService } from "@coohu/core"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mockClineCoreCreate = vi.hoisted(() => vi.fn())
 const mockCreateVscodeExtraTools = vi.hoisted(() => vi.fn(async () => []))
 
-vi.mock("@cline/core", async () => {
-	const actual = await vi.importActual<typeof import("@cline/core")>("@cline/core")
+vi.mock("@coohu/core", async () => {
+	const actual = await vi.importActual<typeof import("@coohu/core")>("@coohu/core")
 	return {
 		...actual,
 		ClineCore: {

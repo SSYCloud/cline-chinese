@@ -1,5 +1,5 @@
 import { describe, it } from "bun:test"
-import { getProviderCollectionSync } from "@cline/llms"
+import { getProviderCollectionSync } from "@coohu/llms"
 import { expect } from "chai"
 import { getProviderDefaultModelId, getProviderModelIdKey } from "../provider-keys"
 

@@ -18,8 +18,8 @@ import {
 	type ShellExecutor,
 	type StructuredCommandInput,
 	truncateCommandOutput,
-} from "@cline/core"
-import type { AgentTool } from "@cline/shared"
+} from "@coohu/core"
+import type { AgentTool } from "@coohu/shared"
 import { StateManager } from "@/core/storage/StateManager"
 import type { ITerminalManager } from "@/integrations/terminal/types"
 import { Logger } from "@/shared/services/Logger"

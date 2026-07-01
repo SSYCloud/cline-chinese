@@ -145,7 +145,7 @@ message ProviderListing {
 
   // SDK-driven hint for cost display. Values: "show" (default) or "hide".
   // Sourced from `resolveProviderUsageCostDisplay(provider.metadata)` in
-  // `@cline/llms`. When "hide", consumers must suppress per-token pricing
+  // `@coohu/llms`. When "hide", consumers must suppress per-token pricing
   // and total cost displays (matches the CLI's `shouldShowCliUsageCost`).
   string usage_cost_display = 11;
 }

@@ -1,4 +1,4 @@
-import { getProviderAuthStorageId } from "@cline/core"
+import { getProviderAuthStorageId } from "@coohu/core"
 import type { ChatContent } from "@shared/ChatContent"
 import type { ClineMessage, TurnPhase } from "@shared/ExtensionMessage"
 import type { Mode } from "@shared/storage/types"

@@ -23,7 +23,7 @@ const askSageDefaultURL = "https://api.asksage.ai/server"
 /**
  * The AskSage provider configuration component.
  *
- * Model catalog is sourced from the `@cline/llms` SDK over gRPC, then
+ * Model catalog is sourced from the `@coohu/llms` SDK over gRPC, then
  * filtered by the per-instance `/get-models` endpoint to reflect what the
  * specific AskSage deployment actually exposes. If the API call fails or
  * returns nothing, we fall back to the full SDK list.

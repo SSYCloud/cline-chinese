@@ -12,7 +12,7 @@
 // - Auto-migration on ProviderSettingsManager construction
 
 import path from "node:path"
-import { ProviderSettingsManager } from "@cline/core"
+import { ProviderSettingsManager } from "@coohu/core"
 import { Logger } from "@shared/services/Logger"
 import { resolveDataDir } from "./legacy-state-reader"
 

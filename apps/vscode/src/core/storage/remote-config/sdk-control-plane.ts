@@ -1,4 +1,4 @@
-import type { RemoteConfigBundle } from "@cline/shared"
+import type { RemoteConfigBundle } from "@coohu/shared"
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios"
 import { ClineEnv } from "@/config"
 import { ClineAccountService } from "@/services/account/ClineAccountService"

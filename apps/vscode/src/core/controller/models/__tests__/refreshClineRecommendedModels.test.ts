@@ -1,10 +1,10 @@
-import * as sdkCore from "@cline/core"
+import * as sdkCore from "@coohu/core"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { ClineEnv } from "@/config"
 import { refreshClineRecommendedModels, resetClineRecommendedModelsCacheForTests } from "../refreshClineRecommendedModels"
 
 // The HTTP fetch + normalization + offline fallback lives in the SDK
-// (`@cline/core` `fetchClineRecommendedModels`). These tests cover the
+// (`@coohu/core` `fetchClineRecommendedModels`). These tests cover the
 // extension-side wrapper: delegation to the SDK and in-memory caching. There is
 // intentionally no feature-flag gate here; onboarding must not race against the
 // remote-config cache and accidentally keep the hardcoded fallback list.

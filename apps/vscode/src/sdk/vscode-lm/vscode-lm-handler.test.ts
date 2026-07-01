@@ -1,4 +1,4 @@
-import type { ProviderConfig, ToolDefinition } from "@cline/llms"
+import type { ProviderConfig, ToolDefinition } from "@coohu/llms"
 import { describe, expect, it, vi } from "vitest"
 
 // Real-enough `vscode` mock: the handler uses `instanceof` on the stream parts

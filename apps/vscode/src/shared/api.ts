@@ -209,7 +209,7 @@ export const openAiModelInfoSafeDefaults: OpenAiCompatibleModelInfo = {
 // Uses OAuth authentication via ChatGPT, routes to chatgpt.com/backend-api/codex/responses
 // Subscription-based pricing (all costs are $0).
 //
-// The Codex catalog and default model id are sourced from the `@cline/llms`
+// The Codex catalog and default model id are sourced from the `@coohu/llms`
 // SDK.
 // Azure OpenAI
 // https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation

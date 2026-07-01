@@ -4,7 +4,7 @@
 // buildSessionConfig() uses this to hand the SDK runtime the same structured
 // SAP fields that the legacy UI stores in ApiConfiguration.
 
-import type { ProviderSettings } from "@cline/core"
+import type { ProviderSettings } from "@coohu/core"
 import type { ApiConfiguration } from "@shared/api"
 import type { Mode } from "@shared/storage/types"
 

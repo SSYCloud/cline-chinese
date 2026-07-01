@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises"
 import * as os from "node:os"
 import * as path from "node:path"
-import { prepareRemoteConfigCoreIntegration } from "@cline/core"
+import { prepareRemoteConfigCoreIntegration } from "@coohu/core"
 import { Controller } from "@/sdk/SdkController"
 import { Logger } from "@/shared/services/Logger"
 import type { ConfiguredAPIKeys } from "@/shared/storage/state-keys"

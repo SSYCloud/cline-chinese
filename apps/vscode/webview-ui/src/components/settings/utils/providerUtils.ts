@@ -8,7 +8,7 @@ export function supportsReasoningEffortForModelId(modelId?: string, _allowShortO
 
 // Webview components must source provider models via
 // `useProviderModels(providerId)`, which talks to the extension over
-// gRPC and ultimately reads from `@cline/llms`. Do not add a static
+// gRPC and ultimately reads from `@coohu/llms`. Do not add a static
 // catalog here — it would silently bypass the SDK. If a new caller
 // needs model lists synchronously, derive them from the catalog hook
 // instead.

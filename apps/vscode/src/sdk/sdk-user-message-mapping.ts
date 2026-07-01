@@ -1,4 +1,4 @@
-import { normalizeUserInput } from "@cline/shared"
+import { normalizeUserInput } from "@coohu/shared"
 import { ACT_MODE_CONTINUATION_PROMPT } from "./sdk-mode-coordinator"
 
 export type SdkUserMessage = {

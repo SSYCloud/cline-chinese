@@ -1,4 +1,4 @@
-import { installMcpServer } from "@cline/core";
+import { installMcpServer } from "@coohu/core";
 import { describe, expect, it, vi } from "vitest";
 import {
 	buildMcpInstallDefaults,
@@ -6,8 +6,8 @@ import {
 	runMcpInstallCommand,
 } from "./mcp";
 
-vi.mock("@cline/core", async (importOriginal) => {
-	const actual = await importOriginal<typeof import("@cline/core")>();
+vi.mock("@coohu/core", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("@coohu/core")>();
 	return {
 		...actual,
 		installMcpServer: vi.fn((options) => {

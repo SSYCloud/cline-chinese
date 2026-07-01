@@ -1,6 +1,6 @@
 // Map providers to their specific model ID keys
 
-import { getProviderCollectionSync } from "@cline/llms"
+import { getProviderCollectionSync } from "@coohu/llms"
 import { SettingsKey } from "@shared/storage/state-keys"
 import { toSdkProviderId } from "@/sdk/model-catalog/sdk-provider-id"
 import { toLegacyApiProvider } from "@/shared/model-catalog/provider-helpers"

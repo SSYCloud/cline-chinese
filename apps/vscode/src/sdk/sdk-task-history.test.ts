@@ -1,4 +1,4 @@
-import type { SessionHistoryRecord } from "@cline/core"
+import type { SessionHistoryRecord } from "@coohu/core"
 import type { HistoryItem } from "@shared/HistoryItem"
 import getFolderSize from "get-folder-size"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"

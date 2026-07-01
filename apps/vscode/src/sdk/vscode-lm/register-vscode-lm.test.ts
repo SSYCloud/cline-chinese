@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const registerHandler = vi.fn()
-vi.mock("@cline/llms", () => ({ registerHandler }))
+vi.mock("@coohu/llms", () => ({ registerHandler }))
 vi.mock("@/shared/services/Logger", () => ({ Logger: { debug: vi.fn() } }))
 
 // `vscode.lm` presence is the gate. Use a mutable mock so each test controls it.

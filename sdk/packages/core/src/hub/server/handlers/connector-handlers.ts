@@ -15,17 +15,17 @@ import type {
 	ConnectorPlatformDef,
 	HubCommandEnvelope,
 	HubReplyEnvelope,
-} from "@cline/shared";
+} from "@coohu/shared";
 import {
 	CONNECTOR_PLATFORMS,
 	connectorChannelsFromPlatforms,
 	listConnectorCatalog,
 	shouldIncludeConnectorField,
-} from "@cline/shared";
+} from "@coohu/shared";
 import {
 	resolveConnectorDataDir,
 	resolveConnectorSettingsPath,
-} from "@cline/shared/storage";
+} from "@coohu/shared/storage";
 import { captureToolUsage } from "../../../services/telemetry/core-events";
 import { errorReply, type HubTransportContext, okReply } from "./context";
 

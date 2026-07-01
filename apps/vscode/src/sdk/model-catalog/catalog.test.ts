@@ -19,7 +19,7 @@ const mocks = vi.hoisted(() => ({
 	getProviderSettings: vi.fn((): any => undefined),
 }))
 
-vi.mock("@cline/core", async (importOriginal: any) => {
+vi.mock("@coohu/core", async (importOriginal: any) => {
 	const actual = await importOriginal()
 	return {
 		...actual,
@@ -55,7 +55,7 @@ type TestReader = ProviderConfigReader & {
 }
 
 // Warm the catalog module graph once before any test runs. catalog.ts statically
-// pulls in @cline/core, @cline/llms and @cline/shared, so the first test to call
+// pulls in @coohu/core, @coohu/llms and @coohu/shared, so the first test to call
 // `await import("./catalog")` otherwise pays the entire (>5s on CI) import cost
 // inside its own 5s test timeout and flakily fails. Importing here moves that cost
 // outside any per-test clock (hooks get a generous timeout of their own).

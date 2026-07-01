@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { setClineDir, setHomeDir } from "@cline/shared/storage";
+import { setClineDir, setHomeDir } from "@coohu/shared/storage";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { uninstallMarketplaceEntry } from "./marketplace";
 

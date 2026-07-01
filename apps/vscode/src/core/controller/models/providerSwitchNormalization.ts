@@ -1,4 +1,4 @@
-import { getGeneratedModelsForProvider, MODEL_COLLECTIONS_BY_PROVIDER_ID } from "@cline/llms"
+import { getGeneratedModelsForProvider, MODEL_COLLECTIONS_BY_PROVIDER_ID } from "@coohu/llms"
 import type { Mode, ProviderConfigStore, ProviderId } from "@/sdk/model-catalog/contracts"
 import { parseProviderId } from "@/sdk/model-catalog/provider-id"
 import { toSdkProviderId } from "@/sdk/model-catalog/sdk-provider-id"

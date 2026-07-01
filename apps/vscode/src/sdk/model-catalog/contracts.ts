@@ -213,7 +213,7 @@ export interface Disposable {
  */
 /**
  * SDK-driven hint for how to display per-token / total cost in the UI.
- * Mirrors `ProviderUsageCostDisplay` from `@cline/llms` and the CLI's
+ * Mirrors `ProviderUsageCostDisplay` from `@coohu/llms` and the CLI's
  * `shouldShowCliUsageCost` consumer. When `"hide"`, downstream UIs MUST
  * suppress per-token pricing rows (in model info cards) and total-cost
  * lines (in task summaries / status bars).

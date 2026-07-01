@@ -1,7 +1,7 @@
 import {
 	CONNECTOR_PLATFORMS,
 	shouldIncludeConnectorField,
-} from "@cline/shared";
+} from "@coohu/shared";
 
 export type {
 	ConnectorFieldCondition as FieldCondition,
@@ -9,7 +9,7 @@ export type {
 	ConnectorPlatformDef as PlatformDef,
 	ConnectorSecurityDef as SecurityDef,
 	ConnectorSecurityFieldDef as SecurityFieldDef,
-} from "@cline/shared";
+} from "@coohu/shared";
 export { CONNECTOR_PLATFORMS, shouldIncludeConnectorField };
 
 export const PLATFORMS = CONNECTOR_PLATFORMS;

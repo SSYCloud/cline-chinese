@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { basename } from "node:path";
 import process from "node:process";
-import { withResolvedClineBuildEnv } from "@cline/shared";
+import { withResolvedClineBuildEnv } from "@coohu/shared";
 import { listConnectorCatalog } from "../../../cli/src/connectors/catalog";
 import { listActiveConnectors } from "../../../cli/src/connectors/status";
 import {

@@ -5,7 +5,7 @@ import {
 	type ITelemetryService,
 	type TelemetryMetadata,
 	type TelemetryProperties,
-} from "@cline/core"
+} from "@coohu/core"
 import * as os from "os"
 import { StateManager } from "@/core/storage/StateManager"
 import { HostProvider } from "@/hosts/host-provider"

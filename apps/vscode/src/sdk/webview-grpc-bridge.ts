@@ -6,7 +6,7 @@
 // the subscribeToPartialMessage and subscribeToState streams the webview
 // already listens on.
 
-import type { CoreSessionEvent } from "@cline/core"
+import type { CoreSessionEvent } from "@coohu/core"
 import { sendStateUpdate } from "@core/controller/state/subscribeToState"
 import { sendPartialMessageEvent } from "@core/controller/ui/subscribeToPartialMessage"
 import type { ClineMessage, ExtensionState } from "@shared/ExtensionMessage"

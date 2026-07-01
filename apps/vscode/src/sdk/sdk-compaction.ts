@@ -11,8 +11,8 @@
 // compaction effect in the SDK (rather than asking the model to "summarize the
 // conversation") is what makes the compact button real instead of improvised.
 
-import { type CoreSessionConfig, createContextCompactionPrepareTurn } from "@cline/core"
-import type { Message as SdkMessage, ModelInfo as SdkModelInfo } from "@cline/llms"
+import { type CoreSessionConfig, createContextCompactionPrepareTurn } from "@coohu/core"
+import type { Message as SdkMessage, ModelInfo as SdkModelInfo } from "@coohu/llms"
 import { Logger } from "@/shared/services/Logger"
 
 // When the active model does not declare a context window, fall back to a

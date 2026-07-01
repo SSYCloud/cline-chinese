@@ -1,13 +1,13 @@
 // Replaces classic src/core/api buildApiHandler (see origin/main).
 //
-// Builds an SDK ApiHandler (from `@cline/llms`) directly from the extension's
+// Builds an SDK ApiHandler (from `@coohu/llms`) directly from the extension's
 // legacy ApiConfiguration. This is the single inference path: the main task
 // loop runs through ClineCore (see cline-session-factory.ts), and standalone
 // utility callers (commit message generation) use the handler
 // returned here. Both share the same provider/model/key/baseUrl resolution so
 // there is no second source of truth.
 
-import { type ApiHandler, createHandler, type ProviderConfig } from "@cline/llms"
+import { type ApiHandler, createHandler, type ProviderConfig } from "@coohu/llms"
 import type { ApiConfiguration } from "@shared/api"
 import type { Mode } from "@shared/storage/types"
 import { fetch } from "@/shared/net"

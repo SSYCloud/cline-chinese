@@ -25,7 +25,7 @@ interface OpenAiCodexProviderProps {
  *
  * Model list, default model id, and the "hide per-token cost" UI hint all
  * come from the extension over gRPC (`ResolveProviderModels` /
- * `ListProviders`), which in turn sources them from the `@cline/llms` SDK.
+ * `ListProviders`), which in turn sources them from the `@coohu/llms` SDK.
  * The webview imports no static model data from `@shared/api` for this
  * provider, and the `hideUsageCost` flag is not hard-coded — it is
  * derived from the SDK's `ProviderInfo.metadata.usageCostDisplay`.

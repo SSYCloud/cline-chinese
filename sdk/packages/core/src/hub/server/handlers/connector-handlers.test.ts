@@ -1,7 +1,7 @@
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import type { HubCommandEnvelope } from "@cline/shared";
+import type { HubCommandEnvelope } from "@coohu/shared";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { __test__, handleConnectorCommand } from "./connector-handlers";
 import type { HubTransportContext } from "./context";

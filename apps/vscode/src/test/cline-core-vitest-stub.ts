@@ -1,4 +1,4 @@
-import { getGeneratedModelsForProvider, MODEL_COLLECTIONS_BY_PROVIDER_ID } from "@cline/llms"
+import { getGeneratedModelsForProvider, MODEL_COLLECTIONS_BY_PROVIDER_ID } from "@coohu/llms"
 
 export interface OAuthCredentials {
 	accessToken?: string
@@ -88,7 +88,7 @@ export interface CheckpointWorkspaceCompareResult {
 }
 
 export async function compareCheckpointToWorkspace(): Promise<CheckpointWorkspaceCompareResult> {
-	throw new Error("compareCheckpointToWorkspace is not implemented in the Vitest @cline/core stub")
+	throw new Error("compareCheckpointToWorkspace is not implemented in the Vitest @coohu/core stub")
 }
 
 export type CoreSessionEvent = { type: string; payload?: unknown }

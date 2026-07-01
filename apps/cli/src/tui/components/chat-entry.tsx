@@ -1,4 +1,4 @@
-import type { ClineSubscriptionPlan } from "@cline/core";
+import type { ClineSubscriptionPlan } from "@coohu/core";
 import { useTerminalDimensions } from "@opentui/react";
 import type React from "react";
 import { useEffect, useState } from "react";

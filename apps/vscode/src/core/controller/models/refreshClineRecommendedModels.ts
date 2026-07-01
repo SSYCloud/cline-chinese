@@ -1,4 +1,4 @@
-import { FALLBACK_CLINE_RECOMMENDED_MODELS, fetchClineRecommendedModels } from "@cline/core"
+import { FALLBACK_CLINE_RECOMMENDED_MODELS, fetchClineRecommendedModels } from "@coohu/core"
 import { ClineEnv } from "@/config"
 import { fetch } from "@/shared/net"
 

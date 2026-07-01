@@ -1,7 +1,7 @@
 # SDK Adapter
 
-The VSCode extension runs on the Cline SDK (`@cline/core`, `@cline/llms`,
-`@cline/shared`) through an adapter layer in `apps/vscode/src/sdk/`. The
+The VSCode extension runs on the Cline SDK (`@coohu/core`, `@coohu/llms`,
+`@coohu/shared`) through an adapter layer in `apps/vscode/src/sdk/`. The
 webview still talks gRPC; the adapter translates between gRPC handlers and SDK
 calls. See `apps/vscode/src/dev/debug-harness/README.md` for the debug harness.
 

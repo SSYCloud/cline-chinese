@@ -1,4 +1,4 @@
-import type { CoreSessionEvent } from "@cline/core"
+import type { CoreSessionEvent } from "@coohu/core"
 import type { ClineApiReqInfo, ClineMessage } from "@shared/ExtensionMessage"
 import { Logger } from "@/shared/services/Logger"
 import type { MessageIdMinter } from "./message-id-minter"

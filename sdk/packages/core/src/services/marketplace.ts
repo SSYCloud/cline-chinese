@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { existsSync, rmSync } from "node:fs";
 import { homedir, platform } from "node:os";
 import { dirname, join } from "node:path";
-import { resolveClineDir, resolveMcpSettingsPath } from "@cline/shared/storage";
+import { resolveClineDir, resolveMcpSettingsPath } from "@coohu/shared/storage";
 import { updateMcpSettingsFileSync } from "../extensions/mcp";
 import { parseMcpInstallArgs } from "./mcp-install";
 import { uninstallPlugin } from "./plugin-uninstall";

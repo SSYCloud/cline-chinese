@@ -1,3 +1,3 @@
-declare module "@cline/shared/storage" {
+declare module "@coohu/shared/storage" {
 	export function resolveGlobalSettingsPath(): string
 }

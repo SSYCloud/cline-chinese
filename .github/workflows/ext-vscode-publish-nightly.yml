@@ -74,7 +74,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: bun install --frozen-lockfile
 
-      # @cline/* are local workspace symlinks to source packages; build dist/ before
+      # @coohu/* are local workspace symlinks to source packages; build dist/ before
       # packaging/publishing the extension.
       - name: Build SDK packages
         working-directory: ${{ github.workspace }}

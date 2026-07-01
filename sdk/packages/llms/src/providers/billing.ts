@@ -1,7 +1,7 @@
 import {
 	type GatewayUsageCostDisplay,
 	USAGE_COST_DISPLAYS,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { normalizeProviderId } from "./ids";
 import { getProviderCollectionSync } from "./model-registry";
 

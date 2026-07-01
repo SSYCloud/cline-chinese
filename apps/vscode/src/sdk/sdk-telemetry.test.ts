@@ -1,4 +1,4 @@
-import type { ConfiguredTelemetryHandle, ITelemetryService } from "@cline/core"
+import type { ConfiguredTelemetryHandle, ITelemetryService } from "@coohu/core"
 import type { Mock } from "vitest"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { Setting } from "@/shared/proto/index.host"

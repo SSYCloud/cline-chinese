@@ -17,7 +17,7 @@ import type {
 	AgentHooks,
 	AgentRunLifecycleContext,
 	AgentStopControl,
-} from "@cline/shared"
+} from "@coohu/shared"
 import type { ClineMessage } from "@shared/ExtensionMessage"
 import { Logger } from "@shared/services/Logger"
 import { HookFactory } from "@/core/hooks/hook-factory"

@@ -11,7 +11,7 @@ const state = vi.hoisted(() => ({
 	setGlobalState: vi.fn(),
 }))
 
-vi.mock("@cline/core", () => ({
+vi.mock("@coohu/core", () => ({
 	readGlobalSettings: () => {
 		const filePath = process.env.CLINE_GLOBAL_SETTINGS_PATH
 		if (!filePath || !existsSync(filePath)) {

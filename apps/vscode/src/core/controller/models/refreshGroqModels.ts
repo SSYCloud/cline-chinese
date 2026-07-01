@@ -1,4 +1,4 @@
-import { getProviderCollectionSync } from "@cline/llms"
+import { getProviderCollectionSync } from "@coohu/llms"
 import { ensureCacheDirectoryExists, GlobalFileNames } from "@core/storage/disk"
 import { ModelInfo } from "@shared/api"
 import { fileExistsAtPath } from "@utils/fs"

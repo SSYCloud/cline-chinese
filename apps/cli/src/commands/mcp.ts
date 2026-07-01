@@ -3,10 +3,10 @@ import {
 	installMcpServer,
 	type McpInstallResult,
 	type McpServerTransportConfig,
-} from "@cline/core";
+} from "@coohu/core";
 import type { McpAddDefaults } from "../wizards/mcp";
 
-export { buildMcpInstallTransport } from "@cline/core";
+export { buildMcpInstallTransport } from "@coohu/core";
 
 export interface McpCommandIo {
 	writeln?: (text: string) => void;

@@ -72,7 +72,7 @@ function getOwnServerRecord(
 }
 
 /**
- * Mutate the MCP settings file through @cline/core's locked read-update-write
+ * Mutate the MCP settings file through @coohu/core's locked read-update-write
  * helper. The mutator must be synchronous and pure; the helper may call it more
  * than once to verify deterministic output. Throw McpSettingsUpdateSkippedError
  * for normal no-op cases instead of returning a boolean that callers can ignore.

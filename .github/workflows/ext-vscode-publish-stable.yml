@@ -141,7 +141,7 @@ jobs:
               working-directory: ${{ github.workspace }}
               run: bun install --frozen-lockfile
 
-            # @cline/* are local workspace symlinks to source packages; build dist/ before
+            # @coohu/* are local workspace symlinks to source packages; build dist/ before
             # packaging/publishing the extension.
             - name: Build SDK packages
               working-directory: ${{ github.workspace }}
@@ -258,7 +258,7 @@ jobs:
                   trap 'node scripts/marketplace-readme.mjs restore' EXIT
 
                   # Required to generate the .vsix. --no-dependencies: the extension
-                  # is fully esbuild-bundled, and under the bun workspace the @cline/*
+                  # is fully esbuild-bundled, and under the bun workspace the @coohu/*
                   # deps are symlinks pointing outside the package, so without this vsce
                   # would walk them and pull the whole monorepo into the .vsix.
                   vsce package --no-dependencies --allow-package-secrets sendgrid --out "cline-${{ steps.get_version.outputs.version }}.vsix"

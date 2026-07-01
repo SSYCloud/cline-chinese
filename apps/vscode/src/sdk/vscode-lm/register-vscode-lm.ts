@@ -1,6 +1,6 @@
 // Registers the VS Code Language Model handler with the Cline SDK.
 //
-// The SDK's `@cline/llms` factory registry (registerHandler) exists for
+// The SDK's `@coohu/llms` factory registry (registerHandler) exists for
 // providers that need host-only dependencies — here, the `vscode` module /
 // `vscode.lm` API — which cannot live in the SDK package. Once registered,
 // `createHandler({ providerId: "vscode-lm", ... })` returns this handler, and
@@ -11,7 +11,7 @@
 // (e.g. JetBrains, which runs the shared activation path through a `vscode`
 // shim) it is absent, so registration is gated on the API being present.
 
-import { registerHandler } from "@cline/llms"
+import { registerHandler } from "@coohu/llms"
 import * as vscode from "vscode"
 import { Logger } from "@/shared/services/Logger"
 import { VsCodeLmHandler } from "./vscode-lm-handler"
