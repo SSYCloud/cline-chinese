@@ -16,7 +16,7 @@ import {
 	type UserInstructionConfigService,
 } from "@coohu/core"
 import { formatDisplayUserInput, type RemoteConfig, type RemoteConfigBundle } from "@coohu/shared"
-import type { ApiConfiguration, ModelInfo } from "@shared/api"
+import type { ApiConfiguration, ApiProvider, ModelInfo } from "@shared/api"
 import type { ChatContent } from "@shared/ChatContent"
 import { CLINE_ACCOUNT_AUTH_ERROR_MESSAGE } from "@shared/ClineAccount"
 import { mentionRegexGlobal } from "@shared/context-mentions"
@@ -46,7 +46,7 @@ import { ShowMessageRequest, ShowMessageType } from "@/shared/proto/host/window"
 import { Logger } from "@/shared/services/Logger"
 import { arePathsEqual, getDesktopDir } from "@/utils/path"
 import { ClineAccountService } from "./account-service"
-// import { AuthService, LogoutReason } from "./auth-service"
+import { AuthService, LogoutReason } from "./auth-service"
 import { buildStartSessionInput, createHistoryItemFromSession } from "./cline-session-factory"
 import { MessageTranslatorState, reshapeErrorForWebview } from "./message-translator"
 import { createProviderCatalog } from "./model-catalog/catalog"
@@ -88,6 +88,8 @@ import { WebviewGrpcBridge } from "./webview-grpc-bridge"
 import { resolveWorkspaceRootPath } from "./workspace-root"
 import { SSYAccountService } from "@/services/account/SSYAccountService"
 import axios from "axios"
+import { UserInfo } from "@/shared/UserInfo"
+import { buildApiHandler } from "./sdk-api-handler"
 
 /**
  * Log a stub warning and return undefined.
@@ -178,7 +180,7 @@ export class Controller {
 	accountServiceSSY: SSYAccountService
 	// ocaAuthService: OcaAuthService
 	readonly stateManager: StateManager
-
+	authService: AuthService
 	// Lazy terminal manager for foreground terminal execution.
 	// Concrete impl comes from HostProvider (VscodeTerminalManager in VSCode,
 	// StandaloneTerminalManager in cline-core / JetBrains).
@@ -240,7 +242,7 @@ export class Controller {
 			},
 			ExtensionRegistryInfo.version,
 		)
-
+		this.authService = AuthService.getInstance(this)
 		// Initialize SDK-backed auth and account services.
 		this.accountServiceSSY = new SSYAccountService(async () => {
 			const { apiConfiguration } = await this.getStateToPostToWebview();
@@ -1388,12 +1390,12 @@ export class Controller {
 
 	// // ---- Auth callbacks ----
 
-	// async handleSignOut(): Promise<void> {
-	// 	await this.authService.handleDeauth(LogoutReason.USER_INITIATED)
-	// 	clearRemoteConfig()
-	// 	await this.setRemoteConfigCoreIntegration(undefined)
-	// 	await this.postStateToWebview()
-	// }
+	async handleSignOut(): Promise<void> {
+		await this.authService.handleDeauth(LogoutReason.USER_INITIATED)
+		clearRemoteConfig()
+		await this.setRemoteConfigCoreIntegration(undefined)
+		await this.postStateToWebview()
+	}
 
 	// async handleOcaSignOut(): Promise<void> {
 	// 	await this.ocaAuthService.handleDeauth(LogoutReason.USER_INITIATED)
