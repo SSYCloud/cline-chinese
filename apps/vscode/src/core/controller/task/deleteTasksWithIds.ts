@@ -11,35 +11,30 @@ import { Controller } from ".."
  * @returns Empty response
  * @throws Error if operation fails
  */
-export async function deleteTasksWithIds(
-	controller: Controller,
-	request: StringArrayRequest,
-): Promise<Empty> {
+export async function deleteTasksWithIds(controller: Controller, request: StringArrayRequest): Promise<Empty> {
 	if (!request.value || request.value.length === 0) {
-		throw new Error("Missing task IDs");
+		throw new Error("Missing task IDs")
 	}
 
-	const taskCount = request.value.length;
+	const taskCount = request.value.length
 	const message =
-		taskCount === 1
-			? "您确定要删除此任务吗？此操作无法撤销。"
-			: `您确定要删除这 ${taskCount} 个任务吗？此操作无法撤销。`;
+		taskCount === 1 ? "您确定要删除此任务吗？此操作无法撤销。" : `您确定要删除这 ${taskCount} 个任务吗？此操作无法撤销。`
 
 	const userChoice = await HostProvider.window.showMessage({
 		type: ShowMessageType.WARNING,
 		message,
 		options: { modal: true, items: ["Delete"] },
-	});
+	})
 
 	if (userChoice.selectedOption !== "Delete") {
-		return Empty.create();
+		return Empty.create()
 	}
 
 	for (const id of request.value) {
-		await deleteTaskWithId(controller, id);
+		await deleteTaskWithId(controller, id)
 	}
 
-	return Empty.create();
+	return Empty.create()
 }
 
 /**

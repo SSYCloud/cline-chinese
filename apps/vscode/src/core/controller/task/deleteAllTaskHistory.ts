@@ -8,13 +8,11 @@ import { Controller } from ".."
  * @param request Request with option to preserve favorites
  * @returns Results with count of deleted tasks
  */
-export async function deleteAllTaskHistory(
-	controller: Controller,
-): Promise<DeleteAllTaskHistoryCount> {
+export async function deleteAllTaskHistory(controller: Controller): Promise<DeleteAllTaskHistoryCount> {
 	try {
 		return await controller.deleteAllTaskHistory()
 	} catch (error) {
-		Logger.error("Error in deleteAllTaskHistory:", error);
-		throw error;
+		Logger.error("Error in deleteAllTaskHistory:", error)
+		throw error
 	}
 }

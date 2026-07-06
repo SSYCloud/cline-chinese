@@ -16,12 +16,10 @@ function coreSkillToSkillInfo(skill: CoreSettingsItem): SkillInfo {
 /**
  * Refreshes all skill toggles (discovers skills and their enabled state)
  */
-export async function refreshSkills(
-	controller: Controller,
-): Promise<RefreshedSkills> {
+export async function refreshSkills(controller: Controller): Promise<RefreshedSkills> {
 	// Get workspace paths for local skills
-	const workspacePaths = await HostProvider.workspace.getWorkspacePaths({});
-	const primaryWorkspace = workspacePaths.paths[0];
+	const workspacePaths = await HostProvider.workspace.getWorkspacePaths({})
+	const primaryWorkspace = workspacePaths.paths[0]
 
 	const settingsSnapshot = await createCoreSettingsService().list({
 		workspaceRoot: primaryWorkspace,
@@ -37,17 +35,12 @@ export async function refreshSkills(
 	// Precedence: remote (enterprise) > disk-global (user) > project (workspace).
 	// Remote entries are appended to globalSkills[] and split into the dedicated "Enterprise Skills"
 	// section by the UI. The toggle store distinguishes them by the "remote:" path prefix.
-	const remoteConfigSettings =
-		controller.stateManager.getRemoteConfigSettings();
-	const remoteSkillsToggles =
-		controller.stateManager.getGlobalStateKey("remoteSkillsToggles") || {};
-	const validatedRemoteSkills = parseRemoteSkillEntries(
-		remoteConfigSettings.remoteGlobalSkills || [],
-	);
+	const remoteConfigSettings = controller.stateManager.getRemoteConfigSettings()
+	const remoteSkillsToggles = controller.stateManager.getGlobalStateKey("remoteSkillsToggles") || {}
+	const validatedRemoteSkills = parseRemoteSkillEntries(remoteConfigSettings.remoteGlobalSkills || [])
 
 	for (const entry of validatedRemoteSkills) {
-		const enabled =
-			entry.alwaysEnabled || remoteSkillsToggles[entry.name] !== false;
+		const enabled = entry.alwaysEnabled || remoteSkillsToggles[entry.name] !== false
 
 		globalSkills.push(
 			SkillInfo.create({
@@ -57,11 +50,11 @@ export async function refreshSkills(
 				enabled,
 				alwaysEnabled: entry.alwaysEnabled,
 			}),
-		);
+		)
 	}
 
 	return RefreshedSkills.create({
 		globalSkills,
 		localSkills,
-	});
+	})
 }

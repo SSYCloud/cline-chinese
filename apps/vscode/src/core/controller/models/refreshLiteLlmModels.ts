@@ -37,7 +37,7 @@ export async function refreshLiteLlmModels(controller: ProviderCatalogController
 
 		return models
 	} catch (error) {
-		Logger.error("Error fetching LiteLLM models:", error);
-		throw error;
+		Logger.error("Error fetching LiteLLM models:", error)
+		throw error
 	}
 }

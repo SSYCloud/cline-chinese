@@ -48,31 +48,23 @@ export async function refreshHuggingFaceModels(
 	_controller: Controller,
 	_request: EmptyRequest,
 ): Promise<OpenRouterCompatibleModelInfo> {
-	const huggingFaceModelsFilePath = path.join(
-		await ensureCacheDirectoryExists(),
-		"huggingface_models.json",
-	);
+	const huggingFaceModelsFilePath = path.join(await ensureCacheDirectoryExists(), "huggingface_models.json")
 
-	let models: Record<string, OpenRouterModelInfo> = {};
+	let models: Record<string, OpenRouterModelInfo> = {}
 
 	try {
 		// Fetch models from Hugging Face API
-		const response = await axios.get(
-			"https://router.huggingface.co/v1/models",
-			{
-				timeout: 10000,
-				...getAxiosSettings(),
-			},
-		);
+		const response = await axios.get("https://router.huggingface.co/v1/models", {
+			timeout: 10000,
+			...getAxiosSettings(),
+		})
 
 		if (response.data?.data) {
-			const rawModels = response.data.data;
+			const rawModels = response.data.data
 
 			// Transform HF models to OpenRouter-compatible format
 			for (const rawModel of rawModels) {
-				const providersList = rawModel.providers
-					?.map((provider: { provider: string }) => provider.provider)
-					?.join(", ");
+				const providersList = rawModel.providers?.map((provider: { provider: string }) => provider.provider)?.join(", ")
 				const modelInfo = OpenRouterModelInfo.create({
 					maxTokens: 8192, // HF doesn't provide max_tokens, use default
 					contextWindow: 128_000, // FIXME: HF doesn't provide context window, use default
@@ -83,46 +75,38 @@ export async function refreshHuggingFaceModels(
 					cacheWritesPrice: 0,
 					cacheReadsPrice: 0,
 					description: `Available on providers: ${providersList || "unknown"}`,
-				});
+				})
 
 				// Add model-specific configurations if we have them in our static models
 				if (rawModel.id in huggingFaceModels) {
-					const staticModel =
-						huggingFaceModels[rawModel.id as keyof typeof huggingFaceModels];
-					modelInfo.maxTokens = staticModel.maxTokens;
-					modelInfo.contextWindow = staticModel.contextWindow;
-					modelInfo.supportsImages = staticModel.supportsImages;
-					modelInfo.supportsPromptCache = staticModel.supportsPromptCache;
-					modelInfo.inputPrice = staticModel.inputPrice;
-					modelInfo.outputPrice = staticModel.outputPrice;
-					modelInfo.description =
-						staticModel.description || modelInfo.description;
+					const staticModel = huggingFaceModels[rawModel.id as keyof typeof huggingFaceModels]
+					modelInfo.maxTokens = staticModel.maxTokens
+					modelInfo.contextWindow = staticModel.contextWindow
+					modelInfo.supportsImages = staticModel.supportsImages
+					modelInfo.supportsPromptCache = staticModel.supportsPromptCache
+					modelInfo.inputPrice = staticModel.inputPrice
+					modelInfo.outputPrice = staticModel.outputPrice
+					modelInfo.description = staticModel.description || modelInfo.description
 				}
 
-				models[rawModel.id] = modelInfo;
+				models[rawModel.id] = modelInfo
 			}
 
 			// Save to cache
-			await fs.writeFile(
-				huggingFaceModelsFilePath,
-				JSON.stringify(models, null, 2),
-			);
+			await fs.writeFile(huggingFaceModelsFilePath, JSON.stringify(models, null, 2))
 		}
 	} catch (error) {
-		Logger.error("Error fetching Hugging Face models:", error);
+		Logger.error("Error fetching Hugging Face models:", error)
 
 		// Try to load from cache
 		try {
 			if (await fileExistsAtPath(huggingFaceModelsFilePath)) {
-				const cachedModels = await fs.readFile(
-					huggingFaceModelsFilePath,
-					"utf-8",
-				);
-				const parsedModels = JSON.parse(cachedModels);
-				models = parsedModels;
+				const cachedModels = await fs.readFile(huggingFaceModelsFilePath, "utf-8")
+				const parsedModels = JSON.parse(cachedModels)
+				models = parsedModels
 			}
 		} catch (cacheError) {
-			Logger.error("Error loading cached Hugging Face models:", cacheError);
+			Logger.error("Error loading cached Hugging Face models:", cacheError)
 		}
 
 		// If no cache available, use static models as fallback
@@ -143,5 +127,5 @@ export async function refreshHuggingFaceModels(
 		}
 	}
 
-	return OpenRouterCompatibleModelInfo.create({ models });
+	return OpenRouterCompatibleModelInfo.create({ models })
 }

@@ -47,7 +47,7 @@ export class ExternalCommentReviewController extends CommentReviewController {
 	}
 
 	getThreadCount(): number {
-		return 0;
+		return 0
 	}
 
 	async closeDiffViews(): Promise<void> {

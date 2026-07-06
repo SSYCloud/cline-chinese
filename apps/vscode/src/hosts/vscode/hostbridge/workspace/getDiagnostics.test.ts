@@ -7,29 +7,23 @@ import { convertToFileDiagnostics, convertVscodeDiagnostics } from "./getDiagnos
 describe("getDiagnostics conversion functions", () => {
 	describe("convertToFileDiagnostics", () => {
 		it("should return empty array when no diagnostics are provided", () => {
-			const vscodeDiagnostics: [vscode.Uri, vscode.Diagnostic[]][] = [];
+			const vscodeDiagnostics: [vscode.Uri, vscode.Diagnostic[]][] = []
 
-			const result = convertToFileDiagnostics(vscodeDiagnostics);
+			const result = convertToFileDiagnostics(vscodeDiagnostics)
 
-			expect(result).to.deep.equal([]);
-		});
+			expect(result).to.deep.equal([])
+		})
 
 		it("should skip files with empty diagnostics arrays", () => {
 			const vscodeDiagnostics: [vscode.Uri, vscode.Diagnostic[]][] = [
 				[vscode.Uri.file("/path/to/file1.ts"), []],
 				[
 					vscode.Uri.file("/path/to/file2.ts"),
-					[
-						new vscode.Diagnostic(
-							new vscode.Range(0, 0, 0, 10),
-							"Error message",
-							vscode.DiagnosticSeverity.Error,
-						),
-					],
+					[new vscode.Diagnostic(new vscode.Range(0, 0, 0, 10), "Error message", vscode.DiagnosticSeverity.Error)],
 				],
-			];
+			]
 
-			const result = convertToFileDiagnostics(vscodeDiagnostics);
+			const result = convertToFileDiagnostics(vscodeDiagnostics)
 
 			expect(result).to.deep.equal([
 				{
@@ -46,34 +40,22 @@ describe("getDiagnostics conversion functions", () => {
 						},
 					],
 				},
-			]);
-		});
+			])
+		})
 
 		it("should convert multiple files with diagnostics", () => {
 			const vscodeDiagnostics: [vscode.Uri, vscode.Diagnostic[]][] = [
 				[
 					vscode.Uri.file("/path/to/file1.ts"),
-					[
-						new vscode.Diagnostic(
-							new vscode.Range(0, 0, 0, 10),
-							"Error in file1",
-							vscode.DiagnosticSeverity.Error,
-						),
-					],
+					[new vscode.Diagnostic(new vscode.Range(0, 0, 0, 10), "Error in file1", vscode.DiagnosticSeverity.Error)],
 				],
 				[
 					vscode.Uri.file("/path/to/file2.ts"),
-					[
-						new vscode.Diagnostic(
-							new vscode.Range(5, 5, 5, 15),
-							"Warning in file2",
-							vscode.DiagnosticSeverity.Warning,
-						),
-					],
+					[new vscode.Diagnostic(new vscode.Range(5, 5, 5, 15), "Warning in file2", vscode.DiagnosticSeverity.Warning)],
 				],
-			];
+			]
 
-			const result = convertToFileDiagnostics(vscodeDiagnostics);
+			const result = convertToFileDiagnostics(vscodeDiagnostics)
 
 			expect(result).to.deep.equal([
 				{
@@ -104,28 +86,28 @@ describe("getDiagnostics conversion functions", () => {
 						},
 					],
 				},
-			]);
-		});
-	});
+			])
+		})
+	})
 
 	describe("convertVscodeDiagnostics", () => {
 		it("should convert empty array", () => {
-			const vscodeDiagnostics: vscode.Diagnostic[] = [];
+			const vscodeDiagnostics: vscode.Diagnostic[] = []
 
-			const result = convertVscodeDiagnostics(vscodeDiagnostics);
+			const result = convertVscodeDiagnostics(vscodeDiagnostics)
 
-			expect(result).to.deep.equal([]);
-		});
+			expect(result).to.deep.equal([])
+		})
 
 		it("should convert error diagnostic with source", () => {
 			const vscodeDiagnostic = new vscode.Diagnostic(
 				new vscode.Range(10, 5, 10, 20),
 				"Type error",
 				vscode.DiagnosticSeverity.Error,
-			);
-			vscodeDiagnostic.source = "typescript";
+			)
+			vscodeDiagnostic.source = "typescript"
 
-			const result = convertVscodeDiagnostics([vscodeDiagnostic]);
+			const result = convertVscodeDiagnostics([vscodeDiagnostic])
 
 			expect(result).to.deep.equal([
 				{
@@ -137,34 +119,18 @@ describe("getDiagnostics conversion functions", () => {
 					severity: DiagnosticSeverity.DIAGNOSTIC_ERROR,
 					source: "typescript",
 				},
-			]);
-		});
+			])
+		})
 
 		it("should convert all severity types correctly", () => {
 			const diagnostics = [
-				new vscode.Diagnostic(
-					new vscode.Range(0, 0, 0, 10),
-					"Error",
-					vscode.DiagnosticSeverity.Error,
-				),
-				new vscode.Diagnostic(
-					new vscode.Range(1, 0, 1, 10),
-					"Warning",
-					vscode.DiagnosticSeverity.Warning,
-				),
-				new vscode.Diagnostic(
-					new vscode.Range(2, 0, 2, 10),
-					"Information",
-					vscode.DiagnosticSeverity.Information,
-				),
-				new vscode.Diagnostic(
-					new vscode.Range(3, 0, 3, 10),
-					"Hint",
-					vscode.DiagnosticSeverity.Hint,
-				),
-			];
+				new vscode.Diagnostic(new vscode.Range(0, 0, 0, 10), "Error", vscode.DiagnosticSeverity.Error),
+				new vscode.Diagnostic(new vscode.Range(1, 0, 1, 10), "Warning", vscode.DiagnosticSeverity.Warning),
+				new vscode.Diagnostic(new vscode.Range(2, 0, 2, 10), "Information", vscode.DiagnosticSeverity.Information),
+				new vscode.Diagnostic(new vscode.Range(3, 0, 3, 10), "Hint", vscode.DiagnosticSeverity.Hint),
+			]
 
-			const result = convertVscodeDiagnostics(diagnostics);
+			const result = convertVscodeDiagnostics(diagnostics)
 
 			expect(result).to.deep.equal([
 				{
@@ -203,17 +169,17 @@ describe("getDiagnostics conversion functions", () => {
 					severity: DiagnosticSeverity.DIAGNOSTIC_HINT,
 					source: undefined,
 				},
-			]);
-		});
+			])
+		})
 
 		it("should handle diagnostic without source", () => {
 			const vscodeDiagnostic = new vscode.Diagnostic(
 				new vscode.Range(0, 0, 0, 10),
 				"Simple error",
 				vscode.DiagnosticSeverity.Error,
-			);
+			)
 
-			const result = convertVscodeDiagnostics([vscodeDiagnostic]);
+			const result = convertVscodeDiagnostics([vscodeDiagnostic])
 
 			expect(result).to.deep.equal([
 				{
@@ -225,7 +191,7 @@ describe("getDiagnostics conversion functions", () => {
 					severity: DiagnosticSeverity.DIAGNOSTIC_ERROR,
 					source: undefined,
 				},
-			]);
-		});
-	});
-});
+			])
+		})
+	})
+})

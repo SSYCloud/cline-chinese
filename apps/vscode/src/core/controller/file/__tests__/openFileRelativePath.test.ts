@@ -29,18 +29,18 @@ describe("openFileRelativePath", () => {
 	let consoleErrorStub: sinon.SinonStub
 
 	beforeEach(() => {
-		sandbox = sinon.createSandbox();
+		sandbox = sinon.createSandbox()
 
 		// Create a mock controller
-		mockController = {} as any;
+		mockController = {} as any
 
 		// Reset the module-level sinon stubs (injected via mock.module above)
 		openFileIntegrationStub.reset()
 		getWorkspacePathStub.reset()
 
 		// Stub console.error to prevent test output pollution
-		consoleErrorStub = sandbox.stub(Logger, "error");
-	});
+		consoleErrorStub = sandbox.stub(Logger, "error")
+	})
 
 	afterEach(() => {
 		sandbox.restore()
@@ -49,84 +49,82 @@ describe("openFileRelativePath", () => {
 	})
 
 	it("should return Empty response on successful execution", async () => {
-		getWorkspacePathStub.resolves("/workspace");
+		getWorkspacePathStub.resolves("/workspace")
 
 		const request = StringRequest.create({
 			value: "src/test.ts",
-		});
+		})
 
-		const result = await openFileRelativePath(mockController, request);
+		const result = await openFileRelativePath(mockController, request)
 
-		expect(result).to.deep.equal(Empty.create());
-	});
+		expect(result).to.deep.equal(Empty.create())
+	})
 
 	it("should call openFileIntegration with absolute path when relative path is provided", async () => {
-		const workspacePath = "/workspace";
-		const relativePath = "src/components/Test.tsx";
-		const expectedAbsolutePath = path.resolve(workspacePath, relativePath);
+		const workspacePath = "/workspace"
+		const relativePath = "src/components/Test.tsx"
+		const expectedAbsolutePath = path.resolve(workspacePath, relativePath)
 
-		getWorkspacePathStub.resolves(workspacePath);
+		getWorkspacePathStub.resolves(workspacePath)
 
 		const request = StringRequest.create({
 			value: relativePath,
-		});
+		})
 
-		await openFileRelativePath(mockController, request);
+		await openFileRelativePath(mockController, request)
 
-		expect(openFileIntegrationStub.calledOnceWith(expectedAbsolutePath)).to.be
-			.true;
-	});
+		expect(openFileIntegrationStub.calledOnceWith(expectedAbsolutePath)).to.be.true
+	})
 
 	it("should not call openFileIntegration when path is invalid", async () => {
-		getWorkspacePathStub.resolves("/workspace");
+		getWorkspacePathStub.resolves("/workspace")
 
-		const invalidPaths = ["", undefined];
+		const invalidPaths = ["", undefined]
 
 		for (const invalidPath of invalidPaths) {
 			const request = StringRequest.create({
 				value: invalidPath,
-			});
+			})
 
-			await openFileRelativePath(mockController, request);
+			await openFileRelativePath(mockController, request)
 
-			expect(openFileIntegrationStub.called).to.be.false;
-			openFileIntegrationStub.resetHistory();
+			expect(openFileIntegrationStub.called).to.be.false
+			openFileIntegrationStub.resetHistory()
 		}
-	});
+	})
 
 	it("should return Empty and log error when no workspace path is available", async () => {
-		const noWorkspaceScenarios = [null, undefined];
+		const noWorkspaceScenarios = [null, undefined]
 
 		for (const workspaceValue of noWorkspaceScenarios) {
-			getWorkspacePathStub.resolves(workspaceValue);
-			consoleErrorStub.resetHistory();
+			getWorkspacePathStub.resolves(workspaceValue)
+			consoleErrorStub.resetHistory()
 
 			const request = StringRequest.create({
 				value: "src/test.ts",
-			});
+			})
 
-			const result = await openFileRelativePath(mockController, request);
+			const result = await openFileRelativePath(mockController, request)
 
-			expect(result).to.deep.equal(Empty.create());
-			expect(consoleErrorStub.called).to.be.true;
-			expect(openFileIntegrationStub.called).to.be.false;
+			expect(result).to.deep.equal(Empty.create())
+			expect(consoleErrorStub.called).to.be.true
+			expect(openFileIntegrationStub.called).to.be.false
 		}
-	});
+	})
 
 	it("should handle nested directory paths", async () => {
-		const workspacePath = "/workspace";
-		const relativePath = "src/components/ui/Button/Button.tsx";
-		const expectedAbsolutePath = path.resolve(workspacePath, relativePath);
+		const workspacePath = "/workspace"
+		const relativePath = "src/components/ui/Button/Button.tsx"
+		const expectedAbsolutePath = path.resolve(workspacePath, relativePath)
 
-		getWorkspacePathStub.resolves(workspacePath);
+		getWorkspacePathStub.resolves(workspacePath)
 
 		const request = StringRequest.create({
 			value: relativePath,
-		});
+		})
 
-		await openFileRelativePath(mockController, request);
+		await openFileRelativePath(mockController, request)
 
-		expect(openFileIntegrationStub.calledOnceWith(expectedAbsolutePath)).to.be
-			.true;
-	});
-});
+		expect(openFileIntegrationStub.calledOnceWith(expectedAbsolutePath)).to.be.true
+	})
+})

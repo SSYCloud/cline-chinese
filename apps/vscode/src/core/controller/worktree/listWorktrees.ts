@@ -1,13 +1,10 @@
-import { EmptyRequest } from "@shared/proto/cline/common";
-import { WorktreeList } from "@shared/proto/cline/worktree";
-import {
-	getGitRootPath,
-	listWorktrees as listWorktreesUtil,
-} from "@utils/git-worktree";
-import { arePathsEqual, getWorkspacePath } from "@utils/path";
-import { HostProvider } from "@/hosts/host-provider";
-import { Logger } from "@/shared/services/Logger";
-import { Controller } from "..";
+import { EmptyRequest } from "@shared/proto/cline/common"
+import { WorktreeList } from "@shared/proto/cline/worktree"
+import { getGitRootPath, listWorktrees as listWorktreesUtil } from "@utils/git-worktree"
+import { arePathsEqual, getWorkspacePath } from "@utils/path"
+import { HostProvider } from "@/hosts/host-provider"
+import { Logger } from "@/shared/services/Logger"
+import { Controller } from ".."
 
 /**
  * Lists all git worktrees in the current repository
@@ -15,14 +12,10 @@ import { Controller } from "..";
  * @param request Empty request
  * @returns WorktreeList containing all worktrees
  */
-export async function listWorktrees(
-	_controller: Controller,
-	_request: EmptyRequest,
-): Promise<WorktreeList> {
+export async function listWorktrees(_controller: Controller, _request: EmptyRequest): Promise<WorktreeList> {
 	// Check for multi-root workspace
-	const workspacePaths = (await HostProvider.workspace.getWorkspacePaths({}))
-		.paths;
-	const isMultiRoot = workspacePaths.length > 1;
+	const workspacePaths = (await HostProvider.workspace.getWorkspacePaths({})).paths
+	const isMultiRoot = workspacePaths.length > 1
 
 	if (isMultiRoot) {
 		return WorktreeList.create({
@@ -32,10 +25,10 @@ export async function listWorktrees(
 			isSubfolder: false,
 			gitRootPath: "",
 			error: "",
-		});
+		})
 	}
 
-	const cwd = await getWorkspacePath();
+	const cwd = await getWorkspacePath()
 	if (!cwd) {
 		return WorktreeList.create({
 			worktrees: [],
@@ -44,12 +37,12 @@ export async function listWorktrees(
 			isSubfolder: false,
 			gitRootPath: "",
 			error: "No workspace folder open",
-		});
+		})
 	}
 
 	// Check if workspace is a subfolder of a git repo (not at repo root)
-	const gitRootPath = await getGitRootPath(cwd);
-	const isSubfolder = gitRootPath !== null && !arePathsEqual(cwd, gitRootPath);
+	const gitRootPath = await getGitRootPath(cwd)
+	const isSubfolder = gitRootPath !== null && !arePathsEqual(cwd, gitRootPath)
 
 	if (isSubfolder) {
 		return WorktreeList.create({
@@ -59,11 +52,11 @@ export async function listWorktrees(
 			isSubfolder: true,
 			gitRootPath: gitRootPath || "",
 			error: "",
-		});
+		})
 	}
 
 	try {
-		const result = await listWorktreesUtil(cwd);
+		const result = await listWorktreesUtil(cwd)
 
 		return WorktreeList.create({
 			worktrees: result.worktrees.map((wt) => ({
@@ -81,9 +74,9 @@ export async function listWorktrees(
 			isSubfolder: false,
 			gitRootPath: gitRootPath || "",
 			error: result.error || "",
-		});
+		})
 	} catch (error) {
-		Logger.error(`Error listing worktrees: ${JSON.stringify(error)}`);
+		Logger.error(`Error listing worktrees: ${JSON.stringify(error)}`)
 		return WorktreeList.create({
 			worktrees: [],
 			isGitRepo: false,
@@ -91,6 +84,6 @@ export async function listWorktrees(
 			isSubfolder: false,
 			gitRootPath: "",
 			error: error instanceof Error ? error.message : String(error),
-		});
+		})
 	}
 }

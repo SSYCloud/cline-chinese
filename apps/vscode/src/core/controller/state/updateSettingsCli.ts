@@ -18,13 +18,10 @@ import { normalizeOpenaiReasoningEffort } from "./reasoningEffort"
  * @param request The request containing the settings to update
  * @returns An empty response
  */
-export async function updateSettingsCli(
-	controller: Controller,
-	request: UpdateSettingsRequestCli,
-): Promise<Empty> {
+export async function updateSettingsCli(controller: Controller, request: UpdateSettingsRequestCli): Promise<Empty> {
 	const convertPlanActMode = (mode: PlanActMode): Mode => {
-		return mode === PlanActMode.PLAN ? "plan" : "act";
-	};
+		return mode === PlanActMode.PLAN ? "plan" : "act"
+	}
 
 	if (request.environment !== undefined) {
 		ClineEnv.setEnvironment(request.environment)

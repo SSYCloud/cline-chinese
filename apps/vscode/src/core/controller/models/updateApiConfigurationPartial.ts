@@ -25,27 +25,21 @@ export async function updateApiConfigurationPartial(
 	try {
 		// Validate request
 		if (!request.updateMask || request.updateMask.length === 0) {
-			throw new Error(
-				"update_mask is required and must contain at least one field",
-			);
+			throw new Error("update_mask is required and must contain at least one field")
 		}
 
 		if (!request.apiConfiguration) {
-			throw new Error("api_configuration is required");
+			throw new Error("api_configuration is required")
 		}
 
 		// Get current config and convert new values from proto format
-		const currentConfig = controller.stateManager.getApiConfiguration();
-		const newConfigValues = convertProtoToApiConfiguration(
-			request.apiConfiguration,
-		);
+		const currentConfig = controller.stateManager.getApiConfiguration()
+		const newConfigValues = convertProtoToApiConfiguration(request.apiConfiguration)
 
 		// Apply only the fields specified in the mask
-		const updatedConfig = { ...currentConfig };
+		const updatedConfig = { ...currentConfig }
 		for (const field of request.updateMask) {
-			(updatedConfig as Record<string, any>)[field] = (
-				newConfigValues as Record<string, any>
-			)[field];
+			;(updatedConfig as Record<string, any>)[field] = (newConfigValues as Record<string, any>)[field]
 		}
 		const normalizedConfig = normalizeProviderSwitchModel(controller.getProviderConfigStore(), currentConfig, updatedConfig)
 
@@ -60,11 +54,11 @@ export async function updateApiConfigurationPartial(
 		controller.handleApiConfigurationChanged(currentConfig, normalizedConfig)
 
 		// Notify webview
-		await controller.postStateToWebview();
+		await controller.postStateToWebview()
 
-		return Empty.create();
+		return Empty.create()
 	} catch (error) {
-		Logger.error(`Failed to update API configuration (partial): ${error}`);
-		throw error;
+		Logger.error(`Failed to update API configuration (partial): ${error}`)
+		throw error
 	}
 }

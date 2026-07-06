@@ -1,13 +1,11 @@
-import { EmptyRequest } from "@shared/proto/cline/common";
-import { ClineMessage } from "@shared/proto/cline/ui";
-import { Logger } from "@/shared/services/Logger";
-import { getRequestRegistry, StreamingResponseHandler } from "../grpc-handler";
-import { Controller } from "../index";
+import { EmptyRequest } from "@shared/proto/cline/common"
+import { ClineMessage } from "@shared/proto/cline/ui"
+import { Logger } from "@/shared/services/Logger"
+import { getRequestRegistry, StreamingResponseHandler } from "../grpc-handler"
+import { Controller } from "../index"
 
 // Keep track of active partial message subscriptions (gRPC streams)
-const activePartialMessageSubscriptions = new Set<
-	StreamingResponseHandler<ClineMessage>
->();
+const activePartialMessageSubscriptions = new Set<StreamingResponseHandler<ClineMessage>>()
 
 // Keep track of callback-based subscriptions (for CLI and other non-gRPC consumers)
 type PartialMessageCallback = (message: ClineMessage) => void
@@ -27,21 +25,16 @@ export async function subscribeToPartialMessage(
 	requestId?: string,
 ): Promise<void> {
 	// Add this subscription to the active subscriptions
-	activePartialMessageSubscriptions.add(responseStream);
+	activePartialMessageSubscriptions.add(responseStream)
 
 	// Register cleanup when the connection is closed
 	const cleanup = () => {
-		activePartialMessageSubscriptions.delete(responseStream);
-	};
+		activePartialMessageSubscriptions.delete(responseStream)
+	}
 
 	// Register the cleanup function with the request registry if we have a requestId
 	if (requestId) {
-		getRequestRegistry().registerRequest(
-			requestId,
-			cleanup,
-			{ type: "partial_message_subscription" },
-			responseStream,
-		);
+		getRequestRegistry().registerRequest(requestId, cleanup, { type: "partial_message_subscription" }, responseStream)
 	}
 }
 
@@ -69,9 +62,9 @@ export async function sendPartialMessageEvent(partialMessage: ClineMessage): Pro
 	// Send to callback subscribers (synchronous)
 	for (const callback of callbackSubscriptions) {
 		try {
-			callback(partialMessage);
+			callback(partialMessage)
 		} catch (error) {
-			Logger.error("Error in partial message callback:", error);
+			Logger.error("Error in partial message callback:", error)
 		}
 	}
 }

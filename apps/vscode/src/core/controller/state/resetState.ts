@@ -1,14 +1,11 @@
-import { Empty } from "@shared/proto/cline/common";
-import { ResetStateRequest } from "@shared/proto/cline/state";
-import {
-	resetGlobalState,
-	resetWorkspaceState,
-} from "@/core/storage/utils/state-helpers";
-import { HostProvider } from "@/hosts/host-provider";
-import { ShowMessageType } from "@/shared/proto/host/window";
-import { Logger } from "@/shared/services/Logger";
-import { Controller } from "..";
-import { sendChatButtonClickedEvent } from "../ui/subscribeToChatButtonClicked";
+import { Empty } from "@shared/proto/cline/common"
+import { ResetStateRequest } from "@shared/proto/cline/state"
+import { resetGlobalState, resetWorkspaceState } from "@/core/storage/utils/state-helpers"
+import { HostProvider } from "@/hosts/host-provider"
+import { ShowMessageType } from "@/shared/proto/host/window"
+import { Logger } from "@/shared/services/Logger"
+import { Controller } from ".."
+import { sendChatButtonClickedEvent } from "../ui/subscribeToChatButtonClicked"
 
 /**
  * Resets the extension state to its defaults
@@ -16,45 +13,42 @@ import { sendChatButtonClickedEvent } from "../ui/subscribeToChatButtonClicked";
  * @param request The reset state request containing the global flag
  * @returns An empty response
  */
-export async function resetState(
-	controller: Controller,
-	request: ResetStateRequest,
-): Promise<Empty> {
+export async function resetState(controller: Controller, request: ResetStateRequest): Promise<Empty> {
 	try {
 		if (request.global) {
 			HostProvider.window.showMessage({
 				type: ShowMessageType.INFORMATION,
 				message: "重置全局状态...",
-			});
-			await resetGlobalState();
+			})
+			await resetGlobalState()
 		} else {
 			HostProvider.window.showMessage({
 				type: ShowMessageType.INFORMATION,
 				message: "重置工作区状态...",
-			});
-			await resetWorkspaceState();
+			})
+			await resetWorkspaceState()
 		}
 
 		if (controller.task) {
-			controller.task.abortTask();
-			controller.task = undefined;
+			controller.task.abortTask()
+			controller.task = undefined
 		}
 
 		HostProvider.window.showMessage({
 			type: ShowMessageType.INFORMATION,
 			message: "重置状态",
-		});
-		await controller.postStateToWebview();
+		})
+		await controller.postStateToWebview()
 
-		await sendChatButtonClickedEvent();
+		await sendChatButtonClickedEvent()
 
-		return Empty.create();
+		return Empty.create()
 	} catch (error) {
-		Logger.error("Error resetting state:", error);
+		Logger.error("Error resetting state:", error)
 		HostProvider.window.showMessage({
 			type: ShowMessageType.ERROR,
 			message: `重置状态失败: ${error instanceof Error ? error.message : String(error)}`,
-		});
-		throw error;
+		})
+		throw error
 	}
 }

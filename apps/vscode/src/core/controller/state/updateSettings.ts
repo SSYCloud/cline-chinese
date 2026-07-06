@@ -21,10 +21,7 @@ import { createTaskApiModelShim, resolveActiveModelIdFromApiConfiguration } from
  * @param request The request containing the settings to update
  * @returns An empty response
  */
-export async function updateSettings(
-	controller: Controller,
-	request: UpdateSettingsRequest,
-): Promise<Empty> {
+export async function updateSettings(controller: Controller, request: UpdateSettingsRequest): Promise<Empty> {
 	try {
 		if (request.clineEnv !== undefined && request.clineEnv !== "") {
 			ClineEnv.setEnvironment(request.clineEnv)
@@ -32,7 +29,7 @@ export async function updateSettings(
 		}
 
 		if (request.apiConfiguration) {
-			const protoApiConfiguration = request.apiConfiguration;
+			const protoApiConfiguration = request.apiConfiguration
 
 			const convertedApiConfigurationFromProto = {
 				...protoApiConfiguration,
@@ -43,14 +40,9 @@ export async function updateSettings(
 				actModeApiProvider: protoApiConfiguration.actModeApiProvider
 					? convertProtoToApiProvider(protoApiConfiguration.actModeApiProvider)
 					: undefined,
-				planModeReasoningEffort:
-					protoApiConfiguration.planModeReasoningEffort as
-						| OpenaiReasoningEffort
-						| undefined,
-				actModeReasoningEffort: protoApiConfiguration.actModeReasoningEffort as
-					| OpenaiReasoningEffort
-					| undefined,
-			};
+				planModeReasoningEffort: protoApiConfiguration.planModeReasoningEffort as OpenaiReasoningEffort | undefined,
+				actModeReasoningEffort: protoApiConfiguration.actModeReasoningEffort as OpenaiReasoningEffort | undefined,
+			}
 
 			const previousApiConfiguration = controller.stateManager.getApiConfiguration()
 			const normalizedApiConfiguration = normalizeProviderSwitchModel(
@@ -71,60 +63,46 @@ export async function updateSettings(
 
 		// Update plan/act separate models setting
 		if (request.planActSeparateModelsSetting !== undefined) {
-			controller.stateManager.setGlobalState(
-				"planActSeparateModelsSetting",
-				request.planActSeparateModelsSetting,
-			);
+			controller.stateManager.setGlobalState("planActSeparateModelsSetting", request.planActSeparateModelsSetting)
 		}
 
 		// Update checkpoints setting
 		if (request.enableCheckpointsSetting !== undefined) {
-			controller.stateManager.setGlobalState(
-				"enableCheckpointsSetting",
-				request.enableCheckpointsSetting,
-			);
+			controller.stateManager.setGlobalState("enableCheckpointsSetting", request.enableCheckpointsSetting)
 		}
 
 		// Update MCP responses collapsed setting
 		if (request.mcpResponsesCollapsed !== undefined) {
-			controller.stateManager.setGlobalState(
-				"mcpResponsesCollapsed",
-				request.mcpResponsesCollapsed,
-			);
+			controller.stateManager.setGlobalState("mcpResponsesCollapsed", request.mcpResponsesCollapsed)
 		}
 
 		// Update MCP display mode setting
 		if (request.mcpDisplayMode !== undefined) {
 			// Convert proto enum to string type
-			let displayMode: McpDisplayMode;
+			let displayMode: McpDisplayMode
 			switch (request.mcpDisplayMode) {
 				case ProtoMcpDisplayMode.RICH:
-					displayMode = "rich";
-					break;
+					displayMode = "rich"
+					break
 				case ProtoMcpDisplayMode.PLAIN:
-					displayMode = "plain";
-					break;
+					displayMode = "plain"
+					break
 				case ProtoMcpDisplayMode.MARKDOWN:
-					displayMode = "markdown";
-					break;
+					displayMode = "markdown"
+					break
 				default:
-					throw new Error(
-						`Invalid MCP display mode value: ${request.mcpDisplayMode}`,
-					);
+					throw new Error(`Invalid MCP display mode value: ${request.mcpDisplayMode}`)
 			}
-			controller.stateManager.setGlobalState("mcpDisplayMode", displayMode);
+			controller.stateManager.setGlobalState("mcpDisplayMode", displayMode)
 		}
 
 		if (request.mode !== undefined) {
-			const mode = request.mode === PlanActMode.PLAN ? "plan" : "act";
-			controller.stateManager.setGlobalState("mode", mode);
+			const mode = request.mode === PlanActMode.PLAN ? "plan" : "act"
+			controller.stateManager.setGlobalState("mode", mode)
 		}
 
 		if (request.preferredLanguage !== undefined) {
-			controller.stateManager.setGlobalState(
-				"preferredLanguage",
-				request.preferredLanguage,
-			);
+			controller.stateManager.setGlobalState("preferredLanguage", request.preferredLanguage)
 		}
 
 		// Update terminal timeout setting
@@ -139,31 +117,22 @@ export async function updateSettings(
 			controller.terminalManager?.setTerminalReuseEnabled(!!request.terminalReuseEnabled)
 		}
 
-		if (
-			request.vscodeTerminalExecutionMode !== undefined &&
-			request.vscodeTerminalExecutionMode !== ""
-		) {
+		if (request.vscodeTerminalExecutionMode !== undefined && request.vscodeTerminalExecutionMode !== "") {
 			controller.stateManager.setGlobalState(
 				"vscodeTerminalExecutionMode",
-				request.vscodeTerminalExecutionMode === "backgroundExec"
-					? "backgroundExec"
-					: "vscodeTerminal",
-			);
+				request.vscodeTerminalExecutionMode === "backgroundExec" ? "backgroundExec" : "vscodeTerminal",
+			)
 		}
 
 		// Update max consecutive mistakes
 		if (request.maxConsecutiveMistakes !== undefined) {
-			controller.stateManager.setGlobalState(
-				"maxConsecutiveMistakes",
-				Number(request.maxConsecutiveMistakes),
-			);
+			controller.stateManager.setGlobalState("maxConsecutiveMistakes", Number(request.maxConsecutiveMistakes))
 		}
 
 		if (request.hooksEnabled !== undefined) {
-			const wasEnabled =
-				controller.stateManager.getGlobalSettingsKey("hooksEnabled") ?? true;
-			const isEnabled = !!request.hooksEnabled;
-			controller.stateManager.setGlobalState("hooksEnabled", isEnabled);
+			const wasEnabled = controller.stateManager.getGlobalSettingsKey("hooksEnabled") ?? true
+			const isEnabled = !!request.hooksEnabled
+			controller.stateManager.setGlobalState("hooksEnabled", isEnabled)
 			if (controller.task && wasEnabled !== isEnabled) {
 				// telemetryService.captureFeatureToggle(controller.task.ulid, "hooks", isEnabled, controller.task.api.getModel().id)
 			}
@@ -173,57 +142,43 @@ export async function updateSettings(
 			// if (controller.task) {
 			// 	telemetryService.captureYoloModeToggle(controller.task.ulid, request.yoloModeToggled)
 			// }
-			controller.stateManager.setGlobalState(
-				"yoloModeToggled",
-				request.yoloModeToggled,
-			);
+			controller.stateManager.setGlobalState("yoloModeToggled", request.yoloModeToggled)
 		}
 
 		// Update worktrees setting
 		if (request.worktreesEnabled !== undefined) {
-			controller.stateManager.setGlobalState(
-				"worktreesEnabled",
-				request.worktreesEnabled,
-			);
+			controller.stateManager.setGlobalState("worktreesEnabled", request.worktreesEnabled)
 		}
 
 		// Update subagents setting
 		if (request.subagentsEnabled !== undefined) {
-			const isEnabled = !!request.subagentsEnabled;
-			controller.stateManager.setGlobalState("subagentsEnabled", isEnabled);
+			const isEnabled = !!request.subagentsEnabled
+			controller.stateManager.setGlobalState("subagentsEnabled", isEnabled)
 		}
 
 		// Update auto-condense setting
 		if (request.useAutoCondense !== undefined) {
-			controller.stateManager.setGlobalState(
-				"useAutoCondense",
-				request.useAutoCondense,
-			);
+			controller.stateManager.setGlobalState("useAutoCondense", request.useAutoCondense)
 		}
 
 		// Update custom prompt choice
 		if (request.customPrompt !== undefined) {
-			const value = request.customPrompt === "compact" ? "compact" : undefined;
-			controller.stateManager.setGlobalState("customPrompt", value);
+			const value = request.customPrompt === "compact" ? "compact" : undefined
+			controller.stateManager.setGlobalState("customPrompt", value)
 		}
 
 		// Update browser settings
 		if (request.browserSettings !== undefined) {
 			// Get current browser settings to preserve fields not in the request
-			const currentSettings =
-				controller.stateManager.getGlobalSettingsKey("browserSettings");
+			const currentSettings = controller.stateManager.getGlobalSettingsKey("browserSettings")
 
 			// Convert from protobuf format to shared format, merging with existing settings
 			const newBrowserSettings: SharedBrowserSettings = {
 				...currentSettings, // Start with existing settings (and defaults)
 				viewport: {
 					// Apply updates from request
-					width:
-						request.browserSettings.viewport?.width ||
-						currentSettings.viewport.width,
-					height:
-						request.browserSettings.viewport?.height ||
-						currentSettings.viewport.height,
+					width: request.browserSettings.viewport?.width || currentSettings.viewport.width,
+					height: request.browserSettings.viewport?.height || currentSettings.viewport.height,
 				},
 				// Explicitly handle optional boolean and string fields from the request
 				remoteBrowserEnabled:
@@ -245,16 +200,11 @@ export async function updateSettings(
 						? currentSettings.disableToolUse
 						: request.browserSettings.disableToolUse,
 				customArgs:
-					"customArgs" in request.browserSettings
-						? request.browserSettings.customArgs
-						: currentSettings.customArgs,
-			};
+					"customArgs" in request.browserSettings ? request.browserSettings.customArgs : currentSettings.customArgs,
+			}
 
 			// Update global state with new settings
-			controller.stateManager.setGlobalState(
-				"browserSettings",
-				newBrowserSettings,
-			);
+			controller.stateManager.setGlobalState("browserSettings", newBrowserSettings)
 		}
 
 		// Update default terminal profile
@@ -267,34 +217,23 @@ export async function updateSettings(
 		}
 
 		if (request.backgroundEditEnabled !== undefined) {
-			controller.stateManager.setGlobalState(
-				"backgroundEditEnabled",
-				!!request.backgroundEditEnabled,
-			);
+			controller.stateManager.setGlobalState("backgroundEditEnabled", !!request.backgroundEditEnabled)
 		}
 
 		if (request.multiRootEnabled !== undefined) {
-			controller.stateManager.setGlobalState(
-				"multiRootEnabled",
-				!!request.multiRootEnabled,
-			);
+			controller.stateManager.setGlobalState("multiRootEnabled", !!request.multiRootEnabled)
 		}
 
 		if (request.optOutOfRemoteConfig !== undefined) {
-			const hadOptedOut = controller.stateManager.getGlobalSettingsKey(
-				"optOutOfRemoteConfig",
-			);
-			const isOptingOut = !!request.optOutOfRemoteConfig;
-			const isReenablingRemoteConfig = !isOptingOut && hadOptedOut;
+			const hadOptedOut = controller.stateManager.getGlobalSettingsKey("optOutOfRemoteConfig")
+			const isOptingOut = !!request.optOutOfRemoteConfig
+			const isReenablingRemoteConfig = !isOptingOut && hadOptedOut
 
 			// Update now so any subsequent function can access the updated value
-			controller.stateManager.setGlobalState(
-				"optOutOfRemoteConfig",
-				isOptingOut,
-			);
+			controller.stateManager.setGlobalState("optOutOfRemoteConfig", isOptingOut)
 
 			if (isOptingOut && !hadOptedOut) {
-				clearRemoteConfig();
+				clearRemoteConfig()
 			} else if (isReenablingRemoteConfig) {
 				// Fire-and-forget: We don't need to await here
 				// The function catches any errors and posts the updated state to the webview
@@ -305,18 +244,15 @@ export async function updateSettings(
 		}
 
 		if (request.showFeatureTips !== undefined) {
-			controller.stateManager.setGlobalState(
-				"showFeatureTips",
-				request.showFeatureTips,
-			);
+			controller.stateManager.setGlobalState("showFeatureTips", request.showFeatureTips)
 		}
 
 		// Post updated state to webview
-		await controller.postStateToWebview();
+		await controller.postStateToWebview()
 
-		return Empty.create();
+		return Empty.create()
 	} catch (error) {
-		Logger.error("Failed to update settings:", error);
-		throw error;
+		Logger.error("Failed to update settings:", error)
+		throw error
 	}
 }

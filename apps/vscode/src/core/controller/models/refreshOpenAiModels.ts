@@ -38,9 +38,9 @@ export async function refreshOpenAiModels(controller: Controller, request: OpenA
 		const modelsArray = response.data?.data?.map((model: any) => model.id) || []
 		const models = [...new Set<string>(modelsArray)]
 
-		return StringArray.create({ values: models });
+		return StringArray.create({ values: models })
 	} catch (error) {
-		Logger.error("Error fetching OpenAI models:", error);
-		return StringArray.create({ values: [] });
+		Logger.error("Error fetching OpenAI models:", error)
+		return StringArray.create({ values: [] })
 	}
 }

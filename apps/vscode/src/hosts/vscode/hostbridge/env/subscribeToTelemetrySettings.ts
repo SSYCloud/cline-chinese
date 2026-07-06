@@ -1,7 +1,7 @@
-import * as vscode from "vscode";
-import { StreamingResponseHandler } from "@/hosts/vscode/hostbridge-grpc-handler";
-import { EmptyRequest } from "@/shared/proto/index.cline";
-import { Setting } from "@/shared/proto/index.host";
+import * as vscode from "vscode"
+import { StreamingResponseHandler } from "@/hosts/vscode/hostbridge-grpc-handler"
+import { EmptyRequest } from "@/shared/proto/index.cline"
+import { Setting } from "@/shared/proto/index.host"
 
 /**
  * Subscribe to changes to the telemetry settings.
@@ -14,7 +14,7 @@ export async function subscribeToTelemetrySettings(
 	vscode.env.onDidChangeTelemetryEnabled((isTelemetryEnabled) => {
 		const event = {
 			isEnabled: isTelemetryEnabled ? Setting.ENABLED : Setting.DISABLED,
-		};
-		responseStream(event, false);
-	});
+		}
+		responseStream(event, false)
+	})
 }

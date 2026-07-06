@@ -10,10 +10,7 @@ import { Controller } from ".."
  * Uses the SDK-backed AuthService which delegates to @coohu/core's
  * loginOpenAICodex() function.
  */
-export async function openAiCodexSignIn(
-	controller: Controller,
-	_: EmptyRequest,
-): Promise<Empty> {
+export async function openAiCodexSignIn(controller: Controller, _: EmptyRequest): Promise<Empty> {
 	try {
 		const authService = AuthService.getInstance()
 
@@ -24,8 +21,8 @@ export async function openAiCodexSignIn(
 				HostProvider.window.showMessage({
 					type: ShowMessageType.INFORMATION,
 					message: "Successfully signed in to OpenAI Codex",
-				});
-				await controller.postStateToWebview();
+				})
+				await controller.postStateToWebview()
 			})
 			.catch((error) => {
 				Logger.error("[openAiCodexSignIn] OAuth flow failed:", error)
@@ -34,13 +31,13 @@ export async function openAiCodexSignIn(
 					HostProvider.window.showMessage({
 						type: ShowMessageType.ERROR,
 						message: `OpenAI Codex sign in failed: ${errorMessage}`,
-					});
+					})
 				}
-			});
+			})
 	} catch (error) {
 		Logger.error("[openAiCodexSignIn] Failed to start OAuth flow:", error)
 		throw error
 	}
 
-	return {};
+	return {}
 }

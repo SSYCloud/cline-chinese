@@ -6,7 +6,7 @@ import { DIFF_VIEW_URI_SCHEME } from "../VscodeDiffViewProvider"
 /**
  * Cline's GitHub avatar URL
  */
-const CLINE_AVATAR_URL = "https://avatars.githubusercontent.com/u/184127137";
+const CLINE_AVATAR_URL = "https://avatars.githubusercontent.com/u/184127137"
 
 /**
  * VS Code implementation of CommentReviewController.
@@ -23,7 +23,7 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 	private streamingContent = ""
 
 	constructor() {
-		super();
+		super()
 		// Create the comment controller
 		this.commentController = vscode.comments.createCommentController("cline-ai-review", "Cline AI Review")
 	}
@@ -33,14 +33,10 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 	 * the Comments panel from auto-opening when comments are added.
 	 */
 	async ensureCommentsViewDisabled(): Promise<void> {
-		const config = vscode.workspace.getConfiguration("comments");
-		const currentValue = config.get<string>("openView");
+		const config = vscode.workspace.getConfiguration("comments")
+		const currentValue = config.get<string>("openView")
 		if (currentValue !== "never") {
-			await config.update(
-				"openView",
-				"never",
-				vscode.ConfigurationTarget.Global,
-			);
+			await config.update("openView", "never", vscode.ConfigurationTarget.Global)
 		}
 	}
 
@@ -50,20 +46,18 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 	addReviewComment(comment: ReviewComment): void {
 		// Use virtual diff URI if relativePath and fileContent are provided
 		// This allows comments to attach to the diff view's virtual documents
-		let uri: vscode.Uri;
+		let uri: vscode.Uri
 		if (comment.relativePath && comment.fileContent !== undefined) {
-			uri = vscode.Uri.parse(
-				`${DIFF_VIEW_URI_SCHEME}:${comment.relativePath}`,
-			).with({
+			uri = vscode.Uri.parse(`${DIFF_VIEW_URI_SCHEME}:${comment.relativePath}`).with({
 				query: Buffer.from(comment.fileContent).toString("base64"),
-			});
+			})
 		} else {
-			uri = vscode.Uri.file(comment.filePath);
+			uri = vscode.Uri.file(comment.filePath)
 		}
 		const range = new vscode.Range(
 			new vscode.Position(comment.startLine, 0),
 			new vscode.Position(comment.endLine, Number.MAX_SAFE_INTEGER),
-		);
+		)
 
 		// Create the comment object
 		const commentObj: vscode.Comment = {
@@ -73,12 +67,10 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 				name: "Cline",
 				iconPath: vscode.Uri.parse(CLINE_AVATAR_URL),
 			},
-		};
+		}
 
 		// Create the thread
-		const thread = this.commentController.createCommentThread(uri, range, [
-			commentObj,
-		]);
+		const thread = this.commentController.createCommentThread(uri, range, [commentObj])
 
 		// Configure thread
 		thread.canReply = false
@@ -102,18 +94,15 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 		revealComment = false,
 	): void {
 		// Use virtual diff URI if relativePath and fileContent are provided
-		let uri: vscode.Uri;
+		let uri: vscode.Uri
 		if (relativePath && fileContent !== undefined) {
 			uri = vscode.Uri.parse(`${DIFF_VIEW_URI_SCHEME}:${relativePath}`).with({
 				query: Buffer.from(fileContent).toString("base64"),
-			});
+			})
 		} else {
-			uri = vscode.Uri.file(filePath);
+			uri = vscode.Uri.file(filePath)
 		}
-		const range = new vscode.Range(
-			new vscode.Position(startLine, 0),
-			new vscode.Position(endLine, Number.MAX_SAFE_INTEGER),
-		);
+		const range = new vscode.Range(new vscode.Position(startLine, 0), new vscode.Position(endLine, Number.MAX_SAFE_INTEGER))
 
 		// Create with placeholder
 		const commentObj: vscode.Comment = {
@@ -123,7 +112,7 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 				name: "Cline",
 				iconPath: vscode.Uri.parse(CLINE_AVATAR_URL),
 			},
-		};
+		}
 
 		// Create the thread
 		const thread = this.commentController.createCommentThread(uri, range, [commentObj])
@@ -131,8 +120,8 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 		thread.collapsibleState = vscode.CommentThreadCollapsibleState.Expanded
 
 		// Store for streaming updates
-		this.streamingThread = thread;
-		this.streamingContent = "";
+		this.streamingThread = thread
+		this.streamingContent = ""
 
 		// Store for later management
 		const threadKey = this.getThreadKey(filePath, startLine, endLine)
@@ -140,7 +129,7 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 
 		// Open the virtual document and scroll to show the comment in center (only if requested)
 		if (revealComment) {
-			this.revealCommentInDocument(thread);
+			this.revealCommentInDocument(thread)
 		}
 	}
 
@@ -148,33 +137,25 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 	 * Open the document containing the comment and scroll to show it in center.
 	 * This is used during streaming to show each comment as it's added.
 	 */
-	private async revealCommentInDocument(
-		thread: vscode.CommentThread,
-	): Promise<void> {
+	private async revealCommentInDocument(thread: vscode.CommentThread): Promise<void> {
 		try {
 			// Open the document (works with virtual URIs)
-			const doc = await vscode.workspace.openTextDocument(thread.uri);
+			const doc = await vscode.workspace.openTextDocument(thread.uri)
 
 			// Show the document and scroll to the comment
 			// Use the start of the range so the comment appears in center (not the code block)
-			const commentPosition = new vscode.Range(
-				thread.range.start,
-				thread.range.start,
-			);
+			const commentPosition = new vscode.Range(thread.range.start, thread.range.start)
 			const editor = await vscode.window.showTextDocument(doc, {
 				selection: commentPosition,
 				preserveFocus: false,
 				preview: true,
-			});
+			})
 
 			// Reveal with the start position in center so the comment bubble is visible
-			editor.revealRange(commentPosition, vscode.TextEditorRevealType.InCenter);
+			editor.revealRange(commentPosition, vscode.TextEditorRevealType.InCenter)
 		} catch (error) {
 			// Ignore errors - this is not critical
-			Logger.error(
-				"[VscodeCommentReviewController] Error revealing comment:",
-				error,
-			);
+			Logger.error("[VscodeCommentReviewController] Error revealing comment:", error)
 		}
 	}
 
@@ -183,10 +164,10 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 	 */
 	appendToStreamingComment(chunk: string): void {
 		if (!this.streamingThread) {
-			return;
+			return
 		}
 
-		this.streamingContent += chunk;
+		this.streamingContent += chunk
 
 		// Update the comment body - reassigning comments triggers VS Code to refresh the UI
 		const commentObj: vscode.Comment = {
@@ -196,9 +177,9 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 				name: "Cline",
 				iconPath: vscode.Uri.parse(CLINE_AVATAR_URL),
 			},
-		};
+		}
 		// Create a new array to ensure VS Code detects the change
-		this.streamingThread.comments = [...[commentObj]];
+		this.streamingThread.comments = [...[commentObj]]
 	}
 
 	/**
@@ -206,12 +187,11 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 	 */
 	endStreamingComment(): void {
 		if (!this.streamingThread) {
-			return;
+			return
 		}
 
 		// Finalize with trimmed content
-		const finalContent =
-			this.streamingContent.trim() || "_No comment generated_";
+		const finalContent = this.streamingContent.trim() || "_No comment generated_"
 		const commentObj: vscode.Comment = {
 			body: new vscode.MarkdownString(finalContent),
 			mode: vscode.CommentMode.Preview,
@@ -219,12 +199,12 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 				name: "Cline",
 				iconPath: vscode.Uri.parse(CLINE_AVATAR_URL),
 			},
-		};
-		this.streamingThread.comments = [commentObj];
+		}
+		this.streamingThread.comments = [commentObj]
 
 		// Clear streaming state
-		this.streamingThread = null;
-		this.streamingContent = "";
+		this.streamingThread = null
+		this.streamingContent = ""
 	}
 
 	/**
@@ -232,8 +212,8 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 	 */
 	addReviewComments(comments: ReviewComment[]): void {
 		comments.forEach((comment) => {
-			this.addReviewComment(comment);
-		});
+			this.addReviewComment(comment)
+		})
 	}
 
 	/**
@@ -243,14 +223,14 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 		for (const thread of this.threads.values()) {
 			thread.dispose()
 		}
-		this.threads.clear();
+		this.threads.clear()
 	}
 
 	/**
 	 * Clear comments for a specific file
 	 */
 	clearCommentsForFile(filePath: string): void {
-		const keysToRemove: string[] = [];
+		const keysToRemove: string[] = []
 		for (const [key, thread] of this.threads.entries()) {
 			if (key.startsWith(filePath + ":")) {
 				thread.dispose()
@@ -258,7 +238,7 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 			}
 		}
 		for (const key of keysToRemove) {
-			this.threads.delete(key);
+			this.threads.delete(key)
 		}
 	}
 
@@ -266,7 +246,7 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 	 * Get the number of active comment threads
 	 */
 	getThreadCount(): number {
-		return this.threads.size;
+		return this.threads.size
 	}
 
 	private getThreadKey(filePath: string, startLine: number, endLine: number): string {
@@ -281,27 +261,21 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 			.flatMap((tg) => tg.tabs)
 			.filter((tab) => {
 				// Check for diff view tabs
-				if (
-					tab.input instanceof vscode.TabInputTextDiff &&
-					tab.input?.original?.scheme === DIFF_VIEW_URI_SCHEME
-				) {
-					return true;
+				if (tab.input instanceof vscode.TabInputTextDiff && tab.input?.original?.scheme === DIFF_VIEW_URI_SCHEME) {
+					return true
 				}
 				// Check for regular text document tabs with cline-diff scheme (opened during comment reveal)
-				if (
-					tab.input instanceof vscode.TabInputText &&
-					tab.input?.uri?.scheme === DIFF_VIEW_URI_SCHEME
-				) {
-					return true;
+				if (tab.input instanceof vscode.TabInputText && tab.input?.uri?.scheme === DIFF_VIEW_URI_SCHEME) {
+					return true
 				}
-				return false;
-			});
+				return false
+			})
 		for (const tab of tabs) {
 			try {
-				await vscode.window.tabGroups.close(tab);
+				await vscode.window.tabGroups.close(tab)
 			} catch (error) {
 				// Tab might already be closed
-				Logger.warn("Failed to close diff tab:", error);
+				Logger.warn("Failed to close diff tab:", error)
 			}
 		}
 	}
@@ -313,16 +287,16 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 }
 
 // Singleton instance for the extension
-let instance: VscodeCommentReviewController | undefined;
+let instance: VscodeCommentReviewController | undefined
 
 /**
  * Get or create the VscodeCommentReviewController singleton
  */
 export function getVscodeCommentReviewController(): VscodeCommentReviewController {
 	if (!instance) {
-		instance = new VscodeCommentReviewController();
+		instance = new VscodeCommentReviewController()
 	}
-	return instance;
+	return instance
 }
 
 /**
@@ -330,7 +304,7 @@ export function getVscodeCommentReviewController(): VscodeCommentReviewControlle
  */
 export function disposeVscodeCommentReviewController(): void {
 	if (instance) {
-		instance.dispose();
-		instance = undefined;
+		instance.dispose()
+		instance = undefined
 	}
 }

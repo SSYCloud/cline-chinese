@@ -9,14 +9,11 @@ import { Controller } from ".."
  * @param request Filter parameters for task history
  * @returns TaskHistoryArray with filtered task list
  */
-export async function getTaskHistory(
-	controller: Controller,
-	request: GetTaskHistoryRequest,
-): Promise<TaskHistoryArray> {
+export async function getTaskHistory(controller: Controller, request: GetTaskHistoryRequest): Promise<TaskHistoryArray> {
 	try {
 		return await controller.getTaskHistory(request)
 	} catch (error) {
-		Logger.error("Error in getTaskHistory:", error);
-		throw error;
+		Logger.error("Error in getTaskHistory:", error)
+		throw error
 	}
 }

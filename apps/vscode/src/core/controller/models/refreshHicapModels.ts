@@ -11,8 +11,8 @@ import { Controller } from ".."
  * The raw model information returned by the Hicap API to list models
  */
 interface HicapRawModelInfo {
-	id: string;
-	object: string;
+	id: string
+	object: string
 }
 
 /**
@@ -30,20 +30,20 @@ interface HicapRawModelInfo {
 export async function refreshHicapModels(controller: Controller, _request: EmptyRequest): Promise<OpenRouterCompatibleModelInfo> {
 	const hicapModelsFilePath = path.join(await ensureCacheDirectoryExists(controller), GlobalFileNames.hicapModels)
 
-	const models: Record<string, OpenRouterModelInfo> = {};
+	const models: Record<string, OpenRouterModelInfo> = {}
 	try {
 		// Get the Hicap API key from the controller's state
-		const hicapApiKey = controller.stateManager.getSecretKey("hicapApiKey");
+		const hicapApiKey = controller.stateManager.getSecretKey("hicapApiKey")
 
 		const response = await axios.get("https://api.hicap.ai/v2/openai/models", {
 			headers: {
 				"api-key": hicapApiKey,
 			},
 			...getAxiosSettings(),
-		});
+		})
 
 		if (response.data?.data) {
-			const rawModels = response.data.data;
+			const rawModels = response.data.data
 
 			for (const rawModel of rawModels as HicapRawModelInfo[]) {
 				models[rawModel.id] = {
@@ -57,7 +57,7 @@ export async function refreshHicapModels(controller: Controller, _request: Empty
 					cacheReadsPrice: 0,
 					tiers: [],
 					description: "",
-				};
+				}
 			}
 		}
 		await fs.writeFile(hicapModelsFilePath, JSON.stringify(models))
@@ -65,19 +65,14 @@ export async function refreshHicapModels(controller: Controller, _request: Empty
 		// If we failed to fetch models, keep whatever we have.
 	}
 
-	return OpenRouterCompatibleModelInfo.create({ models });
+	return OpenRouterCompatibleModelInfo.create({ models })
 }
 
 /**
  * Ensures the cache directory exists and returns its path
  */
-async function ensureCacheDirectoryExists(
-	controller: Controller,
-): Promise<string> {
-	const cacheDir = path.join(
-		controller.context.globalStorageUri.fsPath,
-		"cache",
-	);
-	await fs.mkdir(cacheDir, { recursive: true });
-	return cacheDir;
+async function ensureCacheDirectoryExists(controller: Controller): Promise<string> {
+	const cacheDir = path.join(controller.context.globalStorageUri.fsPath, "cache")
+	await fs.mkdir(cacheDir, { recursive: true })
+	return cacheDir
 }
