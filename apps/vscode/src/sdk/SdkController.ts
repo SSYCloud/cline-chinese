@@ -27,6 +27,7 @@ import type { Settings } from "@shared/storage/state-keys"
 import type { Mode } from "@shared/storage/types"
 // import type { TelemetrySetting } from "@shared/TelemetrySetting"
 import type { ClineCheckpointRestore } from "@shared/WebviewMessage"
+import axios from "axios"
 import { parseMentions } from "@/core/mentions"
 import { ensureMcpServersDirectoryExists } from "@/core/storage/disk"
 import { refreshSdkRemoteConfig } from "@/core/storage/remote-config/sdk-refresh"
@@ -36,6 +37,7 @@ import type { WorkspaceRootManager } from "@/core/workspace/WorkspaceRootManager
 import { HostProvider } from "@/hosts/host-provider"
 import type { ITerminalManager } from "@/integrations/terminal/types"
 import { ExtensionRegistryInfo } from "@/registry"
+import { SSYAccountService } from "@/services/account/SSYAccountService"
 // import { OcaAuthService } from "@/services/auth/oca/OcaAuthService"
 import { UrlContentFetcher } from "@/services/browser/UrlContentFetcher"
 import { ClineError } from "@/services/error/ClineError"
@@ -44,6 +46,7 @@ import { McpHub } from "@/services/mcp/McpHub"
 import type { ClineExtensionContext } from "@/shared/cline"
 import { ShowMessageRequest, ShowMessageType } from "@/shared/proto/host/window"
 import { Logger } from "@/shared/services/Logger"
+import { UserInfo } from "@/shared/UserInfo"
 import { isClineProvider } from "@/shared/utils/cline"
 import { arePathsEqual, getDesktopDir } from "@/utils/path"
 import { ClineAccountService } from "./account-service"
@@ -60,6 +63,7 @@ import {
 	type ProviderFailureTelemetry,
 	ProviderFailureTelemetryTurnGate,
 } from "./provider-failure-telemetry"
+import { buildApiHandler } from "./sdk-api-handler"
 import {
 	findVisibleCheckpointUserMessageByRun,
 	getCheckpointRunCountForMessage,
@@ -93,10 +97,6 @@ import { TurnStateTracker } from "./turn-state-tracker"
 import { VscodeSessionHost } from "./vscode-session-host"
 import { WebviewGrpcBridge } from "./webview-grpc-bridge"
 import { resolveWorkspaceRootPath } from "./workspace-root"
-import { SSYAccountService } from "@/services/account/SSYAccountService"
-import axios from "axios"
-import { UserInfo } from "@/shared/UserInfo"
-import { buildApiHandler } from "./sdk-api-handler"
 
 /**
  * Log a stub warning and return undefined.
@@ -253,13 +253,11 @@ export class Controller {
 		this.authService = AuthService.getInstance(this)
 		// Initialize SDK-backed auth and account services.
 		this.accountServiceSSY = new SSYAccountService(async () => {
-			const { apiConfiguration } = await this.getStateToPostToWebview();
-			Logger.log(
-				"[ Controller.accountServiceSSY ] :",
-				apiConfiguration?.shengSuanYunToken,
-			);
-			return apiConfiguration?.shengSuanYunToken;
-		});
+			const { apiConfiguration } = await this.getStateToPostToWebview()
+			const token = apiConfiguration?.shengSuanYunToken || apiConfiguration?.shengSuanYunApiKey
+			Logger.log("[ Controller.accountServiceSSY ] :", token)
+			return token
+		})
 		// this.ocaAuthService = OcaAuthService.initialize(this)
 		this.accountService = ClineAccountService.getInstance()
 
@@ -567,31 +565,31 @@ export class Controller {
 	async handleSignOut() {
 		try {
 			// AuthService now handles its own storage cleanup in handleDeauth()
-			this.stateManager.setGlobalState("userInfo", undefined);
+			this.stateManager.setGlobalState("userInfo", undefined)
 			// clearRemoteConfig()
 
 			// Update API providers through cache service
-			const apiConfiguration = this.stateManager.getApiConfiguration();
+			const apiConfiguration = this.stateManager.getApiConfiguration()
 			const updatedConfig = {
 				...apiConfiguration,
 				shengSuanYunToken: undefined,
 				userInfo: undefined,
-			};
-			this.stateManager.setApiConfiguration(updatedConfig);
+			}
+			this.stateManager.setApiConfiguration(updatedConfig)
 
-			await this.postStateToWebview();
+			await this.postStateToWebview()
 			HostProvider.window.showMessage({
 				type: ShowMessageType.INFORMATION,
 				message: "成功登出 Cline 胜算云",
-			});
+			})
 		} catch (_error) {
 			HostProvider.window.showMessage({
 				type: ShowMessageType.INFORMATION,
 				message: "登出失败",
-			});
+			})
 		}
 	}
-	
+
 	getProviderConfigStore(): ProviderConfigStore {
 		return this.providerConfigStore
 	}
@@ -1491,7 +1489,6 @@ export class Controller {
 	// 	await this.postStateToWebview()
 	// }
 
-
 	async handleOcaSignOut(): Promise<void> {
 		// await this.ocaAuthService.handleDeauth(LogoutReason.USER_INITIATED)
 		// await this.postStateToWebview()
@@ -1545,34 +1542,33 @@ export class Controller {
 	async handleShengSuanYunCallback(code: string) {
 		// console.log("handleShengSuanYunCallback() with code:", code)
 		try {
-			let shengSuanYunApiKey: string;
-			let shengSuanYunToken: string;
+			let shengSuanYunApiKey: string
+			let shengSuanYunToken: string
 			const res = await axios.post("https://api.shengsuanyun.com/auth/keys", {
 				code: code,
 				callback_url: `vscode://shengsuan-cloud.cline-shengsuan/ssy`,
-			});
+			})
 			// console.log("https://api.shengsuanyun.com/auth/keys :", res.data)
 			if (res.data && res.data.data && res.data.data.api_key) {
-				shengSuanYunApiKey = res.data.data.api_key;
-				shengSuanYunToken = res.data.data.jwt_token;
+				shengSuanYunApiKey = res.data.data.api_key
+				shengSuanYunToken = res.data.data.jwt_token
 			} else if (!res.data.data.api_key) {
-				shengSuanYunToken = res.data.data.jwt_token;
-				shengSuanYunApiKey = "";
+				shengSuanYunToken = res.data.data.jwt_token
+				shengSuanYunApiKey = ""
 				HostProvider.window.showMessage({
 					type: ShowMessageType.ERROR,
-					message:
-						"登录账户成功，获取API_Key 失败，请先登录胜算云控制台创建 API_KEY 。",
-				});
+					message: "登录账户成功，获取API_Key 失败，请先登录胜算云控制台创建 API_KEY 。",
+				})
 			} else {
 				throw new Error("Invalid response from handleShengSuanYunCallback()", {
 					cause: res,
-				});
+				})
 			}
 
 			// await this.accountServiceSSY.handleAuthCallback(customToken, provider ? provider : "google")
-			const shengsuanyun: ApiProvider = "shengsuanyun";
-			const currentMode = this.stateManager.getGlobalSettingsKey("mode");
-			const currentApiConfiguration = this.stateManager.getApiConfiguration();
+			const shengsuanyun: ApiProvider = "shengsuanyun"
+			const currentMode = this.stateManager.getGlobalSettingsKey("mode")
+			const currentApiConfiguration = this.stateManager.getApiConfiguration()
 
 			const updatedConfig = {
 				...currentApiConfiguration,
@@ -1580,25 +1576,22 @@ export class Controller {
 				actModeApiProvider: shengsuanyun,
 				shengSuanYunApiKey,
 				shengSuanYunToken,
-			};
-			this.stateManager.setApiConfiguration(updatedConfig);
-			this.stateManager.setGlobalState("welcomeViewCompleted", true);
-			if (this.task) {
-				this.task.api = buildApiHandler(
-					{ ...updatedConfig, ulid: this.task.ulid },
-					currentMode,
-				);
 			}
-			const user: UserInfo = await this.accountServiceSSY.getUserInfo();
+			this.stateManager.setApiConfiguration(updatedConfig)
+			this.stateManager.setGlobalState("welcomeViewCompleted", true)
+			if (this.task) {
+				this.task.api = buildApiHandler({ ...updatedConfig, ulid: this.task.ulid }, currentMode)
+			}
+			const user: UserInfo = await this.accountServiceSSY.getUserInfo()
 			// console.log("Controller.fetchUserCreditsData().user", user)
-			this.stateManager.setGlobalState("userInfo", user);
-			await this.postStateToWebview();
+			this.stateManager.setGlobalState("userInfo", user)
+			await this.postStateToWebview()
 		} catch (error) {
-			Logger.error("Failed to handle auth callback:", error);
+			Logger.error("Failed to handle auth callback:", error)
 			HostProvider.window.showMessage({
 				type: ShowMessageType.ERROR,
 				message: "登录失败",
-			});
+			})
 		}
 	}
 
