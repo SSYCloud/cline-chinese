@@ -1,3 +1,9 @@
+# Exclude everything from parent directories (monorepo root and above).
+# Patterns like `.claude/**` only match the local dir, not `../../.claude/**`.
+# Note: vsce cannot package files at ../ or ../../ paths (invalid relative path in VSIX).
+../**
+../../**
+
 # Default
 .vscode/**
 .vscode-test/**

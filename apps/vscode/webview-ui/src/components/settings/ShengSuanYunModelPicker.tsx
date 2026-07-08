@@ -9,8 +9,9 @@ import { ModelsServiceClient } from "@/services/grpc-client"
 import { useExtensionState } from "../../context/ExtensionStateContext"
 import { ModelInfoView } from "./common/ModelInfoView"
 import ThinkingBudgetSlider from "./ThinkingBudgetSlider"
-import { getModeSpecificFields, normalizeApiConfiguration } from "./utils/providerUtils"
+import { getModeSpecificFields } from "./utils/providerUtils"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
+import { useDynamicProviderSelection } from "@/hooks/useDynamicProviderSelection"
 
 export interface ShengSuanYunModelPickerProps {
 	isPopup?: boolean
@@ -100,10 +101,8 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 		)
 		setSearchTerm(newModelId)
 	}
+	const { selectedModelId, selectedModelInfo } = useDynamicProviderSelection("shengsuanyun", apiConfiguration, currentMode)
 
-	const { selectedModelId, selectedModelInfo } = useMemo(() => {
-		return normalizeApiConfiguration(apiConfiguration, currentMode)
-	}, [apiConfiguration, currentMode])
 
 	useMount(() => {
 		ModelsServiceClient.refreshShengSuanYunModels(EmptyRequest.create({}))

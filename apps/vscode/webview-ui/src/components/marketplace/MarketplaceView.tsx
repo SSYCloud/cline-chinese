@@ -55,8 +55,7 @@ const PRIMITIVES: PrimitiveConfig[] = [
 		title: "Skills",
 		description: (
 			<>
-				Reusable instruction sets that Cline loads on demand for specific tasks, without staying in context for unrelated
-				work. Browse more at <VSCodeLink href="https://agentskills.io/">Agent Skills</VSCodeLink>.
+				Cline 针对特定任务按需加载的可复用指令集，不会在处理无关工作时占用上下文资源。欲了解更多信息，请访问 <VSCodeLink href="https://agentskills.io/">Agent Skills</VSCodeLink>。
 			</>
 		),
 		icon: SparklesIcon,
@@ -69,8 +68,8 @@ const PRIMITIVES: PrimitiveConfig[] = [
 		title: "MCP Servers",
 		description: (
 			<>
-				Connect Cline to external APIs, local tools, and hosted services through{" "}
-				<VSCodeLink href="https://modelcontextprotocol.io/">MCP</VSCodeLink> servers.
+				通过
+				<VSCodeLink href="https://modelcontextprotocol.io/">MCP</VSCodeLink> 服务.将 Cline 连接到外部 API、本地工具和托管服务
 			</>
 		),
 		icon: PlugIcon,
@@ -83,9 +82,7 @@ const PRIMITIVES: PrimitiveConfig[] = [
 		title: "Plugins",
 		description: (
 			<>
-				<VSCodeLink href="https://docs.cline.bot/sdk/plugins">Plugins</VSCodeLink> are extensions for capabilities more
-				complex than a single MCP server or skill, including custom tools, hooks, rules, slash commands, or bundled
-				skills.
+				<VSCodeLink href="https://docs.cline.bot/sdk/plugins">Plugins</VSCodeLink> 是针对比单一 MCP 服务器或技能更为复杂的功能的扩展，包括自定义工具、钩子（hooks）、规则、斜杠命令或捆绑技能。
 			</>
 		),
 		icon: PuzzleIcon,
@@ -93,8 +90,8 @@ const PRIMITIVES: PrimitiveConfig[] = [
 ]
 
 const MARKETPLACE_SECTIONS: Array<{ type: MarketplaceSectionType; label: string }> = [
-	{ type: "installed", label: "Installed" },
-	{ type: "marketplace", label: "Marketplace" },
+	{ type: "installed", label: "已安装" },
+	{ type: "marketplace", label: "市场" },
 ]
 
 function isPrimitiveType(value: string): value is PrimitiveType {
@@ -114,9 +111,9 @@ function getPrimitive(type: PrimitiveType): PrimitiveConfig {
 }
 
 function sourceLabel(entry: MarketplaceLocalInstalledEntry): string | undefined {
-	if (entry.source === "global") return "Global"
-	if (entry.source === "workspace") return "Workspace"
-	if (entry.source === "remote") return "Remote"
+	if (entry.source === "global") return "全局"
+	if (entry.source === "workspace") return "工作区"
+	if (entry.source === "remote") return "远程"
 	return undefined
 }
 
@@ -704,7 +701,7 @@ const MarketplaceCatalogSection = ({
 	<section className="marketplace-section">
 		{showHeader && (
 			<div className="marketplace-section-header">
-				<h3 className="marketplace-section-title">Marketplace</h3>
+				<h3 className="marketplace-section-title">市场</h3>
 			</div>
 		)}
 		{search}
@@ -764,7 +761,7 @@ const McpManagementPanel = ({
 		<section className="marketplace-section">
 			{showHeader && (
 				<div className="marketplace-section-header">
-					<h3 className="marketplace-section-title">Installed MCP Servers</h3>
+					<h3 className="marketplace-section-title">安装的 MCP 服务</h3>
 				</div>
 			)}
 			{(showServerList || hasRemoteMCPServers) && (
@@ -772,7 +769,7 @@ const McpManagementPanel = ({
 					{hasRemoteMCPServers && (
 						<div className="marketplace-mcp-managed">
 							<span className="codicon codicon-lock" />
-							<span>Your organization manages some MCP servers</span>
+							<span>您的组织管理一些 MCP 服务器</span>
 						</div>
 					)}
 					{showServerList && (
@@ -790,7 +787,7 @@ const McpManagementPanel = ({
 				{showRemoteServers && !showAddRemote && (
 					<VSCodeButton appearance="primary" onClick={() => setShowAddRemote(true)}>
 						<span className="codicon codicon-add" style={{ marginRight: "6px" }} />
-						Add Remote Server
+						添加远程服务器
 					</VSCodeButton>
 				)}
 				{showRemoteServers && showAddRemote && (
@@ -810,10 +807,10 @@ const McpManagementPanel = ({
 						})
 					}}>
 					<span className="codicon codicon-server" style={{ marginRight: "6px" }} />
-					Edit Configuration
+					编辑配置
 				</VSCodeButton>
 				<div className="marketplace-mcp-advanced">
-					<VSCodeLink onClick={() => navigateToSettings("features")}>Advanced MCP Settings</VSCodeLink>
+					<VSCodeLink onClick={() => navigateToSettings("features")}> MCP 高级设置</VSCodeLink>
 				</div>
 			</div>
 		</section>
@@ -903,7 +900,7 @@ const InstalledMarketplaceRow = ({
 					<div className="marketplace-row-description">{entry.description || entry.tagline}</div>
 				)}
 				<div className="marketplace-row-meta">
-					<span className="marketplace-pill">Marketplace</span>
+					<span className="marketplace-pill">市场</span>
 					{matchedLocalEntries.map((localEntry) => {
 						const origin = sourceLabel(localEntry)
 						return (
@@ -1218,7 +1215,7 @@ const MarketplaceView = ({ initialType = "skill", onDone }: MarketplaceViewProps
 	return (
 		<Tab className="marketplace-view">
 			<MarketplaceStyles />
-			<ViewHeader environment={environment} onDone={onDone} title="Customize" />
+			<ViewHeader environment={environment} onDone={onDone} title="自定义" />
 
 			<div className="marketplace-shell">
 				<TabList className="marketplace-nav" onValueChange={handleTabChange} value={activeType}>
@@ -1254,7 +1251,7 @@ const MarketplaceView = ({ initialType = "skill", onDone }: MarketplaceViewProps
 						{loading ? (
 							<div className="marketplace-loading">
 								<VSCodeProgressRing />
-								<span>Loading {primitive.plural}</span>
+								<span>正在加载 {primitive.plural}</span>
 							</div>
 						) : (
 							<>
@@ -1268,9 +1265,9 @@ const MarketplaceView = ({ initialType = "skill", onDone }: MarketplaceViewProps
 									) : (
 										<Section
 											count={installedCatalogEntries.length + localOnlyInstalledEntries.length}
-											empty={`No installed ${primitive.plural}.`}
+											empty={`没有安装 ${primitive.plural}.`}
 											showHeader={false}
-											title={`Installed ${primitive.title}`}>
+											title={`已安装 ${primitive.title}`}>
 											{installedCatalogEntries.map((entry) => (
 												<InstalledMarketplaceRow
 													entry={entry}
@@ -1302,8 +1299,8 @@ const MarketplaceView = ({ initialType = "skill", onDone }: MarketplaceViewProps
 										count={visibleCatalogEntries.length}
 										empty={
 											query || selectedTag
-												? `No ${primitive.plural} match your search.`
-												: `No marketplace ${primitive.plural}.`
+												? `没有 ${primitive.plural} 匹配您的搜索。`
+												: `没有市场 ${primitive.plural}。`
 										}
 										filters={
 											<TagFilters
@@ -1316,14 +1313,14 @@ const MarketplaceView = ({ initialType = "skill", onDone }: MarketplaceViewProps
 										search={
 											<div className="marketplace-search">
 												<VSCodeTextField
-													aria-label={`Search ${primitive.title}`}
+													aria-label={`搜索 ${primitive.title}`}
 													onInput={(event) => setQuery((event.target as HTMLInputElement).value)}
-													placeholder={`Search ${primitive.plural}`}
+													placeholder={`搜索 ${primitive.plural}`}
 													value={query}>
 													<span className="codicon codicon-search" slot="start" />
 													{query && (
 														<button
-															aria-label="Clear search"
+															aria-label="清除搜索"
 															className="codicon codicon-close marketplace-clear-search"
 															onClick={() => setQuery("")}
 															slot="end"

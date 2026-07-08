@@ -41,7 +41,7 @@ import { fetch } from "@/shared/net"
 import { ShowMessageType } from "@/shared/proto/host/window"
 import { Logger } from "@/shared/services/Logger"
 import { expandEnvironmentVariables } from "@/utils/envExpansion"
-import type { TelemetryService } from "../telemetry/TelemetryService"
+// import type { TelemetryService } from "../telemetry/TelemetryService"
 import { DEFAULT_REQUEST_TIMEOUT_MS } from "./constants"
 import { McpOAuthManager } from "./McpOAuthManager"
 import { updateMcpSettingsFile } from "./settingsLock"
@@ -119,7 +119,7 @@ export class McpHub {
 		this.getMcpServersPath = getMcpServersPath
 		this.getSettingsDirectoryPath = getSettingsDirectoryPath
 		this.clientVersion = clientVersion
-		this.telemetryService = telemetryService
+		// this.telemetryService = telemetryService
 		this.mcpOAuthManager = new McpOAuthManager(() => this.getMcpSettingsFilePath())
 		this.watchMcpSettingsFile()
 		this.initializeMcpServers()

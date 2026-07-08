@@ -2,17 +2,17 @@ import { StringRequest } from "@shared/proto/cline/common"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import { useEffect, useState } from "react"
 import { ClineAuthStatus } from "@/components/account/ClineAuthStatus"
-import { useClineAuth, useClineSignIn } from "@/context/ClineAuthContext"
+import { useClineSignIn } from "@/context/ClineAuthContext"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { UiServiceClient } from "@/services/grpc-client"
 
 export const ClineAccountInfoCard = ({ usageLink }: { usageLink?: string }) => {
-	const { clineUser } = useClineAuth()
+	// const { clineUser } = useClineAuth()
 	const { navigateToAccount } = useExtensionState()
 	const { isLoginLoading, authStatusMessage, handleSignIn } = useClineSignIn()
 	const [didStartLogin, setDidStartLogin] = useState(false)
 
-	const user = userInfo || undefined
+	const user = undefined
 
 	const handleLogin = () => {
 		setDidStartLogin(true)

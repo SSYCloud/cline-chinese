@@ -57,8 +57,10 @@ const KNOWN_API_PROVIDERS = {
 	nousResearch: true,
 	wandb: true,
 	xiaomi: true,
+	"tencent-tokenhub": true,
 	"cline-pass": true,
-} satisfies Record<ApiProvider, true>
+	shengsuanyun: true,
+} as Record<ApiProvider, true>
 
 const normalizeProviderId = (raw: string): string => raw.trim().toLowerCase()
 

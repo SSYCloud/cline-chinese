@@ -3,12 +3,8 @@ import type { LanguageModelV3 } from "@ai-sdk/provider";
 import type {
 	GatewayProviderContext,
 	GatewayResolvedProviderConfig,
-<<<<<<< HEAD
-} from "@coohu/shared";
-=======
 } from "@coohu/shared";
 import { wrapLanguageModel } from "ai";
->>>>>>> ee59f81706981e0a64c8b32f8f0415c9d39561fa
 import { resolveApiKey } from "../http";
 import {
 	createMiniMaxThinkingFetch,

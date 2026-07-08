@@ -211,7 +211,7 @@ export function ChannelsContent() {
 		securityValues: {},
 	});
 	const [formError, setFormError] = useState<string | null>(null);
-	const [removeTarget, set移除Target] = useState<ActiveConnector | null>(null);
+	const [removeTarget, setRemoveTarget] = useState<ActiveConnector | null>(null);
 
 	const selectedChannel = useMemo(
 		() => channels.find((channel) => channel.id === formState.channelId),
@@ -334,7 +334,7 @@ export function ChannelsContent() {
 				{ channel: connector.type },
 			);
 			applyResponse(response);
-			set移除Target(null);
+			setRemoveTarget(null);
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
 			setErrorMessage(message);
@@ -439,7 +439,7 @@ export function ChannelsContent() {
 									variant="outline"
 								>
 									<Trash2 className="size-4" />
-									Remove...
+									删除...
 								</Button>
 							</div>
 						))}
@@ -604,7 +604,7 @@ export function ChannelsContent() {
 				open={removeTarget !== null}
 				onOpenChange={(open: boolean) => {
 					if (!open) {
-						set移除Target(null);
+						setRemoveTarget(null);
 					}
 				}}
 			>

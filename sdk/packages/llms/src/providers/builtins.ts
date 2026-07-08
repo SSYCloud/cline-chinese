@@ -1,5 +1,4 @@
 import {
-	getClineEnvironmentConfig,
 	type GatewayModelCapability,
 	type GatewayModelDefinition,
 	type GatewayProviderManifest,
@@ -10,23 +9,13 @@ import {
 	type ProviderConfigField,
 } from "@coohu/shared";
 import { getGeneratedModelsForProvider } from "../catalog/catalog.generated-access";
-import {
-	isCanonicalModelIdForAliasRules,
-	preferCanonicalModelIds,
-	VERCEL_OPENROUTER_MODEL_ID_ALIAS_RULES,
-} from "../catalog/model-id-aliases";
 import type {
 	ModelCollection,
 	ModelInfo,
 	ProviderClient,
 	ProviderProtocol,
 } from "../catalog/types";
-import {
-	ClineNotSubscribedError,
-	ClineOrgIndividualInferenceSubscriptionError,
-	isClineNotSubscribedMessage,
-	isClineOrgIndividualInferenceSubscriptionMessage,
-} from "./errors";
+
 import { filterOpenAICodexModels } from "./openai-codex-models";
 import {
 	ANTHROPIC_AND_QWEN_CACHE_ROUTING_METADATA,
@@ -40,8 +29,7 @@ export const DEFAULT_INTERNAL_OCA_BASE_URL =
 	"https://code-internal.aiservice.us-chicago-1.oci.oraclecloud.com/20250206/app/litellm";
 export const DEFAULT_EXTERNAL_OCA_BASE_URL =
 	"https://code.aiservice.us-chicago-1.oci.oraclecloud.com/20250206/app/litellm";
-const CLINE_DEFAULT_MODEL_ID = "anthropic/claude-sonnet-4.6";
-const CLINE_PASS_PROVIDER_ID = "cline-pass";
+
 const OPENAI_CODEX_DEFAULT_MODEL_ID = "gpt-5.4";
 const OPENROUTER_STICKY_SESSION_METADATA: GatewayProviderMetadata = {
 	stickySession: {
@@ -294,14 +282,6 @@ function generatedModels(providerId: string): Record<string, ModelInfo> {
 	return cloneModels(getGeneratedModelsForProvider(providerId));
 }
 
-function firstGeneratedModelId(providerId: string): string {
-	const generatedModelList = Object.keys(generatedModels(providerId));
-	if (!generatedModelList.length) {
-		return "";
-	}
-	return generatedModelList[0];
-}
-
 function pickAnthropicModel(match: (id: string) => boolean): ModelInfo {
 	const entry = Object.entries(generatedModels("anthropic")).find(([id]) =>
 		match(id),
@@ -340,27 +320,6 @@ function buildClaudeCodeModels(): Record<string, ModelInfo> {
 
 function buildOpenAICodexModels(): Record<string, ModelInfo> {
 	return filterOpenAICodexModels(generatedModels("openai-native"));
-}
-
-function buildClineModels(): Record<string, ModelInfo> {
-	// Cline is OpenRouter-backed generally, but its recommended-model endpoint
-	// can return Vercel-style ids. Include those exact ids so runtime metadata
-	// resolves without adding duplicate OpenRouter aliases to the picker.
-	const vercelAliasModels = Object.fromEntries(
-		Object.entries(generatedModels("vercel-ai-gateway")).filter(([modelId]) =>
-			isCanonicalModelIdForAliasRules(
-				modelId,
-				VERCEL_OPENROUTER_MODEL_ID_ALIAS_RULES,
-			),
-		),
-	);
-	return preferCanonicalModelIds(
-		{
-			...generatedModels("openrouter"),
-			...vercelAliasModels,
-		},
-		VERCEL_OPENROUTER_MODEL_ID_ALIAS_RULES,
-	);
 }
 
 function fallbackModelInfo(id: string, spec?: BuiltinSpec): ModelInfo {
@@ -477,98 +436,6 @@ function inferClient(spec: BuiltinSpec): ProviderClient {
 			return "openai-compatible";
 	}
 }
-
-function createClineLikeSpec(
-	input: Pick<BuiltinSpec, "id" | "name" | "defaultModelId"> &
-		Partial<
-			Pick<
-				BuiltinSpec,
-				| "description"
-				| "popular"
-				| "modelsProviderId"
-				| "modelsFactory"
-				| "metadata"
-				| "defaults"
-			>
-		>,
-): BuiltinSpec {
-	return {
-		id: input.id,
-		name: input.name,
-		description: input.description ?? "Cline API endpoint",
-		family: "openai-compatible",
-		popular: input.popular,
-		capabilities: ["reasoning", "prompt-cache", "tools", "oauth"],
-		modelsProviderId: input.modelsProviderId,
-		modelsFactory: input.modelsFactory,
-		defaultModelId: input.defaultModelId,
-		apiKeyEnv: ["CLINE_API_KEY"],
-		defaults: {
-			get baseUrl(): string {
-				return `${getClineEnvironmentConfig().apiBaseUrl}/api/v1`;
-			},
-			...input.defaults,
-		},
-		metadata: {
-			...ANTHROPIC_AND_QWEN_CACHE_ROUTING_METADATA,
-			...input.metadata,
-		},
-	};
-}
-
-async function handleClineResponseError(
-	response: Response,
-	providerId: string,
-): Promise<void> {
-	if (response.status !== 403) {
-		return;
-	}
-
-	const body = await response
-		.clone()
-		.text()
-		.catch(() => "");
-
-	if (isClineOrgIndividualInferenceSubscriptionMessage(body)) {
-		throw new ClineOrgIndividualInferenceSubscriptionError(providerId);
-	}
-
-	if (isClineNotSubscribedMessage(body)) {
-		throw new ClineNotSubscribedError(providerId);
-	}
-}
-
-const cline = createClineLikeSpec({
-	id: "cline",
-	name: "Cline Usage-Billing",
-	popular: 1,
-	modelsFactory: buildClineModels,
-	defaultModelId: CLINE_DEFAULT_MODEL_ID,
-	defaults: {
-		options: {
-			onResponseError: async (response: Response) => {
-				await handleClineResponseError(response, "cline");
-			},
-		},
-	},
-});
-
-const clinePass = createClineLikeSpec({
-	id: CLINE_PASS_PROVIDER_ID,
-	name: "ClinePass",
-	popular: 2,
-	description: "Cline API endpoint with ClinePass models",
-	modelsProviderId: CLINE_PASS_PROVIDER_ID,
-	defaultModelId: firstGeneratedModelId(CLINE_PASS_PROVIDER_ID),
-	metadata: { usageCostDisplay: "subscription" },
-	defaults: {
-		options: {
-			onResponseError: async (response: Response) => {
-				await handleClineResponseError(response, CLINE_PASS_PROVIDER_ID);
-			},
-		},
-	},
-});
 
 const OPENAI_COMPATIBLE_SPECS: BuiltinSpec[] = [
 	{
@@ -878,10 +745,22 @@ const OPENAI_COMPATIBLE_SPECS: BuiltinSpec[] = [
 		description: "Xiaomi",
 		family: "openai-compatible",
 		capabilities: ["prompt-cache", "tools", "reasoning"],
-		defaultModelId: "mimo-v2-omni",
+		defaultModelId: "mimo-v2.5",
 		apiKeyEnv: ["XIAOMI_API_KEY"],
 		modelsProviderId: "xiaomi",
 		defaults: { baseUrl: "https://api.xiaomimimo.com/v1" },
+	},
+	{
+		id: "tencent-tokenhub",
+		name: "Tencent TokenHub",
+		description: "Tencent TokenHub AI models",
+		family: "openai-compatible",
+		capabilities: ["tools", "reasoning"],
+		defaultModelId: "hy3-preview",
+		apiKeyEnv: ["TENCENT_TOKENHUB_API_KEY"],
+		modelsProviderId: "tencent-tokenhub",
+		docsUrl: "https://cloud.tencent.com/document/product/1823/130050",
+		defaults: { baseUrl: "https://tokenhub.tencentmaas.com/v1" },
 	},
 	{
 		id: "kilo",

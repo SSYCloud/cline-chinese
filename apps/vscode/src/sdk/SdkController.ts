@@ -30,7 +30,7 @@ import type { ClineCheckpointRestore } from "@shared/WebviewMessage"
 import { parseMentions } from "@/core/mentions"
 import { ensureMcpServersDirectoryExists } from "@/core/storage/disk"
 import { refreshSdkRemoteConfig } from "@/core/storage/remote-config/sdk-refresh"
-import { clearRemoteConfig } from "@/core/storage/remote-config/utils"
+// import { clearRemoteConfig } from "@/core/storage/remote-config/utils"
 import { StateManager } from "@/core/storage/StateManager"
 import type { WorkspaceRootManager } from "@/core/workspace/WorkspaceRootManager"
 import { HostProvider } from "@/hosts/host-provider"
@@ -44,15 +44,22 @@ import { McpHub } from "@/services/mcp/McpHub"
 import type { ClineExtensionContext } from "@/shared/cline"
 import { ShowMessageRequest, ShowMessageType } from "@/shared/proto/host/window"
 import { Logger } from "@/shared/services/Logger"
+import { isClineProvider } from "@/shared/utils/cline"
 import { arePathsEqual, getDesktopDir } from "@/utils/path"
 import { ClineAccountService } from "./account-service"
-import { AuthService, LogoutReason } from "./auth-service"
+import { AuthService } from "./auth-service"
 import { buildStartSessionInput, createHistoryItemFromSession } from "./cline-session-factory"
 import { MessageTranslatorState, reshapeErrorForWebview } from "./message-translator"
 import { createProviderCatalog } from "./model-catalog/catalog"
 import type { Disposable, ProviderCatalog, ProviderConfigChange, ProviderConfigStore } from "./model-catalog/contracts"
 import { parseProviderId } from "./model-catalog/provider-id"
 import { createProviderConfigStore } from "./model-catalog/store"
+import {
+	PROVIDER_FAILURE_ERROR_TYPE,
+	PROVIDER_FAILURE_PHASE,
+	type ProviderFailureTelemetry,
+	ProviderFailureTelemetryTurnGate,
+} from "./provider-failure-telemetry"
 import {
 	findVisibleCheckpointUserMessageByRun,
 	getCheckpointRunCountForMessage,
@@ -163,6 +170,7 @@ export class Controller {
 	private sessionEvents: SdkSessionEventCoordinator
 	private sessionHistory: SdkSessionHistoryLoader
 	// private readonly sdkTelemetry: VscodeSdkTelemetryHandle
+	private readonly providerFailureTelemetryTurnGate = new ProviderFailureTelemetryTurnGate()
 	private readonly providerConfigStore: ProviderConfigStore
 	private readonly providerCatalog: ProviderCatalog
 	private readonly providerConfigStoreSubscription: Disposable
@@ -312,6 +320,9 @@ export class Controller {
 				}
 				return this._terminalManager
 			},
+			onSendStart: () => {
+				this.beginProviderFailureTelemetryTurn()
+			},
 			onSendComplete: async () => {
 				await this.providerChanges.handleTurnComplete(this.mode)
 
@@ -323,17 +334,39 @@ export class Controller {
 				// A turn failed — the UI shows error recovery (Retry / Sign In / Add Credits).
 				this.turnStateTracker.set("error")
 				const errorMessage = error instanceof Error ? error.message : String(error)
+				const providerId = this.getSessionProviderId(sessionId) ?? this.getActiveProviderId()
 				const isClineAuthError =
-					this.isClineProviderActive() &&
+					isClineProvider(providerId) &&
 					(errorMessage.includes(CLINE_ACCOUNT_AUTH_ERROR_MESSAGE) ||
 						errorMessage.toLowerCase().includes("missing api key") ||
 						errorMessage.toLowerCase().includes("unauthorized"))
 
 				if (isClineAuthError) {
+					this.captureProviderFailure({
+						sessionId,
+						error,
+						providerId,
+						errorType: PROVIDER_FAILURE_ERROR_TYPE.AUTH,
+						failurePhase: PROVIDER_FAILURE_PHASE.PREFLIGHT,
+					})
 					this.emitClineAuthError()
-				} else if (this.isClineProviderActive() && this.isClineBalanceError(errorMessage)) {
+				} else if (isClineProvider(providerId) && this.isClineBalanceError(errorMessage)) {
+					this.captureProviderFailure({
+						sessionId,
+						error,
+						providerId,
+						errorType: PROVIDER_FAILURE_ERROR_TYPE.BALANCE,
+						failurePhase: PROVIDER_FAILURE_PHASE.PREFLIGHT,
+					})
 					this.emitClineBalanceError(errorMessage)
 				} else {
+					this.captureProviderFailure({
+						sessionId,
+						error,
+						providerId,
+						errorType: PROVIDER_FAILURE_ERROR_TYPE.SEND_ERROR,
+						failurePhase: PROVIDER_FAILURE_PHASE.STREAMING,
+					})
 					this.messages.emitSessionEvents(
 						[
 							{
@@ -370,7 +403,7 @@ export class Controller {
 			loadInitialMessages: async (sdkHost, sessionId) =>
 				(await this.sessionHistory.loadInitialMessages(sdkHost, sessionId)) ?? [],
 			buildStartSessionInput,
-			emitClineAuthError: () => this.emitClineAuthError(),
+			emitClineAuthError: () => this.emitClineAuthErrorWithTelemetry(),
 			resetMessageTranslator: () => this.resetMessageTranslatorAndFence(),
 			postStateToWebview: () => this.postStateToWebview(),
 			getTurnPhase: () => this.turnStateTracker.currentPhase,
@@ -421,7 +454,7 @@ export class Controller {
 			buildStartSessionInput,
 			resolveContextMentions: (text) => this.resolveContextMentions(text),
 			isClineProviderActive: () => this.isClineProviderActive(),
-			emitClineAuthError: () => this.emitClineAuthError(),
+			emitClineAuthError: () => this.emitClineAuthErrorWithTelemetry(),
 			resetMessageTranslator: () => this.resetMessageTranslatorAndFence(),
 			postStateToWebview: () => this.postStateToWebview(),
 			onResumeFailed: () => {
@@ -470,7 +503,8 @@ export class Controller {
 			loadInitialMessages: (reader, taskId) => this.sessionHistory.loadInitialMessages(reader, taskId),
 			resolveContextMentions: (text) => this.resolveContextMentions(text),
 			isClineProviderActive: () => this.isClineProviderActive(),
-			emitClineAuthError: (task) => this.emitClineAuthError(task),
+			emitClineAuthError: (task) => this.emitClineAuthErrorWithTelemetry(task),
+			captureProviderApiError: (event) => this.captureProviderFailure(event),
 			postStateToWebview: () => this.postStateToWebview(),
 		})
 		this.compaction = new SdkCompactionCoordinator({
@@ -496,6 +530,8 @@ export class Controller {
 			getTask: () => this.task,
 			postStateToWebview: () => this.postStateToWebview(),
 			setTurnPhase: (phase, anchorTs) => this.turnStateTracker.set(phase, anchorTs),
+			captureProviderApiError: (event) => this.captureProviderFailure(event),
+			beginProviderFailureTelemetryTurn: () => this.beginProviderFailureTelemetryTurn(),
 		})
 		// Subscribe to MCP tool list changes so we can restart the SDK session
 		// when servers are added/removed/reconnected. The SDK's DefaultSessionBuilder
@@ -528,7 +564,7 @@ export class Controller {
 		Logger.log("[SdkController] Initialized with SDK adapter layer + gRPC bridge + auth services")
 	}
 
-		async handleSignOut() {
+	async handleSignOut() {
 		try {
 			// AuthService now handles its own storage cleanup in handleDeauth()
 			this.stateManager.setGlobalState("userInfo", undefined);
@@ -856,11 +892,78 @@ export class Controller {
 		}
 	}
 
+	private getTaskModelId(): string | undefined {
+		const modelId = this.task?.api?.getModel?.().id?.trim()
+		return modelId && modelId !== "unknown" ? modelId : undefined
+	}
+
+	private getSessionProviderId(sessionId?: string): string | undefined {
+		const activeSession = this.sessions.getActiveSession()
+		if (sessionId && activeSession?.sessionId !== sessionId) {
+			return undefined
+		}
+		const providerId =
+			activeSession?.startResult?.manifest?.provider?.trim() || activeSession?.startConfig?.providerId?.trim()
+		return providerId && providerId !== "unknown" ? providerId : undefined
+	}
+
+	private getSessionModelId(sessionId?: string): string | undefined {
+		const activeSession = this.sessions.getActiveSession()
+		if (sessionId && activeSession?.sessionId !== sessionId) {
+			return undefined
+		}
+		const modelId = activeSession?.startResult?.manifest?.model?.trim() || activeSession?.startConfig?.modelId?.trim()
+		return modelId && modelId !== "unknown" ? modelId : undefined
+	}
+
+	private beginProviderFailureTelemetryTurn(): void {
+		this.providerFailureTelemetryTurnGate.beginTurn()
+	}
+
 	/**
-	 * Check if the active API provider is 'cline' (for current mode).
+	 * Check if the active API provider uses Cline account auth for the current mode.
 	 */
 	private isClineProviderActive(): boolean {
-		return this.getActiveProviderId() === "cline"
+		return isClineProvider(this.getActiveProviderId())
+	}
+
+	private captureProviderFailure(event: ProviderFailureTelemetry): void {
+		const ulid = event.sessionId ?? this.task?.taskId ?? this.sessions.getActiveSession()?.sessionId
+		if (!ulid) {
+			return
+		}
+		if (
+			event.failurePhase === PROVIDER_FAILURE_PHASE.STREAMING &&
+			!this.providerFailureTelemetryTurnGate.shouldCaptureStreamingFailure()
+		) {
+			return
+		}
+
+		// const provider = event.providerId ?? this.getSessionProviderId(event.sessionId) ?? "unknown"
+		// const model = event.modelId ?? this.getSessionModelId(event.sessionId) ?? this.getTaskModelId() ?? "unknown"
+		// const clineError = ClineError.transform(event.error, model, provider)
+
+		// telemetryService.captureProviderApiError({
+		// 	ulid,
+		// 	model,
+		// 	provider,
+		// 	errorMessage: clineError.message || String(event.error),
+		// 	errorStatus: clineError.status,
+		// 	requestId: clineError.requestId,
+		// 	errorType: event.errorType,
+		// 	failurePhase: event.failurePhase,
+		// })
+	}
+
+	private emitClineAuthErrorWithTelemetry(task?: string, sessionId?: string): void {
+		this.emitClineAuthError(task)
+		this.captureProviderFailure({
+			sessionId: sessionId ?? this.task?.taskId,
+			error: CLINE_ACCOUNT_AUTH_ERROR_MESSAGE,
+			providerId: this.getActiveProviderId(),
+			errorType: PROVIDER_FAILURE_ERROR_TYPE.AUTH,
+			failurePhase: PROVIDER_FAILURE_PHASE.PREFLIGHT,
+		})
 	}
 
 	/**
@@ -1178,7 +1281,7 @@ export class Controller {
 			const mode = this.stateManager.getGlobalSettingsKey("mode") === "plan" ? "plan" : "act"
 			const config = await this.sessionConfigBuilder.build({ cwd, mode, prompt: historyTitle })
 			if (usesClineAccountAuth(config.providerId) && !config.apiKey) {
-				this.emitClineAuthError(editedText)
+				this.emitClineAuthErrorWithTelemetry(editedText)
 				return
 			}
 
@@ -1280,7 +1383,7 @@ export class Controller {
 		const historyTitle = checkpointRunCount === 1 ? restoredText : firstUserMessage?.text || restoredText
 		const config = restoreMessages ? await this.sessionConfigBuilder.build({ cwd, mode, prompt: historyTitle }) : undefined
 		if (config && usesClineAccountAuth(config.providerId) && !config.apiKey) {
-			this.emitClineAuthError(restoredText)
+			this.emitClineAuthErrorWithTelemetry(restoredText)
 			return
 		}
 
@@ -1388,19 +1491,11 @@ export class Controller {
 	// 	await this.postStateToWebview()
 	// }
 
-	// // ---- Auth callbacks ----
 
-	async handleSignOut(): Promise<void> {
-		await this.authService.handleDeauth(LogoutReason.USER_INITIATED)
-		clearRemoteConfig()
-		await this.setRemoteConfigCoreIntegration(undefined)
-		await this.postStateToWebview()
+	async handleOcaSignOut(): Promise<void> {
+		// await this.ocaAuthService.handleDeauth(LogoutReason.USER_INITIATED)
+		// await this.postStateToWebview()
 	}
-
-	// async handleOcaSignOut(): Promise<void> {
-	// 	await this.ocaAuthService.handleDeauth(LogoutReason.USER_INITIATED)
-	// 	await this.postStateToWebview()
-	// }
 
 	// async handleAuthCallback(customToken: string, provider: string | null = null): Promise<void> {
 	// 	await this.authService.handleAuthCallback(customToken, provider ?? "cline")

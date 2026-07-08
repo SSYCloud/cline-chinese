@@ -4,11 +4,11 @@ import { DEFAULT_PLATFORM, type ExtensionState } from "@shared/ExtensionMessage"
 import { DEFAULT_MCP_DISPLAY_MODE } from "@shared/McpDisplayMode"
 import type { UserInfo } from "@shared/proto/cline/account"
 import { EmptyRequest } from "@shared/proto/cline/common"
-import type { OpenRouterCompatibleModelInfo, ProviderModelsResponse } from "@shared/proto/cline/models"
+import type { OpenRouterCompatibleModelInfo, ProviderModelsResponse, ShengSuanYunCompatibleModelInfo, ShengSuanYunModelInfo } from "@shared/proto/cline/models"
 import { OnboardingModelGroup, type TerminalProfile } from "@shared/proto/cline/state"
 import { convertProtoToClineMessage } from "@shared/proto-conversions/cline-message"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
-import { fromProtobufModels } from "@shared/proto-conversions/models/typeConversion"
+import { fromProtobufModels, fromProtobufShengSuanYunModels } from "@shared/proto-conversions/models/typeConversion"
 import type React from "react"
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
 import {
@@ -114,7 +114,7 @@ export interface ExtensionStateContextType extends ExtensionState {
 	refreshVercelAiGatewayModels: () => void
 	refreshHicapModels: () => void
 	refreshLiteLlmModels: () => Promise<void>
-	refreshClineModels: () => void
+	// refreshClineModels: () => void
 	setUserInfo: (userInfo?: UserInfo) => void
 	setShowChatModelSelector: (value: boolean) => void
 
@@ -308,6 +308,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		yoloModeToggled: false,
 		customPrompt: undefined,
 		useAutoCondense: false,
+		compactionStrategy: "basic",
 		subagentsEnabled: false,
 		worktreesEnabled: { user: true, featureFlag: false },
 		favoritedModelIds: [],
@@ -352,13 +353,8 @@ export const ExtensionStateContextProvider: React.FC<{
 	const [shengSuanYunModels, setShengSuanYunModels] = useState<Record<string, ShengSuanYunModelInfo>>({
 		[shengSuanYunDefaultModelId]: shengSuanYunDefaultModelInfo,
 	})
-	const [groqModelsState, setGroqModels] = useState<Record<string, ModelInfo>>({
-		[groqDefaultModelId]: groqModels[groqDefaultModelId],
-	})
-	const [basetenModelsState, setBasetenModels] = useState<Record<string, ModelInfo>>({
-		...basetenModels,
-		[basetenDefaultModelId]: basetenModels[basetenDefaultModelId],
-	})
+	const [groqModelsState, setGroqModels] = useState<Record<string, ModelInfo>>({})
+	const [basetenModelsState, setBasetenModels] = useState<Record<string, ModelInfo>>({})
 	const [huggingFaceModels, setHuggingFaceModels] = useState<Record<string, ModelInfo>>({})
 	const [providerModelsByProvider, setProviderModelsByProvider] = useState<Partial<Record<ProviderId, ProviderModelsState>>>({})
 	const [latestModelRequestIdByProvider, setLatestModelRequestIdByProvider] = useState<Partial<Record<ProviderId, string>>>({})
@@ -852,7 +848,7 @@ export const ExtensionStateContextProvider: React.FC<{
 				// pulled separately by BasetenModelPicker via
 				// `useProviderModels("baseten")` and merged on top of this
 				// dynamic slice at render time.
-				setBasetenModels(fromProtobufModels(response.models))
+				// setBasetenModels(fromProtobufModels(response.models))
 			})
 			.catch((err) => console.error("Failed to refresh Baseten models:", err))
 	}, [])

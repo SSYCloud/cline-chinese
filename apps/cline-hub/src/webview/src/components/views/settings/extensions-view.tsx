@@ -973,7 +973,7 @@ export function CustomizationSectionView({
 					{(pluginToolsByPluginKey.get(`${plugin.name}:${plugin.path}`)
 						?.length ?? 0) === 0 && (
 						<p className="text-xs text-muted-foreground">
-							No plugin tools found.
+							没找到插件工具.
 						</p>
 					)}
 				</div>
@@ -1219,7 +1219,7 @@ export function CustomizationSectionView({
 									: "text-muted-foreground hover:text-foreground",
 							)}
 						>
-							{tabLabels[tab] || tab}
+							{tab}
 							{activeTab === tab && (
 								<span className="absolute inset-x-0 -bottom-px h-0.5 bg-foreground" />
 							)}

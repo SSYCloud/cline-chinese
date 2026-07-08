@@ -277,13 +277,17 @@ message Settings {
   optional int32 open_telemetry_log_batch_timeout = 170;
   optional int32 open_telemetry_log_max_queue_size = 171;
   optional bool worktrees_enabled = 172;
-  optional bool auto_approve_all_toggled = 173;
-  map<string, string> open_ai_headers = 174;
-  optional string plan_mode_cline_model_id = 175;
-  optional OpenRouterModelInfo plan_mode_cline_model_info = 180;
-  optional string act_mode_cline_model_id = 177;
-  optional OpenRouterModelInfo act_mode_cline_model_info = 178;
-  optional bool show_feature_tips = 179;
+  optional bool auto_approve_all_toggled = 174;
+  map<string, string> open_ai_headers = 177;
+  optional string plan_mode_cline_model_id = 178;
+  optional OpenRouterModelInfo plan_mode_cline_model_info = 179;
+  optional string act_mode_cline_model_id = 180;
+  optional OpenRouterModelInfo act_mode_cline_model_info = 181;
+  optional bool show_feature_tips = 182;
+  optional string plan_mode_cline_pass_model_id = 183;
+  optional OpenRouterModelInfo plan_mode_cline_pass_model_info = 184;
+  optional string act_mode_cline_pass_model_id = 185;
+  optional OpenRouterModelInfo act_mode_cline_pass_model_info = 186;
 }
 
 message State {
@@ -425,6 +429,7 @@ message UpdateSettingsRequest {
   optional bool opt_out_of_remote_config = 39;
   optional bool worktrees_enabled = 40;
   optional bool show_feature_tips = 42;
+  optional string compaction_strategy = 44;
 }
 
 message UpdateTerminalConnectionTimeoutRequest {

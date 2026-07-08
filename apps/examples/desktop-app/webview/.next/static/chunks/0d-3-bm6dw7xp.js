@@ -1,1 +1,0 @@
-(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,4012,e=>{"use strict";"function"==typeof SuppressedError&&SuppressedError;async function n(e,o={},r){return window.__TAURI_INTERNALS__.invoke(e,o,r)}new WeakMap,new WeakMap,new WeakMap,new WeakMap,new WeakMap,e.s(["invoke",0,n],4012)}]);

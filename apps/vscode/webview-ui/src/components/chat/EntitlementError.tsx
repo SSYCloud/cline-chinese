@@ -1,8 +1,8 @@
 import { AskResponseRequest } from "@shared/proto/cline/task"
 import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import React from "react"
-import VSCodeButtonLink from "@/components/common/VSCodeButtonLink"
-import { useClineAuth } from "@/context/ClineAuthContext"
+// import VSCodeButtonLink from "@/components/common/VSCodeButtonLink"
+// import { useClineAuth } from "@/context/ClineAuthContext"
 import { TaskServiceClient } from "@/services/grpc-client"
 
 interface EntitlementErrorProps {
@@ -30,8 +30,8 @@ function buildSubscribeUrl(appBaseUrl?: string): string | undefined {
 }
 
 const EntitlementError: React.FC<EntitlementErrorProps> = ({ message }) => {
-	const { clineUser } = useClineAuth()
-	const subscribeUrl = buildSubscribeUrl(clineUser?.appBaseUrl)
+	// const { clineUser } = useClineAuth()
+	// const subscribeUrl = buildSubscribeUrl(clineUser?.appBaseUrl)
 	const backendDetail = message && message !== HEADLINE ? message : undefined
 
 	return (
@@ -48,12 +48,12 @@ const EntitlementError: React.FC<EntitlementErrorProps> = ({ message }) => {
 				)}
 			</div>
 
-			{subscribeUrl && (
+			{/* {subscribeUrl && (
 				<VSCodeButtonLink className="w-full mb-2" href={subscribeUrl}>
 					<span className="codicon codicon-rocket mr-[6px] text-[14px]" />
 					Get ClinePass
 				</VSCodeButtonLink>
-			)}
+			)} */}
 
 			<VSCodeButton
 				appearance="secondary"

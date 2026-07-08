@@ -12,6 +12,7 @@ import {
 	getClineCliMigrationNotice,
 	markClineCliMigrationNoticeShown,
 	resolveCliNoticeStatePath,
+	shouldSuppressClineCliMigrationNoticeForActiveProvider,
 } from "./notice";
 
 const tempDirs: string[] = [];
@@ -82,6 +83,44 @@ describe("migration notice", () => {
 				CLINE_DISABLE_CLINE_PASS_NOTICE: "1",
 			}),
 		).toBeUndefined();
+	});
+
+	it("does not show when ClinePass is already the active provider", () => {
+		const dataDir = createTempDataDir();
+
+		expect(
+			getClineCliMigrationNotice(
+				dataDir,
+				{},
+				{ activeProviderId: "cline-pass" },
+			),
+		).toBeUndefined();
+	});
+
+	it("suppresses the active ClinePass provider even when the provider id has surrounding whitespace", () => {
+		expect(
+			shouldSuppressClineCliMigrationNoticeForActiveProvider(" cline-pass "),
+		).toBe(true);
+	});
+
+	it("does not suppress the active ClinePass provider when forced", () => {
+		expect(
+			shouldSuppressClineCliMigrationNoticeForActiveProvider("cline-pass", {
+				CLINE_FORCE_CLINE_PASS_NOTICE: "1",
+			}),
+		).toBe(false);
+	});
+
+	it("shows for the active ClinePass provider when forced", () => {
+		const dataDir = createTempDataDir();
+
+		expect(
+			getClineCliMigrationNotice(
+				dataDir,
+				{ CLINE_FORCE_CLINE_PASS_NOTICE: "1" },
+				{ activeProviderId: "cline-pass" },
+			),
+		).toBeDefined();
 	});
 
 	it("shows when forced even if disabled through the environment", () => {

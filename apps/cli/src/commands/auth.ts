@@ -72,30 +72,6 @@ type ParsedAuthCommandArgs = {
 	parseError?: string;
 };
 
-<<<<<<< HEAD
-let cachedCoreOAuthApi: Promise<CoreOAuthApi> | undefined;
-
-async function getCoreOAuthApi(): Promise<CoreOAuthApi> {
-	if (!cachedCoreOAuthApi) {
-		cachedCoreOAuthApi = import("@coohu/core").then((module) => {
-			const runtimeApi = module as Partial<CoreOAuthApi>;
-			if (
-				typeof runtimeApi.loginClineOAuth !== "function" ||
-				typeof runtimeApi.loginOcaOAuth !== "function" ||
-				typeof runtimeApi.loginOpenAICodex !== "function"
-			) {
-				throw new Error(
-					"已安装的 @coohu/core 未暴露 CLI 所需的 OAuth 登录辅助函数。",
-				);
-			}
-			return runtimeApi as CoreOAuthApi;
-		});
-	}
-	return cachedCoreOAuthApi;
-}
-
-=======
->>>>>>> ee59f81706981e0a64c8b32f8f0415c9d39561fa
 /**
  * Create the `auth` subcommand for Commander.
  *
@@ -111,14 +87,9 @@ export function createAuthCommand(): Command {
 		.argument("[provider]", "供应商 id (-p 简写)")
 		.option("-p, --provider <id>", "供应商 id")
 		.option("-k, --apikey <key>", "API key")
-<<<<<<< HEAD
-		.option("-m, --modelid <id>", "模型 id")
-		.option("-b, --baseurl <url>", "base URL");
-=======
 		.option("-m, --modelid <id>", "model id")
 		.option("-b, --baseurl <url>", "base URL")
 		.option("--azure-api-version <version>", "Azure API version");
->>>>>>> ee59f81706981e0a64c8b32f8f0415c9d39561fa
 	return cmd;
 }
 
@@ -268,43 +239,6 @@ function createOAuthCallbacks(io: AuthIo): {
 	});
 }
 
-<<<<<<< HEAD
-async function loginWithOAuthProvider(
-	providerId: string,
-	existing: ProviderSettings | undefined,
-	io: AuthIo,
-): Promise<OAuthCredentials> {
-	const oauthApi = await getCoreOAuthApi();
-	const callbacks = createOAuthCallbacks(io);
-
-	if (providerId === "cline") {
-		return oauthApi.loginClineOAuth({
-			apiBaseUrl:
-				existing?.baseUrl?.trim() || getClineEnvironmentConfig().apiBaseUrl,
-			useWorkOSDeviceAuth: true,
-			callbacks,
-		});
-	}
-
-	if (providerId === "oca") {
-		const mode = existing?.oca?.mode;
-		return oauthApi.loginOcaOAuth({
-			mode,
-			callbacks,
-		});
-	}
-
-	if (providerId === "openai-codex") {
-		return oauthApi.loginOpenAICodex(callbacks);
-	}
-
-	throw new Error(
-		`供应商 "${providerId}" 不支持 CLI OAuth 流程 (支持的: 胜算云, openai-codex, oca)`,
-	);
-}
-
-=======
->>>>>>> ee59f81706981e0a64c8b32f8f0415c9d39561fa
 export function saveOAuthProviderSettings(
 	providerSettingsManager: ProviderSettingsManager,
 	providerId: string,
@@ -464,11 +398,7 @@ export async function runAuthCommand(input: AuthCommandInput): Promise<number> {
 	if (hasQuickSetupFlags) {
 		if (!input.explicitProvider?.trim()) {
 			input.io.writeErr(
-<<<<<<< HEAD
-				"当使用 --apikey、--modelid 或 --baseurl 时，认证快速安装必须指定 --provider <id>。",
-=======
 				"auth quick setup requires --provider <id> when using --apikey/--modelid/--baseurl/--azure-api-version",
->>>>>>> ee59f81706981e0a64c8b32f8f0415c9d39561fa
 			);
 			return 1;
 		}
@@ -510,9 +440,6 @@ export async function runAuthProviderCommand(
 			providerId,
 			{ callbacks: createOAuthCallbacks(io) },
 		);
-<<<<<<< HEAD
-		io.writeln(`${c.green}您已成功登录到 ${c.cyan}${providerId}${c.reset}`);
-=======
 		identifyTelemetryAccount({
 			id: settings.auth?.accountId,
 			provider: providerId,
@@ -520,7 +447,6 @@ export async function runAuthProviderCommand(
 		io.writeln(
 			`${c.green}You are now logged in to ${c.cyan}${providerId}${c.reset}`,
 		);
->>>>>>> ee59f81706981e0a64c8b32f8f0415c9d39561fa
 		return 0;
 	} catch (error) {
 		io.writeErr(error instanceof Error ? error.message : String(error));

@@ -130,8 +130,12 @@ export function OnboardingView(props: OnboardingViewProps) {
 				currentPlanName={state.clinePassCurrentPlanName}
 				error={state.clinePassSubscriptionError}
 				mouse={mouse}
+				openStatus={state.clinePassSubscriptionOpenStatus}
+				options={state.clinePassSubscriptionOptions}
 				planFeatures={state.clinePassPlanFeatures}
+				selected={state.clinePassSubscriptionSelected}
 				status={state.clinePassSubscriptionStatus}
+				subscriptionUrl={state.clinePassSubscriptionUrl}
 			/>
 		);
 	}

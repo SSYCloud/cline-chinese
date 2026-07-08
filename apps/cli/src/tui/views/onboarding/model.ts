@@ -37,6 +37,17 @@ export interface MenuOption {
 	icon: string;
 }
 
+export type ClinePassSubscriptionAction =
+	| "subscribe"
+	| "refresh"
+	| "skip"
+	| "back";
+
+export interface ClinePassSubscriptionOption {
+	value: ClinePassSubscriptionAction;
+	label: string;
+}
+
 export const MAIN_MENU: MenuOption[] = [
 	{
 		label: "登录胜算云",
@@ -72,6 +83,25 @@ export function getMainMenuOptions(options?: {
 	);
 }
 
+export const CLINE_PASS_SUBSCRIPTION_OPTIONS: ClinePassSubscriptionOption[] = [
+	{
+		value: "subscribe",
+		label: "Subscribe to ClinePass",
+	},
+	{
+		value: "refresh",
+		label: "Re-check subscription status",
+	},
+	{
+		value: "skip",
+		label: "Skip for now",
+	},
+	{
+		value: "back",
+		label: "Go back",
+	},
+];
+
 export interface OnboardingResult {
 	providerId: string;
 	modelId: string;
@@ -97,7 +127,11 @@ export interface ModelEntry {
 	supportsReasoning: boolean;
 }
 
-export type ClinePassSubscriptionStatus = "loading" | "subscribed" | "unsubscribed" | "error";
+export type ClinePassSubscriptionStatus =
+	| "loading"
+	| "subscribed"
+	| "unsubscribed"
+	| "error";
 
 export interface ProviderCatalogItem {
 	id: string;

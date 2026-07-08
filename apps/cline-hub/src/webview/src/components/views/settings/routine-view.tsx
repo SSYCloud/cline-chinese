@@ -356,7 +356,7 @@ export function RoutineSchedulesContent() {
 	const [isLoading, setIsLoading] = useState(() => !routineOverviewCache);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [busyScheduleId, setBusyScheduleId] = useState<string | null>(null);
-	const [schedulePendingDelete, setSchedulePending删除] =
+	const [schedulePendingDelete, setSchedulePendingDelete] =
 		useState<RoutineSchedule | null>(null);
 	const [isCreateOpen, setIsCreateOpen] = useState(false);
 	const [editingSchedule, setEditingSchedule] =
@@ -660,7 +660,7 @@ export function RoutineSchedulesContent() {
 			await desktopClient.invoke("delete_routine_schedule", {
 				schedule_id: scheduleId,
 			});
-			setSchedulePending删除(null);
+			setSchedulePendingDelete(null);
 			await refreshSchedules({ force: true, showLoading: false });
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
@@ -1098,7 +1098,7 @@ export function RoutineSchedulesContent() {
 				open={Boolean(schedulePendingDelete)}
 				onOpenChange={(open) => {
 					if (!open) {
-						setSchedulePending删除(null);
+						setSchedulePendingDelete(null);
 					}
 				}}
 			>

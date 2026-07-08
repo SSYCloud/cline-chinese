@@ -1,14 +1,15 @@
+import { setCompactionStrategyGlobally } from "@coohu/core"
 import { Empty } from "@shared/proto/cline/common"
 import { PlanActMode, McpDisplayMode as ProtoMcpDisplayMode, UpdateSettingsRequest } from "@shared/proto/cline/state"
 import { convertProtoToApiProvider } from "@shared/proto-conversions/models/api-configuration-conversion"
 import { OpenaiReasoningEffort } from "@shared/storage/types"
-import { TelemetrySetting } from "@shared/TelemetrySetting"
+// import { TelemetrySetting } from "@shared/TelemetrySetting"
 import { ClineEnv } from "@/config"
-import { fetchRemoteConfig } from "@/core/storage/remote-config/fetch"
+// import { fetchRemoteConfig } from "@/core/storage/remote-config/fetch"
 import { clearRemoteConfig } from "@/core/storage/remote-config/utils"
 import { McpDisplayMode } from "@/shared/McpDisplayMode"
 import { Logger } from "@/shared/services/Logger"
-import { telemetryService } from "../../../services/telemetry"
+// import { telemetryService } from "../../../services/telemetry"
 import { BrowserSettings as SharedBrowserSettings } from "../../../shared/BrowserSettings"
 import { Controller } from ".."
 import { accountLogoutClicked } from "../account/accountLogoutClicked"
@@ -159,6 +160,14 @@ export async function updateSettings(controller: Controller, request: UpdateSett
 		// Update auto-condense setting
 		if (request.useAutoCondense !== undefined) {
 			controller.stateManager.setGlobalState("useAutoCondense", request.useAutoCondense)
+		}
+
+		if (request.compactionStrategy !== undefined) {
+			const strategy = request.compactionStrategy
+			if (strategy !== "basic" && strategy !== "agentic") {
+				throw new Error(`Invalid compaction strategy value: ${strategy}`)
+			}
+			setCompactionStrategyGlobally(strategy)
 		}
 
 		// Update custom prompt choice

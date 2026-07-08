@@ -64,7 +64,7 @@ export const USER_TYPE_SELECTIONS: UserTypeSelection[] = [
 /** Free leads (and is the default); ClinePass is inserted second when its models are available. */
 export function getUserTypeSelections(hasClinePassModels: boolean): UserTypeSelection[] {
 	if (!hasClinePassModels) {
-		return BASE_USER_TYPE_SELECTIONS
+		return USER_TYPE_SELECTIONS
 	}
 	const [free, ...rest] = USER_TYPE_SELECTIONS
 	return [free, USER_TYPE_SELECTIONS[0], ...rest]

@@ -1,11 +1,13 @@
 import type { ClineMessage } from "@shared/ExtensionMessage"
 import { memo } from "react"
-import { ClineAuthStatus } from "@/components/account/ClineAuthStatus"
+// import { ClineAuthStatus } from "@/components/account/ClineAuthStatus"
 import CreditLimitError from "@/components/chat/CreditLimitError"
 import EntitlementError from "@/components/chat/EntitlementError"
 import OrgClinePassRestrictionError from "@/components/chat/OrgClinePassRestrictionError"
 import SpendLimitError from "@/components/chat/SpendLimitError"
-import { Button } from "@/components/ui/button"
+// import { Button } from "@/components/ui/button"
+// import { useClineAuth, useClineSignIn } from "@/context/ClineAuthContext"
+import { ClineError, ClineErrorType } from "../../../../src/services/error/ClineError"
 
 // const _errorColor = "var(--vscode-errorForeground)"
 
@@ -17,10 +19,10 @@ interface ErrorRowProps {
 }
 
 const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStreamingFailedMessage }: ErrorRowProps) => {
-	const { userInfo } = useExtensionState()
+	// const { clineUser } = useClineAuth()
 	const rawApiError = apiRequestFailedMessage || apiReqStreamingFailedMessage
 
-	const { isLoginLoading, authStatusMessage, handleSignIn } = useClineSignIn()
+	// const { isLoginLoading, authStatusMessage, handleSignIn } = useClineSignIn()
 
 	const renderErrorContent = () => {
 		switch (errorType) {
@@ -51,7 +53,18 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 						}
 					}
 
-						{/* SpendLimit not supported in SSY */}
+					if (clineError?.isErrorType(ClineErrorType.SpendLimit)) {
+						const d = clineError._error?.details
+						return (
+							<SpendLimitError
+								budgetPeriod={d?.budget_period}
+								limitUsd={d?.limit_usd}
+								message={d?.message || errorMessage}
+								resetsAt={d?.resets_at}
+								spentUsd={d?.spent_usd}
+							/>
+						)
+					}
 
 					if (clineError?.isErrorType(ClineErrorType.Entitlement)) {
 						const detailMessage = clineError?._error?.details?.message || errorMessage
@@ -66,40 +79,40 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 						return (
 							<p className="m-0 whitespace-pre-wrap text-error wrap-anywhere">
 								{errorMessage}
-								{requestId && <div>请求 ID: {requestId}</div>}
+								{requestId && <div>Request ID: {requestId}</div>}
 							</p>
 						)
 					}
 
-					if (ssyError?.isErrorType(SSYErrorType.QuotaExceeded)) {
-						const detailMessage = ssyError?._error?.details?.message || errorMessage
+					if (clineError?.isErrorType(ClineErrorType.QuotaExceeded)) {
+						const detailMessage = clineError?._error?.details?.message || errorMessage
 						return <p className="m-0 whitespace-pre-wrap text-error wrap-anywhere">{detailMessage}</p>
 					}
 
-					if (clineError?.isErrorType(ClineErrorType.Auth) && isClineProvider) {
-						return !clineUser ? (
-							// User is using Cline provider and is not logged in
-							<div className="flex flex-col gap-3">
-								<div className="flex items-center justify-center rounded border border-neutral-500/30 bg-vscode-editor-background p-6 text-center text-vscode-foreground">
-									Whoops looks like you're logged out – click below to sign in
-								</div>
-								<Button className="w-full" disabled={isLoginLoading} onClick={handleSignIn}>
-									Sign in to Cline
-									{isLoginLoading && (
-										<span className="ml-1 animate-spin">
-											<span className="codicon codicon-refresh" />
-										</span>
-									)}
-								</Button>
-								<ClineAuthStatus message={authStatusMessage} />
-							</div>
-						) : (
-							// Don't show sign in button after the user has logged in, just ask them to retry
-							<div className="mt-4">
-								<span className="text-description">(Click "Retry" below)</span>
-							</div>
-						)
-					}
+					// if (clineError?.isErrorType(ClineErrorType.Auth) && isClineProvider) {
+					// 	return !clineUser ? (
+					// 		// User is using Cline provider and is not logged in
+					// 		<div className="flex flex-col gap-3">
+					// 			<div className="flex items-center justify-center rounded border border-neutral-500/30 bg-vscode-editor-background p-6 text-center text-vscode-foreground">
+					// 				Whoops looks like you're logged out – click below to sign in
+					// 			</div>
+					// 			<Button className="w-full" disabled={isLoginLoading} onClick={handleSignIn}>
+					// 				Sign in to Cline
+					// 				{isLoginLoading && (
+					// 					<span className="ml-1 animate-spin">
+					// 						<span className="codicon codicon-refresh" />
+					// 					</span>
+					// 				)}
+					// 			</Button>
+					// 			<ClineAuthStatus message={authStatusMessage} />
+					// 		</div>
+					// 	) : (
+					// 		// Don't show sign in button after the user has logged in, just ask them to retry
+					// 		<div className="mt-4">
+					// 			<span className="text-description">(Click "Retry" below)</span>
+					// 		</div>
+					// 	)
+					// }
 
 					return (
 						<p className="m-0 whitespace-pre-wrap text-error wrap-anywhere flex flex-col gap-3">
@@ -109,17 +122,17 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 								{providerId && <span className="uppercase">[{providerId}] </span>}
 								{errorCode && <span>{errorCode}</span>}
 								{errorMessage}
-								{requestId && <div>请求 ID: {requestId}</div>}
+								{requestId && <div>Request ID: {requestId}</div>}
 							</header>
 
 							{/* Windows Powershell Issue */}
 							{errorMessage?.toLowerCase()?.includes("powershell") && (
 								<div>
-									看来您遇到了 Windows PowerShell 问题，请参阅此内容。{" "}
+									看来您遇到了 Windows PowerShell 相关的问题，请查看这里。{" "}
 									<a
 										className="underline text-inherit"
 										href="https://github.com/cline/cline/wiki/TroubleShooting-%E2%80%90-%22PowerShell-is-not-recognized-as-an-internal-or-external-command%22">
-										故障排除指南
+										故障排查指南
 									</a>
 									.
 								</div>
@@ -137,7 +150,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 			case "diff_error":
 				return (
 					<div className="flex flex-col p-2 rounded text-xs opacity-80 bg-quote text-foreground">
-						<div>The model used search patterns that don't match anything in the file. Retrying...</div>
+						<div>该模型使用的搜索模式与文件中的任何内容都不匹配。正在重试……</div>
 					</div>
 				)
 
@@ -145,7 +158,8 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 				return (
 					<div className="flex flex-col p-2 rounded text-xs opacity-80 bg-quote text-foreground">
 						<div>
-							Cline 访问 <code>{message.text}</code> 被 <code>.clineignore</code>配置阻拦
+							Cline 尝试访问 <code>{message.text}</code> 但是被 <code>.clineignore</code>
+							配置文件屏蔽.
 						</div>
 					</div>
 				)

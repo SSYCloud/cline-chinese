@@ -41,7 +41,7 @@ const createStoryDecorator =
 			[],
 		)
 
-		return createStorybookDecorator(mockExtensionState.state, "p-4", mockExtensionState.auth)(Story)
+		return createStorybookDecorator(mockExtensionState.state, "p-4")(Story)
 	}
 
 const meta: Meta<typeof ErrorRow> = {

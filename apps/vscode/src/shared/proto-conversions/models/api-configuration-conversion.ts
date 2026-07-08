@@ -268,6 +268,26 @@ export function convertProtoToApiProvider(provider: string | undefined): ApiProv
 	return (provider || "anthropic") as ApiProvider
 }
 
+export function convertProtoToShengSuanYunModelInfo(info: ShengSuanYunModelInfo | undefined): ShengSuanYunModelInfo | undefined {
+	if (!info) {
+		return undefined
+	}
+
+	return {
+		maxTokens: info.maxTokens,
+		contextWindow: info.contextWindow,
+		supportsImages: info.supportsImages,
+		supportsPromptCache: info.supportsPromptCache,
+		inputPrice: info.inputPrice,
+		outputPrice: info.outputPrice,
+		cacheWritesPrice: info.cacheWritesPrice,
+		cacheReadsPrice: info.cacheReadsPrice,
+		description: info.description,
+		thinkingConfig: convertProtoToThinkingConfig(info.thinkingConfig),
+		supportsGlobalEndpoint: info.supportsGlobalEndpoint,
+		endPoints: info.endPoints,
+	}
+}
 // Converts application ApiConfiguration to proto ApiConfiguration
 export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoApiConfiguration {
 	return {

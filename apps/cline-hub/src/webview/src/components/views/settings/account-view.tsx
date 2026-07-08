@@ -135,7 +135,7 @@ async function fetchPaymentTransactions(): Promise<
 // ---------------------------------------------------------------------------
 
 export function AccountView() {
-	const [activeTab, set活跃Tab] = useState<"overview" | "usage" | "billing">(
+	const [activeTab, setActiveTab] = useState<"overview" | "usage" | "billing">(
 		"overview",
 	);
 	const [accountActionPending, setAccountActionPending] = useState<
@@ -437,7 +437,7 @@ export function AccountView() {
 							disabled={disabled}
 							key={tab}
 							type="button"
-							onClick={() => set活跃Tab(tab)}
+							onClick={() => setActiveTab(tab)}
 							className={cn(
 								"relative px-4 py-2.5 text-sm font-medium capitalize transition-colors",
 								activeTab === tab

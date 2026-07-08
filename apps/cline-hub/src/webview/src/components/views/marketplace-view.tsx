@@ -66,23 +66,23 @@ const primitivePageDetails = {
 	mcp: {
 		title: "MCP Servers",
 		description:
-			"Install Model Context Protocol servers into this CLI environment.",
-		emptyInstalled: "No MCP servers installed.",
-		emptyCatalog: "No MCP servers match the current filters.",
+			"在此 CLI 环境中安装 Model Context Protocol 服务器。",
+		emptyInstalled: "未安装 MCP 服务器。",
+		emptyCatalog: "没有匹配当前过滤器的 MCP 服务器。",
 		icon: Server,
 	},
 	skill: {
 		title: "Skills",
-		description: "Install skills globally for Cline.",
-		emptyInstalled: "No skills installed.",
-		emptyCatalog: "No skills match the current filters.",
+		description: "为 Cline 全局安装技能。",
+		emptyInstalled: "未安装技能。",
+		emptyCatalog: "没有匹配当前过滤器的技能。",
 		icon: Zap,
 	},
 	plugin: {
 		title: "Plugins",
-		description: "Install plugins into this CLI environment.",
-		emptyInstalled: "No plugins installed.",
-		emptyCatalog: "No plugins match the current filters.",
+		description: "在此 CLI 环境中安装插件。",
+		emptyInstalled: "未安装插件。",
+		emptyCatalog: "没有匹配当前过滤器的插件。",
 		icon: Puzzle,
 	},
 } satisfies Record<
@@ -97,9 +97,9 @@ const primitivePageDetails = {
 >;
 
 const primitiveCommands = {
-	mcp: "cline mcp install",
-	plugin: "cline plugin install",
-	skill: "cline skill add",
+	mcp: "cline mcp 安装",
+	plugin: "cline plugin 安装",
+	skill: "cline skill 添加",
 } satisfies Record<MarketplacePrimitiveType, string>;
 
 export type MarketplaceLocalInstalledItem = {
@@ -200,10 +200,10 @@ function EntryDetails({
 			{requiredEnv.length > 0 || optionalEnv.length > 0 ? (
 				<div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3">
 					<p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-						Environment setup needed
+						需要进行环境设置
 					</p>
 					<p className="mt-1 text-xs leading-5 text-amber-800/80 dark:text-amber-100/80">
-						Add these values to your Cline/plugin environment after install.
+						安装后，将这些值添加到您的 Cline/插件环境中。
 					</p>
 					<div className="mt-3 grid gap-2">
 						{[...requiredEnv, ...optionalEnv].map((env) => (
@@ -216,7 +216,7 @@ function EntryDetails({
 										<span style={CODE_FONT_STYLE}>{env.name}</span>
 									</code>
 									<Badge variant="outline">
-										{env.required === false ? "Optional" : "Required"}
+										{env.required === false ? "可选" : "必填"}
 									</Badge>
 								</div>
 								{env.description ? (
@@ -231,7 +231,7 @@ function EntryDetails({
 										rel="noreferrer"
 										target="_blank"
 									>
-										Get value
+										获取值
 										<ExternalLink className="size-3" />
 									</a>
 								) : null}
@@ -304,14 +304,14 @@ function MarketplaceEntryCard({
 		onInstall(entry);
 	};
 	const actionLabel = !installedStatusReady
-		? "Checking..."
+		? "检查..."
 		: actionState?.status === "installing"
-			? "Installing..."
+			? "安装中..."
 			: actionState?.status === "uninstalling"
-				? "Uninstalling..."
+				? "卸载中..."
 				: installed
-					? "Uninstall"
-					: "Install";
+					? "卸载"
+					: "安装";
 	const statusMessage = inlineMessage ? (
 		<output
 			className={cn(
@@ -325,7 +325,7 @@ function MarketplaceEntryCard({
 		</output>
 	) : setupNeeded ? (
 		<span className="text-xs text-amber-700 dark:text-amber-300">
-			Requires setup after install
+			安装后需要设置
 		</span>
 	) : null;
 	const actionButton = (
@@ -366,7 +366,7 @@ function MarketplaceEntryCard({
 						{showFeatured && entry.featured ? (
 							<Badge className="border border-violet-500/20 bg-violet-500/10 text-violet-700 dark:text-violet-300">
 								<Star className="fill-current" />
-								Featured
+								精选
 							</Badge>
 						) : null}
 					</div>
@@ -935,14 +935,14 @@ export function MarketplaceView({
 			{!catalog && !errorMessage ? (
 				<div className="flex min-h-80 items-center justify-center rounded-lg border bg-card text-sm text-muted-foreground">
 					<Spinner className="mr-2" />
-					Loading marketplace...
+					正在加载市场...
 				</div>
 			) : null}
 
 			{catalog && !installedStatusReady ? (
 				<div className="flex min-h-80 items-center justify-center rounded-lg border bg-card text-sm text-muted-foreground">
 					<Spinner className="mr-2" />
-					Checking installed status...
+					正在检查安装状态...
 				</div>
 			) : null}
 
@@ -983,7 +983,7 @@ export function MarketplaceView({
 						onUninstall={uninstallEntry}
 						showFeaturedBadges={false}
 						showEntryTags={false}
-						sourceLabel="Marketplace"
+						sourceLabel="市场"
 						tagLabels={tagLabels}
 						title="Installed"
 					/>
@@ -1000,7 +1000,7 @@ export function MarketplaceView({
 						onToggleExpanded={toggleExpanded}
 						onUninstall={uninstallEntry}
 						tagLabels={tagLabels}
-						title="Marketplace"
+						title="市场"
 					/>
 				</div>
 			) : null}

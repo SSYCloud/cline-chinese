@@ -1,12 +1,12 @@
 import { Empty } from "@shared/proto/cline/common"
 import { PlanActMode, UpdateSettingsRequestCli } from "@shared/proto/cline/state"
 import { convertProtoToApiProvider } from "@shared/proto-conversions/models/api-configuration-conversion"
-import { Settings } from "@shared/storage/state-keys"
-import { TelemetrySetting } from "@shared/TelemetrySetting"
+import type { Settings } from "@shared/storage/state-keys"
+// import { TelemetrySetting } from "@shared/TelemetrySetting"
 import { ClineEnv } from "@/config"
 import { Logger } from "@/shared/services/Logger"
 import { Mode } from "@/shared/storage/types"
-import { telemetryService } from "../../../services/telemetry"
+// import { telemetryService } from "../../../services/telemetry"
 import { Controller } from ".."
 import { accountLogoutClicked } from "../account/accountLogoutClicked"
 import { createTaskApiModelShim, resolveActiveModelIdFromApiConfiguration } from "../models/taskApiModel"
@@ -117,27 +117,27 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 		}
 
 		// Update telemetry setting
-		if (telemetrySetting) {
-			await controller.updateTelemetrySetting(telemetrySetting as TelemetrySetting)
-		}
+		// if (telemetrySetting) {
+		// 	await controller.updateTelemetrySetting(telemetrySetting as TelemetrySetting)
+		// }
 
 		// Update yolo mode setting (requires telemetry)
-		if (yoloModeToggled !== undefined) {
-			if (controller.task) {
-				telemetryService.captureYoloModeToggle(controller.task.ulid, yoloModeToggled)
-			}
-			controller.stateManager.setGlobalState("yoloModeToggled", yoloModeToggled)
-		}
+		// if (yoloModeToggled !== undefined) {
+		// 	if (controller.task) {
+		// 		telemetryService.captureYoloModeToggle(controller.task.ulid, yoloModeToggled)
+		// 	}
+		// 	controller.stateManager.setGlobalState("yoloModeToggled", yoloModeToggled)
+		// }
 
 		// Update auto-condense setting (requires telemetry)
 		if (useAutoCondense !== undefined) {
-			if (controller.task) {
-				telemetryService.captureAutoCondenseToggle(
-					controller.task.ulid,
-					useAutoCondense,
-					controller.task.api.getModel().id,
-				)
-			}
+			// if (controller.task) {
+			// 	telemetryService.captureAutoCondenseToggle(
+			// 		controller.task.ulid,
+			// 		useAutoCondense,
+			// 		controller.task.api.getModel().id,
+			// 	)
+			// }
 			controller.stateManager.setGlobalState("useAutoCondense", useAutoCondense)
 		}
 
@@ -152,9 +152,9 @@ export async function updateSettingsCli(controller: Controller, request: UpdateS
 			const isEnabled = !!subagentsEnabled
 			controller.stateManager.setGlobalState("subagentsEnabled", isEnabled)
 
-			if (wasEnabled !== isEnabled) {
-				telemetryService.captureSubagentToggle(isEnabled)
-			}
+			// if (wasEnabled !== isEnabled) {
+			// 	telemetryService.captureSubagentToggle(isEnabled)
+			// }
 		}
 
 		// Update browser settings (requires careful merging to avoid protobuf defaults)
