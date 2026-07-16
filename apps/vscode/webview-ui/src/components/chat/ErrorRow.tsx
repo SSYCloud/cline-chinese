@@ -1,13 +1,13 @@
 import type { ClineMessage } from "@shared/ExtensionMessage"
 import { memo } from "react"
 // import { ClineAuthStatus } from "@/components/account/ClineAuthStatus"
-import CreditLimitError from "@/components/chat/CreditLimitError"
+import CreditLimitErrorShengSuanYun from "@/components/chat/CreditLimitErrorShengSuanYun"
 import EntitlementError from "@/components/chat/EntitlementError"
 import OrgClinePassRestrictionError from "@/components/chat/OrgClinePassRestrictionError"
 import SpendLimitError from "@/components/chat/SpendLimitError"
 // import { Button } from "@/components/ui/button"
 // import { useClineAuth, useClineSignIn } from "@/context/ClineAuthContext"
-import { ClineError, ClineErrorType } from "../../../../src/services/error/ClineError"
+import { SSYError, SSYErrorType } from "../../../../src/services/error/SSYError"
 
 // const _errorColor = "var(--vscode-errorForeground)"
 
@@ -30,19 +30,19 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 			case "mistake_limit_reached":
 				// Handle API request errors with special error parsing
 				if (rawApiError) {
-					// FIXME: ClineError parsing should not be applied to non-Cline providers, but it seems we're using clineErrorMessage below in the default error display
-					const clineError = ClineError.parse(rawApiError)
+					// FIXME: SSYError parsing should not be applied to non-Cline providers, but it seems we're using clineErrorMessage below in the default error display
+					const clineError = SSYError.parse(rawApiError)
 					const errorMessage = clineError?._error?.message || clineError?.message || rawApiError
 					const requestId = clineError?._error?.request_id
 					const providerId = clineError?.providerId || clineError?._error?.providerId
 					const isClineProvider = providerId === "cline"
 					const errorCode = clineError?._error?.code
 
-					if (clineError?.isErrorType(ClineErrorType.Balance)) {
+					if (clineError?.isErrorType(SSYErrorType.Balance)) {
 						const errorDetails = clineError._error?.details
 						if (isClineProvider || errorDetails?.buy_credits_url) {
 							return (
-								<CreditLimitError
+								<CreditLimitErrorShengSuanYun
 									buyCreditsUrl={errorDetails?.buy_credits_url}
 									currentBalance={errorDetails?.current_balance}
 									message={errorDetails?.message}
@@ -53,7 +53,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 						}
 					}
 
-					if (clineError?.isErrorType(ClineErrorType.SpendLimit)) {
+					if (clineError?.isErrorType(SSYErrorType.SpendLimit)) {
 						const d = clineError._error?.details
 						return (
 							<SpendLimitError
@@ -66,16 +66,16 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 						)
 					}
 
-					if (clineError?.isErrorType(ClineErrorType.Entitlement)) {
+					if (clineError?.isErrorType(SSYErrorType.Entitlement)) {
 						const detailMessage = clineError?._error?.details?.message || errorMessage
 						return <EntitlementError message={detailMessage} />
 					}
 
-					if (clineError?.isErrorType(ClineErrorType.OrgClinePassRestriction)) {
+					if (clineError?.isErrorType(SSYErrorType.OrgClinePassRestriction)) {
 						return <OrgClinePassRestrictionError />
 					}
 
-					if (clineError?.isErrorType(ClineErrorType.RateLimit)) {
+					if (clineError?.isErrorType(SSYErrorType.RateLimit)) {
 						return (
 							<p className="m-0 whitespace-pre-wrap text-error wrap-anywhere">
 								{errorMessage}
@@ -84,12 +84,12 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 						)
 					}
 
-					if (clineError?.isErrorType(ClineErrorType.QuotaExceeded)) {
+					if (clineError?.isErrorType(SSYErrorType.QuotaExceeded)) {
 						const detailMessage = clineError?._error?.details?.message || errorMessage
 						return <p className="m-0 whitespace-pre-wrap text-error wrap-anywhere">{detailMessage}</p>
 					}
 
-					// if (clineError?.isErrorType(ClineErrorType.Auth) && isClineProvider) {
+					// if (clineError?.isErrorType(SSYErrorType.Auth) && isClineProvider) {
 					// 	return !clineUser ? (
 					// 		// User is using Cline provider and is not logged in
 					// 		<div className="flex flex-col gap-3">
@@ -116,7 +116,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 
 					return (
 						<p className="m-0 whitespace-pre-wrap text-error wrap-anywhere flex flex-col gap-3">
-							{/* Display the well-formatted error extracted from the ClineError instance */}
+							{/* Display the well-formatted error extracted from the SSYError instance */}
 
 							<header>
 								{providerId && <span className="uppercase">[{providerId}] </span>}

@@ -2,7 +2,7 @@
 	"name": "cline-shengsuan",
 	"displayName": "Cline 中文版",
 	"description": "Cline 中文汉化版，由胜算云进行汉化，打造国内版的OpenRouter，让中国开发者更方便进行 AI 编程。",
-	"version": "4.0.0",
+	"version": "4.0.2",
 	"icon": "assets/icons/icon.png",
 	"engines": {
 		"vscode": "^1.84.0"
@@ -430,7 +430,7 @@
 		}
 	},
 	"scripts": {
-		"pk":"npx @vscode/vsce package",
+		"pk": "npx @vscode/vsce package",
 		"vscode:prepublish": "bun run package",
 		"compile": "bun run check-types && bun run lint && bun esbuild.mjs",
 		"compile-standalone": "bun run check-types && bun run lint && bun esbuild.mjs --standalone",

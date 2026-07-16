@@ -1419,7 +1419,7 @@ export default function Chat({
 							assistantMessage,
 						]);
 						setSending(true);
-						setStatus("Running...");
+						setStatus("运行...");
 						postToHost({
 							type: "send",
 							prompt,

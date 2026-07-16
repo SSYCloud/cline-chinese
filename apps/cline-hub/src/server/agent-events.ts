@@ -43,7 +43,7 @@ function forwardAgentEvent(
 		if (event.contentType === "tool") {
 			ctx.sendToSelectedPeers(sessionId, {
 				type: "tool_event",
-				text: `Running ${event.toolName ?? "tool"}...`,
+				text: `运行 ${event.toolName ?? "tool"}...`,
 				event: {
 					toolCallId: event.toolCallId,
 					toolName: event.toolName,

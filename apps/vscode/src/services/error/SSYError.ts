@@ -1,3 +1,8 @@
+import {
+	getClineOrgIndividualInferenceSubscriptionMessage,
+	isClineNotSubscribedMessage,
+	isClineOrgIndividualInferenceSubscriptionMessage,
+} from "@coohu/llms"
 import { serializeError } from "serialize-error"
 import { CLINE_ACCOUNT_AUTH_ERROR_MESSAGE } from "../../shared/ClineAccount"
 
@@ -6,9 +11,12 @@ export enum SSYErrorType {
 	Network = "network",
 	RateLimit = "rateLimit",
 	Balance = "balance",
+	SpendLimit = "spendLimit",
 	QuotaExceeded = "quotaExceeded",
 	TpmLimitExceeded = "tpmLimitExceeded",
 	RpmLimitExceeded = "rpmLimitExceeded",
+	Entitlement = "entitlement",
+	OrgClinePassRestriction = "orgClinePassRestriction",
 }
 
 interface ErrorDetails {
@@ -56,8 +64,8 @@ export class SSYError extends Error {
 	// tbc
 	constructor(
 		raw: any,
-		public readonly modelId?: string,
-		public readonly providerId?: string,
+		public modelId?: string,
+		public providerId?: string,
 	) {
 		const error = serializeError(raw)
 
@@ -66,6 +74,8 @@ export class SSYError extends Error {
 
 		// Extract status from multiple possible locations
 		const status = error.status || error.statusCode || error.response?.status
+		this.modelId = modelId || error.modelId
+		this.providerId = providerId || error.providerId
 
 		// Construct the error details object to includes relevant information
 		// And ensure it has a consistent structure
@@ -74,8 +84,8 @@ export class SSYError extends Error {
 			status,
 			request_id: error.request_id || error.response?.request_id,
 			code: error.code || error?.cause?.code,
-			modelId,
-			providerId,
+			modelId: this.modelId,
+			providerId: this.providerId,
 			details: error.details || error.error, // Additional details provided by the server
 			...error,
 			stack: undefined, // Avoid serializing stack trace to keep the error object clean
@@ -98,6 +108,14 @@ export class SSYError extends Error {
 		})
 	}
 
+	public get status(): number | undefined {
+		return this._error.status
+	}
+
+	public get requestId(): string | undefined {
+		return this._error.request_id
+	}
+
 	/**
 	 * Parses a stringified error into a SSYError instance.
 	 */
@@ -114,6 +132,10 @@ export class SSYError extends Error {
 	 */
 	static transform(error: any, modelId?: string, providerId?: string): SSYError {
 		try {
+			// If already a SSYError, return it directly to prevent infinite recursion
+			if (error instanceof SSYError) {
+				return error
+			}
 			return new SSYError(JSON.parse(error), modelId, providerId)
 		} catch {
 			return new SSYError(error, modelId, providerId)
@@ -130,6 +152,8 @@ export class SSYError extends Error {
 	 */
 	static getErrorType(err: SSYError): SSYErrorType | undefined {
 		const { code, status, details } = err._error
+		const rawMessage = err._error?.message || err.message || JSON.stringify(err._error)
+		const detailMessage = typeof details?.message === "string" ? details.message : undefined
 
 		// Check balance error first (most specific)
 		if (code === "insufficient_quota" && typeof details?.message.includes("用户余额不足")) {
@@ -142,8 +166,29 @@ export class SSYError extends Error {
 			return SSYErrorType.Balance
 		}
 
+		// Check spend limit exceeded (org-enforced budget cap, 429 SPEND_LIMIT_EXCEEDED)
+		// Must be checked before the generic rate-limit check since both use 429
+		if (code === "SPEND_LIMIT_EXCEEDED" || details?.code === "SPEND_LIMIT_EXCEEDED") {
+			return SSYErrorType.SpendLimit
+		}
+
+		if (
+			rawMessage === getClineOrgIndividualInferenceSubscriptionMessage() ||
+			(detailMessage ? isClineOrgIndividualInferenceSubscriptionMessage(detailMessage) : false) ||
+			(rawMessage ? isClineOrgIndividualInferenceSubscriptionMessage(rawMessage) : false)
+		) {
+			return SSYErrorType.OrgClinePassRestriction
+		}
+
+		if (
+			(detailMessage ? isClineNotSubscribedMessage(detailMessage) : false) ||
+			(rawMessage ? isClineNotSubscribedMessage(rawMessage) : false)
+		) {
+			return SSYErrorType.Entitlement
+		}
+
 		// Check auth errors
-		if (code === "ERR_BAD_REQUEST" || status === 401) {
+		if (code === "ERR_BAD_REQUEST" || status === 401 || err instanceof AuthInvalidTokenError) {
 			return SSYErrorType.Auth
 		}
 
@@ -174,5 +219,12 @@ export class SSYError extends Error {
 			}
 		}
 		return undefined
+	}
+}
+
+export class AuthInvalidTokenError extends Error {
+	constructor(message: string) {
+		super(message)
+		this.name = SSYErrorType.Auth
 	}
 }

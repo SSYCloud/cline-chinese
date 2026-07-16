@@ -41,7 +41,7 @@ function prefixForState(state: TeamToolEvent["state"]): string {
 	if (state === "output-available") {
 		return "Done";
 	}
-	return "Running";
+	return "运行";
 }
 
 function summarizeTeamTool(event: TeamToolEvent): ReactNode {

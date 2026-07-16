@@ -40,7 +40,7 @@ import { ExtensionRegistryInfo } from "@/registry"
 import { SSYAccountService } from "@/services/account/SSYAccountService"
 // import { OcaAuthService } from "@/services/auth/oca/OcaAuthService"
 import { UrlContentFetcher } from "@/services/browser/UrlContentFetcher"
-import { ClineError } from "@/services/error/ClineError"
+import { SSYError } from "@/services/error/SSYError"
 import { McpHub } from "@/services/mcp/McpHub"
 // import { telemetryService } from "@/services/telemetry"
 import type { ClineExtensionContext } from "@/shared/cline"
@@ -986,7 +986,7 @@ export class Controller {
 			)
 		}
 
-		const clineError = new ClineError(
+		const clineError = new SSYError(
 			{ message: CLINE_ACCOUNT_AUTH_ERROR_MESSAGE, status: 401 },
 			undefined, // modelId
 			"cline",

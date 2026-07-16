@@ -1,5 +1,4 @@
 import { Logger } from "@/shared/services/Logger"
-import { ClineError } from "./ClineError"
 import { ErrorProviderFactory } from "./ErrorProviderFactory"
 import { IErrorProvider } from "./providers/IErrorProvider"
 import { SSYError } from "./SSYError"
@@ -41,11 +40,11 @@ export class ErrorService {
 		this.provider = provider
 	}
 
-	captureException(error: Error | ClineError, properties?: Record<string, unknown>) {
+	captureException(error: Error | SSYError, properties?: Record<string, unknown>) {
 		return this.provider.captureException(error, properties)
 	}
 
-	public logException(error: Error | ClineError, properties?: Record<string, unknown>): void {
+	public logException(error: Error | SSYError, properties?: Record<string, unknown>): void {
 		this.provider.logException(error, properties)
 		Logger.error("[ErrorService] Logging exception", JSON.stringify(error))
 	}
