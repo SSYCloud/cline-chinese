@@ -1,6 +1,6 @@
 {
-	"name": "@cline/llms",
-	"version": "0.0.41",
+	"name": "@coohu/llms",
+	"version": "0.0.56",
 	"description": "Config-driven SDK for selecting, extending, and instantiating LLM providers and models",
 	"repository": {
 		"type": "git",
@@ -30,10 +30,11 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "bun run bun.mts && bun tsc -p tsconfig.build.json",
-		"typecheck": "bun tsc -p tsconfig.dev.json --noEmit",
+		"build": "bun run bun.mts && bunx tsc -p tsconfig.build.json",
+		"typecheck": "bunx tsc -p tsconfig.dev.json --noEmit",
 		"test": "vitest run",
 		"test:live": "vitest run src/tests/provider-live*.test.ts",
+		"test:vcr": "vitest run src/tests/provider-vcr.test.ts",
 		"test:watch": "vitest",
 		"generate:models": "bun run scripts/generate-models.ts"
 	},
@@ -43,6 +44,7 @@
 		}
 	},
 	"dependencies": {
+		"@coohu/shared": "0.1.13",
 		"@ai-sdk/amazon-bedrock": "^4.0.89",
 		"@ai-sdk/anthropic": "^3.0.68",
 		"@ai-sdk/google": "^3.0.60",
@@ -52,7 +54,7 @@
 		"@ai-sdk/openai-compatible": "^2.0.38",
 		"@ai-sdk/provider": "^3.0.8",
 		"@aws-sdk/credential-providers": "^3.922.0",
-		"@cline/shared": "workspace:*",
+		"@jerome-benoit/sap-ai-provider": "4.6.9",
 		"@langfuse/otel": "^4.0.0",
 		"@opentelemetry/api": "^1.9.0",
 		"@opentelemetry/sdk-trace-node": "^2.6.1",

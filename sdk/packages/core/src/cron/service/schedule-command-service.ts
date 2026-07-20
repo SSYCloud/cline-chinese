@@ -3,8 +3,8 @@ import type {
 	HubReplyEnvelope,
 	HubScheduleCreateInput,
 	HubScheduleUpdateInput,
-} from "@cline/shared";
-import { createSessionId } from "@cline/shared";
+} from "@coohu/shared";
+import { createSessionId } from "@coohu/shared";
 import type { HubScheduleService } from "./schedule-service";
 
 function okReply(
@@ -95,9 +95,14 @@ export class HubScheduleCommandService {
 					});
 				case "schedule.trigger":
 					return okReply(envelope, {
-						execution: await this.schedules.triggerScheduleNow(
-							String(envelope.payload?.scheduleId ?? ""),
-						),
+						execution:
+							envelope.payload?.wait === false
+								? this.schedules.triggerScheduleNowDetached(
+										String(envelope.payload?.scheduleId ?? ""),
+									)
+								: await this.schedules.triggerScheduleNow(
+										String(envelope.payload?.scheduleId ?? ""),
+									),
 					});
 				case "schedule.list_executions":
 					return okReply(envelope, {

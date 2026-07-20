@@ -1,0 +1,23 @@
+{
+	"name": "@coohu/cline-hub",
+	"version": "0.0.0",
+	"private": true,
+	"description": "用于 Cline Hub 的浏览器仪表板：实时客户端、会话、流式聊天及 Hub 重启功能。",
+	"type": "module",
+	"exports": {
+		".": "./src/server.ts"
+	},
+	"scripts": {
+		"build:webview": "bun run --cwd src/webview build",
+		"dev": "bun run src/dev.ts",
+		"start": "bun run src/server.ts",
+		"smoke:options": "bun run src/validate-options.ts",
+		"test": "bunx vitest run --config vitest.config.ts",
+		"typecheck": "bun tsc -p tsconfig.json --noEmit"
+	},
+	"dependencies": {
+		"@coohu/core": "workspace:*",
+		"@coohu/llms": "workspace:*",
+		"@coohu/shared": "workspace:*"
+	}
+}

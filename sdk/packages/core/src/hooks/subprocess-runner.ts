@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import {
 	augmentNodeCommandForDebug,
 	withResolvedClineBuildEnv,
-} from "@cline/shared";
+} from "@coohu/shared";
 
 export interface RunSubprocessEventOptions {
 	command: string[];
@@ -125,6 +125,9 @@ export async function runSubprocessEvent(
 		env: withResolvedClineBuildEnv(options.env),
 		stdio: detached ? ["pipe", "ignore", "ignore"] : ["pipe", "pipe", "pipe"],
 		detached,
+		// Prevent a console window from flashing on Windows (especially when
+		// detached, which would otherwise allocate a new console).
+		windowsHide: true,
 	});
 	const spawned = new Promise<void>((resolve) => {
 		child.once("spawn", () => {

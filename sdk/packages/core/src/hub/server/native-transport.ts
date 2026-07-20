@@ -2,7 +2,7 @@ import type {
 	HubCommandEnvelope,
 	HubEventEnvelope,
 	HubReplyEnvelope,
-} from "@cline/shared";
+} from "@coohu/shared";
 import type { HubCommandTransport } from "./command-transport";
 
 export interface NativeHubTransport {

@@ -1,5 +1,5 @@
 {
-	"name": "@cline/analysis",
+	"name": "@coohu/analysis",
 	"version": "1.0.0",
 	"description": "Analysis framework for Cline evaluations with failure classification and metrics",
 	"type": "module",

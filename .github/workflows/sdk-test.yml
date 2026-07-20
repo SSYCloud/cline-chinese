@@ -1,4 +1,4 @@
-name: SDK Tests
+name: sdk-test
 
 on:
     push:
@@ -21,7 +21,7 @@ permissions:
 
 defaults:
     run:
-        working-directory: sdk
+        working-directory: .
 
 jobs:
     quality-checks:
@@ -44,7 +44,7 @@ jobs:
             - name: Typecheck
               run: |
                   bun run build:sdk
-                  bun run -F @cline/cli build
+                  bun run -F @coohu/cli build
                   bun run types
 
             - name: Lint & Format
@@ -88,7 +88,7 @@ jobs:
             - name: Build CLI
               id: build_cli_step
               if: ${{ !cancelled() && steps.build_sdk_step.outcome == 'success' }}
-              run: bun -F @cline/cli build
+              run: bun -F @coohu/cline build
 
             - name: Run Tests
               if: ${{ !cancelled() && steps.build_sdk_step.outcome == 'success' && steps.build_cli_step.outcome == 'success' && matrix.os != 'windows-latest' }}
@@ -96,17 +96,17 @@ jobs:
 
             - name: Run SDK Tests (Windows)
               if: ${{ !cancelled() && steps.build_sdk_step.outcome == 'success' && steps.build_cli_step.outcome == 'success' && matrix.os == 'windows-latest' }}
-              run: bun -F './packages/**' test
+              run: bun -F './sdk/packages/**' test
 
             - name: Smoke test SQLite under Node
               if: ${{ !cancelled() && steps.build_sdk_step.outcome == 'success' && matrix.os != 'windows-latest' }}
               timeout-minutes: 10
-              run: bun scripts/ci-node-smoke.ts
+              run: bun sdk/scripts/ci-node-smoke.ts
 
             - name: Run TUI e2e tests
               if: ${{ !cancelled() && steps.build_sdk_step.outcome == 'success' && steps.build_cli_step.outcome == 'success' && matrix.os == 'ubuntu-latest' && matrix.node-version == '24.x' }}
-              run: bun -F @cline/cli test:e2e:cli:tui
+              run: bun -F @coohu/cli test:e2e:cli:tui
 
             - name: Verify packages are publishable
               if: ${{ !cancelled() && steps.build_sdk_step.outcome == 'success' && steps.build_cli_step.outcome == 'success' && matrix.os == 'ubuntu-latest' && matrix.node-version == '24.x' }}
-              run: bun scripts/check-publish.ts
+              run: bun sdk/scripts/check-publish.ts

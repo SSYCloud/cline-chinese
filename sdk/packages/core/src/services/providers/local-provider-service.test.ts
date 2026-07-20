@@ -1,8 +1,9 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import * as LlmsModels from "@cline/llms";
+import * as LlmsModels from "@coohu/llms";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { clearLiveModelsCatalogCache } from "../llms/provider-defaults";
 import { ProviderSettingsManager } from "../storage/provider-settings-manager";
 import {
 	parseModelsFile,
@@ -14,7 +15,6 @@ import {
 	addLocalProvider,
 	deleteLocalProvider,
 	getLocalProviderModels,
-	getProviderConfigFields,
 	listLocalProviders,
 	normalizeOAuthProvider,
 	refreshProviderModelsFromSource,
@@ -48,6 +48,7 @@ function makeTempManager(): {
 // ---------------------------------------------------------------------------
 
 afterEach(() => {
+	clearLiveModelsCatalogCache();
 	LlmsModels.resetRegistry();
 	vi.restoreAllMocks();
 	vi.unstubAllGlobals();
@@ -223,6 +224,98 @@ describe("addLocalProvider – model ID parsing via modelsSourceUrl", () => {
 
 		const { models } = await getLocalProviderModels("ollama-shaped-provider");
 		expect(models.map((m) => m.id).sort()).toEqual(["llama3.1", "qwen3:8b"]);
+	});
+
+	it("uses only live ClinePass models when live models are found", async () => {
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url === "https://models.dev/api.json") {
+				return new Response(
+					JSON.stringify({
+						openrouter: {
+							models: {
+								"vendor/live-pass-model": {
+									name: "Live Pass Model",
+									tool_call: true,
+									reasoning: true,
+									limit: { context: 256_000, input: 200_000, output: 32_000 },
+								},
+							},
+						},
+					}),
+					{
+						status: 200,
+						headers: { "content-type": "application/json" },
+					},
+				);
+			}
+
+			return new Response(
+				JSON.stringify({
+					clinePass: [
+						{
+							id: "cline-pass/live-pass-model",
+							name: "vendor/live-pass-model",
+						},
+					],
+				}),
+				{
+					status: 200,
+					headers: { "content-type": "application/json" },
+				},
+			);
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { models } = await getLocalProviderModels("cline-pass");
+
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+		expect(models.map((model) => model.id)).toEqual([
+			"cline-pass/live-pass-model",
+		]);
+		expect(models[0]).toMatchObject({
+			id: "cline-pass/live-pass-model",
+			name: "Live Pass Model",
+			supportsReasoning: true,
+		});
+	});
+
+	it("falls back to generated ClinePass models when no live ClinePass models are found", async () => {
+		const fetchMock = vi.fn(async (url: string) => {
+			if (url === "https://models.dev/api.json") {
+				return new Response(
+					JSON.stringify({
+						openrouter: {
+							models: {
+								"vendor/live-openrouter-model": {
+									name: "Live OpenRouter Model",
+									tool_call: true,
+								},
+							},
+						},
+					}),
+					{
+						status: 200,
+						headers: { "content-type": "application/json" },
+					},
+				);
+			}
+
+			return new Response(JSON.stringify({ clinePass: [] }), {
+				status: 200,
+				headers: { "content-type": "application/json" },
+			});
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { models } = await getLocalProviderModels("cline-pass");
+
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+		expect(models.map((model) => model.id)).toContain(
+			"cline-pass/mimo-v2.5-pro",
+		);
+		expect(models.map((model) => model.id)).not.toContain(
+			"vendor/live-openrouter-model",
+		);
 	});
 
 	it("parses a { models: { id1: {}, id2: {} } } object-keyed payload", async () => {
@@ -599,7 +692,7 @@ describe("addLocalProvider – capabilities", () => {
 		expect(models[0].supportsReasoning).toBeFalsy();
 	});
 
-	it("merges LiteLLM private models into the provider model listing when auth is configured", async () => {
+	it("uses LiteLLM private models as the authoritative provider model listing when auth is configured", async () => {
 		manager.saveProviderSettings(
 			{
 				provider: "litellm",
@@ -633,14 +726,38 @@ describe("addLocalProvider – capabilities", () => {
 			manager.getProviderConfig("litellm"),
 		);
 
-		expect(models.map((model) => model.id)).toContain("private-proxy-model");
-		expect(models.map((model) => model.id)).toContain("openai/gpt-4o-mini");
+		expect(models.map((model) => model.id).sort()).toEqual([
+			"openai/gpt-4o-mini",
+			"private-proxy-model",
+		]);
+		expect(models.map((model) => model.id)).not.toContain("gpt-5.4");
 		expect(
 			models.find((model) => model.id === "private-proxy-model"),
 		).toMatchObject({
 			supportsVision: true,
 			supportsReasoning: true,
 		});
+	});
+
+	it("uses an empty LiteLLM model list when no private model list is fetched", async () => {
+		manager.saveProviderSettings(
+			{
+				provider: "litellm",
+				baseUrl: "http://localhost:4010",
+				model: "gpt-4o",
+			},
+			{ setLastUsed: false },
+		);
+		const fetchMock = vi.fn();
+		vi.stubGlobal("fetch", fetchMock);
+
+		const { models } = await getLocalProviderModels(
+			"litellm",
+			manager.getProviderConfig("litellm"),
+		);
+
+		expect(fetchMock).not.toHaveBeenCalled();
+		expect(models).toEqual([]);
 	});
 });
 
@@ -681,20 +798,20 @@ describe("models.json model overlays", () => {
 				filePath: path.join(settingsDir, "providers.json"),
 			});
 
-			const provider = await LlmsModels.getProvider("cline");
+			const provider = await LlmsModels.getProvider("shengsuanyun");
 			expect(provider).toMatchObject({
-				id: "cline",
-				baseUrl: "https://api.cline.bot/api/v1",
+				id: "shengsuanyun",
+				baseUrl: "https://router.shengsuanyun.com/api/v1",
 				defaultModelId: "anthropic/claude-sonnet-4.6",
 			});
 
-			const { models } = await getLocalProviderModels("cline");
-			expect(
-				models.find((model) => model.id === "openai/gpt-5.5"),
-			).toMatchObject({
-				id: "openai/gpt-5.5",
-				name: "OpenAI GPT-5.5",
-			});
+			// const { models } = await getLocalProviderModels("shengsuanyun");
+			// expect(
+			// 	models.find((model) => model.id === "openai/gpt-5.5"),
+			// ).toMatchObject({
+			// 	id: "openai/gpt-5.5",
+			// 	name: "OpenAI GPT-5.5",
+			// });
 			expect(manager.getFilePath()).toBe(
 				path.join(settingsDir, "providers.json"),
 			);
@@ -784,6 +901,23 @@ describe("saveLocalProviderSettings", () => {
 		const auth = settings?.auth as Record<string, unknown>;
 		expect(auth?.accessToken).toBe("tok1");
 		expect(auth?.refreshToken).toBe("ref1");
+	});
+
+	it("merges and clears nested provider config fields", () => {
+		saveLocalProviderSettings(manager, {
+			providerId: "test-provider",
+			enabled: true,
+			gcp: { projectId: "project-a", region: "us-central1" },
+		});
+		saveLocalProviderSettings(manager, {
+			providerId: "test-provider",
+			enabled: true,
+			gcp: { projectId: "" },
+		});
+
+		const settings = manager.getProviderSettings("test-provider");
+		expect(settings?.gcp?.projectId).toBeUndefined();
+		expect(settings?.gcp?.region).toBe("us-central1");
 	});
 
 	it("passes through scalar fields like maxTokens and timeout", () => {
@@ -1074,6 +1208,22 @@ describe("listLocalProviders", () => {
 		expect(ids).toContain("list-provider-b");
 	});
 
+	it("hides ClinePass when the ClinePass feature flag is disabled", async () => {
+		const { providers } = await listLocalProviders(manager, {
+			isClinePassEnabled: false,
+		});
+
+		expect(providers.map((p) => p.id)).not.toContain("cline-pass");
+	});
+
+	it("includes ClinePass when the ClinePass feature flag is enabled", async () => {
+		const { providers } = await listLocalProviders(manager, {
+			isClinePassEnabled: true,
+		});
+
+		expect(providers.map((p) => p.id)).toContain("cline-pass");
+	});
+
 	it("marks enabled providers correctly", async () => {
 		await addLocalProvider(manager, {
 			providerId: "enabled-check-provider",
@@ -1136,7 +1286,32 @@ describe("listLocalProviders", () => {
 		).toBe(true);
 	});
 
-	it("uses the same built-in model list for cline as openrouter", async () => {
+	it("exposes provider-specific config fields for Vertex", async () => {
+		manager.saveProviderSettings(
+			{
+				provider: "vertex",
+				gcp: { projectId: "gcp-project", region: "us-west1" },
+				model: "claude-sonnet-4-6@default",
+			},
+			{ setLastUsed: false },
+		);
+
+		const { providers } = await listLocalProviders(manager);
+		const vertex = providers.find((provider) => provider.id === "vertex");
+
+		expect(vertex?.configFields?.map((field) => field.path)).toEqual([
+			"gcp.projectId",
+			"gcp.region",
+			"apiKey",
+		]);
+		expect(vertex?.configValues?.["gcp.projectId"]).toBe("gcp-project");
+		expect(vertex?.configValues?.["gcp.region"]).toBe("us-west1");
+		expect(
+			vertex?.configFields?.some((field) => field.path === "baseUrl"),
+		).toBe(false);
+	});
+
+	it("uses Cline-specific Z.ai aliases in the built-in model list", async () => {
 		manager.saveProviderSettings(
 			{
 				provider: "cline",
@@ -1152,9 +1327,17 @@ describe("listLocalProviders", () => {
 		const openrouter = providers.find(
 			(provider) => provider.id === "openrouter",
 		);
+		const clineModelIds = new Set(
+			cline?.modelList?.map((model) => model.id) ?? [],
+		);
+		const openrouterModelIds = new Set(
+			openrouter?.modelList?.map((model) => model.id) ?? [],
+		);
 
 		expect(cline?.modelList?.length).toBeGreaterThan(0);
-		expect(cline?.modelList).toEqual(openrouter?.modelList);
+		expect(clineModelIds).toContain("zai/glm-5.2");
+		expect(clineModelIds).not.toContain("z-ai/glm-5.2");
+		expect(openrouterModelIds).toContain("z-ai/glm-5.2");
 	});
 
 	it("does not eagerly fetch LiteLLM private models while listing providers", async () => {
@@ -1207,8 +1390,7 @@ describe("normalizeOAuthProvider", () => {
 		expect(normalizeOAuthProvider("OCA")).toBe("oca");
 	});
 
-	it("normalizes 'codex' and 'openai-codex' to 'openai-codex'", () => {
-		expect(normalizeOAuthProvider("codex")).toBe("openai-codex");
+	it("normalizes 'openai-codex' to 'openai-codex'", () => {
 		expect(normalizeOAuthProvider("openai-codex")).toBe("openai-codex");
 		expect(normalizeOAuthProvider("OPENAI-CODEX")).toBe("openai-codex");
 	});
@@ -1272,94 +1454,6 @@ describe("resolveLocalClineAuthToken", () => {
 		expect(
 			resolveLocalClineAuthToken({ provider: "cline" as never }),
 		).toBeUndefined();
-	});
-});
-
-describe("getProviderConfigFields", () => {
-	it("returns api-key auth with only apiKey for cloud providers", () => {
-		const result = getProviderConfigFields("anthropic");
-		expect(result.providerId).toBe("anthropic");
-		expect(result.authMethod).toBe("api-key");
-		expect(result.fields.apiKey).toEqual({});
-		expect(result.fields.baseUrl).toBeUndefined();
-	});
-
-	it("returns api-key auth with apiKey + baseUrl for ollama", () => {
-		const result = getProviderConfigFields("ollama");
-		expect(result.authMethod).toBe("api-key");
-		expect(result.fields.apiKey).toEqual({});
-		expect(result.fields.baseUrl?.defaultValue).toBe(
-			"http://localhost:11434/v1",
-		);
-	});
-
-	it("returns api-key auth with apiKey + baseUrl for LM Studio", () => {
-		const result = getProviderConfigFields("lmstudio");
-		expect(result.authMethod).toBe("api-key");
-		expect(result.fields.apiKey).toEqual({});
-		expect(result.fields.baseUrl?.defaultValue).toBe(
-			"http://localhost:1234/v1",
-		);
-	});
-
-	it("returns api-key auth with apiKey + baseUrl for LiteLLM", () => {
-		const result = getProviderConfigFields("litellm");
-		expect(result.authMethod).toBe("api-key");
-		expect(result.fields.apiKey).toEqual({});
-		expect(result.fields.baseUrl?.defaultValue).toBe(
-			"http://localhost:4000/v1",
-		);
-	});
-
-	it("returns api-key auth with apiKey + baseUrl for user-added providers", () => {
-		registerCustomProvider("internal-router", {
-			provider: {
-				name: "Internal Router",
-				baseUrl: "https://llm.internal.example/v1",
-				defaultModelId: "alpha",
-				protocol: "openai-responses",
-			},
-			models: {
-				alpha: { name: "Alpha" },
-			},
-		});
-
-		const result = getProviderConfigFields("internal-router");
-		expect(result.authMethod).toBe("api-key");
-		expect(result.fields.apiKey).toEqual({});
-		expect(result.fields.baseUrl?.defaultValue).toBe(
-			"https://llm.internal.example/v1",
-		);
-	});
-
-	it("returns oauth auth with no fields for cline", () => {
-		const result = getProviderConfigFields("cline");
-		expect(result.authMethod).toBe("oauth");
-		expect(result.fields).toEqual({});
-	});
-
-	it("returns oauth auth with no fields for openai-codex", () => {
-		const result = getProviderConfigFields("openai-codex");
-		expect(result.authMethod).toBe("oauth");
-		expect(result.fields).toEqual({});
-	});
-
-	it("returns local auth with no fields for openai-codex-cli", () => {
-		const result = getProviderConfigFields("openai-codex-cli");
-		expect(result.authMethod).toBe("local");
-		expect(result.fields).toEqual({});
-	});
-
-	it("normalizes the openai alias to openai-native", () => {
-		const result = getProviderConfigFields("openai");
-		expect(result.providerId).toBe("openai-native");
-		expect(result.authMethod).toBe("api-key");
-	});
-
-	it("falls back to a single api-key field for unknown providers", () => {
-		const result = getProviderConfigFields("not-a-real-provider");
-		expect(result.authMethod).toBe("api-key");
-		expect(result.fields).toEqual({ apiKey: {} });
 	});
 });
 

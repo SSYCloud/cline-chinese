@@ -5,7 +5,7 @@
  * This replaces the per-provider config chaos with a single structure.
  */
 
-import type { BasicLogger, ExtensionContext } from "@cline/shared";
+import type { BasicLogger, ExtensionContext } from "@coohu/shared";
 import type { ModelInfo, ProviderClient } from "../catalog/types";
 import {
 	BUILT_IN_PROVIDER,
@@ -155,7 +155,7 @@ export interface AwsConfig {
 	accessKey?: string;
 	secretKey?: string;
 	sessionToken?: string;
-	authentication?: "iam" | "api-key" | "profile";
+	authentication?: "iam" | "api-key" | "apikey" | "profile";
 	profile?: string;
 	usePromptCache?: boolean;
 	endpoint?: string;

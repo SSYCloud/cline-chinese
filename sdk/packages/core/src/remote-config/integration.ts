@@ -13,7 +13,7 @@ import {
 	REMOTE_CONFIG_SESSION_BLOB_UPLOAD_METADATA_KEY,
 	readRemoteConfigSessionBlobUploadMetadata,
 	registerRemoteConfigSessionBlobUpload,
-} from "@cline/shared";
+} from "@coohu/shared";
 import type { ClineCoreStartInput } from "../cline-core/types";
 import { createConfiguredTelemetryService } from "../services/telemetry";
 import type { CreateOpenTelemetryTelemetryServiceOptions } from "../services/telemetry/OpenTelemetryProvider";

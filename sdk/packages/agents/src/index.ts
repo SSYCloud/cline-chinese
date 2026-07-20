@@ -1,5 +1,5 @@
 /**
- * @cline/agents
+ * @coohu/agents
  *
  * Browser-safe agent runtime for the next-generation Cline SDK.
  *
@@ -11,10 +11,10 @@
  *   - `AgentRuntimeConfig` and its two variants (`AgentRuntimeConfigWithModel`,
  *     `AgentRuntimeConfigWithProvider`) — the discriminated config union.
  *   - `AgentRunInput` / `AgentEventListener` — convenience type aliases.
- *   - `createTool` — re-exported from `@cline/shared` for authoring tools.
+ *   - `createTool` — re-exported from `@coohu/shared` for authoring tools.
  *
  * Shared types (`AgentMessage`, `AgentRunResult`, etc.) should be imported
- * directly from `@cline/shared`.
+ * directly from `@coohu/shared`.
  */
 
 export type {
@@ -39,8 +39,8 @@ export type {
 	AgentUsage,
 	ToolApprovalResult,
 	ToolPolicy,
-} from "@cline/shared";
-export { createTool } from "@cline/shared";
+} from "@coohu/shared";
+export { createTool } from "@coohu/shared";
 export type {
 	AgentEventListener,
 	AgentRunInput,
@@ -51,6 +51,7 @@ export type {
 export {
 	Agent,
 	AgentRuntime,
+	AgentRuntimeAbortError,
 	createAgent,
 	createAgentRuntime,
 } from "./agent-runtime";

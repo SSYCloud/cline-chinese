@@ -21,7 +21,7 @@
 The Cline SDK is a TypeScript framework for building AI agents that can edit files, run shell commands, browse the web, call APIs, and use any custom tool you give them. It's the same engine that powers [Cline](https://github.com/cline/cline), packaged as a library you can embed in your own applications.
 
 ```typescript
-import { Agent } from "@cline/sdk"
+import { Agent } from "@coohu/sdk"
 
 const agent = new Agent({
   providerId: "cline",
@@ -39,7 +39,7 @@ That's it. The agent streams its response, calls tools if you give it any, and r
 ## Install
 
 ```bash
-npm install @cline/sdk
+npm install @coohu/sdk
 ```
 
 ## SDK Skill
@@ -96,7 +96,7 @@ Explore full working examples in [`examples/`](examples) and app examples in [`a
 Tools are how agents interact with the world. Define a tool with a name, a description the model reads, a JSON Schema for inputs, and a function that does the work:
 
 ```typescript
-import { createTool } from "@cline/sdk"
+import { createTool } from "@coohu/sdk"
 
 const deploy = createTool({
   name: "deploy",
@@ -185,7 +185,7 @@ const metrics: AgentPlugin = {
 When you need session persistence, built-in tools, config discovery, and multi-process support, use `ClineCore`:
 
 ```typescript
-import { ClineCore } from "@cline/sdk"
+import { ClineCore } from "@coohu/sdk"
 
 const cline = await ClineCore.create({ clientName: "my-app" })
 
@@ -211,13 +211,13 @@ The SDK is a layered stack. Use as much or as little as you need:
 
 | Package | What it does |
 |---------|-------------|
-| `@cline/sdk` | Everything you need -- install this one |
-| `@cline/core` | Sessions, persistence, built-in tools, config discovery, RPC |
-| `@cline/agents` | Stateless agent loop with tool execution and streaming |
-| `@cline/llms` | LLM provider gateway (Anthropic, OpenAI, Google, Bedrock, Mistral, and more) |
-| `@cline/shared` | Types, tool creation helpers, hook engine |
+| `@coohu/sdk` | Everything you need -- install this one |
+| `@coohu/core` | Sessions, persistence, built-in tools, config discovery, RPC |
+| `@coohu/agents` | Stateless agent loop with tool execution and streaming |
+| `@coohu/llms` | LLM provider gateway (Anthropic, OpenAI, Google, Bedrock, Mistral, and more) |
+| `@coohu/shared` | Types, tool creation helpers, hook engine |
 
-`@cline/sdk` is an alias for `@cline/core` that re-exports from all packages, so a single install gives you the full API. The individual packages are available if you want a minimal dependency footprint.
+`@coohu/sdk` is an alias for `@coohu/core` that re-exports from all packages, so a single install gives you the full API. The individual packages are available if you want a minimal dependency footprint.
 
 ## CLI
 
@@ -234,7 +234,7 @@ cline "Refactor the auth module to use JWT"
 cline schedule create "PR summary" --cron "0 9 * * MON-FRI" --prompt "Summarize open PRs"
 
 # Connect a Telegram bot created with @BotFather
-cline connect telegram -m my_bot -k "$TELEGRAM_BOT_TOKEN"
+cline connect telegram -k "$TELEGRAM_BOT_TOKEN"
 # Then send /help or /start to the bot in Telegram
 ```
 

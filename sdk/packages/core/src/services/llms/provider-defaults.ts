@@ -1,7 +1,6 @@
 /** biome-ignore-all lint/style/noNonNullAssertion: static */
 
-import * as Llms from "@cline/llms";
-import { decodeJwtPayload } from "../../auth/utils";
+import * as Llms from "@coohu/llms";
 import {
 	fetchModelIdsFromSource,
 	resolveModelsSourceUrl,
@@ -91,7 +90,7 @@ function getOpenAICompatibleProviderManifests(): Record<
 }
 
 export interface ProviderDefaults {
-	baseUrl: string;
+	baseUrl?: string;
 	modelId: string;
 	knownModels?: Record<string, ModelInfo>;
 	capabilities?: ProviderCapability[];
@@ -150,6 +149,10 @@ async function mergeKnownModels(
 	publicModels: Record<string, ModelInfo> = {},
 	userKnownModels: Record<string, ModelInfo> = {},
 ): Promise<Record<string, ModelInfo>> {
+	if (providerId === "litellm") {
+		return Llms.sortModelsByReleaseDate(privateModels);
+	}
+
 	const generatedProviderModels = await loadGeneratedProviderModels();
 	const generatedKeys = Llms.resolveProviderModelCatalogKeys(providerId);
 	const generated = Object.assign(
@@ -172,19 +175,42 @@ async function mergeKnownModels(
 			...userKnownModels,
 		});
 	}
-	const privateHasResults = Object.keys(privateModels).length > 0;
-	if (providerId === "openai-codex" && privateHasResults) {
+	if (providerId === "openai-codex") {
 		return Llms.sortModelsByReleaseDate({
-			...privateModels,
+			...defaultKnownModels,
+			...Llms.filterOpenAICodexModels(liveModels),
+			...publicModels,
 			...userKnownModels,
 		});
 	}
-	return Llms.sortModelsByReleaseDate({
+	if (providerId === "cline-pass" && Object.keys(liveModels).length > 0) {
+		return Llms.sortModelsByReleaseDate({
+			...liveModels,
+			...userKnownModels,
+		});
+	}
+	const knownModelsWithoutUserOverrides = Llms.sortModelsByReleaseDate({
 		...generated,
 		...defaultKnownModels,
 		...liveModels,
 		...privateModels,
 		...publicModels,
+	});
+
+	if (providerId === "cline") {
+		// Cline recommendations can use Vercel-style ids while the broader
+		// catalog includes OpenRouter aliases for the same models.
+		return Llms.sortModelsByReleaseDate({
+			...Llms.preferCanonicalModelIds(
+				knownModelsWithoutUserOverrides,
+				Llms.VERCEL_OPENROUTER_MODEL_ID_ALIAS_RULES,
+			),
+			...userKnownModels,
+		});
+	}
+
+	return Llms.sortModelsByReleaseDate({
+		...knownModelsWithoutUserOverrides,
 		...userKnownModels,
 	});
 }
@@ -230,34 +256,6 @@ function resolvePrivateCacheKey(
 	config: ProviderConfig,
 ): string {
 	return `${providerId}:${normalizeBaseUrl(config.baseUrl)}:${fingerprint(resolveAuthToken(config) ?? "")}`;
-}
-
-function deriveOpenAICodexAccountId(
-	accessToken: string | undefined,
-): string | undefined {
-	const trimmed = accessToken?.trim();
-	if (!trimmed) {
-		return undefined;
-	}
-	const payload = decodeJwtPayload(trimmed) as {
-		"https://api.openai.com/auth"?: { chatgpt_account_id?: string };
-		organizations?: Array<{ id?: string }>;
-		chatgpt_account_id?: string;
-	} | null;
-	const authAccountId =
-		payload?.["https://api.openai.com/auth"]?.chatgpt_account_id;
-	if (typeof authAccountId === "string" && authAccountId.length > 0) {
-		return authAccountId;
-	}
-	const orgAccountId = payload?.organizations?.[0]?.id;
-	if (typeof orgAccountId === "string" && orgAccountId.length > 0) {
-		return orgAccountId;
-	}
-	const rootAccountId = payload?.chatgpt_account_id;
-	if (typeof rootAccountId === "string" && rootAccountId.length > 0) {
-		return rootAccountId;
-	}
-	return undefined;
 }
 
 async function fetchWithTimeout(
@@ -327,23 +325,6 @@ function buildModelFromPrivateSource(
 	};
 }
 
-function buildOpenAICodexPrivateModelInfo(
-	model: Llms.OpenAICodexListedModel,
-): ModelInfo {
-	const generated =
-		Llms.getGeneratedModelsForProvider("openai-native")[model.id];
-	if (generated) {
-		return {
-			...generated,
-			id: model.id,
-			name: model.name ?? generated.name ?? model.id,
-		};
-	}
-	return buildModelFromPrivateSource(model.id, {
-		name: model.name ?? model.id,
-	});
-}
-
 interface BasetenModelResponse {
 	id?: string;
 	object?: string;
@@ -403,6 +384,34 @@ interface HicapModelResponse {
 	id?: string;
 }
 
+interface PoolsideModelResponse {
+	id?: string;
+	name?: string;
+	description?: string;
+	context_length?: number;
+	max_completion_tokens?: number;
+	supported_features?: string[];
+	supported_sampling_parameters?: string[];
+	input_modalities?: string[];
+	pricing?: {
+		prompt?: number | string;
+		completion?: number | string;
+	};
+}
+
+function parseOptionalNumber(
+	value: number | string | undefined,
+): number | undefined {
+	if (typeof value === "number") {
+		return Number.isFinite(value) ? value : undefined;
+	}
+	if (typeof value === "string") {
+		const parsed = Number(value);
+		return Number.isFinite(parsed) ? parsed : undefined;
+	}
+	return undefined;
+}
+
 async function fetchHicapPrivateModels(
 	_config: ProviderConfig,
 	token: string,
@@ -438,6 +447,81 @@ async function fetchHicapPrivateModels(
 	return models;
 }
 
+async function fetchPoolsidePrivateModels(
+	config: ProviderConfig,
+	token: string,
+): Promise<Record<string, ModelInfo>> {
+	const baseUrl =
+		normalizeBaseUrl(config.baseUrl) || "https://inference.poolside.ai/v1";
+	const endpoint = `${baseUrl.replace(/\/+$/, "")}/models`;
+	const response = await fetchWithTimeout(endpoint, {
+		method: "GET",
+		headers: {
+			Authorization: `Bearer ${token}`,
+			accept: "application/json",
+		},
+	});
+	if (!response.ok) {
+		throw new Error(`Poolside model refresh failed: HTTP ${response.status}`);
+	}
+
+	const payload = (await response.json()) as { data?: PoolsideModelResponse[] };
+	const entries = payload?.data ?? [];
+	const models: Record<string, ModelInfo> = {};
+	for (const model of entries) {
+		const id = model.id?.trim();
+		if (!id) {
+			continue;
+		}
+
+		const supportedFeatures = model.supported_features ?? [];
+		const supportedSamplingParameters =
+			model.supported_sampling_parameters ?? [];
+		const inputModalities = model.input_modalities ?? [];
+		const capabilities: NonNullable<ModelInfo["capabilities"]> = ["streaming"];
+		includeCapability(
+			capabilities,
+			"tools",
+			supportedFeatures.includes("tools"),
+		);
+		includeCapability(
+			capabilities,
+			"reasoning",
+			supportedFeatures.includes("reasoning"),
+		);
+		includeCapability(
+			capabilities,
+			"temperature",
+			supportedSamplingParameters.includes("temperature"),
+		);
+		includeCapability(
+			capabilities,
+			"images",
+			inputModalities.includes("image"),
+		);
+
+		const pricing = {
+			input: parseOptionalNumber(model.pricing?.prompt),
+			output: parseOptionalNumber(model.pricing?.completion),
+		};
+		models[id] = {
+			id,
+			name: model.name ?? id,
+			description: model.description,
+			contextWindow: model.context_length,
+			maxInputTokens: model.context_length,
+			maxTokens: model.max_completion_tokens,
+			capabilities,
+			pricing:
+				pricing.input !== undefined || pricing.output !== undefined
+					? pricing
+					: undefined,
+			status: "active",
+		};
+	}
+	return models;
+}
+
 interface LiteLlmModelInfoResponse {
 	model_name?: string;
 	litellm_params?: {
@@ -454,11 +538,26 @@ interface LiteLlmModelInfoResponse {
 }
 
 function normalizeLiteLlmBaseUrl(baseUrl: string | undefined): string {
-	const normalized = normalizeBaseUrl(baseUrl);
+	const normalized = normalizeBaseUrl(baseUrl).replace(/\/+$/, "");
 	if (!normalized) {
 		return "http://localhost:4000";
 	}
 	return normalized.endsWith("/v1") ? normalized.slice(0, -3) : normalized;
+}
+
+function buildLiteLlmModelInfoUrls(baseUrl: string): string[] {
+	return [`${baseUrl}/v1/model/info`, `${baseUrl}/model/info`];
+}
+
+async function describeLiteLlmHttpFailure(response: Response): Promise<string> {
+	const body = (await response.text().catch(() => ""))
+		.replace(/\s+/g, " ")
+		.trim();
+	const bodyLimit = 500;
+	const bodyText = body
+		? `: ${body.slice(0, bodyLimit)}${body.length > bodyLimit ? "..." : ""}`
+		: "";
+	return `HTTP ${response.status}${bodyText}`;
 }
 
 async function fetchLiteLlmPrivateModels(
@@ -466,84 +565,71 @@ async function fetchLiteLlmPrivateModels(
 	token: string,
 ): Promise<Record<string, ModelInfo>> {
 	const baseUrl = normalizeLiteLlmBaseUrl(config.baseUrl);
-	const endpoint = `${baseUrl}/v1/model/info`;
+	const failures: string[] = [];
+	const authHeaders = [
+		["x-litellm-api-key", { "x-litellm-api-key": token }],
+		["Authorization", { Authorization: `Bearer ${token}` }],
+	] as const;
 
-	const fetchWithHeaders = async (
-		headers: Record<string, string>,
-	): Promise<Response> =>
-		fetchWithTimeout(endpoint, {
-			method: "GET",
-			headers: {
-				accept: "application/json",
-				...headers,
-			},
-		});
+	for (const endpoint of buildLiteLlmModelInfoUrls(baseUrl)) {
+		for (const [authLabel, authHeader] of authHeaders) {
+			try {
+				const response = await fetchWithTimeout(endpoint, {
+					method: "GET",
+					headers: {
+						accept: "application/json",
+						...authHeader,
+					},
+				});
 
-	let response = await fetchWithHeaders({ "x-litellm-api-key": token });
-	if (!response.ok) {
-		response = await fetchWithHeaders({ Authorization: `Bearer ${token}` });
-	}
-	if (!response.ok) {
-		throw new Error(`LiteLLM model refresh failed: HTTP ${response.status}`);
-	}
+				if (response.ok) {
+					const payload = (await response.json()) as {
+						data?: LiteLlmModelInfoResponse[];
+					};
+					const entries = payload?.data ?? [];
+					const models: Record<string, ModelInfo> = {};
+					for (const model of entries) {
+						const displayName = model.model_name?.trim();
+						const actualModelId = model.litellm_params?.model?.trim();
+						const modelId = actualModelId || displayName;
+						if (!modelId) {
+							continue;
+						}
+						const info = model.model_info;
+						const converted = buildModelFromPrivateSource(modelId, {
+							name: displayName ?? modelId,
+							maxTokens: info?.max_output_tokens ?? info?.max_tokens,
+							maxInputTokens: info?.max_input_tokens ?? info?.max_tokens,
+							supportsImages: info?.supports_vision,
+							supportsPromptCache: info?.supports_prompt_caching,
+							supportsReasoning: info?.supports_reasoning,
+						});
+						models[modelId] = converted;
+						if (displayName) {
+							models[displayName] = {
+								...converted,
+								id: displayName,
+								name: displayName,
+							};
+						}
+					}
+					return models;
+				}
 
-	const payload = (await response.json()) as {
-		data?: LiteLlmModelInfoResponse[];
-	};
-	const entries = payload?.data ?? [];
-	const models: Record<string, ModelInfo> = {};
-	for (const model of entries) {
-		const displayName = model.model_name?.trim();
-		const actualModelId = model.litellm_params?.model?.trim();
-		const modelId = actualModelId || displayName;
-		if (!modelId) {
-			continue;
+				failures.push(
+					`${new URL(endpoint).pathname} (${authLabel}): ${await describeLiteLlmHttpFailure(response)}`,
+				);
+			} catch (error) {
+				const message = error instanceof Error ? error.message : String(error);
+				failures.push(
+					`${new URL(endpoint).pathname} (${authLabel}): ${message}`,
+				);
+			}
 		}
-		const info = model.model_info;
-		const converted = buildModelFromPrivateSource(modelId, {
-			name: displayName ?? modelId,
-			maxTokens: info?.max_output_tokens ?? info?.max_tokens,
-			maxInputTokens: info?.max_input_tokens ?? info?.max_tokens,
-			supportsImages: info?.supports_vision,
-			supportsPromptCache: info?.supports_prompt_caching,
-			supportsReasoning: info?.supports_reasoning,
-		});
-		models[modelId] = converted;
-		if (displayName) {
-			models[displayName] = {
-				...converted,
-				id: displayName,
-				name: displayName,
-			};
-		}
 	}
-	return models;
-}
 
-async function fetchOpenAICodexPrivateModels(
-	config: ProviderConfig,
-	token: string,
-): Promise<Record<string, ModelInfo>> {
-	const models = await Llms.listOpenAICodexModels({
-		accessToken: token,
-		accountId: config.accountId ?? deriveOpenAICodexAccountId(token),
-		cwd:
-			typeof config.codex?.defaultSettings?.cwd === "string"
-				? config.codex.defaultSettings.cwd
-				: undefined,
-		codexPath:
-			typeof config.codex?.defaultSettings?.codexPath === "string"
-				? config.codex.defaultSettings.codexPath
-				: undefined,
-		env:
-			config.codex?.defaultSettings?.env &&
-			typeof config.codex.defaultSettings.env === "object" &&
-			!Array.isArray(config.codex.defaultSettings.env)
-				? (config.codex.defaultSettings.env as Record<string, string>)
-				: undefined,
-	});
-	return Object.fromEntries(
-		models.map((model) => [model.id, buildOpenAICodexPrivateModelInfo(model)]),
+	throw new Error(
+		`LiteLLM model refresh failed. Attempts: ${failures.join("; ")}`,
 	);
 }
 
@@ -559,7 +645,7 @@ const PRIVATE_PROVIDER_MODEL_FETCHERS: Record<
 	baseten: fetchBasetenPrivateModels,
 	hicap: fetchHicapPrivateModels,
 	litellm: fetchLiteLlmPrivateModels,
-	"openai-codex": fetchOpenAICodexPrivateModels,
+	poolside: fetchPoolsidePrivateModels,
 };
 
 const PUBLIC_MODELS_CACHE = new Map<
@@ -706,7 +792,7 @@ async function getPrivateProviderModels(
 async function fetchLiveModelsCatalog(
 	url: string,
 ): Promise<Record<string, Record<string, ModelInfo>>> {
-	return Llms.fetchModelsDevProviderModels(url);
+	return Llms.fetchLiveProviderModels(url, globalThis.fetch);
 }
 
 export async function getLiveModelsCatalog(
@@ -777,12 +863,12 @@ export function getProviderConfig(
 	providerId: string,
 ): ProviderDefaults | undefined {
 	const manifest = getBuiltInProviderManifest(providerId);
-	if (!manifest || !manifest.baseUrl) {
+	if (!manifest) {
 		return undefined;
 	}
 
 	return {
-		baseUrl: manifest.baseUrl,
+		baseUrl: manifest.baseUrl || undefined,
 		modelId: manifest.modelId,
 		knownModels: manifest.knownModels,
 		capabilities: toRuntimeCapabilities(manifest.capabilities),
@@ -850,6 +936,12 @@ export async function resolveProviderConfig(
 	} catch (error) {
 		if (modelCatalog?.failOnError) {
 			throw error;
+		}
+		if (providerId === "litellm") {
+			return {
+				...defaults,
+				knownModels: {},
+			};
 		}
 		return defaults;
 	}

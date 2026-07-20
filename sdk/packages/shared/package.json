@@ -1,10 +1,10 @@
 {
-	"name": "@cline/shared",
-	"version": "0.0.41",
+	"name": "@coohu/shared",
+	"version": "0.0.56",
 	"description": "Shared utilities, types, and schemas for Cline packages",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/cline/cline",
+		"url": "https://github.com/SSYCloud/cline-chinese-ssy",
 		"directory": "sdk/packages/shared"
 	},
 	"type": "module",
@@ -47,7 +47,7 @@
 	],
 	"scripts": {
 		"build": "BUILD_MODE=package bun bun.mts",
-		"typecheck": "bun tsc --noEmit",
+		"typecheck": "bunx tsc --noEmit",
 		"test": "bun run test:unit",
 		"test:unit": "vitest run --config vitest.config.ts"
 	},

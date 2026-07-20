@@ -4,16 +4,15 @@
  * Registers a `web_search` tool backed by Exa.
  *
  * CLI usage:
- *   mkdir -p .cline/plugins
- *   cp examples/plugins/web-search.ts .cline/plugins/web-search.ts
- *   EXA_API_KEY=... clite "Search the web for recent TypeScript 6 updates"
+ *   cline plugin install https://github.com/cline/cline/blob/main/sdk/examples/plugins/web-search.ts --cwd .
+ *   EXA_API_KEY=... cline "Search the web for recent TypeScript 6 updates"
  *
  * Provider key:
  *   EXA_API_KEY              Enables Exa search. A separate model provider key
  *                            is still required for CLI inference.
  */
 
-import { type AgentPlugin, createTool } from "@cline/core";
+import { type AgentPlugin, createTool } from "@coohu/core";
 
 export interface WebSearchInput {
 	query: string;
@@ -276,36 +275,35 @@ const plugin: AgentPlugin = {
 			createTool({
 				name: "web_search",
 				description:
-					"Search the web for current public information using Exa. " +
-					"Use this to discover relevant URLs, news, docs, and recent facts; use fetch_web_content afterward when a page needs deeper inspection. " +
-					"Requires EXA_API_KEY in the plugin host environment.",
+					"使用 Exa 在网络上搜索当前的公开信息。" +
+					"利用此工具来发现相关的 URL、新闻、文档及最新事实；若需对特定页面进行更深入的检查，随后可使用 `fetch_web_content`。" +
+					"要求在插件宿主环境中配置 `EXA_API_KEY`。",
 				inputSchema: {
 					type: "object",
 					properties: {
 						query: {
 							type: "string",
 							description:
-								"Search query. Use precise terms and include dates when recency matters.",
+								"搜索查询。请使用精确的术语，若对时效性有要求，请包含日期信息。",
 						},
 						limit: {
 							type: "number",
-							description: `Number of results to return, from 1 to ${MAX_RESULT_LIMIT}. Defaults to ${DEFAULT_RESULT_LIMIT}.`,
+							description: `返回结果数量，从 1 到 ${MAX_RESULT_LIMIT}。默认为 ${DEFAULT_RESULT_LIMIT}。`,
 						},
 						domains: {
 							type: "array",
 							items: { type: "string" },
 							description:
-								"Optional domains to restrict results to, such as github.com or docs.exa.ai.",
+								"可选的域名列表，用于将结果限制在特定范围内，例如 github.com 或 docs.exa.ai。",
 						},
 						recencyDays: {
 							type: "number",
 							description:
-								"Optional freshness window in days. Maps to Exa startPublishedDate.",
+								"可选的新鲜度窗口（以天为单位）。映射到 Exa 的 startPublishedDate。",
 						},
 						country: {
 							type: "string",
-							description:
-								"Optional lowercase two-letter country code for localized results, such as us.",
+							description: "可选的小写两位国家代码，用于本地化结果，例如 us。",
 						},
 					},
 					required: ["query"],

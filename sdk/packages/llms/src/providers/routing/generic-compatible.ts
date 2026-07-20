@@ -1,13 +1,15 @@
 import type {
 	GatewayProviderContext,
 	GatewayStreamRequest,
-} from "@cline/shared";
+} from "@coohu/shared";
 import {
-	buildAnthropicCompatibleReasoningOptions,
 	isAnthropicCompatibleModel,
 	isQwenModel,
-	resolveAnthropicReasoningRequestPolicy,
 	resolveModelFamily,
+} from "../model-facts";
+import {
+	buildAnthropicCompatibleReasoningOptions,
+	resolveAnthropicReasoningRequestPolicy,
 	resolveReasoningRoute,
 	shouldApplyPromptCache,
 } from "./anthropic-compatible";

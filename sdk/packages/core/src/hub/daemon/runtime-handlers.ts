@@ -1,10 +1,10 @@
-import { normalizeProviderId } from "@cline/llms";
+import { normalizeProviderId } from "@coohu/llms";
 import type {
 	ChatRunTurnRequest,
 	ChatStartSessionRequest,
 	ChatTurnResult,
 	ITelemetryService,
-} from "@cline/shared";
+} from "@coohu/shared";
 import type {
 	HubScheduleRuntimeHandlers,
 	HubScheduleServiceOptions,

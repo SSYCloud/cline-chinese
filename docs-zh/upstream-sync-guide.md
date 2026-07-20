@@ -52,7 +52,7 @@ git commit -m "Sync with upstream <版本号>"
 
 ```
 remote: GitLab: LFS objects are missing. Ensure LFS objects are pushed before pushing branches.
-error: failed to push some refs to 'https://github.com/HybridTalentComputing/cline-chinese.git'
+error: failed to push some refs to 'https://github.com/SSYCloud/cline-chinese.git'
 ```
 
 **解决方案**: 在 `git push` 之前，先从上游获取并推送 LFS 对象：
@@ -77,10 +77,10 @@ git push origin <工作分支>
   "name": "cline-chinese",
   "displayName": "Cline Chinese",
   "description": "%cline.description%",
-  "publisher": "HybridTalentComputing",
-  "author": { "name": "HybridTalentComputing" },
-  "repository": { "url": "https://github.com/HybridTalentComputing/cline-chinese" },
-  "homepage": "https://github.com/HybridTalentComputing/cline-chinese"
+  "publisher": "SSYCloud",
+  "author": { "name": "SSYCloud" },
+  "repository": { "url": "https://github.com/SSYCloud/cline-chinese" },
+  "homepage": "https://github.com/SSYCloud/cline-chinese"
 }
 ```
 
@@ -111,8 +111,8 @@ git push origin <工作分支>
    - `src/services/test/TestMode.ts`
 
 3. **其他身份引用**:
-   - `src/core/controller/ui/openWalkthrough.ts` — walkthrough 发布者改为 `HybridTalentComputing`
-   - `src/hosts/vscode/hostbridge/env/getIdeRedirectUri.ts` — OAuth URI 改为 `HybridTalentComputing.cline-chinese`
+   - `src/core/controller/ui/openWalkthrough.ts` — walkthrough 发布者改为 `SSYCloud`
+   - `src/hosts/vscode/hostbridge/env/getIdeRedirectUri.ts` — OAuth URI 改为 `SSYCloud.cline-chinese`
    - `src/core/storage/state-migrations.ts` — `getConfiguration("cline")` 改为 `getConfiguration("cline-chinese")`
 
 **注意**: `src/registry.ts` 中有动态前缀逻辑 `const prefix = name === "claude-dev" ? "cline" : name`，这意味着只要 package.json 的 `name` 改为 `cline-chinese`，命令注册会自动使用正确前缀。但硬编码在字符串中的 `"cline.` 引用仍需手动修改。

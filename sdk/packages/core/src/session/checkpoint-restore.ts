@@ -1,6 +1,6 @@
 import { execFile as execFileCallback } from "node:child_process";
 import { promisify } from "node:util";
-import type * as LlmsProviders from "@cline/llms";
+import type * as LlmsProviders from "@coohu/llms";
 import type {
 	CheckpointEntry,
 	CheckpointMetadata,
@@ -61,7 +61,7 @@ export function createRestoredCheckpointMetadata(
 	return latest ? { latest, history } : undefined;
 }
 
-function findCheckpointForRun(
+export function findCheckpointForRun(
 	history: readonly CheckpointEntry[],
 	runCount: number,
 ): CheckpointEntry | undefined {

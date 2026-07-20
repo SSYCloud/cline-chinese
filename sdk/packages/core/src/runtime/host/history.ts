@@ -1,8 +1,8 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
-import type * as LlmsProviders from "@cline/llms";
-import { formatDisplayUserInput, normalizeUserInput } from "@cline/shared";
-import { resolveSessionDataDir } from "@cline/shared/storage";
+import type * as LlmsProviders from "@coohu/llms";
+import { formatDisplayUserInput, normalizeUserInput } from "@coohu/shared";
+import { resolveSessionDataDir } from "@coohu/shared/storage";
 import { toSessionRecord } from "../../services/session-data";
 import type { SessionManifest } from "../../session/models/session-manifest";
 import { SessionManifestSchema } from "../../session/models/session-manifest";
@@ -357,6 +357,49 @@ function normalizeHistoryRow(
 	};
 }
 
+function messageContainsToolCall(message: LlmsProviders.Message): boolean {
+	const content = message.content;
+	if (!Array.isArray(content)) {
+		return false;
+	}
+	return content.some(
+		(part) =>
+			!!part &&
+			typeof part === "object" &&
+			(part as { type?: unknown }).type === "tool-call",
+	);
+}
+
+function shouldProjectLegacyRunningSessionAsIdle(
+	row: SessionRecord,
+	messages: LlmsProviders.Message[],
+): boolean {
+	if (row.status !== "running" || row.interactive !== true) {
+		return false;
+	}
+	const lastMessage = messages.at(-1);
+	return (
+		lastMessage?.role === "assistant" && !messageContainsToolCall(lastMessage)
+	);
+}
+
+async function projectLegacyRunningRowsAsIdle(
+	host: Pick<RuntimeHost, "readSessionMessages">,
+	rows: SessionRecord[],
+): Promise<SessionRecord[]> {
+	return await Promise.all(
+		rows.map(async (row) => {
+			if (row.status !== "running" || row.interactive !== true) {
+				return row;
+			}
+			const messages = await host.readSessionMessages(row.sessionId);
+			return shouldProjectLegacyRunningSessionAsIdle(row, messages)
+				? { ...row, status: "idle" }
+				: row;
+		}),
+	);
+}
+
 export async function hydrateSessionHistory(
 	host: Pick<RuntimeHost, "readSessionMessages">,
 	rows: SessionRecord[],
@@ -414,10 +457,11 @@ export async function listSessionHistory(
 			: Array.from(merged.values())
 					.sort((left, right) => right.startedAt.localeCompare(left.startedAt))
 					.slice(0, limit);
+	const projectedRows = await projectLegacyRunningRowsAsIdle(host, rows);
 	if (options.hydrate === false) {
-		return rows.map((row) => normalizeHistoryRow(row));
+		return projectedRows.map((row) => normalizeHistoryRow(row));
 	}
-	return await hydrateSessionHistory(host, rows);
+	return await hydrateSessionHistory(host, projectedRows);
 }
 
 async function readManifestMessagesPath(

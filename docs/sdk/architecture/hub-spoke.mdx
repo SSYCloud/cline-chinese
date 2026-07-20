@@ -24,7 +24,7 @@ The hub-spoke model solves all of these by separating coordination from executio
     Singleton daemon per machine. Coordinates sessions, routes events and approvals, manages schedules, brokers capabilities between clients. Does not run the agent loop.
   </Card>
   <Card title="Spoke" icon="gear">
-    Worker process running `@cline/core`. Executes the agent loop, calls tools, streams output. Reports events back to the hub. Owned by the daemon, not by any client.
+    Worker process running `@coohu/core`. Executes the agent loop, calls tools, streams output. Reports events back to the hub. Owned by the daemon, not by any client.
   </Card>
   <Card title="Client" icon="display">
     CLI, VS Code, JetBrains, or any custom app. Discovers the hub, registers over WebSocket, attaches to sessions, sends user input, receives streamed events.
@@ -134,7 +134,7 @@ cline "Work on feature X"
 # Terminal 2: attach to the same session from VS Code or another CLI
 
 # Terminal 3: Telegram connector
-cline connect telegram -m my_bot -k $TOKEN
+cline connect telegram -k $TOKEN
 
 # All three share the same hub and can access the same sessions
 ```

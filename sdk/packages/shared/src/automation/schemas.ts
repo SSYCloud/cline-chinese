@@ -2,7 +2,7 @@ import { z } from "zod";
 
 /**
  * Zod schemas for automation spec frontmatter. Used by the parser in
- * `@cline/core` to validate frontmatter shape before normalization.
+ * `@coohu/core` to validate frontmatter shape before normalization.
  *
  * The schemas are deliberately permissive: they accept the raw parsed YAML
  * object and let the parser layer apply normalization rules (trim, default

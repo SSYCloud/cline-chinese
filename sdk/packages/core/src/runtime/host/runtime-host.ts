@@ -1,9 +1,9 @@
-import type * as LlmsProviders from "@cline/llms";
+import type * as LlmsProviders from "@coohu/llms";
 import type {
 	AgentMode,
 	AgentResult,
 	RuntimeConfigExtensionKind,
-} from "@cline/shared";
+} from "@coohu/shared";
 import type { HookEventPayload } from "../../hooks";
 import type { CheckpointEntry } from "../../hooks/checkpoint-hooks";
 import type { ProviderSettings } from "../../services/llms/provider-settings";
@@ -16,6 +16,35 @@ import type {
 } from "../../types/events";
 import type { SessionRecord } from "../../types/sessions";
 import type { RuntimeCapabilities } from "../capabilities";
+
+export const SESSION_NOT_FOUND_ERROR_CODE = "session_not_found";
+
+export class SessionNotFoundError extends Error {
+	readonly code = SESSION_NOT_FOUND_ERROR_CODE;
+
+	constructor(
+		readonly sessionId?: string,
+		message?: string,
+	) {
+		super(
+			message ??
+				(sessionId ? `session not found: ${sessionId}` : "session not found"),
+		);
+		this.name = "SessionNotFoundError";
+	}
+}
+
+export function isSessionNotFoundError(
+	error: unknown,
+): error is SessionNotFoundError {
+	return (
+		error instanceof SessionNotFoundError ||
+		(typeof error === "object" &&
+			error !== null &&
+			"code" in error &&
+			(error as { code?: unknown }).code === SESSION_NOT_FOUND_ERROR_CODE)
+	);
+}
 
 type LocalOnlyCoreSessionConfigKeys =
 	| "hooks"
@@ -84,7 +113,7 @@ export interface StartSessionInput {
 	 */
 	localRuntime?: LocalRuntimeStartOptions;
 	capabilities?: RuntimeCapabilities;
-	toolPolicies?: import("@cline/shared").AgentConfig["toolPolicies"];
+	toolPolicies?: import("@coohu/shared").AgentConfig["toolPolicies"];
 }
 
 export function splitCoreSessionConfig(config: CoreSessionConfig): {

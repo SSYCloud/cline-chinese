@@ -1,4 +1,4 @@
-import type { GatewayStreamRequest } from "@cline/shared";
+import type { GatewayStreamRequest } from "@coohu/shared";
 
 export function hasReasoningControls(
 	reasoning: GatewayStreamRequest["reasoning"],
@@ -19,7 +19,7 @@ export function buildOpenRouterReasoningOptions(
 	}
 
 	if (reasoning?.enabled === false) {
-		return { exclude: true };
+		return { effort: "none" };
 	}
 
 	// OpenRouter accepts one reasoning control mode. Preserve this precedence:

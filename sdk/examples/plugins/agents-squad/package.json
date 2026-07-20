@@ -25,10 +25,10 @@
 		]
 	},
 	"peerDependencies": {
-		"@cline/core": "*"
+		"@coohu/core": "*"
 	},
 	"peerDependenciesMeta": {
-		"@cline/core": {
+		"@coohu/core": {
 			"optional": true
 		}
 	},

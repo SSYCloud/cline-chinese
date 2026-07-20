@@ -177,7 +177,7 @@ cp examples/cron/events/local-manual-test.event.md ~/.cline/cron/events/
 # Start the hub with automation enabled
 # In another shell, ingest a test event
 node -e "
-  const { HubWebSocketClient } = require('@cline/core');
+  const { HubWebSocketClient } = require('@coohu/core');
   const client = new HubWebSocketClient('ws://localhost:8000');
   client.send('cron.event.ingest', {
     eventType: 'local.manual_test',
@@ -223,8 +223,7 @@ mkdir -p ~/.cline/cron/events
 cp examples/cron/events/local-plugin-event.event.md ~/.cline/cron/events/
 
 # Load the plugin that emits these events
-mkdir -p ~/.cline/plugins
-cp examples/plugins/automation-events.ts ~/.cline/plugins/
+cline plugin install https://github.com/cline/cline/blob/main/sdk/examples/plugins/automation-events.ts
 
 # Run CLI with automation enabled; the plugin emits events
 cline --enable-automation -i "Test automation events"

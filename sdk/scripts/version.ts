@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 
@@ -25,8 +25,9 @@ function incrementPatchVersion(input: string): string {
 	return `${major}.${minor}.${Number(patch) + 1}`;
 }
 
-const root = join(import.meta.dir, "..");
-const packagesDir = join(root, "packages");
+const root = join(import.meta.dir, "..", "..");
+const sdkRoot = join(import.meta.dir, "..");
+const packagesDir = join(sdkRoot, "packages");
 const dirs = await readdir(packagesDir, { withFileTypes: true });
 const workspaces = dirs.filter((d) => d.isDirectory()).map((d) => d.name);
 
@@ -70,11 +71,42 @@ async function runCommandOrThrow(cmd: string[], cwd: string): Promise<void> {
 	});
 	const exitCode = await proc.exited;
 	if (exitCode !== 0) {
+		console.error(`Command : \n ${cmd.join("\n ")}`);
 		throw new Error(`${cmd[0]} exited with code ${exitCode}`);
 	}
 }
 
 let updated = 0;
+
+// Collect all workspace package names for workspace:* replacement
+const workspacePackageNames = new Set<string>();
+for (const workspace of workspaces) {
+	const pkgPath = join(packagesDir, workspace, "package.json");
+	try {
+		const raw = await readFile(pkgPath, "utf-8");
+		const pkg = JSON.parse(raw);
+		if (!pkg.internal && typeof pkg.name === "string") {
+			workspacePackageNames.add(pkg.name);
+		}
+	} catch {
+		// skip
+	}
+}
+
+function replaceWorkspaceDeps(
+	deps: Record<string, string> | undefined,
+	ver: string,
+): void {
+	if (!deps) return;
+	for (const [name, value] of Object.entries(deps)) {
+		if (
+			workspacePackageNames.has(name) &&
+			(value.startsWith("workspace:") || /^\d+\.\d+\.\d+/.test(value))
+		) {
+			deps[name] = ver;
+		}
+	}
+}
 
 for (const workspace of workspaces) {
 	const pkgPath = join(packagesDir, workspace, "package.json");
@@ -86,6 +118,10 @@ for (const workspace of workspaces) {
 		}
 		const oldVersion = pkg.version;
 		pkg.version = version;
+
+		replaceWorkspaceDeps(pkg.dependencies, version);
+		replaceWorkspaceDeps(pkg.devDependencies, version);
+		replaceWorkspaceDeps(pkg.peerDependencies, version);
 
 		const out = `${JSON.stringify(pkg, null, "\t")}\n`;
 
@@ -106,14 +142,10 @@ console.log(
 );
 
 if (!values.dry) {
-	const lockPath = join(root, "bun.lock");
-	await rm(lockPath, { force: true });
-	console.log("Removed stale bun.lock if present");
-	await runCommandOrThrow(["bun", "install", "--lockfile-only"], root);
 	await runCommandOrThrow(
-		["bun", "-F", "@cline/llms", "generate:models"],
+		["bun", "-F", "@coohu/llms", "generate:models"],
 		root,
 	);
 	await runCommandOrThrow(["bun", "format", "--write"], root);
-	await runCommandOrThrow(["bun", "run", "build"], root);
+	await runCommandOrThrow(["bun", "run", "build:sdk"], root);
 }

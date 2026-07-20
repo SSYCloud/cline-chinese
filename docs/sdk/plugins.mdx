@@ -42,7 +42,7 @@ Plugins are packages of reusable agent capabilities. They let you bundle tools, 
 A plugin is an `AgentPlugin` — an object that implements the SDK's extension interface. It can register tools, hook into agent lifecycle events, and provide configuration defaults.
 
 ```typescript
-import { type AgentPlugin } from "@cline/sdk"
+import { type AgentPlugin } from "@coohu/sdk"
 
 const myPlugin: AgentPlugin = {
   name: "my-plugin",
@@ -98,7 +98,7 @@ Plugin files export an `AgentPlugin`.
 
 ## Installing Plugins via CLI
 
-Plugins can also be installed from npm, git, or local paths using `cline plugin install`. See [Plugins](/customization/plugins) for install commands, the manifest format, and directory layout.
+Plugins can also be installed from file URLs, npm, git, or local paths using `cline plugin install`. See [Plugins](/customization/plugins) for install commands, the manifest format, and directory layout.
 
 ## Hook Stages
 

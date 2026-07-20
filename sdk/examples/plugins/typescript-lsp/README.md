@@ -9,7 +9,7 @@ Code entrypoint: [index.ts](./index.ts)
 The agent gets a single tool: `goto_definition(file, line)`. It finds all identifiers on that line and resolves where they're actually defined. For example, given an import line like:
 
 ```ts
-import { disposeAll, initVcr } from "@cline/shared"
+import { disposeAll, initVcr } from "@coohu/shared"
 ```
 
 It resolves both symbols through the workspace package alias to their source files:
@@ -28,7 +28,7 @@ The same pattern applies for enterprise use cases: you can build plugins that wr
 ## Use it with the CLI
 
 ```bash
-cp examples/plugins/typescript-lsp/index.ts ~/.cline/plugins/typescript-lsp.ts
+cline plugin install https://github.com/cline/cline/blob/main/sdk/examples/plugins/typescript-lsp/index.ts
 cline -i "Find where createTool is defined"
 ```
 

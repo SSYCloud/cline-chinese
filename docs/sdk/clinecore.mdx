@@ -6,7 +6,7 @@ description: "The full Cline harness: built-in tools, sessions, approvals, sched
 
 `ClineCore` is the full Cline harness as a programmable runtime. It gives you everything Cline ships out of the box: built-in tools for files, shell, search, and web; session persistence and message history; tool approval callbacks; local, hub, and remote backends; scheduling and automation APIs; and plugin support.
 
-Under the hood, `ClineCore` uses the `Agent` class from `@cline/agents`. You can use `Agent` directly if you want to skip the harness and wire everything yourself: your own tools, your own persistence, your own lifecycle.
+Under the hood, `ClineCore` uses the `Agent` class from `@coohu/agents`. You can use `Agent` directly if you want to skip the harness and wire everything yourself: your own tools, your own persistence, your own lifecycle.
 
 ## When to use which
 
@@ -33,7 +33,7 @@ Under the hood, `ClineCore` uses the `Agent` class from `@cline/agents`. You can
 - optional plugin paths and extensions
 
 ```typescript
-import { ClineCore } from "@cline/sdk"
+import { ClineCore } from "@coohu/sdk"
 
 const cline = await ClineCore.create({
   clientName: "my-app",
@@ -160,7 +160,7 @@ run() or continue()
 ```
 
 ```typescript
-import { Agent } from "@cline/sdk"
+import { Agent } from "@coohu/sdk"
 
 const agent = new Agent({
   providerId: "anthropic",

@@ -1,4 +1,4 @@
-import type { ModelInfo } from "@cline/llms";
+import type { ModelInfo } from "@coohu/llms";
 import type {
 	AgentConfig,
 	AgentHooks,
@@ -14,7 +14,7 @@ import type {
 	SessionExecutionConfig,
 	SessionPromptConfig,
 	SessionWorkspaceConfig,
-} from "@cline/shared";
+} from "@coohu/shared";
 import type { ToolRoutingRule } from "../extensions/tools/model-tool-routing";
 import type { TeamEvent } from "../extensions/tools/team";
 import type { ProviderConfig } from "./provider-settings";
@@ -37,6 +37,10 @@ export interface CoreModelConfig {
 	 * Explicit reasoning effort override for capable models.
 	 */
 	reasoningEffort?: ProviderConfig["reasoningEffort"];
+	/**
+	 * Maximum output tokens per API call.
+	 */
+	maxTokensPerTurn?: number;
 }
 
 export interface CoreRuntimeFeatures {
@@ -60,6 +64,7 @@ export interface CoreCompactionContext {
 	};
 	maxInputTokens: number;
 	triggerTokens: number;
+	targetTokens?: number;
 	thresholdRatio: number;
 	utilizationRatio: number;
 }

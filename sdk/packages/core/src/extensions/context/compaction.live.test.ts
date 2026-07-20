@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import type { ProviderConfig } from "@cline/llms";
-import { resolveProviderSettingsPath } from "@cline/shared/storage";
+import type { ProviderConfig } from "@coohu/llms";
+import { resolveProviderSettingsPath } from "@coohu/shared/storage";
 import { describe, expect, it } from "vitest";
 import { createContextCompactionPrepareTurn } from "./compaction";
 
@@ -251,6 +251,7 @@ async function runOversizedToolResultCompaction(
 				{
 					type: "tool_result" as const,
 					tool_use_id: "tool-live-report",
+					name: "tool",
 					content: [{ type: "text" as const, text: hugeToolOutput }],
 				},
 			],

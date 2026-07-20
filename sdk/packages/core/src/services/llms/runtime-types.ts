@@ -10,7 +10,7 @@ import type {
 	ProviderConfig,
 	ProviderInfo,
 	ProviderProtocol,
-} from "@cline/llms";
+} from "@coohu/llms";
 import type { ProviderCapability } from "./provider-settings";
 
 export type ProviderConfigDefaults = Omit<

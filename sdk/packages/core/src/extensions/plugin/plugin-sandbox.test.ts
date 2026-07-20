@@ -4,15 +4,25 @@ import { join } from "node:path";
 import type {
 	AgentConfig,
 	AgentExtensionMessageBuilder,
+	AgentExtensionRule,
 	AgentTool,
 	AgentToolContext,
 	Message,
-} from "@cline/shared";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+} from "@coohu/shared";
+import {
+	afterAll,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from "vitest";
 import { loadSandboxedPlugins } from "./plugin-sandbox";
 
 function createApiCapture() {
 	const tools: AgentTool[] = [];
+	const rules: AgentExtensionRule[] = [];
 	const messageBuilders: AgentExtensionMessageBuilder<Message[]>[] = [];
 	const automationEventTypes: unknown[] = [];
 	const api = {
@@ -21,12 +31,13 @@ function createApiCapture() {
 		registerMessageBuilder: (
 			builder: AgentExtensionMessageBuilder<Message[]>,
 		) => messageBuilders.push(builder),
-		registerRule: () => {},
+		registerRule: (rule: AgentExtensionRule) => rules.push(rule),
 		registerProvider: () => {},
 		registerAutomationEventType: (eventType: unknown) =>
 			automationEventTypes.push(eventType),
+		registerMcpServer: () => {},
 	};
-	return { tools, messageBuilders, automationEventTypes, api };
+	return { tools, rules, messageBuilders, automationEventTypes, api };
 }
 
 function makeSnapshot() {
@@ -137,6 +148,33 @@ describe("plugin-sandbox", () => {
 		);
 
 		await writeFile(
+			join(dir, "plugin-rules.mjs"),
+			[
+				"let resolveCount = 0;",
+				"export default {",
+				"  name: 'sandbox-rules',",
+				"  manifest: { capabilities: ['rules'] },",
+				"  setup(api) {",
+				"    api.registerRule({",
+				"      id: 'sandbox-rules:static',",
+				"      source: 'sandbox-rules',",
+				"      content: 'Static sandbox rule',",
+				"    });",
+				"    api.registerRule({",
+				"      id: 'sandbox-rules:lazy',",
+				"      source: 'sandbox-rules',",
+				"      content: async () => {",
+				"        resolveCount += 1;",
+				"        return 'Lazy sandbox rule ' + resolveCount;",
+				"      },",
+				"    });",
+				"  },",
+				"};",
+			].join("\n"),
+			"utf8",
+		);
+
+		await writeFile(
 			join(dir, "plugin-automation-events.mjs"),
 			[
 				"export default {",
@@ -219,12 +257,12 @@ describe("plugin-sandbox", () => {
 			"utf8",
 		);
 
-		const sdkDepDir = join(dir, "node_modules", "@cline", "shared");
+		const sdkDepDir = join(dir, "node_modules", "@coohu", "shared");
 		await mkdir(sdkDepDir, { recursive: true });
 		await writeFile(
 			join(sdkDepDir, "package.json"),
 			JSON.stringify({
-				name: "@cline/shared",
+				name: "@coohu/shared",
 				type: "module",
 				exports: "./index.js",
 			}),
@@ -238,7 +276,7 @@ describe("plugin-sandbox", () => {
 		await writeFile(
 			join(dir, "plugin-sdk.ts"),
 			[
-				"import { sdkMarker } from '@cline/shared';",
+				"import { sdkMarker } from '@coohu/shared';",
 				"export default {",
 				"  name: sdkMarker,",
 				"  manifest: { capabilities: ['tools'] },",
@@ -250,7 +288,7 @@ describe("plugin-sandbox", () => {
 		await writeFile(
 			join(dir, "plugin-host-dep.ts"),
 			[
-				"import { resolveClineDataDir } from '@cline/shared/storage';",
+				"import { resolveClineDataDir } from '@coohu/shared/storage';",
 				"import YAML from 'yaml';",
 				"export default {",
 				"  name: YAML.stringify({ host: !!resolveClineDataDir() }).trim(),",
@@ -263,7 +301,7 @@ describe("plugin-sandbox", () => {
 		await writeFile(
 			join(dir, "plugin-create-tool.ts"),
 			[
-				"import { createTool } from '@cline/agents';",
+				"import { createTool } from '@coohu/agents';",
 				"export default {",
 				"  name: 'sandbox-create-tool',",
 				"  manifest: { capabilities: ['tools'] },",
@@ -322,6 +360,7 @@ describe("plugin-sandbox", () => {
 				join(dir, "plugin-run-end.mjs"),
 				join(dir, "plugin-automation-events.mjs"),
 				join(dir, "plugin-message-builder.mjs"),
+				join(dir, "plugin-rules.mjs"),
 				join(dir, "plugin-ts.ts"),
 				join(dir, "plugin-dep.ts"),
 				join(dir, "plugin-sdk.ts"),
@@ -408,6 +447,39 @@ describe("plugin-sandbox", () => {
 		}
 	});
 
+	it("respects CLINE_PLUGIN_IMPORT_TIMEOUT_MS env var when options.importTimeoutMs is unset", async () => {
+		const envDir = await mkdtemp(
+			join(tmpdir(), "core-plugin-sandbox-import-env-"),
+		);
+		try {
+			const pluginPath = join(envDir, "plugin-import-hang.mjs");
+			// Top-level await that never resolves — module import never
+			// completes, so the initialize call must hit the timeout.
+			await writeFile(
+				pluginPath,
+				[
+					"await new Promise(() => {});",
+					"export default {",
+					"  name: 'sandbox-import-hang',",
+					"  manifest: { capabilities: ['tools'] },",
+					"};",
+				].join("\n"),
+				"utf8",
+			);
+
+			// Set env override well below the 4000 ms hardcoded default.
+			// If the env var isn't read, this test would block for ~4 s and
+			// the per-test timeout (3000 ms below) would fail it.
+			vi.stubEnv("CLINE_PLUGIN_IMPORT_TIMEOUT_MS", "150");
+			await expect(
+				loadSandboxedPlugins({ pluginPaths: [pluginPath] }),
+			).rejects.toThrow(/timed out/i);
+		} finally {
+			vi.unstubAllEnvs();
+			await rm(envDir, { recursive: true, force: true });
+		}
+	}, 3000);
+
 	it("forwards sandbox plugin events to the host", async () => {
 		const extension = sharedExtensions.get("sandbox-events");
 		const { tools, api } = createApiCapture();
@@ -424,6 +496,100 @@ describe("plugin-sandbox", () => {
 				payload: { value: "hello" },
 			},
 		]);
+	});
+
+	it("resolves sandbox bootstrap from the npm wrapper platform package", async () => {
+		const previousWrapperPath = process.env.CLINE_WRAPPER_PATH;
+		const wrapperRoot = await mkdtemp(
+			join(tmpdir(), "core-plugin-sandbox-wrapper-"),
+		);
+		const platform =
+			process.platform === "win32" ? "windows" : process.platform;
+		const packageRoot = join(
+			wrapperRoot,
+			"node_modules",
+			"@coohu",
+			`cli-${platform}-${process.arch}`,
+		);
+		const wrapperBinDir = join(wrapperRoot, "bin");
+		const bootstrapPath = join(
+			packageRoot,
+			"extensions",
+			"plugin-sandbox-bootstrap.js",
+		);
+		const wrapperPath = join(wrapperBinDir, "cline");
+		const events: Array<{ name: string; payload?: unknown }> = [];
+
+		try {
+			await mkdir(join(packageRoot, "extensions"), { recursive: true });
+			await mkdir(wrapperBinDir, { recursive: true });
+			await writeFile(wrapperPath, "#!/usr/bin/env node\n", "utf8");
+			await writeFile(
+				join(packageRoot, "package.json"),
+				JSON.stringify({
+					name: `@coohu/cli-${platform}-${process.arch}`,
+					version: "0.0.0-test",
+					type: "module",
+				}),
+				"utf8",
+			);
+			await writeFile(
+				bootstrapPath,
+				[
+					"process.on('message', (message) => {",
+					"  if (!message || message.type !== 'call') return;",
+					"  if (message.method !== 'initialize') throw new Error('Unexpected method: ' + message.method);",
+					"  process.send?.({ type: 'event', name: 'wrapper_bootstrap_selected', payload: { ok: true } });",
+					"  process.send?.({",
+					"    type: 'response',",
+					"    id: message.id,",
+					"    ok: true,",
+					"    result: {",
+					"      plugins: [{",
+					"        pluginId: 'plugin_1',",
+					"        pluginPath: 'wrapper-bootstrap',",
+					"        name: 'wrapper-bootstrap',",
+					"        manifest: { capabilities: ['tools'] },",
+					"        contributions: { tools: [], commands: [], messageBuilders: [], providers: [], automationEventTypes: [] },",
+					"      }],",
+					"      failures: [],",
+					"      warnings: [],",
+					"    },",
+					"  });",
+					"});",
+				].join("\n"),
+				"utf8",
+			);
+
+			process.env.CLINE_WRAPPER_PATH = wrapperPath;
+			vi.resetModules();
+			const { loadSandboxedPlugins: loadSandboxedPluginsFromWrapper } =
+				await import("./plugin-sandbox");
+			const sandboxed = await loadSandboxedPluginsFromWrapper({
+				pluginPaths: [join(wrapperRoot, "unused-plugin.mjs")],
+				onEvent: (event) => events.push(event),
+			});
+
+			try {
+				expect(
+					sandboxed.extensions?.map((extension) => extension.name),
+				).toEqual(["wrapper-bootstrap"]);
+				expect(events).toContainEqual({
+					name: "wrapper_bootstrap_selected",
+					payload: { ok: true },
+				});
+			} finally {
+				await sandboxed.shutdown();
+			}
+		} finally {
+			if (previousWrapperPath === undefined) {
+				delete process.env.CLINE_WRAPPER_PATH;
+			} else {
+				process.env.CLINE_WRAPPER_PATH = previousWrapperPath;
+			}
+			vi.resetModules();
+			await rm(wrapperRoot, { recursive: true, force: true });
+		}
 	});
 
 	it("registers automation event types and forwards sandbox automation events", async () => {
@@ -498,6 +664,27 @@ describe("plugin-sandbox", () => {
 				content: [{ type: "text", text: "from sandbox builder" }],
 			},
 		]);
+	});
+
+	it("registers prompt rules from sandbox plugins", async () => {
+		const extension = sharedExtensions.get("sandbox-rules");
+		const { rules, api } = createApiCapture();
+		await extension?.setup?.(api, {});
+
+		expect(rules).toHaveLength(2);
+		expect(rules[0]).toEqual({
+			id: "sandbox-rules:static",
+			source: "sandbox-rules",
+			content: "Static sandbox rule",
+		});
+		expect(rules[1]?.id).toBe("sandbox-rules:lazy");
+		expect(rules[1]?.source).toBe("sandbox-rules");
+		expect(typeof rules[1]?.content).toBe("function");
+		if (typeof rules[1]?.content !== "function") {
+			throw new Error("Expected lazy sandbox rule content handler");
+		}
+		const content = await rules[1].content();
+		expect(content).toBe("Lazy sandbox rule 1");
 	});
 
 	it("loads TypeScript plugins in the sandbox process", async () => {

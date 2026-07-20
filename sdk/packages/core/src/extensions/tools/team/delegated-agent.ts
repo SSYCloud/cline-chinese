@@ -8,7 +8,7 @@ import type {
 	ITelemetryService,
 	ToolApprovalRequest,
 	ToolApprovalResult,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { SessionRuntime } from "../../../runtime/orchestration/session-runtime-orchestrator";
 import {
 	buildSubAgentSystemPrompt,
@@ -27,6 +27,7 @@ export type DelegatedAgentConnectionConfig = Pick<
 	| "providerConfig"
 	| "knownModels"
 	| "thinking"
+	| "maxTokensPerTurn"
 >;
 
 export interface DelegatedAgentRuntimeConfig
@@ -87,6 +88,7 @@ export function createDelegatedAgentConfigProvider(
 			providerConfig: runtimeConfig.providerConfig,
 			knownModels: runtimeConfig.knownModels,
 			thinking: runtimeConfig.thinking,
+			maxTokensPerTurn: runtimeConfig.maxTokensPerTurn,
 		}),
 		updateConnectionDefaults: (overrides) => {
 			runtimeConfig = {

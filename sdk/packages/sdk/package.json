@@ -1,10 +1,10 @@
 {
-	"name": "@cline/sdk",
-	"description": "Cline SDK - user-facing alias for @cline/core",
-	"version": "0.0.41",
+	"name": "@coohu/sdk",
+	"description": "Cline SDK - user-facing alias for @coohu/core",
+	"version": "0.0.56",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/cline/cline",
+		"url": "https://github.com/SSYCloud/cline-chinese-ssy",
 		"directory": "sdk/packages/sdk"
 	},
 	"type": "module",
@@ -21,11 +21,11 @@
 		}
 	},
 	"scripts": {
-		"build": "bun run bun.mts && bun tsc -p tsconfig.build.json",
-		"typecheck": "bun tsc -p tsconfig.json --noEmit"
+		"build": "bun run bun.mts && bunx tsc -p tsconfig.build.json",
+		"typecheck": "bunx tsc -p tsconfig.json --noEmit"
 	},
 	"dependencies": {
-		"@cline/core": "workspace:*"
+		"@coohu/core": "0.1.13"
 	},
 	"engines": {
 		"node": ">=22"

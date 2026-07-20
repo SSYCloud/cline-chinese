@@ -14,6 +14,11 @@ const PROVIDER_IDS_MAP: ReadonlyArray<{
 		generatedProviderId: "openai-native",
 		runtimeProviderId: "openai-codex-cli",
 	},
+	{
+		modelsDevKey: "openai",
+		generatedProviderId: "openai-native",
+		runtimeProviderId: "openai-codex",
+	},
 	{ modelsDevKey: "anthropic", generatedProviderId: "anthropic" },
 	{
 		modelsDevKey: "anthropic",
@@ -101,7 +106,7 @@ const PROVIDER_IDS_MAP: ReadonlyArray<{
 		runtimeProviderId: "baseten",
 	},
 	{ modelsDevKey: "zai-coding-plan", generatedProviderId: "zai-coding-plan" },
-	{ modelsDevKey: "google-vertex-anthropic", generatedProviderId: "vertex" },
+	{ modelsDevKey: "google-vertex", generatedProviderId: "vertex" },
 	{ modelsDevKey: "lmstudio", generatedProviderId: "lmstudio" },
 	{ modelsDevKey: "zai", generatedProviderId: "zai" },
 	{ modelsDevKey: "requesty", generatedProviderId: "requesty" },
@@ -111,6 +116,10 @@ const PROVIDER_IDS_MAP: ReadonlyArray<{
 	{ modelsDevKey: "wandb", generatedProviderId: "wandb" },
 	{ modelsDevKey: "kilo", generatedProviderId: "kilo" },
 	{ modelsDevKey: "xiaomi", generatedProviderId: "xiaomi" },
+	{
+		modelsDevKey: "tencent-tokenhub",
+		generatedProviderId: "tencent-tokenhub",
+	},
 	{ modelsDevKey: "v0", generatedProviderId: "v0" },
 ];
 

@@ -24,7 +24,7 @@ import type {
 	AgentTool,
 	BasicLogger,
 	ITelemetryService,
-} from "@cline/shared";
+} from "@coohu/shared";
 
 /**
  * Inputs required to assemble an `AgentRuntimeConfig`. Distinct from

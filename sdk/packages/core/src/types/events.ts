@@ -34,8 +34,8 @@ export interface SessionToolEvent {
 export interface SessionTeamProgressEvent {
 	sessionId: string;
 	teamName: string;
-	lifecycle: import("@cline/shared").TeamProgressLifecycleEvent;
-	summary: import("@cline/shared").TeamProgressSummary;
+	lifecycle: import("@coohu/shared").TeamProgressLifecycleEvent;
+	summary: import("@coohu/shared").TeamProgressSummary;
 }
 
 export interface SessionPendingPrompt {
@@ -43,6 +43,8 @@ export interface SessionPendingPrompt {
 	prompt: string;
 	delivery: "queue" | "steer";
 	attachmentCount: number;
+	userImages?: string[];
+	userFiles?: string[];
 }
 
 export interface SessionPendingPromptsEvent {
@@ -56,6 +58,8 @@ export interface SessionPendingPromptSubmittedEvent {
 	prompt: string;
 	delivery: "queue" | "steer";
 	attachmentCount: number;
+	userImages?: string[];
+	userFiles?: string[];
 }
 
 export interface SessionSnapshotEvent {
@@ -69,7 +73,7 @@ export type CoreSessionEvent =
 			type: "agent_event";
 			payload: {
 				sessionId: string;
-				event: import("@cline/shared").AgentEvent;
+				event: import("@coohu/shared").AgentEvent;
 				/** Identifies the named agent within the team (e.g. "educator", "assessor", "coordinator") for both lead and teammate agents */
 				teamAgentId?: string;
 				/** Whether this is the lead agent or a teammate */

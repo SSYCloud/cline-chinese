@@ -4,13 +4,13 @@ import type {
 	HubReplyEnvelope,
 	HubTransportFrame,
 	ITelemetryService,
-} from "@cline/shared";
+} from "@coohu/shared";
 import {
 	captureSdkError,
 	HUB_COMMAND_SLOW_LOG_MS,
 	resolveHubCommandTimeoutMs,
 	safeJsonParse,
-} from "@cline/shared";
+} from "@coohu/shared";
 import type { HubCommandTransport } from "./command-transport";
 import { logHubMessage } from "./hub-server-logging";
 

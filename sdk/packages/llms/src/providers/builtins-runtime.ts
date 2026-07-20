@@ -1,7 +1,7 @@
 import type {
 	GatewayProviderFactory,
 	GatewayProviderRegistration,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { BUILTIN_SPECS, type ProviderFamily, toManifest } from "./builtins";
 
 const FAMILY_FACTORY_PROMISES = new Map<
@@ -62,6 +62,10 @@ async function loadFamilyFactory(
 			case "dify": {
 				const module = await import("./ai-sdk");
 				return module.createDifyProvider;
+			}
+			case "sap-ai-core": {
+				const module = await import("./ai-sdk");
+				return module.createSapAiCoreProvider;
 			}
 		}
 	})();

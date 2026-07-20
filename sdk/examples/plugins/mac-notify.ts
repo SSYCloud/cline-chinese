@@ -4,13 +4,12 @@
  * Sends a Notification Center alert when a Cline run completes successfully.
  *
  * CLI usage:
- *   mkdir -p .cline/plugins
- *   cp examples/plugins/mac-notify.ts .cline/plugins/mac-notify.ts
+ *   cline plugin install https://github.com/cline/cline/blob/main/sdk/examples/plugins/mac-notify.ts --cwd .
  *   cline -i "Run the test suite"
  */
 
 import { execFile } from "node:child_process";
-import type { AgentPlugin, AgentRunResult } from "@cline/core";
+import type { AgentPlugin, AgentRunResult } from "@coohu/core";
 
 function quoteAppleScriptString(value: string): string {
 	return `"${value

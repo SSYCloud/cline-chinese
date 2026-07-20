@@ -2,7 +2,7 @@ import type {
 	SessionRecord as HubSessionRecord,
 	JsonValue,
 	SessionParticipant,
-} from "@cline/shared";
+} from "@coohu/shared";
 import type { SessionAccumulatedUsage } from "../../runtime/host/runtime-host";
 import type { SessionRecord as LocalSessionRecord } from "../../types/sessions";
 
@@ -16,6 +16,10 @@ function mapLocalStatusToHubStatus(
 	status: LocalSessionRecord["status"],
 ): HubSessionRecord["status"] {
 	switch (status) {
+		case "idle":
+			return "idle";
+		case "pending":
+			return "pending";
 		case "completed":
 			return "completed";
 		case "failed":

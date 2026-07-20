@@ -1,5 +1,5 @@
-import type { ITelemetryService } from "@cline/shared";
-import { resolveDocumentsExtensionPath } from "@cline/shared/storage";
+import type { ITelemetryService } from "@coohu/shared";
+import { resolveDocumentsExtensionPath } from "@coohu/shared/storage";
 import { listHookConfigFiles } from "../hooks/hook-file-config";
 import type { CoreSessionConfig } from "../types/config";
 import {

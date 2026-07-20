@@ -11,13 +11,12 @@
  * so provider-safe normalization and hard truncation remain the final pass.
  *
  * CLI usage:
- *   mkdir -p .cline/plugins
- *   cp examples/plugins/custom-compaction.ts .cline/plugins/custom-compaction.ts
+ *   cline plugin install https://github.com/cline/cline/blob/main/sdk/examples/plugins/custom-compaction.ts --cwd .
  *   cline -i "Search the codebase for dispatcher usage, then summarize it"
  */
 
-import type { AgentPlugin, Message, ToolResultContent } from "@cline/core";
-import { estimateTokens as estimateTokensFromChars } from "@cline/shared";
+import type { AgentPlugin, Message, ToolResultContent } from "@coohu/core";
+import { estimateTokens as estimateTokensFromChars } from "@coohu/shared";
 
 const MAX_INPUT_TOKENS = 120_000;
 const COMPACT_AT_RATIO = 0.75;

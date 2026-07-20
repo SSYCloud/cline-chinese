@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import * as LlmsModels from "@cline/llms";
-import { resolveClineDataDir } from "@cline/shared/storage";
+import * as LlmsModels from "@coohu/llms";
+import { resolveClineDataDir } from "@coohu/shared/storage";
 import {
 	emptyStoredProviderSettings,
 	type ProviderSettings,
@@ -24,6 +24,8 @@ interface LegacyGlobalState {
 	actModeApiModelId?: string;
 	planModeReasoningEffort?: string;
 	actModeReasoningEffort?: string;
+	planModeOcaReasoningEffort?: string;
+	actModeOcaReasoningEffort?: string;
 	planModeThinkingBudgetTokens?: number;
 	actModeThinkingBudgetTokens?: number;
 	geminiPlanModeThinkingLevel?: string;
@@ -42,7 +44,7 @@ interface LegacyGlobalState {
 	openAiHeaders?: Record<string, string>;
 	requestTimeoutMs?: number;
 	awsRegion?: string;
-	awsAuthentication?: "iam" | "api-key" | "profile";
+	awsAuthentication?: "credentials" | "iam" | "api-key" | "apikey" | "profile";
 	awsUseProfile?: boolean;
 	awsProfile?: string;
 	awsUseCrossRegionInference?: boolean;
@@ -104,6 +106,8 @@ interface LegacyGlobalState {
 	actModeNousResearchModelId?: string;
 	planModeVercelAiGatewayModelId?: string;
 	actModeVercelAiGatewayModelId?: string;
+	planModeShengSuanYunModelInfo?: string;
+	actModeShengSuanYunModelInfo?: string;
 }
 
 interface LegacySecrets {
@@ -158,6 +162,9 @@ interface LegacyProviderStorage {
 }
 
 const LEGACY_OPENAI_COMPATIBLE_PROVIDER_ID = "openai";
+const OPENAI_COMPATIBLE_PROVIDER_ID =
+	LlmsModels.BUILT_IN_PROVIDER.OPENAI_COMPATIBLE;
+const LEGACY_OPENAI_COMPATIBLE_CONTEXT_WINDOW = 128_000;
 
 export interface MigrateLegacyProviderSettingsOptions {
 	providerSettingsManager: ProviderSettingsManager;
@@ -208,10 +215,19 @@ export function resolveLegacyClineAuth(
 		if (!data) {
 			return undefined;
 		}
+		const expiresAt =
+			typeof data.expiresAt === "number" && Number.isFinite(data.expiresAt)
+				? // Classic VS Code auth stored expiresAt in seconds; providers.json uses
+					// milliseconds. Preserve millisecond-looking values for compatibility
+					// with tests/older migration attempts.
+					data.expiresAt < 10_000_000_000
+					? data.expiresAt * 1000
+					: data.expiresAt
+				: undefined;
 		return {
 			accessToken: data.idToken,
 			refreshToken: data.refreshToken,
-			expiresAt: data.expiresAt,
+			expiresAt,
 			accountId: data.userInfo?.id,
 		};
 	} catch {
@@ -222,6 +238,12 @@ export function resolveLegacyClineAuth(
 function trimNonEmpty(value: string | undefined): string | undefined {
 	const trimmed = value?.trim();
 	return trimmed ? trimmed : undefined;
+}
+
+function normalizeLegacyBedrockAuthentication(
+	authentication: LegacyGlobalState["awsAuthentication"],
+): "iam" | "api-key" | "apikey" | "profile" | undefined {
+	return authentication === "credentials" ? "iam" : authentication;
 }
 
 function readJsonObject<T extends object>(filePath: string): T | undefined {
@@ -258,42 +280,9 @@ function resolveLegacyStorage(
 	};
 }
 
-function isOfficialOpenAiBaseUrl(baseUrl: string): boolean {
-	try {
-		const url = new URL(baseUrl);
-		const hostname = url.hostname.toLowerCase();
-		return (
-			hostname === "api.openai.com" ||
-			hostname.endsWith(".openai.azure.com") ||
-			hostname.endsWith(".services.ai.azure.com")
-		);
-	} catch {
-		return false;
-	}
-}
-
-function shouldMigrateLegacyOpenAiAsCustomProvider(
-	legacyGlobalState: LegacyGlobalState,
-): boolean {
-	const baseUrl = trimNonEmpty(legacyGlobalState.openAiBaseUrl);
-	if (!baseUrl) {
-		return false;
-	}
-	if (legacyGlobalState.azureApiVersion || legacyGlobalState.azureIdentity) {
-		return false;
-	}
-	return !isOfficialOpenAiBaseUrl(baseUrl);
-}
-
-function resolveMigratedProviderId(
-	providerId: string,
-	legacyGlobalState: LegacyGlobalState,
-): string {
-	if (
-		providerId === "openai" &&
-		shouldMigrateLegacyOpenAiAsCustomProvider(legacyGlobalState)
-	) {
-		return LEGACY_OPENAI_COMPATIBLE_PROVIDER_ID;
+function resolveMigratedProviderId(providerId: string): string {
+	if (providerId === LEGACY_OPENAI_COMPATIBLE_PROVIDER_ID) {
+		return OPENAI_COMPATIBLE_PROVIDER_ID;
 	}
 	return providerId;
 }
@@ -352,25 +341,30 @@ function resolveReasoning(
 	providerId: string,
 	mode: LegacyMode,
 ): ProviderSettings["reasoning"] | undefined {
-	const effortCandidate =
-		mode === "plan"
-			? legacy.planModeReasoningEffort
-			: legacy.actModeReasoningEffort;
-	const geminiLevel =
-		mode === "plan"
-			? legacy.geminiPlanModeThinkingLevel
-			: legacy.geminiActModeThinkingLevel;
 	const budgetTokens =
 		mode === "plan"
 			? legacy.planModeThinkingBudgetTokens
 			: legacy.actModeThinkingBudgetTokens;
-	const rawEffort =
-		(providerId === "gemini" ? geminiLevel : undefined) ?? effortCandidate;
+	// ProviderSettings has one reasoning effort; legacy state had mode-specific
+	// fields, with OCA/Gemini using provider-specific variants.
+	const rawEffort = [
+		...(providerId === "oca"
+			? [legacy.actModeOcaReasoningEffort, legacy.planModeOcaReasoningEffort]
+			: []),
+		...(providerId === "gemini"
+			? [legacy.geminiActModeThinkingLevel, legacy.geminiPlanModeThinkingLevel]
+			: []),
+		legacy.actModeReasoningEffort,
+		legacy.planModeReasoningEffort,
+	]
+		.map(trimNonEmpty)
+		.find(Boolean);
 	const effort =
 		rawEffort === "none" ||
 		rawEffort === "low" ||
 		rawEffort === "medium" ||
-		rawEffort === "high"
+		rawEffort === "high" ||
+		rawEffort === "xhigh"
 			? rawEffort
 			: undefined;
 	const normalizedBudget =
@@ -424,6 +418,12 @@ function resolveLegacyCodexAuth(
 
 function getDefaultModelForProvider(providerId: string): string | undefined {
 	const builtInModels = LlmsModels.getGeneratedModelsForProvider(providerId);
+	const providerCollection = LlmsModels.getProviderCollectionSync(providerId);
+	const defaultModelId = providerCollection?.provider.defaultModelId;
+	if (defaultModelId && builtInModels[defaultModelId]) {
+		return defaultModelId;
+	}
+
 	const firstModelId = Object.keys(builtInModels)[0];
 	return firstModelId ?? undefined;
 }
@@ -434,10 +434,7 @@ function buildLegacyProviderSettings(
 	legacySecrets: LegacySecrets,
 	mode: LegacyMode,
 ): ProviderSettings | undefined {
-	const targetProviderId = resolveMigratedProviderId(
-		providerId,
-		legacyGlobalState,
-	);
+	const targetProviderId = resolveMigratedProviderId(providerId);
 	const activeProviderForMode = trimNonEmpty(
 		mode === "plan"
 			? legacyGlobalState.planModeApiProvider
@@ -493,7 +490,6 @@ function buildLegacyProviderSettings(
 		aihubmix: legacySecrets.aihubmixApiKey,
 		nousResearch: legacySecrets.nousResearchApiKey,
 		oca: legacySecrets.ocaApiKey,
-		sapaicore: legacySecrets.sapAiCoreClientId,
 	};
 
 	const providerSpecific: Partial<ProviderSettings> = {};
@@ -516,17 +512,26 @@ function buildLegacyProviderSettings(
 			// Failed to parse stored cline auth data
 		}
 	}
-	if (providerId === "openai" && legacyGlobalState.openAiHeaders) {
+	if (
+		providerId === LEGACY_OPENAI_COMPATIBLE_PROVIDER_ID &&
+		legacyGlobalState.openAiHeaders
+	) {
 		providerSpecific.headers = legacyGlobalState.openAiHeaders;
 	}
 	if (providerId === "bedrock") {
+		const bedrockAuthentication = normalizeLegacyBedrockAuthentication(
+			legacyGlobalState.awsAuthentication,
+		);
+		const useBedrockProfile =
+			bedrockAuthentication === "profile" ||
+			legacyGlobalState.awsUseProfile === true;
 		providerSpecific.aws = {
 			accessKey: trimNonEmpty(legacySecrets.awsAccessKey),
 			secretKey: trimNonEmpty(legacySecrets.awsSecretKey),
 			sessionToken: trimNonEmpty(legacySecrets.awsSessionToken),
 			region: trimNonEmpty(legacyGlobalState.awsRegion),
-			authentication: legacyGlobalState.awsAuthentication,
-			profile: legacyGlobalState.awsUseProfile
+			authentication: bedrockAuthentication,
+			profile: useBedrockProfile
 				? trimNonEmpty(legacyGlobalState.awsProfile)
 				: undefined,
 			usePromptCache: legacyGlobalState.awsBedrockUsePromptCache,
@@ -547,7 +552,7 @@ function buildLegacyProviderSettings(
 		};
 	}
 	if (
-		providerId === "openai" &&
+		providerId === LEGACY_OPENAI_COMPATIBLE_PROVIDER_ID &&
 		(legacyGlobalState.azureApiVersion ||
 			legacyGlobalState.azureIdentity !== undefined)
 	) {
@@ -557,17 +562,21 @@ function buildLegacyProviderSettings(
 		};
 	}
 	if (providerId === "sapaicore") {
+		const useOrchestrationMode =
+			legacyGlobalState.sapAiCoreUseOrchestrationMode ?? true;
 		providerSpecific.sap = {
 			clientId: trimNonEmpty(legacySecrets.sapAiCoreClientId),
 			clientSecret: trimNonEmpty(legacySecrets.sapAiCoreClientSecret),
 			tokenUrl: trimNonEmpty(legacyGlobalState.sapAiCoreTokenUrl),
 			resourceGroup: trimNonEmpty(legacyGlobalState.sapAiResourceGroup),
-			deploymentId: trimNonEmpty(
-				mode === "plan"
-					? legacyGlobalState.planModeSapAiCoreDeploymentId
-					: legacyGlobalState.actModeSapAiCoreDeploymentId,
-			),
-			useOrchestrationMode: legacyGlobalState.sapAiCoreUseOrchestrationMode,
+			deploymentId: useOrchestrationMode
+				? undefined
+				: trimNonEmpty(
+						mode === "plan"
+							? legacyGlobalState.planModeSapAiCoreDeploymentId
+							: legacyGlobalState.actModeSapAiCoreDeploymentId,
+					),
+			useOrchestrationMode,
 		};
 	}
 	if (providerId === "oca") {
@@ -635,7 +644,7 @@ function resolveLegacyCustomProviderRegistration(
 	providerId: string,
 	settings: ProviderSettings,
 ): StoredModelsFile["providers"][string] | undefined {
-	if (providerId !== LEGACY_OPENAI_COMPATIBLE_PROVIDER_ID) {
+	if (providerId !== OPENAI_COMPATIBLE_PROVIDER_ID) {
 		return undefined;
 	}
 	if (!settings.baseUrl || !settings.model) {
@@ -651,6 +660,9 @@ function resolveLegacyCustomProviderRegistration(
 			[settings.model]: {
 				id: settings.model,
 				name: settings.model,
+				contextWindow: LEGACY_OPENAI_COMPATIBLE_CONTEXT_WINDOW,
+				maxInputTokens: LEGACY_OPENAI_COMPATIBLE_CONTEXT_WINDOW,
+				capabilities: ["streaming", "tools", "images"],
 			},
 		},
 	};
@@ -673,7 +685,9 @@ function collectCandidateProviderIds(
 	if (trimNonEmpty(legacySecrets.apiKey)) candidates.add("anthropic");
 	if (trimNonEmpty(legacySecrets.openRouterApiKey))
 		candidates.add("openrouter");
-	if (trimNonEmpty(legacySecrets.openAiApiKey)) candidates.add("openai");
+	if (trimNonEmpty(legacySecrets.openAiApiKey)) {
+		candidates.add(LEGACY_OPENAI_COMPATIBLE_PROVIDER_ID);
+	}
 	if (trimNonEmpty(legacySecrets.openAiNativeApiKey))
 		candidates.add("openai-native");
 	if (trimNonEmpty(legacySecrets["openai-codex-oauth-credentials"]))
@@ -682,7 +696,10 @@ function collectCandidateProviderIds(
 	if (trimNonEmpty(legacySecrets.ollamaApiKey)) candidates.add("ollama");
 	if (
 		trimNonEmpty(legacySecrets.awsAccessKey) ||
-		trimNonEmpty(legacySecrets.awsBedrockApiKey)
+		trimNonEmpty(legacySecrets.awsBedrockApiKey) ||
+		legacyGlobalState.awsAuthentication !== undefined ||
+		legacyGlobalState.awsUseProfile === true ||
+		trimNonEmpty(legacyGlobalState.awsProfile)
 	)
 		candidates.add("bedrock");
 	if (
@@ -692,7 +709,27 @@ function collectCandidateProviderIds(
 		candidates.add("vertex");
 	}
 	if (trimNonEmpty(legacySecrets.clineApiKey)) candidates.add("cline");
+	const legacyClineAuth = resolveLegacyClineAuth(
+		trimNonEmpty(legacySecrets["cline:clineAccountId"]),
+	);
+	if (
+		legacyClineAuth?.accessToken ||
+		legacyClineAuth?.refreshToken ||
+		legacyClineAuth?.accountId
+	) {
+		candidates.add("cline");
+	}
 	if (trimNonEmpty(legacySecrets.ocaApiKey)) candidates.add("oca");
+	if (
+		trimNonEmpty(legacySecrets.sapAiCoreClientId) ||
+		trimNonEmpty(legacySecrets.sapAiCoreClientSecret) ||
+		trimNonEmpty(legacyGlobalState.sapAiCoreTokenUrl) ||
+		trimNonEmpty(legacyGlobalState.sapAiCoreBaseUrl) ||
+		trimNonEmpty(legacyGlobalState.sapAiResourceGroup) ||
+		legacyGlobalState.sapAiCoreUseOrchestrationMode !== undefined
+	) {
+		candidates.add("sapaicore");
+	}
 	return candidates;
 }
 
@@ -725,7 +762,7 @@ export function migrateLegacyProviderSettings(
 	let addedCustomProviderCount = 0;
 
 	for (const legacyProviderId of candidates) {
-		const providerId = resolveMigratedProviderId(legacyProviderId, globalState);
+		const providerId = resolveMigratedProviderId(legacyProviderId);
 		if (next.providers[providerId]) {
 			continue;
 		}
@@ -768,7 +805,7 @@ export function migrateLegacyProviderSettings(
 			: globalState.actModeApiProvider,
 	);
 	const migratedPreferredProvider = preferredProvider
-		? resolveMigratedProviderId(preferredProvider, globalState)
+		? resolveMigratedProviderId(preferredProvider)
 		: undefined;
 	next.lastUsedProvider =
 		existing.lastUsedProvider ??

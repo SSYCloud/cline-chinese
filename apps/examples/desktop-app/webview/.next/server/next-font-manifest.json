@@ -1,0 +1,9 @@
+{
+  "app": {
+    "[project]/apps/examples/desktop-app/webview/app/_not-found/page": [],
+    "[project]/apps/examples/desktop-app/webview/app/page": []
+  },
+  "appUsingSizeAdjust": false,
+  "pages": {},
+  "pagesUsingSizeAdjust": false
+}

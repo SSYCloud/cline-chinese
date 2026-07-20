@@ -37,7 +37,7 @@ chmod +x migrate-to-gitbook.sh
 2. 左侧菜单选择 **Integrations** → **GitHub**
 3. 点击 **Connect GitHub account**
 4. 授权 GitBook 访问你的 GitHub
-5. 选择仓库：`HybridTalentComputing/cline-chinese`
+5. 选择仓库：`SSYCloud/cline-chinese`
 6. 配置：
    - **Content root**: `docs-zh`
    - **Homepage**: `README.md`

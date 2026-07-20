@@ -7,8 +7,7 @@
  * summary message before the provider request.
  *
  * Installation:
- *   mkdir -p .cline/plugins
- *   cp examples/hooks/custom-compaction-hook.example.ts .cline/plugins/custom-compaction-hook.ts
+ *   cline plugin install https://github.com/cline/cline/blob/main/sdk/examples/hooks/custom-compaction-hook.example.ts --cwd .
  *
  * Usage:
  *   cline -i "Search the codebase for dispatcher usage, then summarize it"
@@ -18,8 +17,8 @@
  * to the current request and snapshot.
  */
 
-import type { AgentPlugin } from "@cline/core";
-import { estimateTokens as estimateTokensFromChars } from "@cline/shared";
+import type { AgentPlugin } from "@coohu/core";
+import { estimateTokens as estimateTokensFromChars } from "@coohu/shared";
 
 type PluginHooks = NonNullable<AgentPlugin["hooks"]>;
 type BeforeModelHook = NonNullable<PluginHooks["beforeModel"]>;

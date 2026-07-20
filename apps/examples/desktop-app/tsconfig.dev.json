@@ -1,0 +1,23 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"paths": {
+			"@/*": ["./*"],
+			"@coohu/agents": ["../../../sdk/packages/agents/src/index.ts"],
+			"@coohu/core": ["../../../sdk/packages/core/src/index.ts"],
+			"@coohu/core/hub": ["../../../sdk/packages/core/src/hub/index.ts"],
+			"@coohu/llms": ["../../../sdk/packages/llms/src/index.ts"],
+			"@coohu/shared": ["../../../sdk/packages/shared/src/index.ts"],
+			"@coohu/shared/storage": [
+				"../../../sdk/packages/shared/src/storage/index.ts"
+			],
+			"@coohu/shared/db": ["../../../sdk/packages/shared/src/db/index.ts"],
+			"@coohu/shared/*": [
+				"../../../sdk/packages/shared/src/*",
+				"../../../sdk/packages/shared/src/*/index.ts"
+			]
+		}
+	},
+	"include": ["sidecar/**/*.ts", "scripts/**/*.ts", "global.d.ts", "bun.mts"],
+	"exclude": ["node_modules", "webview"]
+}

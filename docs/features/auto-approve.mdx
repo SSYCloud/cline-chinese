@@ -24,9 +24,56 @@ Auto Approve is evaluated per tool call. When Cline is about to read a file, edi
 
 A few details matter:
 
+<<<<<<< HEAD
 - **Workspace vs outside workspace**: "Read all files" and "Edit all files" only extend the base toggle. If the base toggle is off, the "all files" option does nothing.
 - **Terminal commands**: Cline treats commands as either safe or requiring approval. "Execute safe commands" covers safe commands. "Execute all commands" extends to commands flagged as requiring approval.
 - **Notifications**: If enabled, Cline sends OS-level notifications when approval is required, and when an auto-approved terminal command has been running for 30 seconds.
+=======
+<<<<<<< HEAD
+- **Workspace vs outside your workspace**: “Read all files” and “Edit all files” only extend the base toggle. If the base toggle is off, the “all files” option does nothing.
+
+<<<<<<< HEAD
+- **Read project files**
+    - Allows Cline to read files within your current workspace without asking
+    - **Read all files**
+        - Extends read permission to files outside your workspace (system files, config files, etc.)
+
+- **Edit project files**
+    - Allows Cline to modify files within your current workspace without confirmation
+    - **Edit all files**
+        - Extends modification permission to files outside your workspace
+
+- **Execute safe commands**
+    - Allows execution of terminal commands that the model deems non-destructive
+    - **Execute all commands**
+        - Permits execution of any terminal command without asking
+
+- **Use the browser**
+    - Allows Cline to use the browser tool to fetch web content
+
+- **Use MCP servers**
+    - Permits connection to and usage of MCP servers for extended functionality
+
+- **Maximum requests**
+    - Sets the number of consecutive automated actions Cline can take before requiring your input
+=======
+- **Terminal commands**: Cline treats terminal commands as either safe or requiring approval. “Execute safe commands” covers the first category. “Execute all commands” extends this to commands flagged as requiring approval.
+
+- **Notifications**: If enabled, Cline sends OS-level notifications when approval is required, and when an auto-approved terminal command has been running for 30 seconds and may need attention.
+
+<Note>
+	[YOLO mode](/features/yolo-mode) bypasses these granular approvals.
+</Note>
+=======
+- **Workspace vs outside workspace**: "Read all files" and "Edit all files" only extend the base toggle. If the base toggle is off, the "all files" option does nothing.
+- **Terminal commands**: Cline treats commands as either safe or requiring approval. "Execute safe commands" covers safe commands. "Execute all commands" extends to commands flagged as requiring approval.
+- **Notifications**: If enabled, Cline sends OS-level notifications when approval is required, and when an auto-approved terminal command has been running for 30 seconds.
+<<<<<<< HEAD
+>>>>>>> 791d2389966d927396830470c51d456d04687b69
+=======
+>>>>>>> fd8cecddd51653a906708c3a7694fb9f7b7c098f
+>>>>>>> 345be8cca21a93abc19affada1d76915c5681d0d
+>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 
 ## Permissions
 
@@ -54,11 +101,59 @@ Cline does not use a fixed allowlist. The model marks each command with a `requi
 - `npm run build`, `npm test` - Build/test output
 - `git status`, `ls -la`, `cat package.json` - Read-only commands
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+These are examples, not guarantees.
+>>>>>>> 30af711d5e1d5a075401daebf9b77506df529935
+
+### Commonly treated as safe
+
+| Example | Why it is usually safe |
+|--------|-------------------------|
+| `npm run build` | Build output, no direct file deletions |
+| `npm test` | Runs tests |
+| `git status` | Read-only |
+| `ls -la` | Read-only |
+| `cat package.json` | Read-only |
+
+### Commonly requires approval
+
+<<<<<<< HEAD
+- Auto-approving read access to project files
+- Setting a reasonable maximum request limit (10-20)
+=======
+| Example | Why it often needs approval |
+|--------|------------------------------|
+| `npm install <pkg>` | Modifies dependencies and lockfiles |
+| `rm -rf <path>` | Deletes files |
+| `mv <a> <b>` | Moves files (can overwrite) |
+| `sed -i ...` | In-place file edits |
+| `curl https://...` | Downloads and executes remote code |
+>>>>>>> 30af711d5e1d5a075401daebf9b77506df529935
+
+<Note>
+	Whether a command is treated as safe depends on the exact command, flags, and the current task. When in doubt, keep command auto-approval off and approve commands manually.
+</Note>
+
+## Enable notifications
+
+Auto-approved actions can run for a while, especially long terminal commands. If you enable notifications, Cline can notify you when an auto-approved command has been running for a while and may need attention.
+=======
+>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 **Commonly requires approval:**
 - `npm install <pkg>` - Modifies dependencies
 - `rm -rf <path>` - Deletes files
 - `mv <a> <b>` - Moves files (can overwrite)
 - `sed -i ...` - In-place file edits
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 791d2389966d927396830470c51d456d04687b69
+=======
+>>>>>>> fd8cecddd51653a906708c3a7694fb9f7b7c098f
+>>>>>>> 345be8cca21a93abc19affada1d76915c5681d0d
+>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 
 ## Recommendations
 

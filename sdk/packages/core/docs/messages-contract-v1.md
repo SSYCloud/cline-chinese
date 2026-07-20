@@ -1,7 +1,7 @@
 # messages.json contract — v1
 
 This document describes the persisted session messages artifact written by
-`@cline/core` at:
+`@coohu/core` at:
 
 ```
 ~/.cline/data/sessions/<sessionId>/<sessionId>.messages.json

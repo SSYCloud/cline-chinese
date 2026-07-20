@@ -8,20 +8,26 @@ alwaysApply: true
 
 Quick-reference for active development. For onboarding, workspace setup, publishing, and detailed workflow see [CONTRIBUTING.md](./CONTRIBUTING.md). For architecture and runtime flows see [ARCHITECTURE.md](./ARCHITECTURE.md). For API details see [DOC.md](./DOC.md).
 
+## Repository Scope
+
+This file applies to the SDK workspace rooted at this directory (`sdk/`). In this repo, "root" means the SDK workspace root unless explicitly stated otherwise. Ignore the legacy repository root for SDK development except for Git operations or repo-wide searches that are explicitly needed.
+
+Run SDK commands from `sdk/`, not from the legacy repository root. Do not run direct root-level commands such as `bun test sdk/...`; they bypass the SDK workspace setup and can fail to resolve `workspace:*` packages correctly.
+
 ## Package Boundaries
 
 ### Published SDK Packages
 
-- `@cline/shared`: shared contracts, schemas, path helpers, hook engine, extension registry, low-level utilities
-- `@cline/llms`: provider settings/config, model catalogs, provider manifests, gateway contracts, handler creation
-- `@cline/agents`: stateless agent loop, tool orchestration, hook/extension runtime, event streaming
-- `@cline/core`: stateful orchestration, session lifecycle, storage, config watching, plugin loading, default tools, telemetry. Exposes `@cline/core/hub` for discovery, the detached daemon entry, WebSocket clients, and session/UI client adapters, plus `@cline/core/hub/daemon-entry` for launching the shared daemon
+- `@coohu/shared`: shared contracts, schemas, path helpers, hook engine, extension registry, low-level utilities
+- `@coohu/llms`: provider settings/config, model catalogs, provider manifests, gateway contracts, handler creation
+- `@coohu/agents`: stateless agent loop, tool orchestration, hook/extension runtime, event streaming
+- `@coohu/core`: stateful orchestration, session lifecycle, storage, config watching, plugin loading, default tools, telemetry. Exposes `@coohu/core/hub` for discovery, the detached daemon entry, WebSocket clients, and session/UI client adapters, plus `@coohu/core/hub/daemon-entry` for launching the shared daemon
 
 ### Dependency Direction
 
 ```mermaid
 flowchart TD
-  shared["@cline/shared"] --> llms["@cline/llms"] & agents["@cline/agents"] & core["@cline/core"]
+  shared["@coohu/shared"] --> llms["@coohu/llms"] & agents["@coohu/agents"] & core["@coohu/core"]
   llms --> agents & core
   agents --> core
   core --> apps["CLI / VS Code / Code App"]
@@ -36,21 +42,46 @@ Rules:
 
 Route changes to the package that owns the concern:
 
-- model/provider schemas or handler behavior: `@cline/llms`
-- stateless loop, tool orchestration, streaming, hook/extension runtime: `@cline/agents`
-- session lifecycle, storage, config watching, default tools, plugin loading, telemetry, hub runtime services, hub discovery, hub daemon spawn, and session-oriented client helpers (`HubSessionClient`, `HubUIClient`, `connectToHub`): `@cline/core` (hub pieces live under `src/hub/`)
-- remote-config schemas, managed instruction materialization, blob upload metadata, and OpenTelemetry config normalization: `@cline/shared/src/remote-config`
+- model/provider schemas or handler behavior: `@coohu/llms`
+- stateless loop, tool orchestration, streaming, hook/extension runtime: `@coohu/agents`
+- session lifecycle, storage, config watching, default tools, plugin loading, telemetry, hub runtime services, hub discovery, hub daemon spawn, and session-oriented client helpers (`HubSessionClient`, `HubUIClient`, `connectToHub`): `@coohu/core` (hub pieces live under `src/hub/`)
+- remote-config schemas, managed instruction materialization, blob upload metadata, and OpenTelemetry config normalization: `@coohu/shared/src/remote-config`
 - host-specific UX or shell behavior: app package
 
 ## Verifying Changes
 
-Root commands for cross-package confidence:
+Before testing in a fresh worktree, install SDK dependencies from the SDK workspace root:
+
+```sh
+cd sdk
+bun install --frozen-lockfile
+```
+
+SDK package exports resolve sibling packages through compiled `dist/` files. If `dist/` is missing, build the SDK packages before running package tests:
+
+```sh
+bun run build:sdk
+```
+
+SDK-root commands for cross-package confidence:
 
 ```sh
 bun run types       # typecheck all packages
 bun run test        # run all tests
 bun run check       # lint + build + typecheck + check-publish
 ```
+
+For focused verification, prefer workspace package scripts from the SDK root:
+
+```sh
+bun -F @coohu/shared test
+bun -F @coohu/llms test
+bun -F @coohu/agents test
+bun -F @coohu/core test:unit
+bun -F @coohu/cli test:unit
+```
+
+If a focused test command fails with a missing `@coohu/*` export or missing `dist/` file, build the relevant dependency package or run `bun run build:sdk`, then rerun the same test command. Treat that as a workspace setup issue, not as evidence of a source-code bug.
 
 If you touch hub/bootstrap/session flows, please update `ARCHITECTURE.md`.
 
@@ -59,6 +90,7 @@ If you touch hub/bootstrap/session flows, please update `ARCHITECTURE.md`.
 ### Keep Boundaries Clean
 
 - Don't move stateful logic down into `agents`
+- For `@coohu/llms` provider/model routing rules, follow [packages/llms/AGENTS.md](./packages/llms/AGENTS.md).
 - Don't put app-specific behavior into `core` unless it is truly shared host behavior
 - Keep remote-config primitives generic in `shared`; host-facing session integration belongs in `core`
 

@@ -1,7 +1,7 @@
 import { basename, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
-import type { WorkspaceInfo } from "@cline/shared";
-import { processWorkspaceInfo } from "@cline/shared";
+import type { WorkspaceInfo } from "@coohu/shared";
+import { processWorkspaceInfo } from "@coohu/shared";
 import simpleGit from "simple-git";
 
 export interface WorkspaceInfoDiagnostics {

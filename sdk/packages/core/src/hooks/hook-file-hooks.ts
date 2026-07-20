@@ -8,7 +8,7 @@ import type {
 	AgentHooks,
 	AgentRunLifecycleContext,
 	AgentRuntimeEvent,
-} from "@cline/shared";
+} from "@coohu/shared";
 import {
 	augmentNodeCommandForDebug,
 	type BasicLogger,
@@ -16,8 +16,8 @@ import {
 	type HookSessionContext,
 	type WorkspaceInfo,
 	withResolvedClineBuildEnv,
-} from "@cline/shared";
-import { ensureHookLogDir } from "@cline/shared/storage";
+} from "@coohu/shared";
+import { ensureHookLogDir } from "@coohu/shared/storage";
 import { createAgentHooksExtension } from "./hook-extension";
 import { listHookConfigFiles } from "./hook-file-config";
 import type { HookEventName, HookEventPayload } from "./subprocess";
@@ -335,6 +335,9 @@ async function runHookCommandOnce(
 			? ["pipe", "ignore", "ignore"]
 			: ["pipe", "pipe", "pipe"],
 		detached: options.detached,
+		// Prevent a console window from flashing on Windows (especially when
+		// detached, which would otherwise allocate a new console).
+		windowsHide: true,
 	});
 	const spawned = new Promise<void>((resolve) => {
 		child.once("spawn", () => resolve());

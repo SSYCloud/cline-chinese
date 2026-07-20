@@ -1,20 +1,38 @@
 import type {
+	AgentMessage,
 	AgentModel,
 	AgentModelEvent,
 	AgentModelRequest,
 	BasicLogger,
 	GatewayConfig,
+	GatewayModelDefinition,
 	GatewayModelHandleOptions,
 	GatewayModelSelection,
 	GatewayProviderRegistration,
 	GatewayStreamRequest,
 	ITelemetryService,
-} from "@cline/shared";
+} from "@coohu/shared";
+import { estimateTokens } from "@coohu/shared";
 import { toAsyncIterable } from "./async";
 import { BUILTIN_PROVIDER_REGISTRATIONS } from "./builtins-runtime";
 import { GatewayRegistry } from "./registry";
 
-export type * from "@cline/shared";
+export type * from "@coohu/shared";
+
+const GATEWAY_OUTPUT_RESERVE_TOKENS = 1_024;
+
+function mergeRequestMetadata(
+	defaults: Record<string, unknown> | undefined,
+	request: Record<string, unknown> | undefined,
+): Record<string, unknown> | undefined {
+	if (!defaults && !request) {
+		return undefined;
+	}
+	return {
+		...(defaults ?? {}),
+		...(request ?? {}),
+	};
+}
 
 export interface Gateway {
 	registerProvider(registration: GatewayProviderRegistration): this;
@@ -87,14 +105,108 @@ class GatewayModelAdapter implements AgentModel {
 			maxTokens:
 				(request.options?.maxTokens as number | undefined) ??
 				this.defaults?.maxTokens,
-			metadata:
-				(request.options?.metadata as Record<string, unknown> | undefined) ??
+			metadata: mergeRequestMetadata(
 				this.defaults?.metadata,
+				request.options?.metadata as Record<string, unknown> | undefined,
+			),
 			reasoning:
 				requestedReasoning ?? legacyReasoning ?? this.defaults?.reasoning,
 			signal: request.signal ?? this.defaults?.signal,
 		});
 	}
+}
+
+function isPositiveFiniteNumber(value: unknown): value is number {
+	return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+function safeStringify(value: unknown): string {
+	const seen = new WeakSet<object>();
+	try {
+		return (
+			JSON.stringify(value, (_key, nestedValue: unknown) => {
+				if (typeof nestedValue === "bigint") {
+					return nestedValue.toString();
+				}
+				if (typeof nestedValue !== "object" || nestedValue === null) {
+					return nestedValue;
+				}
+				if (seen.has(nestedValue)) {
+					return "[Circular]";
+				}
+				seen.add(nestedValue);
+				return nestedValue;
+			}) ?? ""
+		);
+	} catch {
+		return String(value ?? "");
+	}
+}
+
+export function estimateRequestInputTokens(
+	request: Pick<GatewayStreamRequest, "systemPrompt" | "messages" | "tools">,
+): number {
+	let serialized: string;
+	try {
+		serialized = JSON.stringify({
+			systemPrompt: request.systemPrompt,
+			messages: request.messages,
+			tools: request.tools,
+		});
+	} catch {
+		serialized = [
+			safeStringify(request.systemPrompt),
+			safeStringify(request.messages as readonly AgentMessage[]),
+			safeStringify(request.tools),
+		].join("\n");
+	}
+	// This deliberately over-estimates a little so the context cap leaves room
+	// for provider formatting, tool schema overhead, and tokenizer drift.
+	return estimateTokens(serialized.length);
+}
+
+export function resolveGatewayRequestMaxTokens(input: {
+	requestedMaxTokens?: number;
+	model: Pick<GatewayModelDefinition, "contextWindow" | "maxOutputTokens">;
+	estimatedInputTokens: number;
+	outputReserveTokens?: number;
+	onContextOverflow?: (details: {
+		contextWindow: number;
+		estimatedInputTokens: number;
+		reserveTokens: number;
+	}) => void;
+}): number | undefined {
+	if (!isPositiveFiniteNumber(input.requestedMaxTokens)) {
+		return undefined;
+	}
+
+	const caps: number[] = [Math.floor(input.requestedMaxTokens)];
+
+	if (isPositiveFiniteNumber(input.model.maxOutputTokens)) {
+		caps.push(Math.floor(input.model.maxOutputTokens));
+	}
+
+	if (isPositiveFiniteNumber(input.model.contextWindow)) {
+		const reserveTokens =
+			input.outputReserveTokens ?? GATEWAY_OUTPUT_RESERVE_TOKENS;
+		const remainingContext =
+			input.model.contextWindow - input.estimatedInputTokens - reserveTokens;
+		if (remainingContext <= 0) {
+			input.onContextOverflow?.({
+				contextWindow: input.model.contextWindow,
+				estimatedInputTokens: input.estimatedInputTokens,
+				reserveTokens,
+			});
+			return undefined;
+		}
+		caps.push(Math.floor(remainingContext));
+	}
+
+	if (caps.length === 0) {
+		return undefined;
+	}
+
+	return Math.max(1, Math.floor(Math.min(...caps)));
 }
 
 export class DefaultGateway implements Gateway {
@@ -168,11 +280,30 @@ export class DefaultGateway implements Gateway {
 			request.providerId,
 		);
 		const provider = await providerRecord.createProvider(providerRecord.config);
+		const maxTokens = isPositiveFiniteNumber(request.maxTokens)
+			? resolveGatewayRequestMaxTokens({
+					requestedMaxTokens: request.maxTokens,
+					model: resolved.model,
+					estimatedInputTokens: estimateRequestInputTokens(request),
+					onContextOverflow: (details) => {
+						this.logger?.log(
+							"Estimated prompt tokens exceed model context window",
+							{
+								severity: "warn",
+								providerId: resolved.provider.id,
+								modelId: resolved.model.id,
+								...details,
+							},
+						);
+					},
+				})
+			: undefined;
 		const stream = await provider.stream(
 			{
 				...request,
 				modelId: resolved.model.id,
 				providerId: resolved.provider.id,
+				maxTokens,
 			},
 			{
 				provider: resolved.provider,

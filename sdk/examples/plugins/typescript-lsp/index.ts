@@ -9,7 +9,7 @@
  * at runtime, so it has zero dependencies beyond Node builtins.
  *
  * CLI usage:
- *   cp examples/plugins/typescript-lsp/index.ts ~/.cline/plugins/typescript-lsp.ts
+ *   cline plugin install https://github.com/cline/cline/blob/main/sdk/examples/plugins/typescript-lsp/index.ts
  *   cline -i "Find where createTool is defined"
  *
  * Direct demo usage:
@@ -19,7 +19,7 @@
 import { existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join, resolve } from "node:path";
-import { type AgentPlugin, createTool } from "@cline/core";
+import { type AgentPlugin, createTool } from "@coohu/core";
 
 // ---------------------------------------------------------------------------
 // TypeScript Language Service setup

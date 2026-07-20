@@ -1,6 +1,6 @@
 /**
  * Shared types describing automation cron specs parsed from Markdown files.
- * Split out from `@cline/core` so the parser can live in `shared` where
+ * Split out from `@coohu/core` so the parser can live in `shared` where
  * multiple consumers (hub daemon, CLI tools, enterprise adapters) can validate
  * the same `.cline/cron/` spec format without pulling in core's stateful
  * orchestration layer.

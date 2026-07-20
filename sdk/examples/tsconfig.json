@@ -1,5 +1,5 @@
 {
-	"extends": "../apps/tsconfig.apps.json",
+	"extends": "../../apps/tsconfig.apps.json",
 	"compilerOptions": {
 		// Environment setup & latest features
 		"lib": ["ESNext"],
@@ -26,6 +26,33 @@
 		// Some stricter flags (disabled by default)
 		"noUnusedLocals": false,
 		"noUnusedParameters": false,
-		"noPropertyAccessFromIndexSignature": false
+		"noPropertyAccessFromIndexSignature": false,
+		"paths": {
+			"@coohu/agents": ["../packages/agents/src/index.ts"],
+			"@coohu/agents/*": [
+				"../packages/agents/src/*",
+				"../packages/agents/src/*/index.ts"
+			],
+			"@coohu/cline-hub": ["./cline-hub/src/server.ts"],
+			"@coohu/core": ["../packages/core/src/index.ts"],
+			"@coohu/core/hub/daemon-entry": [
+				"../packages/core/src/hub/daemon/entry.ts"
+			],
+			"@coohu/core/*": [
+				"../packages/core/src/*",
+				"../packages/core/src/*/index.ts"
+			],
+			"@coohu/core/telemetry": [
+				"../packages/core/src/services/telemetry/index.ts"
+			],
+			"@coohu/llms": ["../packages/llms/src/index.ts"],
+			"@coohu/shared": ["../packages/shared/src/index.ts"],
+			"@coohu/shared/storage": ["../packages/shared/src/storage/index.ts"],
+			"@coohu/shared/db": ["../packages/shared/src/db/index.ts"],
+			"@coohu/shared/*": [
+				"../packages/shared/src/*",
+				"../packages/shared/src/*/index.ts"
+			]
+		}
 	}
 }

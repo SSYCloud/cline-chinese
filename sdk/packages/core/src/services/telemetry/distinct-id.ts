@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { resolveSessionDataDir } from "@cline/shared/storage";
+import { resolveSessionDataDir } from "@coohu/shared/storage";
 import { nanoid } from "nanoid";
 import * as nodeMachineId from "node-machine-id";
 

@@ -34,7 +34,15 @@ export const OpenAiCompatibleSchema = z.object({
 	openAiHeaders: z.record(z.string(), z.string()).optional(),
 	azureApiVersion: z.string().optional(),
 	azureIdentity: z.boolean().optional(),
+<<<<<<< HEAD
 });
+=======
+<<<<<<<< HEAD:src/shared/remote-config/schema.ts
+})
+========
+});
+>>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a:sdk/packages/shared/src/remote-config/schema.ts
+>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 
 // AWS Bedrock model schema with per-model settings
 export const AwsBedrockModelSchema = z.object({
@@ -109,6 +117,19 @@ export const AnthropicSchema = z.object({
 	baseUrl: z.string().optional(),
 });
 
+<<<<<<< HEAD
+=======
+export const AnthropicModelSchema = z.object({
+	id: z.string(),
+	thinkingBudgetTokens: z.number().optional(),
+})
+
+export const AnthropicSchema = z.object({
+	models: z.array(AnthropicModelSchema).optional(),
+	baseUrl: z.string().optional(),
+})
+
+>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 // Provider settings schema
 // Each provider becomes an optional field
 const ProviderSettingsSchema = z.object({
@@ -118,7 +139,15 @@ const ProviderSettingsSchema = z.object({
 	Vertex: VertexSettingsSchema.optional(),
 	LiteLLM: LiteLLMSchema.optional(),
 	Anthropic: AnthropicSchema.optional(),
+<<<<<<< HEAD
 });
+=======
+<<<<<<<< HEAD:src/shared/remote-config/schema.ts
+})
+========
+});
+>>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a:sdk/packages/shared/src/remote-config/schema.ts
+>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 
 export const AllowedMCPServerSchema = z.object({
 	// The ID of the MCP is the URL for their github repo.
@@ -134,7 +163,15 @@ export const RemoteMCPServerSchema = z.object({
 	alwaysEnabled: z.boolean().optional(),
 	// Headers to allow for custom auth
 	headers: z.record(z.string(), z.string()).optional(),
+<<<<<<< HEAD
 });
+=======
+<<<<<<<< HEAD:src/shared/remote-config/schema.ts
+})
+========
+});
+>>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a:sdk/packages/shared/src/remote-config/schema.ts
+>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 
 // Settings for a global cline rules or workflow file.
 export const GlobalInstructionsFileSchema = z.object({
@@ -173,6 +210,36 @@ export const EnterpriseTelemetrySchema = z.object({
 	promptUploading: PromptUploadingSchema.optional(),
 });
 
+<<<<<<< HEAD
+=======
+export const S3AccessKeySettingsSchema = z.object({
+	bucket: z.string(),
+	accessKeyId: z.string(),
+	secretAccessKey: z.string(),
+	region: z.string().optional(),
+	endpoint: z.string().optional(),
+	accountId: z.string().optional(),
+	intervalMs: z.number().optional(),
+	maxRetries: z.number().optional(),
+	batchSize: z.number().optional(),
+	maxQueueSize: z.number().optional(),
+	maxFailedAgeMs: z.number().optional(),
+	backfillEnabled: z.boolean().optional(),
+})
+
+export const PromptUploadingSchema = z.object({
+	enabled: z.boolean().optional(),
+	type: z.union([z.literal("s3_access_keys"), z.literal("r2_access_keys"), z.literal("azure_access_keys")]).optional(),
+	s3AccessSettings: S3AccessKeySettingsSchema.optional(),
+	r2AccessSettings: S3AccessKeySettingsSchema.optional(),
+	azureAccessSettings: S3AccessKeySettingsSchema.optional(),
+})
+
+export const EnterpriseTelemetrySchema = z.object({
+	promptUploading: PromptUploadingSchema.optional(),
+})
+
+>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 export const RemoteConfigSchema = z.object({
 	// The version of the remote config settings, e.g. v1
 	// This field is for internal use only, and won't be visible to the administrator in the UI.
@@ -186,10 +253,17 @@ export const RemoteConfigSchema = z.object({
 	kanbanEnabled: z.boolean().optional(),
 
 	// MCP settings
+<<<<<<< HEAD
 	// If this is false, the MCP marketplace is disabled in the extension
 	mcpMarketplaceEnabled: z.boolean().optional(),
 
 	// If this is configured, the users only have access to these allowlisted MCP servers in the marketplace.
+=======
+	// Legacy field name. If this is false, locally configured MCP servers are blocked.
+	mcpMarketplaceEnabled: z.boolean().optional(),
+
+	// If this is configured, users only have access to these allowlisted local MCP servers.
+>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 	allowedMCPServers: z.array(AllowedMCPServerSchema).optional(),
 
 	// A list of pre-configured remote MCP servers.
@@ -225,7 +299,16 @@ export const RemoteConfigSchema = z.object({
 	// Rules & Workflows
 	globalRules: z.array(GlobalInstructionsFileSchema).optional(),
 	globalWorkflows: z.array(GlobalInstructionsFileSchema).optional(),
+<<<<<<< HEAD
 });
+=======
+<<<<<<<< HEAD:src/shared/remote-config/schema.ts
+	globalSkills: z.array(GlobalInstructionsFileSchema).optional(),
+})
+========
+});
+>>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a:sdk/packages/shared/src/remote-config/schema.ts
+>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 
 export const APIKeySchema = z.record(z.string(), z.string());
 
@@ -252,6 +335,19 @@ export type VertexModel = z.infer<typeof VertexModelSchema>;
 export type LiteLLMSettings = z.infer<typeof LiteLLMSchema>;
 export type LiteLLMModel = z.infer<typeof LiteLLMModelSchema>;
 
+<<<<<<< HEAD
+=======
+<<<<<<<< HEAD:src/shared/remote-config/schema.ts
+export type AnthropicSettings = z.infer<typeof AnthropicSchema>
+export type AnthropicModel = z.infer<typeof AnthropicModelSchema>
+
+export type APIKeySettings = z.infer<typeof APIKeySchema>
+
+export type EnterpriseTelemetry = z.infer<typeof EnterpriseTelemetrySchema>
+export type PromptUploading = z.infer<typeof PromptUploadingSchema>
+export type S3AccessKeySettings = z.infer<typeof S3AccessKeySettingsSchema>
+========
+>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 export type AnthropicSettings = z.infer<typeof AnthropicSchema>;
 export type AnthropicModel = z.infer<typeof AnthropicModelSchema>;
 
@@ -260,3 +356,7 @@ export type APIKeySettings = z.infer<typeof APIKeySchema>;
 export type EnterpriseTelemetry = z.infer<typeof EnterpriseTelemetrySchema>;
 export type PromptUploading = z.infer<typeof PromptUploadingSchema>;
 export type S3AccessKeySettings = z.infer<typeof S3AccessKeySettingsSchema>;
+<<<<<<< HEAD
+=======
+>>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a:sdk/packages/shared/src/remote-config/schema.ts
+>>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a

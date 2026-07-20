@@ -1,4 +1,4 @@
-import { createGateway } from "@cline/llms";
+import { createGateway, type GatewayProviderSettings } from "@coohu/llms";
 import type {
 	AgentAfterToolResult,
 	AgentBeforeModelResult,
@@ -22,12 +22,20 @@ import type {
 	TelemetryProperties,
 	ToolApprovalResult,
 	ToolPolicy,
-} from "@cline/shared";
-import { captureSdkError, estimateTokens } from "@cline/shared";
+} from "@coohu/shared";
+import {
+	captureAgentUnexpectedReasoningTokens,
+	captureSdkError,
+	estimateTokens,
+	mergeModelOptions,
+	normalizeJsonLikeStringsForSchema,
+	omitUndefinedValues,
+	trimNonEmpty,
+} from "@coohu/shared";
 import { nanoid } from "nanoid";
 
 // Local `createUID` helper. The clinee source imports this from
-// `@cline/shared` (see `packages/shared/dist/identifier.ts`), but
+// `@coohu/shared` (see `packages/shared/dist/identifier.ts`), but
 // sdk-re's shared package does not expose it yet. Inlining here keeps
 // PLAN.md Step 1 scoped to `packages/agents/src/` and matches the
 // exact clinee implementation (`${prefix}_${nanoid(length)}`).
@@ -40,7 +48,7 @@ export type AgentEventListener = (event: AgentRuntimeEvent) => void;
 
 /**
  * Advanced form: caller supplies a pre-built `AgentModel`. Used by
- * `@cline/core`, which constructs models itself to share gateway/telemetry
+ * `@coohu/core`, which constructs models itself to share gateway/telemetry
  * wiring with the rest of the session runtime.
  */
 export interface AgentRuntimeConfigWithModel extends BaseAgentRuntimeConfig {
@@ -49,7 +57,7 @@ export interface AgentRuntimeConfigWithModel extends BaseAgentRuntimeConfig {
 
 /**
  * Friendly form: caller supplies provider/model IDs and credentials, and the
- * runtime builds an `AgentModel` internally via `@cline/llms`. This is the
+ * runtime builds an `AgentModel` internally via `@coohu/llms`. This is the
  * entry point most standalone users want.
  */
 export interface AgentRuntimeConfigWithProvider
@@ -64,13 +72,15 @@ export interface AgentRuntimeConfigWithProvider
 	baseUrl?: string;
 	/** Additional headers for API requests */
 	headers?: Record<string, string>;
+	/** Provider-specific gateway options */
+	options?: GatewayProviderSettings["options"];
 }
 
 /**
  * Config accepted by `new AgentRuntime(...)` / `createAgentRuntime(...)` /
  * `new Agent(...)` / `createAgent(...)`. Either supply a pre-built `model`
  * (advanced) or `providerId` + `modelId` (+ credentials) and the runtime will
- * construct the model itself via `@cline/llms`.
+ * construct the model itself via `@coohu/llms`.
  */
 export type AgentRuntimeConfig =
 	| AgentRuntimeConfigWithModel
@@ -88,13 +98,21 @@ function resolveRuntimeConfig(
 	if (hasPrebuiltModel(config)) {
 		return config;
 	}
-	const { providerId, modelId, apiKey, baseUrl, headers, ...rest } = config;
+	const { providerId, modelId, apiKey, baseUrl, headers, options, ...rest } =
+		config;
 	const gateway = createGateway({
-		providerConfigs: [{ providerId, apiKey, baseUrl, headers }],
+		providerConfigs: [{ providerId, apiKey, baseUrl, headers, options }],
 		telemetry: rest.telemetry,
 	});
 	const model = gateway.createAgentModel({ providerId, modelId });
-	return { ...rest, model };
+	// The prebuilt-model path preserves a caller-provided messageModelInfo;
+	// mirror that here so the provider/model constructor also tags assistant
+	// messages with modelInfo. An explicit caller-provided value still wins.
+	const messageModelInfo = rest.messageModelInfo ?? {
+		id: modelId,
+		provider: providerId,
+	};
+	return { ...rest, model, messageModelInfo };
 }
 
 function resolveToolPolicy(
@@ -217,6 +235,24 @@ class ControlledStopError extends Error {
 	}
 }
 
+export class AgentRuntimeAbortError extends Error {
+	readonly reason?: unknown;
+
+	constructor(reason?: unknown) {
+		const message =
+			typeof reason === "string"
+				? reason
+				: reason instanceof Error
+					? reason.message
+					: reason === undefined
+						? "Run aborted"
+						: String(reason);
+		super(message);
+		this.name = "AgentRuntimeAbortError";
+		this.reason = reason;
+	}
+}
+
 const DEFAULT_USAGE: AgentUsage = {
 	inputTokens: 0,
 	outputTokens: 0,
@@ -272,6 +308,10 @@ function usageDelta(
 		0,
 		(end.cacheWriteTokens ?? 0) - (start.cacheWriteTokens ?? 0),
 	);
+	const reasoningTokenCount = Math.max(
+		0,
+		(end.reasoningTokenCount ?? 0) - (start.reasoningTokenCount ?? 0),
+	);
 	const startCost = start.totalCost ?? 0;
 	const endCost = end.totalCost ?? 0;
 	const cost = Math.max(0, endCost - startCost);
@@ -280,6 +320,7 @@ function usageDelta(
 		outputTokens === 0 &&
 		cacheReadTokens === 0 &&
 		cacheWriteTokens === 0 &&
+		reasoningTokenCount === 0 &&
 		cost === 0
 	) {
 		return undefined;
@@ -289,8 +330,13 @@ function usageDelta(
 		outputTokens: outputTokens > 0 ? outputTokens : 0,
 		cacheReadTokens: cacheReadTokens > 0 ? cacheReadTokens : 0,
 		cacheWriteTokens: cacheWriteTokens > 0 ? cacheWriteTokens : 0,
+		...(reasoningTokenCount > 0 ? { reasoningTokenCount } : {}),
 		...(cost > 0 ? { cost } : {}),
 	};
+}
+
+function reasoningWasRequestedOff(request: AgentModelRequest): boolean {
+	return request.options?.thinking === false;
 }
 
 function textFromMessage(message: AgentMessage | undefined): string {
@@ -390,16 +436,12 @@ export class AgentRuntime {
 		if (!this.abortController) {
 			return;
 		}
-		const message =
-			typeof reason === "string"
+		const abortError =
+			reason instanceof AgentRuntimeAbortError
 				? reason
-				: reason instanceof Error
-					? reason.message
-					: reason === undefined
-						? undefined
-						: String(reason);
-		this.state.lastError = message ?? "Run aborted";
-		this.abortController.abort(new Error(this.state.lastError));
+				: new AgentRuntimeAbortError(reason);
+		this.state.lastError = abortError.message;
+		this.abortController.abort(abortError);
 	}
 
 	subscribe(listener: AgentEventListener): () => void {
@@ -537,6 +579,7 @@ export class AgentRuntime {
 		this.state.iteration = 0;
 		this.state.pendingToolCalls = [];
 		this.state.lastError = undefined;
+		this.state.usage = cloneUsage(DEFAULT_USAGE);
 
 		try {
 			await this.callBeforeRunHooks();
@@ -572,6 +615,21 @@ export class AgentRuntime {
 				});
 
 				const { message, finishReason } = await this.generateAssistantMessage();
+				if (finishReason === "aborted") {
+					throw this.normalizeAbortError();
+				}
+				if (message.content.length === 0) {
+					throw new Error(
+						finishReason === "error"
+							? (this.state.lastError ?? "Model stream failed")
+							: "Model returned empty response",
+					);
+				}
+				const toolCalls = message.content.filter(
+					(part: AgentMessagePart): part is AgentToolCallPart =>
+						part.type === "tool-call",
+				);
+
 				finalAssistantMessage = message;
 				this.state.messages.push(message);
 				await this.emit({
@@ -587,14 +645,6 @@ export class AgentRuntime {
 					finishReason,
 				});
 
-				if (finishReason === "aborted") {
-					throw this.normalizeAbortError();
-				}
-
-				const toolCalls = message.content.filter(
-					(part: AgentMessagePart): part is AgentToolCallPart =>
-						part.type === "tool-call",
-				);
 				if (finishReason === "error" && toolCalls.length === 0) {
 					throw new Error(this.state.lastError ?? "Model stream failed");
 				}
@@ -725,6 +775,13 @@ export class AgentRuntime {
 		finishReason: AgentModelFinishReason;
 	}> {
 		const usageBeforeModel = cloneUsage(this.state.usage);
+		const modelRequestMetadata = omitUndefinedValues({
+			sessionId: trimNonEmpty(this.config.sessionId),
+			agentId: this.state.agentId,
+			conversationId: trimNonEmpty(this.config.conversationId),
+			runId: this.state.runId,
+			iteration: this.state.iteration,
+		});
 		let request: AgentModelRequest = {
 			systemPrompt: this.config.systemPrompt,
 			messages: cloneMessages(this.state.messages),
@@ -734,7 +791,9 @@ export class AgentRuntime {
 				inputSchema: tool.inputSchema,
 			})),
 			signal: this.abortController?.signal,
-			options: this.config.modelOptions,
+			options: mergeModelOptions(this.config.modelOptions, {
+				metadata: modelRequestMetadata,
+			}),
 		};
 
 		if (this.state.iteration > 1) {
@@ -760,7 +819,7 @@ export class AgentRuntime {
 			if (result?.options) {
 				request = {
 					...request,
-					options: { ...(request.options ?? {}), ...result.options },
+					options: mergeModelOptions(request.options, result.options),
 				};
 			}
 		}
@@ -940,6 +999,7 @@ export class AgentRuntime {
 		const metrics = usageDelta(usageBeforeModel, this.state.usage);
 		if (metrics) {
 			message.metrics = metrics;
+			this.captureUnexpectedReasoningTokens(request, metrics);
 		}
 		if (this.config.messageModelInfo) {
 			message.modelInfo = { ...this.config.messageModelInfo };
@@ -954,6 +1014,33 @@ export class AgentRuntime {
 		}
 
 		return { message, finishReason };
+	}
+
+	private captureUnexpectedReasoningTokens(
+		request: AgentModelRequest,
+		metrics: NonNullable<AgentMessage["metrics"]>,
+	): void {
+		if (
+			!reasoningWasRequestedOff(request) ||
+			(metrics.reasoningTokenCount ?? 0) <= 0
+		) {
+			return;
+		}
+		const reasoningTokenCount = metrics.reasoningTokenCount;
+		if (reasoningTokenCount === undefined) {
+			return;
+		}
+
+		captureAgentUnexpectedReasoningTokens(this.config.telemetry, {
+			sessionId: this.config.sessionId,
+			agentId: this.state.agentId,
+			runId: this.state.runId,
+			iteration: this.state.iteration,
+			providerId: this.config.messageModelInfo?.provider,
+			modelId: this.config.messageModelInfo?.id,
+			requestedThinking: false,
+			reasoningTokenCount,
+		});
 	}
 
 	private async prepareTurnForModelRequest(
@@ -1028,6 +1115,9 @@ export class AgentRuntime {
 				this.state.usage.cacheReadTokens + (usage.cacheReadTokens ?? 0),
 			cacheWriteTokens:
 				this.state.usage.cacheWriteTokens + (usage.cacheWriteTokens ?? 0),
+			reasoningTokenCount:
+				(this.state.usage.reasoningTokenCount ?? 0) +
+				(usage.reasoningTokenCount ?? 0),
 			totalCost: (this.state.usage.totalCost ?? 0) + (usage.totalCost ?? 0),
 		};
 		await this.emit({
@@ -1112,15 +1202,26 @@ export class AgentRuntime {
 		}
 
 		if (tool && !skipReason) {
+			input = normalizeJsonLikeStringsForSchema(input, tool.inputSchema);
+		}
+
+		let policyOverride: ToolPolicy | undefined;
+		if (tool && !skipReason) {
 			for (const hook of this.hooks.beforeTool) {
 				const result = (await hook({
 					snapshot: this.snapshot(),
 					tool,
-					toolCall,
+					toolCall: { ...toolCall, input },
 					input,
 				})) as AgentBeforeToolResult | undefined;
 				if (result?.input !== undefined) {
 					input = result.input;
+				}
+				if (result?.policy) {
+					policyOverride = {
+						...policyOverride,
+						...result.policy,
+					};
 				}
 				this.applyStopControl(result);
 				if (result?.skip) {
@@ -1132,10 +1233,10 @@ export class AgentRuntime {
 		}
 
 		if (tool && !skipReason) {
-			const policy = resolveToolPolicy(
-				toolCall.toolName,
-				this.config.toolPolicies,
-			);
+			const policy = {
+				...resolveToolPolicy(toolCall.toolName, this.config.toolPolicies),
+				...policyOverride,
+			};
 			if (policy.enabled === false) {
 				skipReason = `Tool "${toolCall.toolName}" is disabled by policy`;
 			} else if (policy.autoApprove === false) {
@@ -1532,7 +1633,7 @@ export function createAgentRuntime(config: AgentRuntimeConfig): AgentRuntime {
  *     const agent = new Agent({ providerId, modelId, apiKey });
  *     await agent.run("hello");
  *
- * while `@cline/core` (which owns model construction) continues to use
+ * while `@coohu/core` (which owns model construction) continues to use
  * the `AgentRuntime` name with `{ model, ... }` configs.
  */
 export const Agent = AgentRuntime;

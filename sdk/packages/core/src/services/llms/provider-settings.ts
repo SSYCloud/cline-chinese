@@ -1,9 +1,10 @@
-import * as Llms from "@cline/llms";
+import * as Llms from "@coohu/llms";
 import { z } from "zod";
 import {
 	DEFAULT_EXTERNAL_OCA_BASE_URL,
 	DEFAULT_INTERNAL_OCA_BASE_URL,
 } from "../../auth/oca";
+import { getPersistedProviderApiKey } from "../../auth/provider-auth-registry";
 import {
 	OPENAI_COMPATIBLE_PROVIDERS,
 	type ProviderDefaults,
@@ -78,7 +79,7 @@ export const AwsSettingsSchema = z.object({
 	sessionToken: z.string().optional(),
 	region: z.string().optional(),
 	profile: z.string().optional(),
-	authentication: z.enum(["iam", "api-key", "profile"]).optional(),
+	authentication: z.enum(["iam", "api-key", "apikey", "profile"]).optional(),
 	usePromptCache: z.boolean().optional(),
 	useCrossRegionInference: z.boolean().optional(),
 	useGlobalInference: z.boolean().optional(),
@@ -215,8 +216,7 @@ export function toProviderConfig(
 	);
 	const generatedDefaultModelId = Object.keys(generatedKnownModels)[0];
 
-	const apiKey =
-		settings.auth?.accessToken ?? settings.apiKey ?? settings.auth?.apiKey;
+	const apiKey = getPersistedProviderApiKey(normalizedProviderId, settings);
 	const resolvedBaseUrl =
 		settings.baseUrl ??
 		(normalizedProviderId === "oca"

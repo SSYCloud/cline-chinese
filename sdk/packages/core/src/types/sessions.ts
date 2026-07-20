@@ -1,4 +1,4 @@
-import type { SessionLineage, SessionRuntimeRecordShape } from "@cline/shared";
+import type { SessionLineage, SessionRuntimeRecordShape } from "@coohu/shared";
 import type { SessionSource, SessionStatus } from "./common";
 
 export interface SessionUsageMetadata {

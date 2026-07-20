@@ -1,0 +1,9 @@
+{
+	"shortcuts": [
+		{
+			"label": "Build & Link CLI",
+			"command": "bun -F @coohu/cline build && bun -F @coohu/cline link",
+			"icon": "play"
+		}
+	]
+}

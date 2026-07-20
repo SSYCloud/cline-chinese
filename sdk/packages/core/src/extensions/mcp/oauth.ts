@@ -144,12 +144,13 @@ export function createMcpOAuthProviderContext(
 		},
 		tokens: () => state.tokens as OAuthTokens | undefined,
 		saveTokens: async (tokens) => {
+			const lastAuthenticatedAt = Date.now();
 			await patch((current) => ({
 				...current,
 				tokens: tokens as Record<string, unknown>,
 				redirectUrl: options.redirectUrl,
 				lastError: undefined,
-				lastAuthenticatedAt: Date.now(),
+				lastAuthenticatedAt,
 			}));
 		},
 		redirectToAuthorization: async (authorizationUrl) => {
@@ -266,7 +267,7 @@ function buildClient(input: {
 	clientVersion?: string;
 }): Client {
 	return new Client({
-		name: input.clientName?.trim() || "@cline/core",
+		name: input.clientName?.trim() || "@coohu/core",
 		version: input.clientVersion?.trim() || "0.0.0",
 	});
 }

@@ -1,0 +1,31 @@
+{
+	"compilerOptions": {
+		"paths": {
+			"@coohu/agents": ["../sdk/packages/agents/src/index.ts"],
+			"@coohu/agents/*": [
+				"../sdk/packages/agents/src/*",
+				"../sdk/packages/agents/src/*/index.ts"
+			],
+			"@coohu/cline-hub": ["./cline-hub/src/server.ts"],
+			"@coohu/core": ["../sdk/packages/core/src/index.ts"],
+			"@coohu/core/hub/daemon-entry": [
+				"../sdk/packages/core/src/hub/daemon/entry.ts"
+			],
+			"@coohu/core/*": [
+				"../sdk/packages/core/src/*",
+				"../sdk/packages/core/src/*/index.ts"
+			],
+			"@coohu/core/telemetry": [
+				"../sdk/packages/core/src/services/telemetry/index.ts"
+			],
+			"@coohu/llms": ["../sdk/packages/llms/src/index.ts"],
+			"@coohu/shared": ["../sdk/packages/shared/src/index.ts"],
+			"@coohu/shared/storage": ["../sdk/packages/shared/src/storage/index.ts"],
+			"@coohu/shared/db": ["../sdk/packages/shared/src/db/index.ts"],
+			"@coohu/shared/*": [
+				"../sdk/packages/shared/src/*",
+				"../sdk/packages/shared/src/*/index.ts"
+			]
+		}
+	}
+}

@@ -1,4 +1,4 @@
-import type { AgentConfig, AgentEvent } from "@cline/shared";
+import type { AgentConfig, AgentEvent } from "@coohu/shared";
 import { describe, expect, it, vi } from "vitest";
 import {
 	AgentTeamsRuntime,

@@ -10,7 +10,7 @@ import type {
 	ITelemetryService,
 	JsonValue,
 	ToolApprovalRequest,
-} from "@cline/shared";
+} from "@coohu/shared";
 import {
 	captureSdkError,
 	createSessionId,
@@ -22,7 +22,7 @@ import {
 	HUB_TOOL_EXECUTOR_CAPABILITY_PREFIX,
 	HUB_USER_INSTRUCTIONS_SNAPSHOT_CAPABILITY,
 	isHubToolExecutorName,
-} from "@cline/shared";
+} from "@coohu/shared";
 import type { HookEventPayload } from "../../hooks";
 import type { RuntimeCapabilities } from "../../runtime/capabilities";
 import { normalizeRuntimeCapabilities } from "../../runtime/capabilities";
@@ -39,6 +39,7 @@ import type {
 	StartSessionInput,
 	StartSessionResult,
 } from "../../runtime/host/runtime-host";
+import { isSessionNotFoundError } from "../../runtime/host/runtime-host";
 import { RuntimeHostEventBus } from "../../runtime/host/runtime-host-support";
 import {
 	type SessionManifest,
@@ -54,7 +55,11 @@ import type {
 	CoreSettingsSnapshot,
 	CoreSettingsToggleInput,
 } from "../../settings";
-import { SessionSource, type SessionStatus } from "../../types/common";
+import {
+	isNonTerminalSessionStatus,
+	SessionSource,
+	type SessionStatus,
+} from "../../types/common";
 import type {
 	CoreSessionEvent,
 	SessionPendingPrompt,
@@ -308,12 +313,12 @@ function buildClientContributionRegistration(
 	return registration;
 }
 
-function abortReasonMessage(value: unknown): string {
+function messageFromUnknown(value: unknown): string | undefined {
 	if (typeof value === "string" && value.trim()) {
 		return value.trim();
 	}
 	if (value instanceof Error) {
-		return value.message;
+		return value.message.trim() || undefined;
 	}
 	if (value && typeof value === "object" && "message" in value) {
 		const message = (value as { message?: unknown }).message;
@@ -321,7 +326,11 @@ function abortReasonMessage(value: unknown): string {
 			return message.trim();
 		}
 	}
-	return "Capability request was cancelled.";
+	return undefined;
+}
+
+function abortReasonMessage(value: unknown): string {
+	return messageFromUnknown(value) ?? "Capability request was cancelled.";
 }
 
 function parseApprovalInput(value: unknown): unknown {
@@ -1003,7 +1012,7 @@ export class HubRuntimeHost implements RuntimeHost {
 			this.ensureSessionSubscription(newSessionId);
 		}
 		const messages = Array.isArray(reply.payload?.messages)
-			? (reply.payload.messages as import("@cline/llms").Message[])
+			? (reply.payload.messages as import("@coohu/llms").Message[])
 			: undefined;
 		const checkpoint = reply.payload?.checkpoint as
 			| RestoreSessionResult["checkpoint"]
@@ -1144,7 +1153,7 @@ export class HubRuntimeHost implements RuntimeHost {
 	async abort(sessionId: string, reason?: unknown): Promise<void> {
 		await this.client.command(
 			"run.abort",
-			{ sessionId, reason: typeof reason === "string" ? reason : undefined },
+			{ sessionId, reason: messageFromUnknown(reason) },
 			sessionId,
 		);
 	}
@@ -1175,11 +1184,15 @@ export class HubRuntimeHost implements RuntimeHost {
 	}
 
 	async getSession(sessionId: string): Promise<SessionRecord | undefined> {
-		const reply = await this.client.command(
-			"session.get",
-			undefined,
-			sessionId,
-		);
+		let reply: Awaited<ReturnType<NodeHubClient["command"]>>;
+		try {
+			reply = await this.client.command("session.get", undefined, sessionId);
+		} catch (error) {
+			if (isSessionNotFoundError(error)) {
+				return undefined;
+			}
+			throw error;
+		}
 		return sessionRecordFromPayload(reply.payload);
 	}
 
@@ -1266,7 +1279,7 @@ export class HubRuntimeHost implements RuntimeHost {
 
 	async readSessionMessages(
 		sessionId: string,
-	): Promise<import("@cline/llms").Message[]> {
+	): Promise<import("@coohu/llms").Message[]> {
 		const target = sessionId.trim();
 		if (!target) {
 			return [];
@@ -1294,7 +1307,7 @@ export class HubRuntimeHost implements RuntimeHost {
 		}
 		const messages = reply.payload?.messages;
 		return Array.isArray(messages)
-			? (messages as import("@cline/llms").Message[])
+			? (messages as import("@coohu/llms").Message[])
 			: [];
 	}
 
@@ -1389,7 +1402,13 @@ export class HubRuntimeHost implements RuntimeHost {
 	private handleHubEvent(event: HubEventEnvelope): void {
 		const sessionId = event.sessionId?.trim();
 		if (event.event === "capability.requested") {
-			void this.handleCapabilityRequest(event);
+			void this.handleCapabilityRequest(event).catch((error) => {
+				this.captureDetachedHubEventError(
+					"hub.runtime_host.capability_request",
+					error,
+					event,
+				);
+			});
 			return;
 		}
 		if (event.event === "capability.resolved") {
@@ -1397,7 +1416,13 @@ export class HubRuntimeHost implements RuntimeHost {
 			return;
 		}
 		if (event.event === "approval.requested") {
-			void this.handleApprovalRequested(event);
+			void this.handleApprovalRequested(event).catch((error) => {
+				this.captureDetachedHubEventError(
+					"hub.runtime_host.approval_request",
+					error,
+					event,
+				);
+			});
 			return;
 		}
 		if (!sessionId) {
@@ -1652,6 +1677,8 @@ export class HubRuntimeHost implements RuntimeHost {
 						prompt: prompt.prompt,
 						delivery: prompt.delivery,
 						attachmentCount: prompt.attachmentCount,
+						userImages: prompt.userImages,
+						userFiles: prompt.userFiles,
 					},
 				});
 				return;
@@ -1659,6 +1686,7 @@ export class HubRuntimeHost implements RuntimeHost {
 			case "run.completed":
 			case "run.failed":
 			case "run.aborted": {
+				const snapshot = parseCoreSessionSnapshot(event.payload?.snapshot);
 				const reason =
 					typeof event.payload?.reason === "string"
 						? event.payload.reason
@@ -1674,6 +1702,12 @@ export class HubRuntimeHost implements RuntimeHost {
 						reason,
 					},
 				});
+				if (
+					snapshot?.interactive === true &&
+					isNonTerminalSessionStatus(snapshot.status)
+				) {
+					return;
+				}
 				this.events.emit({
 					type: "ended",
 					payload: {
@@ -1686,6 +1720,29 @@ export class HubRuntimeHost implements RuntimeHost {
 			}
 			default:
 				return;
+		}
+	}
+
+	private captureDetachedHubEventError(
+		operation: string,
+		error: unknown,
+		event: HubEventEnvelope,
+	): void {
+		try {
+			captureSdkError(this.telemetry, {
+				component: "core",
+				operation,
+				error,
+				severity: "warn",
+				handled: true,
+				context: {
+					event: event.event,
+					sessionId: event.sessionId,
+					runtimeAddress: this.runtimeAddress,
+				},
+			});
+		} catch {
+			// Telemetry must not rethrow from detached hub event handlers.
 		}
 	}
 
@@ -1740,14 +1797,22 @@ export class HubRuntimeHost implements RuntimeHost {
 		const abortController = new AbortController();
 		this.activeCapabilityAbortControllers.set(requestId, abortController);
 		const progress = (progressPayload: Record<string, unknown>): void => {
-			void this.client.command(
-				"capability.progress",
-				{
-					requestId,
-					payload: progressPayload,
-				},
-				sessionId,
-			);
+			void this.client
+				.command(
+					"capability.progress",
+					{
+						requestId,
+						payload: progressPayload,
+					},
+					sessionId,
+				)
+				.catch((error) => {
+					this.captureDetachedHubEventError(
+						"hub.runtime_host.capability_progress",
+						error,
+						event,
+					);
+				});
 		};
 		try {
 			const responsePayload = await handler({

@@ -1,9 +1,9 @@
 import { appendFileSync } from "node:fs";
 import { join } from "node:path";
-import type * as LlmsProviders from "@cline/llms";
-import type { AgentResult } from "@cline/shared";
-import { resolveRootSessionId } from "@cline/shared";
-import { ensureHookLogDir } from "@cline/shared/storage";
+import type * as LlmsProviders from "@coohu/llms";
+import type { AgentResult } from "@coohu/shared";
+import { resolveRootSessionId } from "@coohu/shared";
+import { ensureHookLogDir } from "@coohu/shared/storage";
 import { z } from "zod";
 import type {
 	SubAgentEndContext,
@@ -12,7 +12,11 @@ import type {
 import type { HookEventPayload } from "../../hooks";
 import { nowIso } from "../../services/session-artifacts";
 import { resolveMetadataWithTitle } from "../../services/session-data";
-import type { SessionStatus } from "../../types/common";
+import {
+	isNonTerminalSessionStatus,
+	type SessionStatus,
+	type TerminalSessionStatus,
+} from "../../types/common";
 import type {
 	SessionPersistenceAdapter,
 	StoredMessageWithMetadata,
@@ -225,8 +229,12 @@ export class TeamChildSessionManager {
 	): Promise<void> {
 		const row = await this.adapter.getSession(subSessionId);
 		if (!row) return;
-		const endedAt = status === "running" ? null : nowIso();
-		const exitCode = status === "running" ? null : status === "failed" ? 1 : 0;
+		const endedAt = isNonTerminalSessionStatus(status) ? null : nowIso();
+		const exitCode = isNonTerminalSessionStatus(status)
+			? null
+			: status === "failed"
+				? 1
+				: 0;
 		await this.adapter.updateSession({
 			sessionId: subSessionId,
 			status,
@@ -238,7 +246,7 @@ export class TeamChildSessionManager {
 
 	async applyStatusToRunningChildSessions(
 		parentSessionId: string,
-		status: Exclude<SessionStatus, "running">,
+		status: TerminalSessionStatus,
 	): Promise<void> {
 		if (!parentSessionId) return;
 		const rows = await this.adapter.listSessions({

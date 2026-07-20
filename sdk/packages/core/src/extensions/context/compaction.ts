@@ -1,3 +1,8 @@
+import {
+	captureCompactionExecuted,
+	captureCompactionSkipped,
+	type TelemetryCompactionStrategy,
+} from "../../services/telemetry/core-events";
 import type {
 	CoreCompactionConfig,
 	CoreCompactionContext,
@@ -13,6 +18,7 @@ import {
 	DEFAULT_MAX_INPUT_TOKENS,
 	DEFAULT_PRESERVE_RECENT_TOKENS,
 	DEFAULT_RESERVE_TOKENS,
+	DEFAULT_TARGET_RATIO,
 	DEFAULT_THRESHOLD_RATIO,
 } from "./compaction-shared";
 
@@ -63,12 +69,50 @@ export interface ContextCompactionPrepareTurnOptions {
 	manualTargetRatio?: number;
 }
 
+const MIN_CONTEXT_DERIVED_INPUT_RATIO = 0.5;
+const LONG_CONVERSATION_TARGET_RATIO = 0.5;
+
 function safeJsonSize(value: unknown): number {
 	try {
 		return JSON.stringify(value).length;
 	} catch {
 		return String(value).length;
 	}
+}
+
+function isPositiveFiniteNumber(value: unknown): value is number {
+	return typeof value === "number" && Number.isFinite(value) && value > 0;
+}
+
+function resolveMaxInputTokens(input: {
+	configMaxInputTokens?: number;
+	modelMaxInputTokens?: number;
+	contextWindow?: number;
+	modelMaxTokens?: number;
+}): number {
+	const candidates: number[] = [];
+	if (isPositiveFiniteNumber(input.configMaxInputTokens)) {
+		candidates.push(input.configMaxInputTokens);
+	}
+	if (isPositiveFiniteNumber(input.modelMaxInputTokens)) {
+		candidates.push(input.modelMaxInputTokens);
+	}
+	if (isPositiveFiniteNumber(input.contextWindow)) {
+		candidates.push(input.contextWindow);
+		const derivedInputTokens = isPositiveFiniteNumber(input.modelMaxTokens)
+			? input.contextWindow - input.modelMaxTokens
+			: undefined;
+		if (
+			isPositiveFiniteNumber(derivedInputTokens) &&
+			derivedInputTokens >=
+				input.contextWindow * MIN_CONTEXT_DERIVED_INPUT_RATIO
+		) {
+			candidates.push(derivedInputTokens);
+		}
+	}
+	return candidates.length > 0
+		? Math.min(...candidates)
+		: DEFAULT_MAX_INPUT_TOKENS;
 }
 
 function summarizeToolResults(messages: CoreCompactionContext["messages"]): {
@@ -152,28 +196,28 @@ function resolveTriggerState(input: {
 		};
 	}
 
-	if (typeof input.config.thresholdRatio !== "number") {
-		const triggerTokens = Math.max(
-			0,
-			Math.min(
-				input.maxInputTokens - DEFAULT_RESERVE_TOKENS,
-				input.maxInputTokens * DEFAULT_THRESHOLD_RATIO,
-			),
-		);
+	if (typeof input.config.thresholdRatio === "number") {
+		const thresholdRatio = input.config.thresholdRatio;
+		const triggerTokens = input.maxInputTokens * thresholdRatio;
 		return {
 			shouldCompact: input.inputTokens > triggerTokens,
 			triggerTokens,
-			thresholdRatio:
-				input.maxInputTokens > 0 ? triggerTokens / input.maxInputTokens : 0,
+			thresholdRatio,
 		};
 	}
 
-	const thresholdRatio = input.config.thresholdRatio ?? DEFAULT_THRESHOLD_RATIO;
-	const triggerTokens = input.maxInputTokens * thresholdRatio;
+	const triggerTokens = Math.max(
+		0,
+		Math.min(
+			input.maxInputTokens - DEFAULT_RESERVE_TOKENS,
+			input.maxInputTokens * DEFAULT_THRESHOLD_RATIO,
+		),
+	);
 	return {
 		shouldCompact: input.inputTokens > triggerTokens,
 		triggerTokens,
-		thresholdRatio,
+		thresholdRatio:
+			input.maxInputTokens > 0 ? triggerTokens / input.maxInputTokens : 0,
 	};
 }
 
@@ -204,10 +248,66 @@ function resolveManualTargetState(input: {
 	};
 }
 
+function resolveBasicTargetTokens(input: {
+	maxInputTokens: number;
+	modelMaxTokens?: number;
+	triggerTokens: number;
+	messagePairCount: number;
+}): number {
+	const targetTokens =
+		input.messagePairCount >= 5 &&
+		typeof input.modelMaxTokens === "number" &&
+		Number.isFinite(input.modelMaxTokens) &&
+		input.modelMaxTokens < input.maxInputTokens
+			? Math.floor(input.maxInputTokens * LONG_CONVERSATION_TARGET_RATIO)
+			: Math.floor(input.triggerTokens * DEFAULT_TARGET_RATIO);
+	const triggerCeiling = Math.max(1, input.triggerTokens - 1);
+	return Math.max(
+		1,
+		Math.min(targetTokens, input.maxInputTokens, triggerCeiling),
+	);
+}
+
+function countUserAssistantPairs(
+	messages: CoreCompactionContext["messages"],
+): number {
+	let pairs = 0;
+	let hasPendingUser = false;
+	for (const message of messages) {
+		if (message.role === "user") {
+			hasPendingUser = true;
+		} else if (message.role === "assistant" && hasPendingUser) {
+			pairs += 1;
+			hasPendingUser = false;
+		}
+	}
+	return pairs;
+}
+
+/**
+ * Build the `prepareTurn` callback used by the agent runtime to compact the
+ * transcript before each model request.
+ *
+ * Telemetry: emits `task.compaction_executed` on a successful compaction and
+ * `task.compaction_skipped` when the configured strategy returns `undefined`.
+ * Telemetry is keyed by `config.sessionId` (falling back to the per-turn
+ * `conversationId`) and tagged with `provider` / `modelId`.
+ *
+ * Known gap: compactions performed via plugin `registerMessageBuilder()` or
+ * via the `beforeModel` runtime hook bypass this wrapper entirely, so they
+ * do not emit compaction telemetry. If we want coverage there too, the
+ * plugin/hook pipelines must be instrumented separately.
+ */
 export function createContextCompactionPrepareTurn(
 	config: Pick<
 		CoreSessionConfig,
-		"providerConfig" | "providerId" | "modelId" | "compaction" | "logger"
+		| "providerConfig"
+		| "providerId"
+		| "modelId"
+		| "compaction"
+		| "logger"
+		| "telemetry"
+		| "sessionId"
 	>,
 	options: ContextCompactionPrepareTurnOptions = {},
 ):
@@ -230,29 +330,27 @@ export function createContextCompactionPrepareTurn(
 	const strategy = userCompaction?.strategy ?? "basic";
 	const runBuiltinStrategy = BUILTIN_COMPACTION_STRATEGIES[strategy];
 	const mode = options.mode ?? "auto";
+	const telemetryStrategy: TelemetryCompactionStrategy = userCompaction?.compact
+		? "custom"
+		: strategy;
 
 	return async (context) => {
 		const inputTokens = context.apiMessages.reduce(
 			(total: number, message) => total + estimateMessageTokens(message),
 			0,
 		);
-		const maxInputTokens =
-			userCompaction?.maxInputTokens ??
-			context.model.info?.maxInputTokens ??
-			context.model.info?.contextWindow ??
-			DEFAULT_MAX_INPUT_TOKENS;
-		if (
-			typeof maxInputTokens !== "number" ||
-			!Number.isFinite(maxInputTokens) ||
-			maxInputTokens <= 0
-		) {
-			return undefined;
-		}
+		const maxInputTokens = resolveMaxInputTokens({
+			configMaxInputTokens: userCompaction?.maxInputTokens,
+			modelMaxInputTokens: context.model.info?.maxInputTokens,
+			contextWindow: context.model.info?.contextWindow,
+			modelMaxTokens: context.model.info?.maxTokens,
+		});
 
 		const triggerState = resolveTriggerState({
 			inputTokens,
 			maxInputTokens,
 			config: {
+				maxInputTokens: userCompaction?.maxInputTokens,
 				reserveTokens: userCompaction?.reserveTokens,
 				thresholdRatio: userCompaction?.thresholdRatio,
 			},
@@ -285,6 +383,15 @@ export function createContextCompactionPrepareTurn(
 						manualTargetRatio: options.manualTargetRatio,
 					})
 				: triggerState;
+		const targetTokens =
+			mode === "auto"
+				? resolveBasicTargetTokens({
+						maxInputTokens,
+						modelMaxTokens: context.model.info?.maxTokens,
+						triggerTokens: targetState.triggerTokens,
+						messagePairCount: countUserAssistantPairs(context.messages),
+					})
+				: undefined;
 
 		const compactionContext = {
 			agentId: context.agentId,
@@ -295,6 +402,7 @@ export function createContextCompactionPrepareTurn(
 			model: context.model,
 			maxInputTokens,
 			triggerTokens: targetState.triggerTokens,
+			targetTokens,
 			thresholdRatio: targetState.thresholdRatio,
 			utilizationRatio: maxInputTokens > 0 ? inputTokens / maxInputTokens : 0,
 		};
@@ -313,6 +421,7 @@ export function createContextCompactionPrepareTurn(
 		);
 
 		const beforeMessageCount = context.messages.length;
+		const startedAt = Date.now();
 
 		const result = userCompaction?.compact
 			? await userCompaction.compact(compactionContext)
@@ -327,6 +436,18 @@ export function createContextCompactionPrepareTurn(
 					estimateMessageTokens,
 					logger: config.logger,
 				});
+
+		const durationMs = Date.now() - startedAt;
+		// Telemetry identity: surface the agent/conversation passed into the
+		// prepareTurn so multi-agent runs can attribute compactions correctly.
+		// `sessionId` is the host-owned session id (ulid). We fall back to the
+		// conversation id when no sessionId is supplied (e.g. ad-hoc callers).
+		const telemetryUlid = config.sessionId ?? context.conversationId;
+		const telemetryIdentity = {
+			agentId: context.agentId,
+			conversationId: context.conversationId,
+			parentAgentId: context.parentAgentId ?? undefined,
+		};
 
 		if (result?.messages) {
 			const afterTokens = result.messages.reduce(
@@ -347,6 +468,41 @@ export function createContextCompactionPrepareTurn(
 				messagesAfter: result.messages.length,
 				messagesRemoved: beforeMessageCount - result.messages.length,
 			} as Record<string, unknown>);
+			captureCompactionExecuted(config.telemetry, {
+				ulid: telemetryUlid,
+				strategy: telemetryStrategy,
+				mode,
+				messagesBefore: beforeMessageCount,
+				messagesAfter: result.messages.length,
+				messagesRemoved: beforeMessageCount - result.messages.length,
+				tokensBefore: inputTokens,
+				tokensAfter: afterTokens,
+				tokensSaved: inputTokens - afterTokens,
+				triggerTokens: targetState.triggerTokens,
+				maxInputTokens,
+				thresholdRatio: targetState.thresholdRatio,
+				durationMs,
+				// Matches the field name used by other TASK telemetry helpers
+				// (e.g. captureTaskCompleted, captureToolUsage).
+				provider: config.providerId,
+				modelId: config.modelId,
+				...telemetryIdentity,
+			});
+		} else {
+			captureCompactionSkipped(config.telemetry, {
+				ulid: telemetryUlid,
+				strategy: telemetryStrategy,
+				mode,
+				reason: "no_result",
+				tokensBefore: inputTokens,
+				triggerTokens: targetState.triggerTokens,
+				maxInputTokens,
+				thresholdRatio: targetState.thresholdRatio,
+				durationMs,
+				provider: config.providerId,
+				modelId: config.modelId,
+				...telemetryIdentity,
+			});
 		}
 
 		return result;

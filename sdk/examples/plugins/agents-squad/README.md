@@ -5,7 +5,7 @@ Spin up background subagents from any Cline SDK agent. Each subagent runs as its
 ## Quick start
 
 ```ts
-import { ClineCore } from "@cline/core";
+import { ClineCore } from "@coohu/core";
 
 const cline = await ClineCore.create({ backendMode: "auto" });
 

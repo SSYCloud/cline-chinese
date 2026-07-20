@@ -1,4 +1,4 @@
-import { CLINE_BUILD_ENV_ENV } from "@cline/shared";
+import { CLINE_BUILD_ENV_ENV } from "@coohu/shared";
 import { describe, expect, it } from "vitest";
 import {
 	DEFAULT_HUB_PORT,

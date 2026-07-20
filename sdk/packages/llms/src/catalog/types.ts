@@ -1,13 +1,13 @@
 /**
  * Model Schema Definitions
  *
- * Re-exports model info types from @cline/shared (canonical source)
- * and defines provider-level schemas local to @cline/llms.
+ * Re-exports model info types from @coohu/shared (canonical source)
+ * and defines provider-level schemas local to @coohu/llms.
  */
 
 import { z } from "zod";
 
-// ModelInfo and dependencies have their canonical home in @cline/shared
+// ModelInfo and dependencies have their canonical home in @coohu/shared
 export {
 	ApiFormat,
 	ApiFormatSchema,
@@ -15,16 +15,18 @@ export {
 	ModelCapabilitySchema,
 	type ModelInfo,
 	ModelInfoSchema,
+	type ModelMetadata,
+	ModelMetadataSchema,
 	type ModelPricing,
 	ModelPricingSchema,
 	type ModelStatus,
 	ModelStatusSchema,
 	type ThinkingConfig,
 	ThinkingConfigSchema,
-} from "@cline/shared";
+} from "@coohu/shared";
 
 // Re-import for use in local schemas
-import { ModelInfoSchema, ProviderCapabilitySchema } from "@cline/shared";
+import { ModelInfoSchema, ProviderCapabilitySchema } from "@coohu/shared";
 
 export const ModelEntrySchema = z.object({
 	id: z.string(),

@@ -4,7 +4,7 @@ import type {
 	OpenTelemetryClientConfig,
 	TelemetryMetadata,
 	TelemetryProperties,
-} from "@cline/shared";
+} from "@coohu/shared";
 import { metrics, type Tracer, trace } from "@opentelemetry/api";
 import { logs } from "@opentelemetry/api-logs";
 import { OTLPLogExporter as OTLPLogExporterHttp } from "@opentelemetry/exporter-logs-otlp-http";
