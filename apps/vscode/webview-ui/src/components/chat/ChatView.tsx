@@ -63,7 +63,6 @@ const sameUserMessage = (left: ClineMessage, right: ClineMessage) => {
 }
 
 const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryView }: ChatViewProps) => {
-	const { t } = useTranslation("common")
 	const showNavbar = useShowNavbar()
 	const {
 		version,
@@ -248,7 +247,12 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 					value: selectedModelInfo.supportsImages,
 				}),
 			)
-			if (response?.values1 && response.values2 && (response.values1.length > 0 || response.values2.length > 0)) {
+			if (
+				response &&
+				response.values1 &&
+				response.values2 &&
+				(response.values1.length > 0 || response.values2.length > 0)
+			) {
 				const currentTotal = selectedImages.length + selectedFiles.length
 				const availableSlots = MAX_IMAGES_AND_FILES_PER_MESSAGE - currentTotal
 
@@ -269,7 +273,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 		} catch (error) {
 			console.error("Error selecting images & files:", error)
 		}
-	}, [selectedModelInfo.supportsImages, selectedFiles.length, selectedImages.length, setSelectedFiles, setSelectedImages])
+	}, [selectedModelInfo.supportsImages])
 
 	const shouldDisableFilesAndImages = selectedImages.length + selectedFiles.length >= MAX_IMAGES_AND_FILES_PER_MESSAGE
 
@@ -305,7 +309,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 					if (event.value) {
 						setInputValue((prevValue) => {
 							const newText = event.value
-							const newTextWithNewline = `${newText}\n`
+							const newTextWithNewline = newText + "\n"
 							return prevValue ? `${prevValue}\n${newTextWithNewline}` : newTextWithNewline
 						})
 						// Add scroll to bottom after state update
@@ -328,7 +332,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 		)
 
 		return cleanup
-	}, [setInputValue, textAreaRef.current])
+	}, [])
 
 	useMount(() => {
 		// NOTE: the vscode window needs to be focused for this to work
@@ -344,7 +348,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 		return () => {
 			clearTimeout(timer)
 		}
-	}, [isHidden, sendingDisabled, enableButtons, textAreaRef.current])
+	}, [isHidden, sendingDisabled, enableButtons])
 
 	const visibleMessages = useMemo(() => {
 		return filterVisibleMessages(modifiedMessages)
@@ -358,9 +362,9 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 	const scrollBehavior = useScrollBehavior(displayMessages, visibleMessages, groupedMessages, expandedRows, setExpandedRows)
 
 	const placeholderText = useMemo(() => {
-		const text = task ? t("chat.typeMessage") : t("chat.typeTask")
+		const text = task ? "输入消息..." : "输入任务..."
 		return text
-	}, [task, t])
+	}, [task])
 
 	return (
 		<ChatLayout isHidden={isHidden}>
@@ -375,7 +379,6 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 							supportsPromptCache: selectedModelInfo.supportsPromptCache,
 							supportsImages: selectedModelInfo.supportsImages || false,
 						}}
-						showFocusChainPlaceholder={showFocusChainPlaceholder}
 						task={task}
 					/>
 				) : (

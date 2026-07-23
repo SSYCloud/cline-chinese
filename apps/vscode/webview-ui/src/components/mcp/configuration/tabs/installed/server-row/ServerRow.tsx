@@ -30,13 +30,17 @@ import McpToolRow from "./McpToolRow"
 
 // constant JSX.Elements
 const TimeoutOptions = [
-	{ value: "30", labelKey: "mcp.timeout.30seconds" },
-	{ value: "60", labelKey: "mcp.timeout.1minute" },
-	{ value: "300", labelKey: "mcp.timeout.5minutes" },
-	{ value: "600", labelKey: "mcp.timeout.10minutes" },
-	{ value: "1800", labelKey: "mcp.timeout.30minutes" },
-	{ value: "3600", labelKey: "mcp.timeout.1hour" },
-]
+	{ value: "30", label: "30 seconds" },
+	{ value: "60", label: "1 minute" },
+	{ value: "300", label: "5 minutes" },
+	{ value: "600", label: "10 minutes" },
+	{ value: "1800", label: "30 minutes" },
+	{ value: "3600", label: "1 hour" },
+].map((option) => (
+	<VSCodeOption key={option.value} value={option.value}>
+		{option.label}
+	</VSCodeOption>
+))
 
 const ServerRow = ({
 	server,
@@ -231,7 +235,7 @@ const ServerRow = ({
 							handleRestart()
 						}}
 						size="icon"
-						title={t("mcp.serverRow.restartServer")}
+						title="重启服务"
 						variant="icon">
 						<RefreshCcwIcon />
 					</Button>
@@ -244,7 +248,7 @@ const ServerRow = ({
 							handleDelete()
 						}}
 						size="icon"
-						title={t("mcp.serverRow.deleteServer")}
+						title="删除服务"
 						variant="icon">
 						<Trash2Icon />
 					</Button>
@@ -315,16 +319,9 @@ const ServerRow = ({
 				isExpanded && (
 					<div className="bg-text-block-background p-2.5 pt-0 text-sm rounded-b-sm">
 						<VSCodePanels>
-							<VSCodePanelTab id="tools">
-								{t("mcp.serverRow.tools", { count: server.tools?.length || 0 })}
-							</VSCodePanelTab>
+							<VSCodePanelTab id="tools">Tools ({server.tools?.length || 0})</VSCodePanelTab>
 							<VSCodePanelTab id="resources">
-								{t("mcp.serverRow.resources", {
-									count: [...(server.resourceTemplates || []), ...(server.resources || [])].length || 0,
-								})}
-							</VSCodePanelTab>
-							<VSCodePanelTab id="prompts">
-								{t("mcp.serverRow.prompts", { count: server.prompts?.length || 0 })}
+								Resources ({[...(server.resourceTemplates || []), ...(server.resources || [])].length || 0})
 							</VSCodePanelTab>
 							<VSCodePanelTab id="prompts">Prompts ({server.prompts?.length || 0})</VSCodePanelTab>
 

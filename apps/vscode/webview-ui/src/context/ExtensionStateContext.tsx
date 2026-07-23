@@ -4,7 +4,12 @@ import { DEFAULT_PLATFORM, type ExtensionState } from "@shared/ExtensionMessage"
 import { DEFAULT_MCP_DISPLAY_MODE } from "@shared/McpDisplayMode"
 import type { UserInfo } from "@shared/proto/cline/account"
 import { EmptyRequest } from "@shared/proto/cline/common"
-import type { OpenRouterCompatibleModelInfo, ProviderModelsResponse, ShengSuanYunCompatibleModelInfo, ShengSuanYunModelInfo } from "@shared/proto/cline/models"
+import type {
+	OpenRouterCompatibleModelInfo,
+	ProviderModelsResponse,
+	ShengSuanYunCompatibleModelInfo,
+	ShengSuanYunModelInfo,
+} from "@shared/proto/cline/models"
 import { OnboardingModelGroup, type TerminalProfile } from "@shared/proto/cline/state"
 import { convertProtoToClineMessage } from "@shared/proto-conversions/cline-message"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
@@ -17,6 +22,8 @@ import {
 	openRouterDefaultModelInfo,
 	requestyDefaultModelId,
 	requestyDefaultModelInfo,
+	shengSuanYunDefaultModelId,
+	shengSuanYunDefaultModelInfo,
 } from "../../../src/shared/api"
 import { Environment } from "../../../src/shared/config-types"
 import type { McpServer, McpViewTab } from "../../../src/shared/mcp"
@@ -47,14 +54,13 @@ export interface ExtensionStateContextType extends ExtensionState {
 	didHydrateState: boolean
 	showWelcome: boolean
 	onboardingModels: OnboardingModelGroup | undefined
-	clineModels: Record<string, ModelInfo> | null
 	openRouterModels: Record<string, ModelInfo>
 	vercelAiGatewayModels: Record<string, ModelInfo>
 	hicapModels: Record<string, ModelInfo>
-	shengSuanYunModels: Record<string, ShengSuanYunModelInfo>
 	liteLlmModels: Record<string, ModelInfo>
 	openAiModels: string[]
 	requestyModels: Record<string, ModelInfo>
+	shengSuanYunModels: Record<string, ShengSuanYunModelInfo>
 	groqModels: Record<string, ModelInfo>
 	basetenModels: Record<string, ModelInfo>
 	huggingFaceModels: Record<string, ModelInfo>
@@ -85,10 +91,10 @@ export interface ExtensionStateContextType extends ExtensionState {
 	setShouldShowAnnouncement: (value: boolean) => void
 	setMcpServers: (value: McpServer[]) => void
 	setRequestyModels: (value: Record<string, ModelInfo>) => void
+	setShengSuanYunModels: (value: Record<string, ShengSuanYunModelInfo>) => void
 	setGroqModels: (value: Record<string, ModelInfo>) => void
 	setBasetenModels: (value: Record<string, ModelInfo>) => void
 	setHuggingFaceModels: (value: Record<string, ModelInfo>) => void
-	setShengSuanYunModels: (value: Record<string, ShengSuanYunModelInfo>) => void
 	setGlobalClineRulesToggles: (toggles: Record<string, boolean>) => void
 	setLocalClineRulesToggles: (toggles: Record<string, boolean>) => void
 	setLocalCursorRulesToggles: (toggles: Record<string, boolean>) => void
@@ -336,13 +342,11 @@ export const ExtensionStateContextProvider: React.FC<{
 	const [showWelcome, setShowWelcome] = useState(false)
 	const [onboardingModels, setOnboardingModels] = useState<OnboardingModelGroup | undefined>(undefined)
 
-	const [clineModels, setClineModels] = useState<Record<string, ModelInfo> | null>(null)
 	const [openRouterModels, setOpenRouterModels] = useState<Record<string, ModelInfo>>({
 		[openRouterDefaultModelId]: openRouterDefaultModelInfo,
 	})
 	const [vercelAiGatewayModels, setVercelAiGatewayModels] = useState<Record<string, ModelInfo>>({})
 	const [hicapModels, setHicapModels] = useState<Record<string, ModelInfo>>({})
-	const [shengSuanYunModels, setShengSuanYunModels] = useState<Record<string, ShengSuanYunModelInfo>>({})
 	const [liteLlmModels, setLiteLlmModels] = useState<Record<string, ModelInfo>>({})
 	const [totalTasksSize, setTotalTasksSize] = useState<number | null>(null)
 	const [availableTerminalProfiles, setAvailableTerminalProfiles] = useState<TerminalProfile[]>([])
@@ -822,17 +826,6 @@ export const ExtensionStateContextProvider: React.FC<{
 			.catch((error: Error) => console.error("Failed to refresh OpenRouter models:", error))
 	}, [])
 
-	const refreshShengSuanYunModels = useCallback(() => {
-		ModelsServiceClient.refreshShengSuanYunModels(EmptyRequest.create({}))
-			.then((response) => {
-				const models = response.models
-				setShengSuanYunModels({
-					...models,
-				})
-			})
-			.catch((error: Error) => console.error("Failed to refresh ShengSuanYun models:", error))
-	}, [])
-
 	const refreshHicapModels = useCallback(() => {
 		ModelsServiceClient.refreshHicapModels(EmptyRequest.create({}))
 			.then((response: OpenRouterCompatibleModelInfo) => {
@@ -902,14 +895,13 @@ export const ExtensionStateContextProvider: React.FC<{
 		didHydrateState,
 		showWelcome,
 		onboardingModels,
-		clineModels,
 		openRouterModels,
 		vercelAiGatewayModels,
 		hicapModels,
-		shengSuanYunModels,
 		liteLlmModels,
 		openAiModels,
 		requestyModels,
+		shengSuanYunModels,
 		groqModels: groqModelsState,
 		basetenModels: basetenModelsState,
 		huggingFaceModels,
@@ -1036,7 +1028,6 @@ export const ExtensionStateContextProvider: React.FC<{
 		refreshOpenRouterModels,
 		refreshVercelAiGatewayModels,
 		refreshHicapModels,
-		refreshShengSuanYunModels,
 		refreshLiteLlmModels,
 		onRelinquishControl,
 		setUserInfo: (userInfo?: UserInfo) => setState((prevState) => ({ ...prevState, userInfo })),

@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { useClickAway } from "react-use"
 import { useAutoApproveActions } from "@/hooks/useAutoApproveActions"
 import { getAsVar, VSC_TITLEBAR_INACTIVE_FOREGROUND } from "@/utils/vscStyles"
@@ -23,7 +22,7 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({ isVisible, setIsVis
 
 	useClickAway(modalRef, (e) => {
 		// Skip if click was on the button that toggles the modal
-		if (buttonRef.current?.contains(e.target as Node)) {
+		if (buttonRef.current && buttonRef.current.contains(e.target as Node)) {
 			return
 		}
 		setIsVisible(false)
@@ -69,14 +68,14 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({ isVisible, setIsVis
 					maxHeight: "60vh",
 				}}>
 				<div className="mb-2.5 text-muted-foreground text-xs cursor-pointer" onClick={() => setIsVisible(false)}>
-					{t("autoApprove.description")}{" "}
+					自动批准要执行的任务.{" "}
 					<a
 						className="text-link hover:text-link-hover"
 						href="https://docs.cline.bot/features/auto-approve#auto-approve"
 						rel="noopener"
 						style={{ fontSize: "inherit" }}
 						target="_blank">
-						{t("autoApprove.docs")}
+						文档
 					</a>
 				</div>
 

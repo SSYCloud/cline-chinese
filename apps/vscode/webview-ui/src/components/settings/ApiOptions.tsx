@@ -50,7 +50,6 @@ import { ShengSuanYunProvider } from "./providers/ShengSuanYunProvider"
 import { VercelAIGatewayProvider } from "./providers/VercelAIGatewayProvider"
 import { VertexProvider } from "./providers/VertexProvider"
 import { VSCodeLmProvider } from "./providers/VSCodeLmProvider"
-import { WandbProvider } from "./providers/WandbProvider"
 import { XaiProvider } from "./providers/XaiProvider"
 import { ZAiProvider } from "./providers/ZAiProvider"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
@@ -133,7 +132,7 @@ const ApiOptions = ({
 						value: apiConfiguration?.ollamaBaseUrl || "",
 					}),
 				)
-				if (response?.values) {
+				if (response && response.values) {
 					setOllamaModels(response.values)
 				}
 			} catch (error) {
@@ -227,7 +226,6 @@ const ApiOptions = ({
 		if (!isDropdownVisible) {
 			return
 		}
-
 		switch (event.key) {
 			case "ArrowDown":
 				event.preventDefault()
@@ -272,7 +270,7 @@ const ApiOptions = ({
 		if (dropdownListRef.current) {
 			dropdownListRef.current.scrollTop = 0
 		}
-	}, [])
+	}, [searchTerm])
 
 	// Scroll selected item into view
 	useEffect(() => {
@@ -315,16 +313,16 @@ const ApiOptions = ({
 						<TooltipTrigger>
 							<div className="flex items-center gap-2 mb-1">
 								<label htmlFor="api-provider">
-									<span style={{ fontWeight: 500 }}>{t("settings.apiProvider")}</span>
+									<span style={{ fontWeight: 500 }}>API 供应商</span>
 								</label>
 								<i className="codicon codicon-lock text-description text-sm" />
 							</div>
 						</TooltipTrigger>
-						<TooltipContent>{t("settings.providerManagedByOrg")}</TooltipContent>
+						<TooltipContent>提供商选项由您组织的远程配置进行管理。</TooltipContent>
 					</Tooltip>
 				) : (
 					<label htmlFor="api-provider">
-						<span style={{ fontWeight: 500 }}>{t("settings.apiProvider")}</span>
+						<span style={{ fontWeight: 500 }}>API 供应商</span>
 					</label>
 				)}
 				<ProviderDropdownWrapper ref={dropdownRef}>
@@ -351,7 +349,7 @@ const ApiOptions = ({
 						value={searchTerm}>
 						{searchTerm && searchTerm !== currentProviderLabel && (
 							<div
-								aria-label={t("settings.clearSearch")}
+								aria-label="Clear search"
 								className="input-icon-button codicon codicon-close"
 								onClick={() => {
 									setSearchTerm("")
@@ -395,7 +393,6 @@ const ApiOptions = ({
 			{apiConfiguration && selectedProvider === "shengsuanyun" && (
 				<ShengSuanYunProvider currentMode={currentMode} isPopup={isPopup} showModelOptions={showModelOptions} />
 			)}
-
 			{apiConfiguration && selectedProvider === "asksage" && (
 				<AskSageProvider currentMode={currentMode} isPopup={isPopup} showModelOptions={showModelOptions} />
 			)}

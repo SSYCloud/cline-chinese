@@ -2,7 +2,6 @@ import { UpdateSettingsRequest } from "@shared/proto/cline/state"
 import { Mode } from "@shared/storage/types"
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import { useState } from "react"
-import { useTranslation } from "react-i18next"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { StateServiceClient } from "@/services/grpc-client"
 import { TabButton } from "../../mcp/configuration/McpConfigurationView"
@@ -36,7 +35,7 @@ const ApiConfigurationSection = ({ renderSectionHeader, initialModelTab }: ApiCo
 									opacity: 1,
 									cursor: "pointer",
 								}}>
-								{t("settings.planMode")}
+								计划模式
 							</TabButton>
 							<TabButton
 								disabled={currentTab === "act"}
@@ -46,7 +45,7 @@ const ApiConfigurationSection = ({ renderSectionHeader, initialModelTab }: ApiCo
 									opacity: 1,
 									cursor: "pointer",
 								}}>
-								{t("settings.actMode")}
+								执行模式
 							</TabButton>
 						</div>
 
@@ -79,10 +78,11 @@ const ApiConfigurationSection = ({ renderSectionHeader, initialModelTab }: ApiCo
 								console.error("Failed to update separate models setting:", error)
 							}
 						}}>
-						{t("settings.useDifferentModels")}
+						对计划和行动模式使用不同的模型
 					</VSCodeCheckbox>
 					<p className="text-xs mt-[5px] text-(--vscode-descriptionForeground)">
-						{t("settings.useDifferentModelsDescription")}
+						在“计划”模式和“行动”模式之间切换时，会保留前一种模式下使用的 API
+						和模型。例如，当使用强大的推理模型来构建计划，以便使用成本更低的编码模型来执行时，这可能非常有用。
 					</p>
 				</div>
 			</Section>

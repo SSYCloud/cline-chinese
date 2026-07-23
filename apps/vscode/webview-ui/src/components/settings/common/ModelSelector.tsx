@@ -1,6 +1,5 @@
 import { ModelInfo } from "@shared/api"
 import { VSCodeDropdown, VSCodeOption } from "@vscode/webview-ui-toolkit/react"
-import { useTranslation } from "react-i18next"
 import styled from "styled-components"
 
 /**

@@ -39,18 +39,6 @@ export async function subscribeToPartialMessage(
 }
 
 /**
- * Register a callback to receive partial message events (for CLI and non-gRPC consumers)
- * @param callback The callback function to receive messages
- * @returns A function to unsubscribe
- */
-export function registerPartialMessageCallback(callback: PartialMessageCallback): () => void {
-	callbackSubscriptions.add(callback)
-	return () => {
-		callbackSubscriptions.delete(callback)
-	}
-}
-
-/**
  * Send a partial message event to all active subscribers
  * @param partialMessage The ClineMessage to send
  */

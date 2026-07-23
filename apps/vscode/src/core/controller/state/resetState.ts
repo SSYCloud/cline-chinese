@@ -18,13 +18,13 @@ export async function resetState(controller: Controller, request: ResetStateRequ
 		if (request.global) {
 			HostProvider.window.showMessage({
 				type: ShowMessageType.INFORMATION,
-				message: "Resetting global state...",
+				message: "重置全局状态...",
 			})
 			await resetGlobalState()
 		} else {
 			HostProvider.window.showMessage({
 				type: ShowMessageType.INFORMATION,
-				message: "Resetting workspace state...",
+				message: "重置工作区状态...",
 			})
 			await resetWorkspaceState()
 		}
@@ -36,7 +36,7 @@ export async function resetState(controller: Controller, request: ResetStateRequ
 
 		HostProvider.window.showMessage({
 			type: ShowMessageType.INFORMATION,
-			message: "State reset",
+			message: "重置状态",
 		})
 		await controller.postStateToWebview()
 
@@ -47,7 +47,7 @@ export async function resetState(controller: Controller, request: ResetStateRequ
 		Logger.error("Error resetting state:", error)
 		HostProvider.window.showMessage({
 			type: ShowMessageType.ERROR,
-			message: `Failed to reset state: ${error instanceof Error ? error.message : String(error)}`,
+			message: `重置状态失败: ${error instanceof Error ? error.message : String(error)}`,
 		})
 		throw error
 	}

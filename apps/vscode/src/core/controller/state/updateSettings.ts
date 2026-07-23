@@ -138,20 +138,11 @@ export async function updateSettings(controller: Controller, request: UpdateSett
 				// telemetryService.captureFeatureToggle(controller.task.ulid, "hooks", isEnabled, controller.task.api.getModel().id)
 			}
 		}
-
-		if (request.hooksEnabled !== undefined) {
-			const wasEnabled = controller.stateManager.getGlobalSettingsKey("hooksEnabled") ?? true
-			const isEnabled = !!request.hooksEnabled
-			controller.stateManager.setGlobalState("hooksEnabled", isEnabled)
-			if (controller.task && wasEnabled !== isEnabled) {
-				telemetryService.captureFeatureToggle(controller.task.ulid, "hooks", isEnabled, controller.task.api.getModel().id)
-			}
-		}
 		// Update yolo mode setting
 		if (request.yoloModeToggled !== undefined) {
-			if (controller.task) {
-				telemetryService.captureYoloModeToggle(controller.task.ulid, request.yoloModeToggled)
-			}
+			// if (controller.task) {
+			// 	telemetryService.captureYoloModeToggle(controller.task.ulid, request.yoloModeToggled)
+			// }
 			controller.stateManager.setGlobalState("yoloModeToggled", request.yoloModeToggled)
 		}
 
@@ -259,37 +250,6 @@ export async function updateSettings(controller: Controller, request: UpdateSett
 				// and we apply the actual config afterwards without blocking the settings update
 				// fetchRemoteConfig(controller)
 			}
-		}
-
-		if (request.showFeatureTips !== undefined) {
-			controller.stateManager.setGlobalState("showFeatureTips", request.showFeatureTips)
-		}
-
-		if (request.optOutOfRemoteConfig !== undefined) {
-			const hadOptedOut = controller.stateManager.getGlobalSettingsKey("optOutOfRemoteConfig")
-			const isOptingOut = !!request.optOutOfRemoteConfig
-			const isReenablingRemoteConfig = !isOptingOut && hadOptedOut
-
-			// Update now so any subsequent function can access the updated value
-			controller.stateManager.setGlobalState("optOutOfRemoteConfig", isOptingOut)
-
-			if (isOptingOut && !hadOptedOut) {
-				clearRemoteConfig()
-			} else if (isReenablingRemoteConfig) {
-				// Fire-and-forget: We don't need to await here
-				// The function catches any errors and posts the updated state to the webview
-				// The immediate state update below shows the user's intent (opted-in),
-				// and we apply the actual config afterwards without blocking the settings update
-				fetchRemoteConfig(controller)
-			}
-		}
-
-		if (request.doubleCheckCompletionEnabled !== undefined) {
-			controller.stateManager.setGlobalState("doubleCheckCompletionEnabled", request.doubleCheckCompletionEnabled)
-		}
-
-		if (request.lazyTeammateModeEnabled !== undefined) {
-			controller.stateManager.setGlobalState("lazyTeammateModeEnabled", request.lazyTeammateModeEnabled)
 		}
 
 		if (request.showFeatureTips !== undefined) {

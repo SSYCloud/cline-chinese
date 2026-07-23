@@ -147,25 +147,6 @@ export async function refreshOcaModels(controller: Controller, request: StringRe
 					: models[actModeSelectedModelId].reasoningEffortOptions[0]
 			}
 
-			let planModeOcaReasoningEffort
-			let actModeOcaReasoningEffort
-			if (
-				models[planModeSelectedModelId].supportsReasoning &&
-				models[planModeSelectedModelId].reasoningEffortOptions.length > 0
-			) {
-				planModeOcaReasoningEffort = apiConfiguration.planModeOcaReasoningEffort
-					? apiConfiguration.planModeOcaReasoningEffort
-					: models[planModeSelectedModelId].reasoningEffortOptions[0]
-			}
-			if (
-				models[actModeSelectedModelId].supportsReasoning &&
-				models[actModeSelectedModelId].reasoningEffortOptions.length > 0
-			) {
-				actModeOcaReasoningEffort = apiConfiguration.actModeOcaReasoningEffort
-					? apiConfiguration.actModeOcaReasoningEffort
-					: models[actModeSelectedModelId].reasoningEffortOptions[0]
-			}
-
 			// Build updates object based on plan/act mode setting
 			const updates: Partial<GlobalStateAndSettings> = {}
 

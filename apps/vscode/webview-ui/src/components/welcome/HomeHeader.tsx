@@ -1,6 +1,5 @@
 import { EmptyRequest } from "@shared/proto/cline/common"
 import ClineLogoSanta from "@/assets/ClineLogoSanta"
-import ClineLogoTired from "@/assets/ClineLogoTired"
 import ClineLogoVariable from "@/assets/ClineLogoVariable"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { UiServiceClient } from "@/services/grpc-client"
@@ -10,8 +9,7 @@ interface HomeHeaderProps {
 }
 
 const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
-	const { environment, lazyTeammateModeEnabled } = useExtensionState()
-	const { t } = useTranslation("common")
+	const { environment } = useExtensionState()
 
 	const handleTakeATour = async () => {
 		try {

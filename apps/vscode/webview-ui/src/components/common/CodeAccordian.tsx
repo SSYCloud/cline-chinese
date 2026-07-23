@@ -23,7 +23,7 @@ We need to remove leading non-alphanumeric characters from the path in order for
 [^a-zA-Z0-9]+: Matches one or more characters that are not alphanumeric.
 The replace method removes these matched characters, effectively trimming the string up to the first alphanumeric character.
 */
-export const cleanPathPrefix = (path: string): string => path.replace(/^[^一-龥a-zA-Z0-9]+/, "")
+export const cleanPathPrefix = (path: string): string => path.replace(/^[^\u4e00-\u9fa5a-zA-Z0-9]+/, "")
 
 const CodeAccordian = ({
 	code,
@@ -36,7 +36,6 @@ const CodeAccordian = ({
 	onToggleExpand,
 	isLoading,
 }: CodeAccordianProps) => {
-	const { t } = useTranslation("misc")
 	const inferredLanguage = useMemo(
 		() => code && (language ?? (path ? getLanguageFromPath(path) : undefined)),
 		[path, language, code],

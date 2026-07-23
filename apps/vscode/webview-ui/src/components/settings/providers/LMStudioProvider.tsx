@@ -2,7 +2,6 @@ import { type ModelInfo, openAiModelInfoSafeDefaults } from "@shared/api"
 import type { Mode } from "@shared/storage/types"
 import { VSCodeDropdown, VSCodeLink, VSCodeOption, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { useInterval } from "react-use"
 import UseCustomPromptCheckbox from "@/components/settings/UseCustomPromptCheckbox"
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -40,7 +39,6 @@ interface LMStudioApiModel {
  * The LM Studio provider configuration component
  */
 export const LMStudioProvider = ({ currentMode }: LMStudioProviderProps) => {
-	const { t } = useTranslation("settings")
 	const { apiConfiguration } = useExtensionState()
 	const { handleFieldChange } = useApiConfigurationHandlers()
 	const { config, write, commitSelection } = useProviderConfig("lmstudio")
@@ -160,7 +158,7 @@ export const LMStudioProvider = ({ currentMode }: LMStudioProviderProps) => {
 				placeholder="Default: http://localhost:1234"
 			/>
 
-			<div className="font-semibold">{t("settings.model")}</div>
+			<div className="font-semibold">模型</div>
 			{lmStudioModels.length > 0 ? (
 				<DropdownContainer className="dropdown-container" zIndex={10}>
 					<VSCodeDropdown
@@ -188,26 +186,26 @@ export const LMStudioProvider = ({ currentMode }: LMStudioProviderProps) => {
 				/>
 			)}
 
-			<div className="font-semibold">{t("providers.lmStudio.contextWindow")}</div>
+			<div className="font-semibold">Context Window</div>
 			<VSCodeTextField
 				className="w-full pointer-events-none"
 				disabled={true}
-				title={t("providers.lmstudio.notEditable")}
+				title="不可编辑 - 该值由连接的端点返回"
 				value={String(currentLoadedContext ?? lmStudioMaxTokens ?? "0")}
 			/>
 
 			<UseCustomPromptCheckbox providerId="lmstudio" />
 
 			<div className="text-xs text-description">
-				{t("providers.lmStudio.runModelsLocally")}{" "}
+				LM Studio 允许您在计算机上本地运行模型。有关如何开始使用的说明，请参阅其
 				<VSCodeLink href="https://lmstudio.ai/docs" style={{ display: "inline", fontSize: "inherit" }}>
-					{t("providers.lmStudio.quickstartGuide")}
+					快速入门指南.
 				</VSCodeLink>
-				{t("providers.lmStudio.needToStartServer")}{" "}
+				您还需要启动 LM Studio 的{" "}
 				<VSCodeLink className="inline" href="https://lmstudio.ai/docs/basics/server">
-					{t("providers.lmStudio.localServer")}
+					本地服务
 				</VSCodeLink>{" "}
-				{t("providers.lmStudio.serverFeatureWithCode")}{" "}
+				使用 <code>lms server start</code>命令，以便在插件中使用.{" "}
 				<div className="text-error">
 					<span className="font-semibold">Note:</span> Cline uses complex prompts, so behavior can vary across models.
 					Less capable models may not work as expected.

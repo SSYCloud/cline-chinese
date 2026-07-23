@@ -5,6 +5,7 @@ import { isValidElement, memo } from "react";
 import {
 	type Components,
 	type DiagramPlugin,
+	type ExtraProps,
 	Streamdown,
 	type StreamdownProps,
 } from "streamdown";
@@ -18,14 +19,10 @@ import {
 } from "@/components/ai-elements/code-block";
 import { cn } from "@/lib/utils";
 
-type MarkdownCodeProps = ComponentProps<"code"> & {
-	"data-block"?: boolean | string;
-	node?: {
-		properties?: {
-			metastring?: string;
-		};
+type MarkdownCodeProps = ComponentProps<"code"> &
+	ExtraProps & {
+		"data-block"?: boolean | string;
 	};
-};
 
 const LANGUAGE_CLASS_PATTERN = /(?:^|\s)language-([^\s]+)/;
 const START_LINE_PATTERN = /startLine=(\d+)/;
@@ -67,7 +64,7 @@ const MarkdownCode = ({
 		);
 	}
 
-	const meta = node?.properties?.metastring;
+	const meta = (node?.properties as { metastring?: string } | undefined)?.metastring;
 	const startLineMatch = meta?.match(START_LINE_PATTERN);
 	const startLine = startLineMatch ? Number.parseInt(startLineMatch[1], 10) : 1;
 	const showLineNumbers = meta ? !NO_LINE_NUMBERS_PATTERN.test(meta) : true;

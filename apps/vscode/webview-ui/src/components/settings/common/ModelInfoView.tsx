@@ -1,7 +1,6 @@
 import type { ModelInfo } from "@shared/api"
 import { VSCodeDropdown, VSCodeOption } from "@vscode/webview-ui-toolkit/react"
 import { useState } from "react"
-import { useTranslation } from "react-i18next"
 import styled from "styled-components"
 import { useProviderModels } from "@/hooks/useProviderModels"
 import { ModelDescriptionMarkdown } from "../ModelDescriptionMarkdown"
@@ -102,7 +101,7 @@ const formatCompactPrice = (price: number | undefined): string => {
 		return "N/A"
 	}
 	if (price === 0) {
-		return "Free"
+		return "免费"
 	}
 	if (price < 0.01) {
 		return `$${price.toFixed(4)}/M`
@@ -197,7 +196,6 @@ export const ModelInfoView = ({
 	showProviderRouting,
 	hideUsageCost,
 }: ModelInfoViewProps) => {
-	const { t } = useTranslation("settings")
 	const [advancedExpanded, setAdvancedExpanded] = useState(false)
 
 	const { models: geminiModels } = useProviderModels("gemini")
@@ -224,19 +222,19 @@ export const ModelInfoView = ({
 			<InfoRow>
 				{modelInfo.contextWindow !== undefined && modelInfo.contextWindow > 0 && (
 					<InfoItem>
-						<InfoLabel>{t("commonFields.context")} </InfoLabel>
+						<InfoLabel>上下文: </InfoLabel>
 						<InfoValue>{formatCompactContext(modelInfo.contextWindow)}</InfoValue>
 					</InfoItem>
 				)}
 				{!hideUsageCost && modelInfo.inputPrice !== undefined && (
 					<InfoItem>
-						<InfoLabel>{t("commonFields.inputLabel")} </InfoLabel>
+						<InfoLabel>输入: </InfoLabel>
 						<InfoValue>{formatCompactPrice(modelInfo.inputPrice)}</InfoValue>
 					</InfoItem>
 				)}
 				{!hideUsageCost && modelInfo.outputPrice !== undefined && (
 					<InfoItem>
-						<InfoLabel>{t("commonFields.outputLabel")} </InfoLabel>
+						<InfoLabel>输出: </InfoLabel>
 						<InfoValue>
 							{hasThinkingConfig && modelInfo.thinkingConfig?.outputPrice !== undefined
 								? formatCompactPrice(modelInfo.thinkingConfig.outputPrice)
@@ -249,23 +247,23 @@ export const ModelInfoView = ({
 			{/* Collapsible Advanced Section */}
 			<CollapsibleHeader onClick={() => setAdvancedExpanded(!advancedExpanded)}>
 				<CollapsibleArrow $isExpanded={advancedExpanded}>▶</CollapsibleArrow>
-				{t("commonFields.advanced")}
+				更多
 			</CollapsibleHeader>
 			<CollapsibleContent $isExpanded={advancedExpanded}>
 				<AdvancedSection>
 					{/* Capabilities */}
 					<AdvancedRow>
-						<AdvancedLabel>{t("commonFields.images")}</AdvancedLabel>
-						<AdvancedValue>{hasImages ? t("commonFields.yes") : t("commonFields.no")}</AdvancedValue>
+						<AdvancedLabel>图片</AdvancedLabel>
+						<AdvancedValue>{hasImages ? "是" : "否"}</AdvancedValue>
 					</AdvancedRow>
 					<AdvancedRow>
-						<AdvancedLabel>{t("commonFields.browser")}</AdvancedLabel>
-						<AdvancedValue>{hasBrowser ? t("commonFields.yes") : t("commonFields.no")}</AdvancedValue>
+						<AdvancedLabel>浏览器</AdvancedLabel>
+						<AdvancedValue>{hasBrowser ? "是" : "否"}</AdvancedValue>
 					</AdvancedRow>
 					{!isGemini && (
 						<AdvancedRow>
-							<AdvancedLabel>{t("commonFields.promptCaching")}</AdvancedLabel>
-							<AdvancedValue>{hasCaching ? t("commonFields.yes") : t("commonFields.no")}</AdvancedValue>
+							<AdvancedLabel>缓存</AdvancedLabel>
+							<AdvancedValue>{hasCaching ? "是" : "否"}</AdvancedValue>
 						</AdvancedRow>
 					)}
 
@@ -274,13 +272,13 @@ export const ModelInfoView = ({
 						<>
 							{modelInfo.cacheReadsPrice !== undefined && (
 								<AdvancedRow>
-									<AdvancedLabel>{t("commonFields.cacheReads")}</AdvancedLabel>
+									<AdvancedLabel>读缓存</AdvancedLabel>
 									<AdvancedValue>{formatCompactPrice(modelInfo.cacheReadsPrice)}</AdvancedValue>
 								</AdvancedRow>
 							)}
 							{modelInfo.cacheWritesPrice !== undefined && (
 								<AdvancedRow>
-									<AdvancedLabel>{t("commonFields.cacheWrites")}</AdvancedLabel>
+									<AdvancedLabel>写缓存</AdvancedLabel>
 									<AdvancedValue>{formatCompactPrice(modelInfo.cacheWritesPrice)}</AdvancedValue>
 								</AdvancedRow>
 							)}
@@ -290,16 +288,16 @@ export const ModelInfoView = ({
 					{/* Tiered Pricing */}
 					{!hideUsageCost && hasTiers && (
 						<div style={{ marginTop: 8 }}>
-							<div style={{ fontWeight: 500, marginBottom: 4 }}>{t("commonFields.tieredPricing")}</div>
+							<div style={{ fontWeight: 500, marginBottom: 4 }}>分级定价:</div>
 							{modelInfo.tiers && (
 								<>
 									<div>
-										<span style={{ fontWeight: 500 }}>{t("commonFields.inputLabel")}</span>
+										<span style={{ fontWeight: 500 }}>输入:</span>
 										<br />
 										{formatTiers(modelInfo.tiers, "inputPrice")}
 									</div>
 									<div style={{ marginTop: 4 }}>
-										<span style={{ fontWeight: 500 }}>{t("commonFields.outputLabel")}</span>
+										<span style={{ fontWeight: 500 }}>输出:</span>
 										<br />
 										{formatTiers(modelInfo.tiers, "outputPrice")}
 									</div>
@@ -311,15 +309,15 @@ export const ModelInfoView = ({
 					{/* Provider Routing */}
 					{showProviderRouting && onProviderSortingChange && (
 						<ProviderRoutingContainer>
-							<ProviderRoutingLabel>{t("commonFields.providerRouting")}</ProviderRoutingLabel>
+							<ProviderRoutingLabel>提供商路由</ProviderRoutingLabel>
 							<VSCodeDropdown
 								onChange={(e: any) => onProviderSortingChange(e.target.value)}
 								style={{ width: "100%" }}
 								value={providerSorting || ""}>
-								<VSCodeOption value="">{t("commonFields.default")}</VSCodeOption>
-								<VSCodeOption value="price">{t("commonFields.price")}</VSCodeOption>
-								<VSCodeOption value="throughput">{t("commonFields.throughput")}</VSCodeOption>
-								<VSCodeOption value="latency">{t("commonFields.latency")}</VSCodeOption>
+								<VSCodeOption value="">默认</VSCodeOption>
+								<VSCodeOption value="price">价格</VSCodeOption>
+								<VSCodeOption value="throughput">推理</VSCodeOption>
+								<VSCodeOption value="latency">延时</VSCodeOption>
 							</VSCodeDropdown>
 							<p
 								style={{
@@ -328,10 +326,11 @@ export const ModelInfoView = ({
 									marginBottom: 0,
 									color: "var(--vscode-descriptionForeground)",
 								}}>
-								{!providerSorting && t("commonFields.providerRoutingDefault")}
-								{providerSorting === "price" && t("commonFields.providerRoutingPrice")}
-								{providerSorting === "throughput" && t("commonFields.providerRoutingThroughput")}
-								{providerSorting === "latency" && t("commonFields.providerRoutingLatency")}
+								{!providerSorting &&
+									"跨服务提供商（AWS、Google Vertex 等）进行负载均衡，优先考虑价格，同时兼顾正常运行时间。"}
+								{providerSorting === "price" && "按价格排序，优先考虑价格最低的供应商"}
+								{providerSorting === "throughput" && "按吞吐量排序，优先考虑吞吐量最高的（可能会增加成本）"}
+								{providerSorting === "latency" && "按响应时间排序，优先考虑延迟最低的。"}
 							</p>
 						</ProviderRoutingContainer>
 					)}

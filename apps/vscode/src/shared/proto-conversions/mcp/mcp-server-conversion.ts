@@ -5,7 +5,6 @@ import {
 	McpResource as ProtoMcpResource,
 	McpResourceTemplate as ProtoMcpResourceTemplate,
 	McpServer as ProtoMcpServer,
-	McpServerStatus,
 	McpTool as ProtoMcpTool,
 } from "@shared/proto/cline/mcp"
 import { McpOAuthAuthStatus, McpPrompt, McpPromptArgument, McpResource, McpResourceTemplate, McpServer, McpTool } from "../../mcp"

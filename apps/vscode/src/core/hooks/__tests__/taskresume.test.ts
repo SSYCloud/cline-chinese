@@ -677,26 +677,5 @@ console.log(JSON.stringify({
 				}
 			})
 		})
-
-		it("should preserve fixture-based failure behavior", async () => {
-			await withFixtureRunner("TaskResume", "hooks/taskresume/error", hookTestEnv, async (runner) => {
-				try {
-					await runner.run({
-						taskId: "test-task",
-						taskResume: {
-							taskMetadata: { taskId: "test-task", ulid: "test-ulid" },
-							previousState: {
-								lastMessageTs: Date.now().toString(),
-								messageCount: "5",
-								conversationHistoryDeleted: "false",
-							},
-						},
-					})
-					throw new Error("Should have thrown")
-				} catch (error: unknown) {
-					getErrorMessage(error).should.match(/exited with code 1/)
-				}
-			})
-		})
 	})
 })

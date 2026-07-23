@@ -7,8 +7,8 @@
  * validates provider switching capabilities, and ensures NoOpTelemetryProvider functionality
  */
 
-import { after, before, describe, it } from "mocha"
 import * as assert from "assert"
+import { after, before, describe, it } from "mocha"
 import * as sinon from "sinon"
 import { ClineEndpoint } from "@/config"
 import { HostProvider } from "@/hosts/host-provider"
@@ -136,7 +136,7 @@ describe("Telemetry system is abstracted and can easily switch between providers
 			logSpy.resetHistory()
 
 			// Test that metadata is included in events
-			telemetryService.captureTaskCreated("task-456", "openai")
+			// telemetryService.captureTaskCreated("task-456", "openai")
 
 			// Verify that log was called with correct arguments
 			assert.ok(logSpy.calledOnce, "Log should be called once")
@@ -155,7 +155,7 @@ describe("Telemetry system is abstracted and can easily switch between providers
 
 			// Test identify includes metadata
 			telemetryService.identifyAccount(MOCK_USER_INFO)
-
+			//
 			assert.ok(identifyUserSpy.calledOnce, "IdentifyUser should be called once")
 			const [userInfo, metadata] = identifyUserSpy.firstCall.args
 			assert.deepStrictEqual(userInfo, MOCK_USER_INFO, "User info should match")

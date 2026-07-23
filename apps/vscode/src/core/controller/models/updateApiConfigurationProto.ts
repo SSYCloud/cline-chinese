@@ -58,9 +58,6 @@ export async function updateApiConfigurationProto(
 			planModeOpenAiModelInfo: protoApiConfiguration.planModeOpenAiModelInfo
 				? fromProtobufOpenAiCompatibleModelInfo(protoApiConfiguration.planModeOpenAiModelInfo)
 				: undefined,
-			planModeDeepSeekModelInfo: protoApiConfiguration.planModeDeepSeekModelInfo
-				? fromProtobufModelInfo(protoApiConfiguration.planModeDeepSeekModelInfo)
-				: undefined,
 			planModeHuggingFaceModelInfo: protoApiConfiguration.planModeHuggingFaceModelInfo
 				? fromProtobufModelInfo(protoApiConfiguration.planModeHuggingFaceModelInfo)
 				: undefined,
@@ -101,9 +98,6 @@ export async function updateApiConfigurationProto(
 				: undefined,
 			actModeOpenAiModelInfo: protoApiConfiguration.actModeOpenAiModelInfo
 				? fromProtobufOpenAiCompatibleModelInfo(protoApiConfiguration.actModeOpenAiModelInfo)
-				: undefined,
-			actModeDeepSeekModelInfo: protoApiConfiguration.actModeDeepSeekModelInfo
-				? fromProtobufModelInfo(protoApiConfiguration.actModeDeepSeekModelInfo)
 				: undefined,
 			actModeLiteLlmModelInfo: protoApiConfiguration.actModeLiteLlmModelInfo
 				? fromProtobufLiteLLMModelInfo(protoApiConfiguration.actModeLiteLlmModelInfo)

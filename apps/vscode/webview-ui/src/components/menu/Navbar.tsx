@@ -1,7 +1,6 @@
 import { IntentEvent } from "@shared/proto/cline/ui"
 import { HistoryIcon, PlusIcon, PuzzleIcon, SettingsIcon, UserCircleIcon } from "lucide-react"
 import { useMemo } from "react"
-import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { TaskServiceClient, UiServiceClient } from "@/services/grpc-client"
@@ -15,8 +14,8 @@ export const Navbar = () => {
 		() => [
 			{
 				id: "chat",
-				name: "Chat",
-				tooltip: t("navbar.newTask"),
+				name: "对话",
+				tooltip: "新任务",
 				icon: PlusIcon,
 				navigate: () => {
 					UiServiceClient.trackIntent(
@@ -42,22 +41,22 @@ export const Navbar = () => {
 			},
 			{
 				id: "history",
-				name: "History",
-				tooltip: t("navbar.history"),
+				name: "历史",
+				tooltip: "历史",
 				icon: HistoryIcon,
 				navigate: navigateToHistory,
 			},
 			{
 				id: "account",
-				name: "Account",
-				tooltip: t("navbar.account"),
+				name: "账户",
+				tooltip: "账户",
 				icon: UserCircleIcon,
 				navigate: navigateToAccount,
 			},
 			{
 				id: "settings",
-				name: "Settings",
-				tooltip: t("navbar.settings"),
+				name: "设置",
+				tooltip: "设置",
 				icon: SettingsIcon,
 				navigate: navigateToSettings,
 			},

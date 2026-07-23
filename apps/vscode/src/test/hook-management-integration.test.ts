@@ -14,7 +14,6 @@ import { HookDiscoveryCache } from "../core/hooks/HookDiscoveryCache"
 import { StateManager } from "../core/storage/StateManager"
 import { HostProvider } from "../hosts/host-provider"
 import { CreateHookRequest, DeleteHookRequest, ToggleHookRequest } from "../shared/proto/cline/file"
-import { hookFileName } from "../core/hooks/__tests__/test-utils"
 
 /**
  * Integration tests for hook management

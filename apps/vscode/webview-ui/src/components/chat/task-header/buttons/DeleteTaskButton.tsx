@@ -1,6 +1,5 @@
 import { StringArrayRequest } from "@shared/proto/cline/common"
 import { TrashIcon } from "lucide-react"
-import { useTranslation } from "react-i18next"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"

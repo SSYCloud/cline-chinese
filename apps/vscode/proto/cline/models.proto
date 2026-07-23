@@ -413,7 +413,6 @@ message ModelsApiOptions {
   optional OpenRouterModelInfo plan_mode_open_router_model_info = 108;
   optional string plan_mode_open_ai_model_id = 109;
   optional OpenAiCompatibleModelInfo plan_mode_open_ai_model_info = 110;
-  optional OpenRouterModelInfo plan_mode_deep_seek_model_info = 139;
   optional string plan_mode_ollama_model_id = 111;
   optional string plan_mode_lm_studio_model_id = 112;
   optional string plan_mode_lite_llm_model_id = 113;
@@ -455,7 +454,6 @@ message ModelsApiOptions {
   optional OpenRouterModelInfo act_mode_open_router_model_info = 208;
   optional string act_mode_open_ai_model_id = 209;
   optional OpenAiCompatibleModelInfo act_mode_open_ai_model_info = 210;
-  optional OpenRouterModelInfo act_mode_deep_seek_model_info = 239;
   optional string act_mode_ollama_model_id = 211;
   optional string act_mode_lm_studio_model_id = 212;
   optional string act_mode_lite_llm_model_id = 213;
@@ -603,27 +601,6 @@ message OpenAiCompatibleModelInfo {
   optional ApiFormat api_format = 15;
 }
 
-// Model info for ShengSuanYun models
-message ShengSuanYunModelInfo {
-  optional int64 max_tokens = 1;
-  optional int64 context_window = 2;
-  optional bool supports_images = 3;
-  bool supports_prompt_cache = 4;
-  optional double input_price = 5;
-  optional double output_price = 6;
-  optional double cache_writes_price = 7;
-  optional double cache_reads_price = 8;
-  optional string description = 9;
-  optional ThinkingConfig thinking_config = 10;
-  optional bool supports_global_endpoint = 11;
-  repeated string end_points = 12;
-}
-
-// Wrapper for multiple ShengSuanYun models
-message ShengSuanYunCompatibleModelInfo {
-  map<string, ShengSuanYunModelInfo> models = 1;
-}
-
 // Model info for LiteLLM models
 message LiteLLMModelInfo {
   optional int64 max_tokens = 1;
@@ -748,7 +725,6 @@ message ModelsApiConfiguration {
   optional OpenRouterModelInfo plan_mode_open_router_model_info = 108;
   optional string plan_mode_open_ai_model_id = 109;
   optional OpenAiCompatibleModelInfo plan_mode_open_ai_model_info = 110;
-  optional OpenRouterModelInfo plan_mode_deep_seek_model_info = 144;
   optional string plan_mode_ollama_model_id = 111;
   optional string plan_mode_lm_studio_model_id = 112;
   optional string plan_mode_lite_llm_model_id = 113;
@@ -797,7 +773,6 @@ message ModelsApiConfiguration {
   optional OpenRouterModelInfo act_mode_open_router_model_info = 208;
   optional string act_mode_open_ai_model_id = 209;
   optional OpenAiCompatibleModelInfo act_mode_open_ai_model_info = 210;
-  optional OpenRouterModelInfo act_mode_deep_seek_model_info = 244;
   optional string act_mode_ollama_model_id = 211;
   optional string act_mode_lm_studio_model_id = 212;
   optional string act_mode_lite_llm_model_id = 213;

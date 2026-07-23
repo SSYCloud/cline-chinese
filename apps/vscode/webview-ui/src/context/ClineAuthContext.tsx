@@ -1,6 +1,6 @@
 import type { UserOrganization } from "@shared/proto/cline/account"
 import { EmptyRequest } from "@shared/proto/cline/common"
-import deepEqual from "fast-deep-equal"
+// import deepEqual from "fast-deep-equal"
 import type React from "react"
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { AccountServiceClient } from "@/services/grpc-client"

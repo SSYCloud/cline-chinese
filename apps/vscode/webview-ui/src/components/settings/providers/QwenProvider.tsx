@@ -39,7 +39,6 @@ const qwenApiOptions: QwenApiRegions[] = Object.values(QwenApiRegions)
  * The Alibaba Qwen provider configuration component
  */
 export const QwenProvider = ({ showModelOptions, isPopup, currentMode }: QwenProviderProps) => {
-	const { t } = useTranslation("settings")
 	const { apiConfiguration } = useExtensionState()
 	const { handleFieldChange, handleModeFieldChange } = useApiConfigurationHandlers()
 
@@ -57,7 +56,7 @@ export const QwenProvider = ({ showModelOptions, isPopup, currentMode }: QwenPro
 		<div>
 			<DropdownContainer className="dropdown-container" style={{ position: "inherit" }}>
 				<label htmlFor="qwen-line-provider">
-					<span style={{ fontWeight: 500, marginTop: 5 }}>{t("providers.qwen.alibabaApiLine")}</span>
+					<span style={{ fontWeight: 500, marginTop: 5 }}>Alibaba API Line</span>
 				</label>
 				<VSCodeDropdown
 					id="qwen-line-provider"

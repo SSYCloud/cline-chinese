@@ -5,7 +5,6 @@ import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
 import deepEqual from "fast-deep-equal"
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react"
 import React, { CSSProperties, memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { useSize } from "react-use"
 import styled from "styled-components"
 import { BrowserSettingsMenu } from "@/components/browser/BrowserSettingsMenu"
@@ -108,7 +107,6 @@ const headerStyle: CSSProperties = {
 const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 	const { messages, isLast, onHeightChange, lastModifiedMessage, onSetQuote } = props
 	const { browserSettings } = useExtensionState()
-	const { t } = useTranslation("common")
 	const prevHeightRef = useRef(0)
 	const [maxActionHeight, setMaxActionHeight] = useState(0)
 	const [consoleLogsExpanded, setConsoleLogsExpanded] = useState(false)
@@ -349,7 +347,7 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 	}, [messages])
 
 	// Calculate maxWidth
-	const maxWidth = browserSettings.viewport.width < BROWSER_VIEWPORT_PRESETS["Small Desktop (900x600)"].width ? 200 : undefined
+	const maxWidth = browserSettings.viewport.width < BROWSER_VIEWPORT_PRESETS["小型桌面 (900x600)"].width ? 200 : undefined
 
 	const [browserSessionRow, { height }] = useSize(
 		// We don't declare a constant for the inline style here because `useSize` will try to modify the style object
@@ -361,9 +359,7 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 				) : (
 					<span className="codicon codicon-inspect" style={browserIconStyle} />
 				)}
-				<span style={approveTextStyle}>
-					{isAutoApproved ? t("browserSession.clineUsingBrowser") : t("browserSession.clineWantsBrowser")}
-				</span>
+				<span style={approveTextStyle}>{isAutoApproved ? "Cline 正在使用浏览器:" : "Cline 想要使用浏览器:"}</span>
 			</div>
 			<div
 				style={{
@@ -401,7 +397,7 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 					}}>
 					{displayState.screenshot ? (
 						<img
-							alt={t("browserSession.browserScreenshot")}
+							alt="Browser screenshot"
 							onClick={() =>
 								FileServiceClient.openImage(StringRequest.create({ value: displayState.screenshot })).catch(
 									(err) => console.error("Failed to open image:", err),
@@ -445,9 +441,7 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 						<span style={consoleLogsTextStyle}>Console Logs</span>
 					</div>
 					{consoleLogsExpanded && (
-						<CodeBlock
-							source={`${"```"}shell\n${displayState.consoleLogs || "{t('browserSession.noNewLogs')}"}\n${"```"}`}
-						/>
+						<CodeBlock source={`${"```"}shell\n${displayState.consoleLogs || "(No new logs)"}\n${"```"}`} />
 					)}
 				</div>
 			</div>
@@ -458,17 +452,19 @@ const BrowserSessionRow = memo((props: BrowserSessionRowProps) => {
 			{/* Pagination moved to bottom */}
 			{pages.length > 1 && (
 				<div style={paginationContainerStyle}>
-					<div>{t("browserSession.step", { current: currentPageIndex + 1, total: pages.length })}</div>
+					<div>
+						进度 {currentPageIndex + 1} / {pages.length}
+					</div>
 					<div style={paginationButtonGroupStyle}>
 						<VSCodeButton
 							disabled={currentPageIndex === 0 || isBrowsing}
 							onClick={() => setCurrentPageIndex((i) => i - 1)}>
-							{t("browserSession.previous")}
+							上一步
 						</VSCodeButton>
 						<VSCodeButton
 							disabled={currentPageIndex === pages.length - 1 || isBrowsing}
 							onClick={() => setCurrentPageIndex((i) => i + 1)}>
-							{t("browserSession.next")}
+							下一步
 						</VSCodeButton>
 					</div>
 				</div>
@@ -508,19 +504,18 @@ const BrowserSessionRowContent = memo(
 		setMaxActionHeight,
 		onSetQuote,
 	}: BrowserSessionRowContentProps) => {
-		const { t } = useTranslation("common")
 		const handleToggle = useCallback(() => {
 			if (message.say === "api_req_started") {
 				setMaxActionHeight(0)
 			}
 			onToggleExpand(message.ts)
-		}, [onToggleExpand, message.ts, setMaxActionHeight, message.say])
+		}, [onToggleExpand, message.ts, setMaxActionHeight])
 
 		if (message.ask === "browser_action_launch" || message.say === "browser_action_launch") {
 			return (
 				<>
 					<div style={headerStyle}>
-						<span style={browserSessionStartedTextStyle}>{t("browserSession.sessionStarted")}</span>
+						<span style={browserSessionStartedTextStyle}>浏览器会话已经启动</span>
 					</div>
 					<div style={codeBlockContainerStyle}>
 						<CodeBlock forceWrap={true} source={`${"```"}shell\n${message.text}\n${"```"}`} />
@@ -574,21 +569,20 @@ const BrowserSessionRowContent = memo(
 )
 
 const BrowserActionBox = ({ action, coordinate, text }: { action: BrowserAction; coordinate?: string; text?: string }) => {
-	const { t } = useTranslation("common")
 	const getBrowserActionText = (action: BrowserAction, coordinate?: string, text?: string) => {
 		switch (action) {
 			case "launch":
-				return t("browserSession.launchBrowser", { url: text })
+				return `启动浏览器： ${text}`
 			case "click":
-				return t("browserSession.click", { coordinate: coordinate?.replace(",", ", ") })
+				return `点击 (${coordinate?.replace(",", ", ")})`
 			case "type":
-				return t("browserSession.type", { text })
+				return `输入 "${text}"`
 			case "scroll_down":
-				return t("browserSession.scrollDown")
+				return "向下滚动"
 			case "scroll_up":
-				return t("browserSession.scrollUp")
+				return "向上滚动"
 			case "close":
-				return t("browserSession.closeBrowser")
+				return "关闭浏览器"
 			default:
 				return action
 		}
@@ -598,7 +592,7 @@ const BrowserActionBox = ({ action, coordinate, text }: { action: BrowserAction;
 			<div style={browserActionBoxContainerInnerStyle}>
 				<div style={browseActionRowContainerStyle}>
 					<span style={browseActionRowStyle}>
-						<span style={browseActionTextStyle}>{t("browserSession.browseAction")}</span>
+						<span style={browseActionTextStyle}>浏览器操作: </span>
 						{getBrowserActionText(action, coordinate, text)}
 					</span>
 				</div>

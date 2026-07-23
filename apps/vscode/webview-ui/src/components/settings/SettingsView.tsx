@@ -13,7 +13,6 @@ import {
 	Wrench,
 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { useEvent } from "react-use"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 // import { type ClineUser, useClineAuth } from "@/context/ClineAuthContext"
@@ -35,7 +34,7 @@ import TerminalSettingsSection from "./sections/TerminalSettingsSection"
 const IS_DEV = process.env.IS_DEV
 
 // Tab definitions
-type SettingsTabID = "api-config" | "features" | "terminal" | "general" | "about" | "debug" 
+type SettingsTabID = "api-config" | "features" | "terminal" | "general" | "about" | "debug"
 interface SettingsTab {
 	id: SettingsTabID
 	name: string
@@ -48,30 +47,30 @@ interface SettingsTab {
 const SETTINGS_TABS: SettingsTab[] = [
 	{
 		id: "api-config",
-		name: "API Configuration",
-		tooltipText: "API Configuration",
-		headerText: "API Configuration",
+		name: "API 配置",
+		tooltipText: "API 配置",
+		headerText: "API 配置",
 		icon: SlidersHorizontal,
 	},
 	{
 		id: "features",
-		name: "Features",
-		tooltipText: "Feature Settings",
-		headerText: "Feature Settings",
+		name: "功能",
+		tooltipText: "功能设置",
+		headerText: "功能设置",
 		icon: CheckCheck,
 	},
 	{
 		id: "terminal",
-		name: "Terminal",
-		tooltipText: "Terminal Settings",
-		headerText: "Terminal Settings",
+		name: "终端",
+		tooltipText: "终端设置",
+		headerText: "终端设置",
 		icon: SquareTerminal,
 	},
 	{
 		id: "general",
-		name: "General",
-		tooltipText: "General Settings",
-		headerText: "General Settings",
+		name: "通用",
+		tooltipText: "通用设置",
+		headerText: "通用设置",
 		icon: Wrench,
 	},
 	// {
@@ -84,19 +83,10 @@ const SETTINGS_TABS: SettingsTab[] = [
 	// 		!activeOrganization || !isAdminOrOwner(activeOrganization),
 	// },
 	{
-		id: "remote-config",
-		name: "Remote Config",
-			tooltipText: "Remotely configured fields",
-		headerText: "Remote Config",
-		icon: HardDriveDownload,
-		hidden: ({ activeOrganization } = { activeOrganization: null }) =>
-			!activeOrganization || !isAdminOrOwner(activeOrganization),
-	},
-	{
 		id: "about",
-		name: "About",
-		tooltipText: "About Cline",
-		headerText: "About",
+		name: "关于",
+		tooltipText: "关于 Cline",
+		headerText: "关于",
 		icon: Info,
 	},
 	// Only show in dev mode
@@ -115,29 +105,24 @@ type SettingsViewProps = {
 	targetSection?: string
 }
 
-// Helper to convert kebab-case tab id to camelCase for i18n keys
-const tabIdToCamel = (id: string) => id.replace(/-([a-z])/g, (_, c) => c.toUpperCase())
-
 // Helper to render section header - moved outside component for better performance
-const renderSectionHeader = (tabId: string, t: (key: string) => string) => {
+const renderSectionHeader = (tabId: string) => {
 	const tab = SETTINGS_TABS.find((t) => t.id === tabId)
 	if (!tab) {
 		return null
 	}
 
-	const headerKey = `settings.tabs.${tabIdToCamel(tabId)}Header` as string
 	return (
 		<SectionHeader>
 			<div className="flex items-center gap-2">
 				<tab.icon className="w-4" />
-				<div>{t(headerKey)}</div>
+				<div>{tab.headerText}</div>
 			</div>
 		</SectionHeader>
 	)
 }
 
 const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
-	const { t } = useTranslation("settings")
 	// Memoize to avoid recreation
 	const TAB_CONTENT_MAP: Record<SettingsTabID, React.FC<any>> = useMemo(
 		() => ({
@@ -145,7 +130,6 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 			general: GeneralSettingsSection,
 			features: FeatureSettingsSection,
 			terminal: TerminalSettingsSection,
-			"remote-config": RemoteConfigSection,
 			about: AboutSection,
 			debug: DebugSection,
 		}),
@@ -231,15 +215,15 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 									},
 								)}>
 								<tab.icon className="w-4 h-4" />
-								<span className="hidden sm:block">{t(`settings.tabs.${tabIdToCamel(tab.id)}`)}</span>
+								<span className="hidden sm:block">{tab.name}</span>
 							</div>
 						</TooltipTrigger>
-						<TooltipContent side="right">{t(`settings.tabs.${tabIdToCamel(tab.id)}Tooltip`)}</TooltipContent>
+						<TooltipContent side="right">{tab.tooltipText}</TooltipContent>
 					</Tooltip>
 				</TabTrigger>
 			)
 		},
-		[activeTab, t],
+		[activeTab],
 	)
 
 	// Memoized active content component
@@ -250,7 +234,7 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 		}
 
 		// Special props for specific components
-		const props: any = { renderSectionHeader: (tabId: string) => renderSectionHeader(tabId, t) }
+		const props: any = { renderSectionHeader }
 		if (activeTab === "debug") {
 			props.onResetState = handleResetState
 		} else if (activeTab === "about") {
@@ -271,7 +255,7 @@ const SettingsView = ({ onDone, targetSection }: SettingsViewProps) => {
 					className="shrink-0 flex flex-col overflow-y-auto border-r border-sidebar-background"
 					onValueChange={setActiveTab}
 					value={activeTab}>
-					{SETTINGS_TABS.filter((tab) => !tab.hidden?.({ user: null})).map(renderTabItem)}
+					{SETTINGS_TABS.filter((tab) => !tab.hidden?.({ user: null })).map(renderTabItem)}
 				</TabList>
 
 				<TabContent className="flex-1 overflow-auto">{ActiveContent}</TabContent>

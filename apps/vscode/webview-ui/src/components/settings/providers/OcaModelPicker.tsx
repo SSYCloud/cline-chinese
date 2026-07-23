@@ -27,7 +27,6 @@ const OcaModelPicker: React.FC<OcaModelPickerProps> = ({
 	loading,
 	lastRefreshedAt,
 }: OcaModelPickerProps) => {
-	const { t } = useTranslation("settings")
 	const { handleModeFieldsChange } = useApiConfigurationHandlers()
 	const [pendingModelId, setPendingModelId] = React.useState<string | null>(null)
 	const [showRestrictedPopup, setShowRestrictedPopup] = React.useState(false)
@@ -143,7 +142,7 @@ const OcaModelPicker: React.FC<OcaModelPickerProps> = ({
 					overflow: auto;
 				}
 			`}</style>
-			<label className="font-medium text-[12px] mt-[10px] mb-[2px]">{t("settings.model")}</label>
+			<label className="font-medium text-[12px] mt-[10px] mb-[2px]">Model</label>
 			<div className="relative z-100 flex items-center gap-2 mb-1">
 				<VSCodeDropdown
 					className="flex-1 text-[12px] min-h-[24px]"
@@ -181,7 +180,7 @@ const OcaModelPicker: React.FC<OcaModelPickerProps> = ({
 						minWidth: 0,
 						margin: 0,
 					}}>
-					loading ? t("modelPicker.refreshing") : t("modelPicker.refresh")
+					{loading ? "Refreshing…" : "Refresh"}
 				</VSCodeButton>
 			</div>
 			{lastRefreshedText ? (

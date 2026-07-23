@@ -118,7 +118,7 @@ const SapAiCoreModelPicker: React.FC<SapAiCoreModelPickerProps> = ({
 		// Add placeholder option
 		options.push(
 			<VSCodeOption key="placeholder" value="">
-				{resolvedPlaceholder}
+				{placeholder}
 			</VSCodeOption>,
 		)
 

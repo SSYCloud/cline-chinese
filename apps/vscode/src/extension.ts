@@ -2,7 +2,6 @@
 // Import the module and reference it with the alias vscode in your code below
 
 import assert from "node:assert"
-import os from "node:os"
 import { DIFF_VIEW_URI_SCHEME } from "@hosts/vscode/VscodeDiffViewProvider"
 import * as vscode from "vscode"
 import { Logger } from "@/shared/services/Logger"
@@ -242,7 +241,7 @@ export async function activate(context: vscode.ExtensionContext) {
 				Logger.error("Error getting terminal contents:", error)
 				HostProvider.window.showMessage({
 					type: ShowMessageType.ERROR,
-					message: "Failed to get terminal contents",
+					message: "获取终端内容失败",
 				})
 			}
 		}),
@@ -296,39 +295,39 @@ export async function activate(context: vscode.ExtensionContext) {
 					}
 
 					// Add to Cline (Always available)
-					const addAction = new vscode.CodeAction("Add to Cline", vscode.CodeActionKind.QuickFix)
+					const addAction = new vscode.CodeAction("添加到 Cline", vscode.CodeActionKind.QuickFix)
 					addAction.command = {
 						command: commands.AddToChat,
-						title: "Add to Cline",
+						title: "添加到 Cline",
 						arguments: [expandedRange, context.diagnostics],
 					}
 					actions.push(addAction)
 
 					// Explain with Cline (Always available)
-					const explainAction = new vscode.CodeAction("Explain with Cline", vscode.CodeActionKind.RefactorExtract) // Using a refactor kind
+					const explainAction = new vscode.CodeAction("用 Cline 解释", vscode.CodeActionKind.RefactorExtract) // Using a refactor kind
 					explainAction.command = {
 						command: commands.ExplainCode,
-						title: "Explain with Cline",
+						title: "用Cline-中文版解释",
 						arguments: [expandedRange],
 					}
 					actions.push(explainAction)
 
 					// Improve with Cline (Always available)
-					const improveAction = new vscode.CodeAction("Improve with Cline", vscode.CodeActionKind.RefactorRewrite) // Using a refactor kind
+					const improveAction = new vscode.CodeAction("用 Cline 优化", vscode.CodeActionKind.RefactorRewrite) // Using a refactor kind
 					improveAction.command = {
 						command: commands.ImproveCode,
-						title: "Improve with Cline",
+						title: "用Cline-中文版优化",
 						arguments: [expandedRange],
 					}
 					actions.push(improveAction)
 
 					// Fix with Cline (Only if diagnostics exist)
 					if (context.diagnostics.length > 0) {
-						const fixAction = new vscode.CodeAction("Fix with Cline", vscode.CodeActionKind.QuickFix)
+						const fixAction = new vscode.CodeAction("用 Cline 修复", vscode.CodeActionKind.QuickFix)
 						fixAction.isPreferred = true
 						fixAction.command = {
 							command: commands.FixWithCline,
-							title: "Fix with Cline",
+							title: "用 Cline 修改",
 							arguments: [expandedRange, context.diagnostics],
 						}
 						actions.push(fixAction)
@@ -511,7 +510,7 @@ ${ctx.cellJson || "{}"}
 	context.subscriptions.push(
 		vscode.commands.registerCommand(commands.Walkthrough, async () => {
 			await vscode.commands.executeCommand("workbench.action.openWalkthrough", `${context.extension.id}#ClineWalkthrough`)
-			telemetryService.captureButtonClick("command_openWalkthrough")
+			// telemetryService.captureButtonClick("command_openWalkthrough")
 		}),
 	)
 
@@ -534,7 +533,6 @@ ${ctx.cellJson || "{}"}
 		// 	const secretValue = storageContext.secrets.get<string>(event.key)
 		// 	const activeWebview = WebviewProvider.getVisibleInstance()
 		// 	const controller = activeWebview?.controller
-
 		// 	// const authService = AuthService.getInstance(controller)
 		// 	// if (secretValue) {
 		// 	// 	// Secret was added or updated - restore auth info (login from another window)

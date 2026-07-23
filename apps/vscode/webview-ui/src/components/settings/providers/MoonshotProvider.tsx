@@ -1,7 +1,6 @@
 import { UpdateApiConfigurationRequestNew } from "@shared/proto/index.cline"
 import { Mode } from "@shared/storage/types"
 import { VSCodeDropdown, VSCodeOption } from "@vscode/webview-ui-toolkit/react"
-import { useTranslation } from "react-i18next"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useStaticProviderSelection } from "@/hooks/useStaticProviderSelection"
 import { ModelsServiceClient } from "@/services/grpc-client"
@@ -22,7 +21,6 @@ interface MoonshotProviderProps {
  * The Moonshot AI Studio provider configuration component
  */
 export const MoonshotProvider = ({ showModelOptions, isPopup, currentMode }: MoonshotProviderProps) => {
-	const { t } = useTranslation("settings")
 	const { apiConfiguration } = useExtensionState()
 
 	// Get the normalized configuration
@@ -36,7 +34,7 @@ export const MoonshotProvider = ({ showModelOptions, isPopup, currentMode }: Moo
 		<div>
 			<DropdownContainer className="dropdown-container" style={{ position: "inherit" }}>
 				<label htmlFor="moonshot-entrypoint">
-					<span style={{ fontWeight: 500, marginTop: 5 }}>{t("providers.moonshot.entrypoint")}</span>
+					<span style={{ fontWeight: 500, marginTop: 5 }}>Moonshot Entrypoint</span>
 				</label>
 				<VSCodeDropdown
 					id="moonshot-entrypoint"
@@ -63,7 +61,7 @@ export const MoonshotProvider = ({ showModelOptions, isPopup, currentMode }: Moo
 				</VSCodeDropdown>
 			</DropdownContainer>
 			<ApiKeyField
-				helpText="This key is stored locally and only used to make API requests from this extension."
+				helpText="此密钥存储在本地，仅用于从此扩展发出 API 请求。"
 				initialValue={apiConfiguration?.moonshotApiKey || ""}
 				onChange={async (value) => {
 					await ModelsServiceClient.updateApiConfiguration(

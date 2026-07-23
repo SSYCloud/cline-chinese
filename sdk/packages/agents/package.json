@@ -8,8 +8,8 @@
 	},
 	"main": "dist/index.js",
 	"dependencies": {
-		"@coohu/llms": "0.1.13",
-		"@coohu/shared": "0.1.13",
+		"@coohu/llms": "workspace:*",
+		"@coohu/shared": "workspace:*",
 		"nanoid": "^5.1.7"
 	},
 	"exports": {

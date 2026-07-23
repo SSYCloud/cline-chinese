@@ -118,7 +118,6 @@ MemoizedMarkdown.displayName = "MemoizedMarkdown"
  * A component for Act Mode text that contains a clickable toggle and keyboard shortcut hint.
  */
 const ActModeHighlight: React.FC = () => {
-	const { t } = useTranslation("misc")
 	const { mode } = useExtensionState()
 
 	return (
@@ -141,7 +140,7 @@ const ActModeHighlight: React.FC = () => {
 			<div className="p-1 rounded-md bg-code flex items-center justify-end w-7 border border-input-border">
 				<div className="rounded-full bg-link w-2 h-2" />
 			</div>
-			Act Mode (⌘⇧A)
+			执行模式 (⌘⇧A)
 		</span>
 	)
 }
@@ -237,7 +236,7 @@ const remarkHighlightActMode = () => {
 					if (toIndex !== -1 && actModeIndex !== -1) {
 						// Add "to" as regular text
 						const toPart = matchText.substring(toIndex, actModeIndex).trim()
-						children.push({ type: "text", value: `${toPart} ` })
+						children.push({ type: "text", value: toPart + " " })
 
 						// Add "Act Mode" as bold with keyboard shortcut
 						const actModePart = matchText.substring(actModeIndex)
@@ -247,7 +246,7 @@ const remarkHighlightActMode = () => {
 						})
 					} else {
 						// Fallback if we can't parse it correctly
-						children.push({ type: "text", value: `${matchText} ` })
+						children.push({ type: "text", value: matchText + " " })
 						children.push({
 							type: "strong",
 							children: [{ type: "text", value: `(⌘⇧A)` }],
@@ -313,7 +312,6 @@ const remarkPreventBoldFilenames = () => {
 }
 
 const PreWithCopyButton = ({ children, ...preProps }: React.HTMLAttributes<HTMLPreElement>) => {
-	const { t } = useTranslation("misc")
 	const preRef = useRef<HTMLPreElement>(null)
 
 	const handleCopy = () => {
@@ -330,7 +328,7 @@ const PreWithCopyButton = ({ children, ...preProps }: React.HTMLAttributes<HTMLP
 	}
 
 	return (
-		<WithCopyButton ariaLabel={t("common.markdownBlock.copyCode")} onCopy={handleCopy} position="top-right">
+		<WithCopyButton ariaLabel="Copy code" onCopy={handleCopy} position="top-right">
 			<pre {...preProps} ref={preRef}>
 				{children}
 			</pre>

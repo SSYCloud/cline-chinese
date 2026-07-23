@@ -1,6 +1,7 @@
 import { Logger } from "@/shared/services/Logger"
 import { ErrorProviderFactory } from "./ErrorProviderFactory"
 import { IErrorProvider } from "./providers/IErrorProvider"
+import { SSYError } from "./SSYError"
 
 /**
  * ErrorService handles error logging and tracking for the Cline extension
@@ -56,9 +57,9 @@ export class ErrorService {
 		this.provider.logMessage(message, level, properties)
 	}
 
-	public toClineError(rawError: unknown, modelId?: string, providerId?: string): ClineError {
-		const transformed = ClineError.transform(rawError, modelId, providerId)
-		this.logException(transformed, { modelId, providerId })
+	public toClineError(rawError: unknown, modelId?: string, providerId?: string): SSYError {
+		const transformed = SSYError.transform(rawError, modelId, providerId)
+		// this.logException(transformed, { modelId, providerId })
 		return transformed
 	}
 

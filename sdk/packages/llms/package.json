@@ -44,7 +44,7 @@
 		}
 	},
 	"dependencies": {
-		"@coohu/shared": "0.1.13",
+		"@coohu/shared": "workspace:*",
 		"@ai-sdk/amazon-bedrock": "^4.0.89",
 		"@ai-sdk/anthropic": "^3.0.68",
 		"@ai-sdk/google": "^3.0.60",

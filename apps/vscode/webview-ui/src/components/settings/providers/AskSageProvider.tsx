@@ -1,7 +1,6 @@
 import { type ModelInfo } from "@shared/api"
 import { Mode } from "@shared/storage/types"
 import { useEffect, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useStaticProviderSelection } from "@/hooks/useStaticProviderSelection"
 import { ApiKeyField } from "../common/ApiKeyField"
@@ -30,7 +29,6 @@ const askSageDefaultURL = "https://api.asksage.ai/server"
  * returns nothing, we fall back to the full SDK list.
  */
 export const AskSageProvider = ({ showModelOptions, isPopup, currentMode }: AskSageProviderProps) => {
-	const { t } = useTranslation("settings")
 	const { apiConfiguration } = useExtensionState()
 	const { handleFieldChange, handleModeFieldChange } = useApiConfigurationHandlers()
 	const { models, selectedModelId, selectedModelInfo, hideUsageCost } = useStaticProviderSelection(
@@ -81,7 +79,7 @@ export const AskSageProvider = ({ showModelOptions, isPopup, currentMode }: AskS
 	return (
 		<div>
 			<ApiKeyField
-				helpText="This key is stored locally and only used to make API requests from this extension."
+				helpText="此密钥存储在本地，仅用于从此扩展发出 API 请求。"
 				initialValue={apiConfiguration?.asksageApiKey || ""}
 				onChange={(value) => handleFieldChange("asksageApiKey", value)}
 				providerName="AskSage"
@@ -90,16 +88,16 @@ export const AskSageProvider = ({ showModelOptions, isPopup, currentMode }: AskS
 			<DebouncedTextField
 				initialValue={apiConfiguration?.asksageApiUrl || askSageDefaultURL}
 				onChange={(value) => handleFieldChange("asksageApiUrl", value)}
-				placeholder={t("providers.askSage.enterApiUrl")}
+				placeholder="输入 AskSage API URL..."
 				style={{ width: "100%" }}
 				type="text">
-				<span style={{ fontWeight: 500 }}>{t("providers.askSage.apiUrl")}</span>
+				<span style={{ fontWeight: 500 }}>AskSage API URL</span>
 			</DebouncedTextField>
 
 			{showModelOptions && (
 				<>
 					<ModelSelector
-						label={t("settings.model")}
+						label="Model"
 						models={availableModels}
 						onChange={(e) =>
 							handleModeFieldChange(

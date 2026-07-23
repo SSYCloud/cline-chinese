@@ -4,7 +4,7 @@ import {
 	OpenRouterModelInfo,
 	ModelsApiConfiguration as ProtoApiConfiguration,
 	OcaModelInfo as ProtoOcaModelInfo,
-	ShengSuanYunModelInfo as ProtoShengSuanYunModelInfo,
+	ShengSuanYunModelInfo,
 	ThinkingConfig,
 } from "@shared/proto/cline/models"
 import {
@@ -32,7 +32,7 @@ function convertThinkingConfigToProto(config: ModelInfo["thinkingConfig"]): Thin
 }
 
 // Convert proto ThinkingConfig to application ThinkingConfig
-function convertProtoToThinkingConfig(config: ThinkingConfig | undefined): ModelInfo["thinkingConfig"] | undefined {
+function convertProtoToThinkingConfig(config: ThinkingConfig | undefined): ThinkingConfig | undefined {
 	if (!config) {
 		return undefined
 	}
@@ -40,8 +40,8 @@ function convertProtoToThinkingConfig(config: ThinkingConfig | undefined): Model
 	return {
 		maxBudget: config.maxBudget,
 		outputPrice: config.outputPrice,
-		outputPriceTiers: config.outputPriceTiers.length > 0 ? config.outputPriceTiers : undefined,
-	}
+		outputPriceTiers: config.outputPriceTiers || [], // Provide empty array if undefined
+	} as ThinkingConfig
 }
 
 // Convert application ModelInfo to proto OpenRouterModelInfo
@@ -240,7 +240,9 @@ function convertProtoToOpenAiCompatibleModelInfo(
 		isR1FormatRequired: info.isR1FormatRequired,
 	}
 }
-function convertModelInfoToProtoShengSuanYun(info: ModelInfo | ShengSuanYunModelInfo | undefined): ShengSuanYunModelInfo | undefined {
+function convertModelInfoToProtoShengSuanYun(
+	info: ModelInfo | ShengSuanYunModelInfo | undefined,
+): ShengSuanYunModelInfo | undefined {
 	if (!info) {
 		return undefined
 	}
@@ -360,6 +362,8 @@ export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoA
 		sapAiResourceGroup: config.sapAiResourceGroup,
 		sapAiCoreTokenUrl: config.sapAiCoreTokenUrl,
 		sapAiCoreBaseUrl: config.sapAiCoreBaseUrl,
+		shengSuanYunApiKey: config.shengSuanYunApiKey,
+		shengSuanYunToken: config.shengSuanYunToken,
 		sapAiCoreUseOrchestrationMode: config.sapAiCoreUseOrchestrationMode,
 		huaweiCloudMaasApiKey: config.huaweiCloudMaasApiKey,
 		zaiApiLine: config.zaiApiLine,
@@ -395,7 +399,6 @@ export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoA
 		planModeClinePassModelInfo: convertModelInfoToProtoOpenRouter(config.planModeClinePassModelInfo),
 		planModeOpenAiModelId: config.planModeOpenAiModelId,
 		planModeOpenAiModelInfo: convertOpenAiCompatibleModelInfoToProto(config.planModeOpenAiModelInfo),
-		planModeDeepSeekModelInfo: convertModelInfoToProtoOpenRouter(config.planModeDeepSeekModelInfo),
 		planModeOllamaModelId: config.planModeOllamaModelId,
 		planModeLmStudioModelId: config.planModeLmStudioModelId,
 		planModeLiteLlmModelId: config.planModeLiteLlmModelId,
@@ -411,6 +414,8 @@ export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoA
 		planModeHuggingFaceModelId: config.planModeHuggingFaceModelId,
 		planModeHuggingFaceModelInfo: convertModelInfoToProtoOpenRouter(config.planModeHuggingFaceModelInfo),
 		planModeSapAiCoreModelId: config.planModeSapAiCoreModelId,
+		planModeShengSuanYunModelId: config.planModeShengSuanYunModelId,
+		planModeShengSuanYunModelInfo: convertModelInfoToProtoShengSuanYun(config.planModeShengSuanYunModelInfo),
 		planModeHuaweiCloudMaasModelId: config.planModeHuaweiCloudMaasModelId,
 		planModeHuaweiCloudMaasModelInfo: convertModelInfoToProtoOpenRouter(config.planModeHuaweiCloudMaasModelInfo),
 		planModeSapAiCoreDeploymentId: config.planModeSapAiCoreDeploymentId,
@@ -442,7 +447,6 @@ export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoA
 		actModeClinePassModelInfo: convertModelInfoToProtoOpenRouter(config.actModeClinePassModelInfo),
 		actModeOpenAiModelId: config.actModeOpenAiModelId,
 		actModeOpenAiModelInfo: convertOpenAiCompatibleModelInfoToProto(config.actModeOpenAiModelInfo),
-		actModeDeepSeekModelInfo: convertModelInfoToProtoOpenRouter(config.actModeDeepSeekModelInfo),
 		actModeOllamaModelId: config.actModeOllamaModelId,
 		actModeLmStudioModelId: config.actModeLmStudioModelId,
 		actModeLiteLlmModelId: config.actModeLiteLlmModelId,
@@ -458,6 +462,8 @@ export function convertApiConfigurationToProto(config: ApiConfiguration): ProtoA
 		actModeHuggingFaceModelId: config.actModeHuggingFaceModelId,
 		actModeHuggingFaceModelInfo: convertModelInfoToProtoOpenRouter(config.actModeHuggingFaceModelInfo),
 		actModeSapAiCoreModelId: config.actModeSapAiCoreModelId,
+		actModeShengSuanYunModelId: config.actModeShengSuanYunModelId,
+		actModeShengSuanYunModelInfo: convertModelInfoToProtoShengSuanYun(config.actModeShengSuanYunModelInfo),
 		actModeHuaweiCloudMaasModelId: config.actModeHuaweiCloudMaasModelId,
 		actModeHuaweiCloudMaasModelInfo: convertModelInfoToProtoOpenRouter(config.actModeHuaweiCloudMaasModelInfo),
 		actModeSapAiCoreDeploymentId: config.actModeSapAiCoreDeploymentId,
@@ -546,6 +552,8 @@ export function convertProtoToApiConfiguration(protoConfig: ProtoApiConfiguratio
 		sapAiResourceGroup: protoConfig.sapAiResourceGroup,
 		sapAiCoreTokenUrl: protoConfig.sapAiCoreTokenUrl,
 		sapAiCoreBaseUrl: protoConfig.sapAiCoreBaseUrl,
+		shengSuanYunToken: protoConfig.shengSuanYunToken,
+		shengSuanYunApiKey: protoConfig.shengSuanYunApiKey,
 		sapAiCoreUseOrchestrationMode: protoConfig.sapAiCoreUseOrchestrationMode,
 		huaweiCloudMaasApiKey: protoConfig.huaweiCloudMaasApiKey,
 		zaiApiLine: protoConfig.zaiApiLine,
@@ -584,7 +592,6 @@ export function convertProtoToApiConfiguration(protoConfig: ProtoApiConfiguratio
 		planModeClinePassModelInfo: convertProtoToModelInfo(protoConfig.planModeClinePassModelInfo),
 		planModeOpenAiModelId: protoConfig.planModeOpenAiModelId,
 		planModeOpenAiModelInfo: convertProtoToOpenAiCompatibleModelInfo(protoConfig.planModeOpenAiModelInfo),
-		planModeDeepSeekModelInfo: convertProtoToModelInfo(protoConfig.planModeDeepSeekModelInfo),
 		planModeOllamaModelId: protoConfig.planModeOllamaModelId,
 		planModeLmStudioModelId: protoConfig.planModeLmStudioModelId,
 		planModeLiteLlmModelId: protoConfig.planModeLiteLlmModelId,
@@ -600,6 +607,8 @@ export function convertProtoToApiConfiguration(protoConfig: ProtoApiConfiguratio
 		planModeHuggingFaceModelId: protoConfig.planModeHuggingFaceModelId,
 		planModeHuggingFaceModelInfo: convertProtoToModelInfo(protoConfig.planModeHuggingFaceModelInfo),
 		planModeSapAiCoreModelId: protoConfig.planModeSapAiCoreModelId,
+		planModeShengSuanYunModelId: protoConfig.planModeShengSuanYunModelId,
+		planModeShengSuanYunModelInfo: convertProtoToShengSuanYunModelInfo(protoConfig.planModeShengSuanYunModelInfo),
 		planModeHuaweiCloudMaasModelId: protoConfig.planModeHuaweiCloudMaasModelId,
 		planModeHuaweiCloudMaasModelInfo: convertProtoToModelInfo(protoConfig.planModeHuaweiCloudMaasModelInfo),
 		planModeSapAiCoreDeploymentId: protoConfig.planModeSapAiCoreDeploymentId,
@@ -632,7 +641,6 @@ export function convertProtoToApiConfiguration(protoConfig: ProtoApiConfiguratio
 		actModeClinePassModelInfo: convertProtoToModelInfo(protoConfig.actModeClinePassModelInfo),
 		actModeOpenAiModelId: protoConfig.actModeOpenAiModelId,
 		actModeOpenAiModelInfo: convertProtoToOpenAiCompatibleModelInfo(protoConfig.actModeOpenAiModelInfo),
-		actModeDeepSeekModelInfo: convertProtoToModelInfo(protoConfig.actModeDeepSeekModelInfo),
 		actModeOllamaModelId: protoConfig.actModeOllamaModelId,
 		actModeLmStudioModelId: protoConfig.actModeLmStudioModelId,
 		actModeLiteLlmModelId: protoConfig.actModeLiteLlmModelId,
@@ -648,6 +656,8 @@ export function convertProtoToApiConfiguration(protoConfig: ProtoApiConfiguratio
 		actModeHuggingFaceModelId: protoConfig.actModeHuggingFaceModelId,
 		actModeHuggingFaceModelInfo: convertProtoToModelInfo(protoConfig.actModeHuggingFaceModelInfo),
 		actModeSapAiCoreModelId: protoConfig.actModeSapAiCoreModelId,
+		actModeShengSuanYunModelId: protoConfig.actModeShengSuanYunModelId,
+		actModeShengSuanYunModelInfo: convertProtoToShengSuanYunModelInfo(protoConfig.actModeShengSuanYunModelInfo),
 		actModeHuaweiCloudMaasModelId: protoConfig.actModeHuaweiCloudMaasModelId,
 		actModeHuaweiCloudMaasModelInfo: convertProtoToModelInfo(protoConfig.actModeHuaweiCloudMaasModelInfo),
 		actModeSapAiCoreDeploymentId: protoConfig.actModeSapAiCoreDeploymentId,

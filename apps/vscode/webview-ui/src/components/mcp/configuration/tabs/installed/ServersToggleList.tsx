@@ -1,5 +1,4 @@
 import { McpServer } from "@shared/mcp"
-import { useTranslation } from "react-i18next"
 import ServerRow from "./server-row/ServerRow"
 
 export type MarketplaceMcpMetadata = {
@@ -20,8 +19,6 @@ const ServersToggleList = ({
 	listGap?: "small" | "medium" | "large"
 	marketplaceMetadataByServerName?: Map<string, MarketplaceMcpMetadata>
 }) => {
-	const { t } = useTranslation("misc")
-
 	const gapClasses = {
 		small: "gap-0",
 		medium: "gap-2.5",
@@ -43,9 +40,7 @@ const ServersToggleList = ({
 			))}
 		</div>
 	) : (
-		<div className="flex flex-col items-center gap-3 my-5 text-(--vscode-descriptionForeground)">
-			{t("mcp.configureView.noServersInstalled")}
-		</div>
+		<div className="flex flex-col items-center gap-3 my-5 text-(--vscode-descriptionForeground)">没有安装 MCP服务</div>
 	)
 }
 

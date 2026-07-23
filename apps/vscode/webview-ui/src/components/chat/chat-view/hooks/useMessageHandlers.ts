@@ -267,7 +267,6 @@ export function useMessageHandlers(messages: ClineMessage[], chatState: ChatStat
 			setEnableButtons,
 			setPendingUserMessage,
 			chatState,
-			messages,
 		],
 	)
 
@@ -428,7 +427,9 @@ export function useMessageHandlers(messages: ClineMessage[], chatState: ChatStat
 		[
 			clineAsk,
 			lastMessage,
+			messages,
 			clearInputState,
+			handleSendMessage,
 			startNewTask,
 			chatState,
 			backgroundCommandRunning,

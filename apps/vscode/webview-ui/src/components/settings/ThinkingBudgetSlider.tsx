@@ -2,7 +2,6 @@ import { ANTHROPIC_MAX_THINKING_BUDGET, ANTHROPIC_MIN_THINKING_BUDGET } from "@s
 import { Mode } from "@shared/storage/types"
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import { memo, useCallback, useEffect, useState } from "react"
-import { useTranslation } from "react-i18next"
 import styled from "styled-components"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { getModeSpecificFields } from "./utils/providerUtils"
@@ -112,7 +111,7 @@ const ThinkingBudgetSlider = ({ currentMode, maxBudget, showEnableToggle = true 
 		if (newIsEnabled !== isEnabled) {
 			setIsEnabled(newIsEnabled)
 		}
-	}, [modeFields.thinkingBudgetTokens, isEnabled, localValue])
+	}, [modeFields.thinkingBudgetTokens])
 
 	const handleSliderChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
 		const value = Number.parseInt(event.target.value, 10)

@@ -90,6 +90,7 @@ export interface ExtensionState {
 	terminalReuseEnabled?: boolean
 	maxConsecutiveMistakes: number
 	defaultTerminalProfile?: string
+	uriScheme?: string
 	vscodeTerminalExecutionMode: string
 	backgroundCommandRunning?: boolean
 	backgroundCommandTaskId?: string
@@ -278,13 +279,6 @@ export interface ClineSayTool {
 	/** Inclusive line range actually returned by read_file (for UI summaries). */
 	readLineStart?: number
 	readLineEnd?: number
-}
-
-export type HookOutputStreamMeta = {
-	/** Which hook configuration the script originated from (global vs workspace). */
-	source: "global" | "workspace"
-	/** Full path to the hook script that emitted the output. */
-	scriptPath: string
 }
 
 // must keep in sync with system prompt

@@ -257,7 +257,7 @@ export function useScrollBehavior(
 			}
 			// When expanding, don't scroll - let the element expand in place
 		},
-		[groupedMessages, expandedRows, scrollToBottomAuto, isAtBottom, setExpandedRows],
+		[groupedMessages, expandedRows, scrollToBottomAuto, isAtBottom],
 	)
 
 	const clearLayoutSettleScrollTimers = useCallback(() => {
@@ -317,7 +317,7 @@ export function useScrollBehavior(
 		if (pendingScrollToMessage !== null) {
 			scrollToMessage(pendingScrollToMessage)
 		}
-	}, [pendingScrollToMessage, scrollToMessage])
+	}, [pendingScrollToMessage, groupedMessages, scrollToMessage])
 
 	const handleWheel = useCallback((event: Event) => {
 		const wheelEvent = event as WheelEvent

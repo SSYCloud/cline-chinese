@@ -12,9 +12,6 @@ import { getAxiosSettings } from "@/shared/net"
 import { Logger } from "@/shared/services/Logger"
 import { Controller } from ".."
 
-// Track pending refresh promise to prevent duplicate concurrent fetches
-let pendingRefresh: Promise<Record<string, ModelInfo>> | null = null
-
 /**
  * Baseten's curated model catalog from the SDK. Used as a fallback
  * when the live API fetch fails. Adapted to the extension `ModelInfo`

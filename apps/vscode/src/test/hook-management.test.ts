@@ -117,10 +117,6 @@ describe("Hook Management", () => {
 				return
 			}
 
-			if (isWindows) {
-				this.skip()
-			}
-
 			const request = CreateHookRequest.create({
 				hookName: "TaskResume",
 				isGlobal: false,
@@ -291,10 +287,6 @@ describe("Hook Management", () => {
 				return
 			}
 
-			if (isWindows) {
-				this.skip()
-			}
-
 			// Create a non-executable hook
 			const hookPath = path.join(globalHooksDir, "TaskStart")
 			await fs.writeFile(hookPath, "#!/usr/bin/env node\nconsole.log('test')", { mode: 0o644 })
@@ -319,10 +311,6 @@ describe("Hook Management", () => {
 				return
 			}
 
-			if (isWindows) {
-				this.skip()
-			}
-
 			// Create an executable hook
 			const hookPath = path.join(globalHooksDir, "TaskResume")
 			await fs.writeFile(hookPath, "#!/usr/bin/env node\nconsole.log('test')", { mode: 0o755 })
@@ -344,10 +332,6 @@ describe("Hook Management", () => {
 		it("should work for workspace hooks", async () => {
 			if (isWindows) {
 				return
-			}
-
-			if (isWindows) {
-				this.skip()
 			}
 
 			// Create a workspace hook
@@ -425,10 +409,6 @@ describe("Hook Management", () => {
 		it("should correctly identify executable vs non-executable hooks", async () => {
 			if (isWindows) {
 				return
-			}
-
-			if (isWindows) {
-				this.skip()
 			}
 
 			await fs.writeFile(path.join(globalHooksDir, "TaskStart"), "#!/usr/bin/env node", { mode: 0o755 })
@@ -510,10 +490,6 @@ describe("Hook Management", () => {
 		it("should handle permission errors gracefully", async () => {
 			if (isWindows) {
 				return
-			}
-
-			if (isWindows) {
-				this.skip()
 			}
 
 			// Create a hook

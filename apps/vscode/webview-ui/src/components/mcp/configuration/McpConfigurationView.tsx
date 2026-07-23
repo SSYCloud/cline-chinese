@@ -3,7 +3,6 @@ import { EmptyRequest } from "@shared/proto/cline/common"
 import { McpServers } from "@shared/proto/cline/mcp"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
 import { useEffect, useState } from "react"
-import { useTranslation } from "react-i18next"
 import styled from "styled-components"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { McpServiceClient } from "@/services/grpc-client"
@@ -17,7 +16,6 @@ type McpViewProps = {
 }
 
 const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
-	const { t } = useTranslation("misc")
 	const { remoteConfigSettings, setMcpServers, environment } = useExtensionState()
 	const showRemoteServers = remoteConfigSettings?.blockPersonalRemoteMCPServers !== true
 	const [activeTab, setActiveTab] = useState<McpViewTab>(initialTab || "configure")
@@ -69,11 +67,11 @@ const McpConfigurationView = ({ onDone, initialTab }: McpViewProps) => {
 					}}>
 					{showRemoteServers && (
 						<TabButton isActive={activeTab === "addRemote"} onClick={() => handleTabChange("addRemote")}>
-							{t("mcp.configuration.remoteServers")}
+							远程服务
 						</TabButton>
 					)}
 					<TabButton isActive={activeTab === "configure"} onClick={() => handleTabChange("configure")}>
-						{t("mcp.configuration.configure")}
+						配置
 					</TabButton>
 				</div>
 

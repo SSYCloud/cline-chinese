@@ -12,7 +12,6 @@ import {
 } from "@shared/proto/cline/file"
 import { VSCodeButton, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import React, { useEffect, useRef, useState } from "react"
-import { useTranslation } from "react-i18next"
 import { useClickAway, useWindowSize } from "react-use"
 import styled from "styled-components"
 import PopupModalContainer from "@/components/common/PopupModalContainer"
@@ -45,7 +44,6 @@ const ClineRulesToggleModal: React.FC = () => {
 		setLocalSkillsToggles,
 		setRemoteRulesToggles,
 	} = useExtensionState()
-	const { t } = useTranslation("misc")
 	const [globalHooks, setGlobalHooks] = useState<Array<{ name: string; enabled: boolean; absolutePath: string }>>([])
 	const [workspaceHooks, setWorkspaceHooks] = useState<
 		Array<{ workspaceName: string; hooks: Array<{ name: string; enabled: boolean; absolutePath: string }> }>
@@ -108,7 +106,6 @@ const ClineRulesToggleModal: React.FC = () => {
 		setLocalCursorRulesToggles,
 		setLocalWindsurfRulesToggles,
 		setLocalWorkflowToggles,
-		setLocalAgentsRulesToggles,
 	])
 
 	// Refresh hooks when hooks tab becomes visible
@@ -340,36 +337,6 @@ const ClineRulesToggleModal: React.FC = () => {
 			})
 	}
 
-	// Handle toggle for skills
-	const toggleSkill = (isGlobal: boolean, skillPath: string, enabled: boolean) => {
-		FileServiceClient.toggleSkill(
-			ToggleSkillRequest.create({
-				skillPath,
-				isGlobal,
-				enabled,
-			}),
-		)
-			.then((response) => {
-				if (response.globalSkillsToggles) {
-					setGlobalSkillsToggles(response.globalSkillsToggles)
-				}
-				if (response.localSkillsToggles) {
-					setLocalSkillsToggles(response.localSkillsToggles)
-				}
-				// Update local skills state
-				if (skillPath.startsWith("remote:")) {
-					setGlobalSkills((prev) => prev.map((s) => (s.path === skillPath ? { ...s, enabled } : s)))
-				} else if (isGlobal) {
-					setGlobalSkills((prev) => prev.map((s) => (s.path === skillPath ? { ...s, enabled } : s)))
-				} else {
-					setLocalSkills((prev) => prev.map((s) => (s.path === skillPath ? { ...s, enabled } : s)))
-				}
-			})
-			.catch((error) => {
-				console.error("Error toggling skill:", error)
-			})
-	}
-
 	// Close modal when clicking outside
 	useClickAway(modalRef, () => {
 		setIsVisible(false)
@@ -385,7 +352,7 @@ const ClineRulesToggleModal: React.FC = () => {
 			setArrowPosition(rightPosition)
 			setMenuPosition(buttonRect.top + 1)
 		}
-	}, [isVisible])
+	}, [isVisible, viewportWidth, viewportHeight])
 
 	return (
 		<div className="inline-flex min-w-0 max-w-full items-center" ref={modalRef}>
@@ -424,11 +391,11 @@ const ClineRulesToggleModal: React.FC = () => {
 									flexWrap: "wrap",
 								}}>
 								<TabButton isActive={currentView === "rules"} onClick={() => setCurrentView("rules")}>
-									{t("rules.tabs.rules")}
+									Rules
 								</TabButton>
 								{hooksEnabled && (
 									<TabButton isActive={currentView === "hooks"} onClick={() => setCurrentView("hooks")}>
-										{t("rules.tabs.hooks")}
+										Hooks
 									</TabButton>
 								)}
 								<TabButton isActive={currentView === "skills"} onClick={() => setCurrentView("skills")}>
@@ -453,7 +420,8 @@ const ClineRulesToggleModal: React.FC = () => {
 						<div className="text-xs text-description mb-4">
 							{currentView === "rules" ? (
 								<p>
-									Rules 允许您向 Cline 提供系统级的指导。不妨将其视为一种持久化的方式，用于为您的项目——或是在全局范围内针对每一次对话——注入上下文与偏好设置。{" "}
+									Rules 允许您向 Cline
+									提供系统级的指导。不妨将其视为一种持久化的方式，用于为您的项目——或是在全局范围内针对每一次对话——注入上下文与偏好设置。{" "}
 									<VSCodeLink
 										className="text-xs"
 										href="https://docs.cline.bot/features/cline-rules"
@@ -463,15 +431,14 @@ const ClineRulesToggleModal: React.FC = () => {
 								</p>
 							) : currentView === "skills" ? (
 								<p>
-									Skills 是可复用的指令集，Cline 可按需将其激活。当某项任务与技能的描述相匹配时，Cline 会使用 <span className="font-bold">use_skill</span> 工具来加载完整的指令。
+									Skills 是可复用的指令集，Cline 可按需将其激活。当某项任务与技能的描述相匹配时，Cline 会使用{" "}
+									<span className="font-bold">use_skill</span> 工具来加载完整的指令。
 								</p>
-							) : currentView === "skills" ? (
+							) : (
 								<p>
 									Hooks 允许您在 Cline 的执行生命周期中的特定点执行自定义脚本，
 									从而实现自动化和与外部工具的集成。
 								</p>
-							) : (
-								<p>{t("rules.hooksDescription")}</p>
 							)}
 						</div>
 					</div>
@@ -583,14 +550,16 @@ const ClineRulesToggleModal: React.FC = () => {
 									<div className="flex items-center gap-2 px-3 py-3 mb-4 bg-vscode-inputValidation-warningBackground border-l-[3px] border-vscode-inputValidation-warningBorder">
 										<i className="codicon codicon-warning text-sm" />
 										<span className="text-base">
-											在此基础性 PR 中，Windows 平台尚不支持 Hook 的切换功能。目前已支持 Hook 的创建、编辑和删除；只要 Hook 文件存在，相应的 Hook 就会自动执行。接下来的计划是：实现基于 JSON 的跨平台 Hook 启用/禁用状态管理。
+											在此基础性 PR 中，Windows 平台尚不支持 Hook 的切换功能。目前已支持 Hook
+											的创建、编辑和删除；只要 Hook 文件存在，相应的 Hook
+											就会自动执行。接下来的计划是：实现基于 JSON 的跨平台 Hook 启用/禁用状态管理。
 										</span>
 									</div>
 								)}
 
 								{/* Global Hooks */}
 								<div className="mb-3">
-									<div className="text-sm font-normal mb-2">{t("rules.globalHooks")}</div>
+									<div className="text-sm font-normal mb-2">Global Hooks</div>
 									<div className="flex flex-col gap-0">
 										{globalHooks
 											.sort((a, b) => a.name.localeCompare(b.name))

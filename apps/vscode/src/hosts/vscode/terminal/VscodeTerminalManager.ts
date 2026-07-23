@@ -2,7 +2,6 @@ import { arePathsEqual } from "@utils/path"
 import { getShell, getShellForProfile } from "@utils/shell"
 import pWaitFor from "p-wait-for"
 import * as vscode from "vscode"
-import { SHELL_INTEGRATION_STREAM_TIMEOUT_MS } from "@/integrations/terminal/constants"
 import {
 	TerminalInfo as ITerminalInfo,
 	ITerminalManager,
@@ -266,7 +265,7 @@ export class VscodeTerminalManager implements ITerminalManager {
 		// if shell integration is already active, run the command immediately
 		if (vscodeTerminalInfo.terminal.shellIntegration) {
 			process.waitForShellIntegration = false
-			process.run(vscodeTerminalInfo.terminal, command, this.shellIntegrationStreamTimeout)
+			process.run(vscodeTerminalInfo.terminal, command)
 		} else {
 			// docs recommend waiting 3s for shell integration to activate
 			Logger.log(
@@ -290,7 +289,7 @@ export class VscodeTerminalManager implements ITerminalManager {
 					const existingProcess = this.processes.get(vscodeTerminalInfo.id)
 					if (existingProcess && existingProcess.waitForShellIntegration) {
 						existingProcess.waitForShellIntegration = false
-						existingProcess.run(vscodeTerminalInfo.terminal, command, this.shellIntegrationStreamTimeout)
+						existingProcess.run(vscodeTerminalInfo.terminal, command)
 					}
 				})
 		}
@@ -408,7 +407,9 @@ export class VscodeTerminalManager implements ITerminalManager {
 		// }
 		this.terminalIds.clear()
 		this.processes.clear()
-		this.disposables.forEach((disposable) => disposable.dispose())
+		this.disposables.forEach((disposable) => {
+			disposable.dispose()
+		})
 		this.disposables = []
 	}
 

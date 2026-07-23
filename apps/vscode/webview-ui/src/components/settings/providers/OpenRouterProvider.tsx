@@ -15,15 +15,10 @@ import { useProviderApiKeyField } from "../utils/useProviderApiKeyField"
  * Component to display OpenRouter balance information
  */
 const OpenRouterBalanceDisplay = ({ apiKey }: { apiKey: string }) => {
-	const { t } = useTranslation("settings")
 	const { data: keyInfo, isLoading, error } = useOpenRouterKeyInfo(apiKey)
 
 	if (isLoading) {
-		return (
-			<span style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }}>
-				{t("providers.openRouter.loading")}
-			</span>
-		)
+		return <span style={{ fontSize: "12px", color: "var(--vscode-descriptionForeground)" }}>加载中...</span>
 	}
 
 	if (error || !keyInfo || keyInfo.limit === null) {
@@ -47,7 +42,7 @@ const OpenRouterBalanceDisplay = ({ apiKey }: { apiKey: string }) => {
 				cursor: "pointer",
 			}}
 			title={`Remaining balance: ${formattedBalance}\nLimit: ${formatPrice(keyInfo.limit)}\nUsage: ${formatPrice(keyInfo.usage)}`}>
-			{t("providers.openRouter.balance")} {formattedBalance}
+			余额: {formattedBalance}
 		</VSCodeLink>
 	)
 }
@@ -65,7 +60,6 @@ interface OpenRouterProviderProps {
  * The OpenRouter provider configuration component
  */
 export const OpenRouterProvider = ({ showModelOptions, isPopup, currentMode }: OpenRouterProviderProps) => {
-	const { t } = useTranslation("settings")
 	const { apiConfiguration } = useExtensionState()
 	const { config, write } = useProviderConfig("openrouter")
 	const [openRouterApiKey, setOpenRouterApiKey] = useState(apiConfiguration?.openRouterApiKey || "")
@@ -106,7 +100,7 @@ export const OpenRouterProvider = ({ showModelOptions, isPopup, currentMode }: O
 							}
 						}}
 						style={{ margin: "5px 0 0 0" }}>
-						{t("providers.openRouter.getApiKey")}
+						获取 OpenRouter API Key
 					</VSCodeButton>
 				)}
 				<p
@@ -115,7 +109,7 @@ export const OpenRouterProvider = ({ showModelOptions, isPopup, currentMode }: O
 						marginTop: "5px",
 						color: "var(--vscode-descriptionForeground)",
 					}}>
-					{t("providers.openRouter.keyStoredLocally")}
+					此密钥存储在本地，仅用于从此扩展发出 API 请求。
 				</p>
 			</div>
 

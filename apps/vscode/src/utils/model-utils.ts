@@ -2,8 +2,6 @@ import { MODEL_COLLECTIONS_BY_PROVIDER_ID } from "@coohu/llms"
 import { ApiHandlerModel } from "@core/api"
 import type { AnthropicModelId } from "@/shared/api"
 
-export { supportsReasoningEffortForModel } from "@shared/utils/reasoning-support"
-
 const CLAUDE_VERSION_MATCH_REGEX = /[-_ ]([\d](?:\.[05])?)[-_ ]?/
 export const GEMINI_FLASH_MAX_OUTPUT_TOKENS = 8_192
 
@@ -76,20 +74,6 @@ export function isGPT5ModelFamily(id: string): boolean {
 export function isGptOssModelFamily(id: string): boolean {
 	const modelId = normalize(id)
 	return modelId.includes("gpt-oss") || modelId.includes("gpt_oss")
-}
-
-export function isGPT51PlusModel(id: string): boolean {
-	const modelId = normalize(id)
-	return (
-		isGPT51Model(modelId) ||
-		isGPT52Model(modelId) ||
-		modelId.includes("gpt-5.3") ||
-		modelId.includes("gpt-5-3") ||
-		modelId.includes("gpt-5.4") ||
-		modelId.includes("gpt-5-4") ||
-		modelId.includes("gpt-5.5") ||
-		modelId.includes("gpt-5-5")
-	)
 }
 
 export function isGLMModelFamily(id: string): boolean {

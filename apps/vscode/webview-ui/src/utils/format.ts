@@ -43,7 +43,7 @@ export function formatCreditsBalance(microcredits: number): number {
 export function formatTimestamp(timestamp: string, tz = "en-US"): string {
 	const date = new Date(timestamp)
 
-	const dateFormatter = new Intl.DateTimeFormat("en-US", {
+	const dateFormatter = new Intl.DateTimeFormat(tz, {
 		month: "2-digit",
 		day: "2-digit",
 		year: "2-digit",
@@ -51,7 +51,6 @@ export function formatTimestamp(timestamp: string, tz = "en-US"): string {
 		minute: "2-digit",
 		hour12: true,
 	})
-
 	return dateFormatter.format(date)
 }
 

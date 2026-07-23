@@ -167,7 +167,7 @@ const BasetenModelPicker: React.FC<BasetenModelPickerProps> = ({ isPopup, curren
 	}
 
 	const hasInfo = useMemo(() => {
-		return selectedModelInfo?.description
+		return selectedModelInfo && selectedModelInfo.description
 	}, [selectedModelInfo])
 
 	useEffect(() => {
@@ -175,7 +175,7 @@ const BasetenModelPicker: React.FC<BasetenModelPickerProps> = ({ isPopup, curren
 		if (dropdownListRef.current) {
 			dropdownListRef.current.scrollTop = 0
 		}
-	}, [])
+	}, [searchTerm])
 
 	useEffect(() => {
 		if (selectedIndex >= 0 && itemRefs.current[selectedIndex]) {
@@ -219,7 +219,7 @@ const BasetenModelPicker: React.FC<BasetenModelPickerProps> = ({ isPopup, curren
 						value={searchTerm}>
 						{searchTerm && (
 							<div
-								aria-label={t("clearSearch")}
+								aria-label="Clear search"
 								className="input-icon-button codicon codicon-close flex justify-center items-center h-full"
 								onClick={() => {
 									setSearchTerm("")
@@ -265,9 +265,9 @@ const BasetenModelPicker: React.FC<BasetenModelPickerProps> = ({ isPopup, curren
 				<ModelInfoView isPopup={isPopup} modelInfo={selectedModelInfo} selectedModelId={selectedModelId} />
 			) : (
 				<p className="text-xs mt-0 text-(--vscode-descriptionForeground)">
-					{t("providers.baseten.autoFetchModels")}{" "}
+					该扩展自动获取最新模型列表{" "}
 					<VSCodeLink className="inline text-inherit" href="https://www.baseten.co/products/model-apis/">
-						{t("providers.baseten.baseten")}
+						Baseten.
 					</VSCodeLink>
 					如果您不确定选择哪种模型，可以根据上下文窗口、定价和功能对可用模型进行比较。
 				</p>

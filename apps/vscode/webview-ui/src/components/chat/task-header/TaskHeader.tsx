@@ -1,7 +1,6 @@
 import { ClineMessage } from "@shared/ExtensionMessage"
 import { ChevronDownIcon, ChevronRightIcon } from "lucide-react"
 import React, { useCallback, useLayoutEffect, useMemo, useState } from "react"
-import { useTranslation } from "react-i18next"
 import Thumbnails from "@/components/common/Thumbnails"
 import { getModeSpecificFields } from "@/components/settings/utils/providerUtils"
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -43,7 +42,6 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 	onClose,
 	onSendMessage,
 }) => {
-	const { t } = useTranslation("common")
 	const {
 		apiConfiguration,
 		currentTaskItem,
@@ -66,7 +64,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 			// Check if content height exceeds the max-height
 			setIsTextOverflowing(el.scrollHeight > el.clientHeight)
 		}
-	}, [isTaskExpanded, isHighlightedTextExpanded])
+	}, [task.text, isTaskExpanded, isHighlightedTextExpanded])
 
 	// Handle click outside to collapse
 	React.useEffect(() => {
@@ -127,7 +125,7 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 				}}>
 				{/* Task Title */}
 				<div
-					aria-label={isTaskExpanded ? t("taskHeader.collapseHeader") : t("taskHeader.expandHeader")}
+					aria-label={isTaskExpanded ? "Collapse task header" : "Expand task header"}
 					className="flex justify-between items-center cursor-pointer"
 					onClick={toggleTaskExpanded}
 					onKeyDown={(e) => {
@@ -136,7 +134,8 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 							e.stopPropagation()
 							toggleTaskExpanded()
 						}
-					}}>
+					}}
+					tabIndex={0}>
 					<div className="flex justify-between items-center">
 						{isTaskExpanded ? <ChevronDownIcon size="16" /> : <ChevronRightIcon size="16" />}
 						{isTaskExpanded && (

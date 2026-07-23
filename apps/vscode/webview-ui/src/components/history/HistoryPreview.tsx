@@ -1,6 +1,5 @@
 import { StringRequest } from "@shared/proto/cline/common"
 import { memo } from "react"
-import { useTranslation } from "react-i18next"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { TaskServiceClient } from "@/services/grpc-client"
 
@@ -9,7 +8,6 @@ type HistoryPreviewProps = {
 }
 
 const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
-	const { t } = useTranslation("misc")
 	const { taskHistory } = useExtensionState()
 	const handleHistorySelect = (id: string) => {
 		TaskServiceClient.showTaskWithId(StringRequest.create({ value: id })).catch((error) =>
@@ -120,7 +118,8 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 						style={{
 							marginRight: "4px",
 							transform: "scale(0.9)",
-						}} />
+						}}
+					/>
 					<span
 						style={{
 							fontWeight: 500,
@@ -179,7 +178,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 								fontSize: "var(--vscode-font-size)",
 								padding: "10px 0",
 							}}>
-							{t("historyPreview.noRecentTasks")}
+							最近没有任务
 						</div>
 					)}
 				</div>

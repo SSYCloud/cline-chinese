@@ -1,10 +1,4 @@
 <<<<<<< HEAD
-import type { AgentMessage, AgentModelEvent } from "@cline/shared";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { normalizeModelsDevProviderModels } from "../catalog/catalog-live";
-import { createGateway } from "./gateway";
-=======
-<<<<<<< HEAD
 import type { AgentMessage, AgentModelEvent } from "@coohu/shared";
 =======
 import {
@@ -26,7 +20,6 @@ import {
 	estimateRequestInputTokens,
 	resolveGatewayRequestMaxTokens,
 } from "./gateway";
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 
 const streamTextSpy = vi.fn();
 const openaiCompatibleFactorySpy = vi.fn();
@@ -49,8 +42,6 @@ const codexExecSpy = vi.fn((modelId: string) => ({
 	family: "openai-codex",
 }));
 
-<<<<<<< HEAD
-=======
 function createFetchMock() {
 	const fetchMock = vi.fn(
 		async (
@@ -64,7 +55,6 @@ function createFetchMock() {
 	};
 }
 
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 vi.mock("ai", () => ({
 	jsonSchema: (schema: unknown, options: unknown) => ({
 		jsonSchema: schema,
@@ -141,8 +131,6 @@ const baseMessages: AgentMessage[] = [
 	},
 ];
 const originalOpenRouterApiKey = process.env.OPENROUTER_API_KEY;
-<<<<<<< HEAD
-=======
 const originalCaptureProviderRequest =
 	process.env.CLINE_CAPTURE_PROVIDER_REQUEST;
 const originalCaptureWire = process.env.CLINE_CAPTURE_WIRE;
@@ -164,7 +152,6 @@ function readCaptureRecords(dir: string): Array<Record<string, unknown>> {
 				>,
 		);
 }
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 
 describe("sdk-gateway", () => {
 	beforeEach(() => {
@@ -201,8 +188,6 @@ describe("sdk-gateway", () => {
 		} else {
 			process.env.OPENROUTER_API_KEY = originalOpenRouterApiKey;
 		}
-<<<<<<< HEAD
-=======
 		if (originalCaptureProviderRequest === undefined) {
 			delete process.env.CLINE_CAPTURE_PROVIDER_REQUEST;
 		} else {
@@ -348,7 +333,6 @@ describe("sdk-gateway", () => {
 				messages: baseMessages,
 			}),
 		);
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 	});
 
 	it("keeps custom provider loading lazy until first use", async () => {
@@ -392,10 +376,7 @@ describe("sdk-gateway", () => {
 		const gateway = createGateway();
 		const providerIds = gateway.listProviders().map((provider) => provider.id);
 
-<<<<<<< HEAD
-=======
 		expect(providerIds).toContain("openai-compatible");
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 		expect(providerIds).toContain("openai-native");
 		expect(providerIds).toContain("anthropic");
 		expect(providerIds).toContain("gemini");
@@ -438,23 +419,16 @@ describe("sdk-gateway", () => {
 			.map((provider) => provider.id)
 			.sort();
 
-<<<<<<< HEAD
-		expect(strategyProviders).toEqual([
-=======
 		expect(strategyProviders).toContain([
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 			"aihubmix",
 			"anthropic",
 			"bedrock",
 			"cline",
 <<<<<<< HEAD
-=======
-<<<<<<< HEAD
 			"shengsuanyun",
 =======
 			"cline-pass",
 >>>>>>> ee59f81706981e0a64c8b32f8f0415c9d39561fa
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 			"minimax",
 			"oca",
 			"openrouter",
@@ -471,14 +445,11 @@ describe("sdk-gateway", () => {
 		const openrouter = gateway
 			.listProviders()
 			.find((provider) => provider.id === "openrouter");
-<<<<<<< HEAD
-=======
 		expect(openrouter?.metadata?.stickySession).toEqual({
 			transport: "json-body",
 			field: "session_id",
 			metadataKey: "sessionId",
 		});
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 		const promptCacheRoutes =
 			openrouter?.metadata?.routing?.promptCache?.routes ?? [];
 
@@ -841,8 +812,6 @@ describe("sdk-gateway", () => {
 		);
 	});
 
-<<<<<<< HEAD
-=======
 	it("strips reasoning history before sending Cerebras follow-up requests", async () => {
 		streamTextSpy.mockReturnValue({
 			fullStream: makeStreamParts([
@@ -996,7 +965,6 @@ describe("sdk-gateway", () => {
 		expect(JSON.stringify(call?.messages)).not.toContain("reasoning");
 	});
 
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 	it("reads Anthropic cache usage from provider metadata", async () => {
 		streamTextSpy.mockReturnValue({
 			fullStream: makeStreamParts([
@@ -1843,8 +1811,6 @@ describe("sdk-gateway", () => {
 		);
 	});
 
-<<<<<<< HEAD
-=======
 	it("preserves Vertex thought signatures on tool calls and replays them", async () => {
 		streamTextSpy.mockReturnValueOnce({
 			fullStream: makeStreamParts([
@@ -2125,7 +2091,6 @@ describe("sdk-gateway", () => {
 		);
 	});
 
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 	it("does not pass extra tools to providers that disable external tool execution", async () => {
 		streamTextSpy.mockReturnValue({
 			fullStream: makeStreamParts([
@@ -2267,8 +2232,6 @@ describe("sdk-gateway", () => {
 		});
 	});
 
-<<<<<<< HEAD
-=======
 	it("does not send maxOutputTokens to ChatGPT OAuth when the request omits max tokens", async () => {
 		streamTextSpy.mockReturnValue({
 			fullStream: makeStreamParts([
@@ -2294,7 +2257,6 @@ describe("sdk-gateway", () => {
 		expect(call).not.toHaveProperty("maxOutputTokens");
 	});
 
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 	it("passes Codex instructions through provider options and removes the system message from messages", async () => {
 		streamTextSpy.mockReturnValue({
 			fullStream: makeStreamParts([
@@ -2343,17 +2305,12 @@ describe("sdk-gateway", () => {
 			}),
 		);
 		const call = streamTextSpy.mock.calls.at(-1)?.[0] as
-<<<<<<< HEAD
-			| { providerOptions?: Record<string, Record<string, unknown>> }
-			| undefined;
-=======
 			| {
 					maxOutputTokens?: unknown;
 					providerOptions?: Record<string, Record<string, unknown>>;
 			  }
 			| undefined;
 		expect(call).not.toHaveProperty("maxOutputTokens");
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 		expect(call?.providerOptions?.openai).not.toHaveProperty("truncation");
 		expect(call?.providerOptions?.["openai-codex"]).not.toHaveProperty(
 			"truncation",
@@ -3146,15 +3103,9 @@ describe("sdk-gateway", () => {
 
 	it.each([
 		{
-<<<<<<< HEAD
-			providerId: "cline",
-			modelId: "qwen/qwen3.6-plus",
-			providerOptionsKey: "cline",
-=======
 			providerId: "shengsuanyun",
 			modelId: "qwen/qwen3.6-plus",
 			providerOptionsKey: "shengsuanyun",
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 			aliasKey: undefined,
 		},
 		{
@@ -3430,11 +3381,7 @@ describe("sdk-gateway", () => {
 		);
 	});
 
-<<<<<<< HEAD
-	it("does not apply Z.AI GLM thinking controls to non-GLM native Z.AI models", async () => {
-=======
 	it("does not apply generic thinking to non-GLM native Z.AI custom models", async () => {
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 		streamTextSpy.mockReturnValue({
 			fullStream: makeStreamParts([
 				{ type: "finish", usage: { inputTokens: 1, outputTokens: 1 } },
@@ -3567,11 +3514,7 @@ describe("sdk-gateway", () => {
 			expect.objectContaining({
 				providerOptions: expect.objectContaining({
 					openrouter: expect.objectContaining({
-<<<<<<< HEAD
-						reasoning: { exclude: true },
-=======
 						reasoning: { effort: "none" },
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 					}),
 				}),
 			}),
@@ -3872,8 +3815,6 @@ describe("sdk-gateway", () => {
 
 		expect(createProvider).toHaveBeenCalledOnce();
 	});
-<<<<<<< HEAD
-=======
 
 	it("writes AI SDK prompt captures with request metadata correlation", async () => {
 		const captureDir = mkdtempSync(join(tmpdir(), "llms-capture-"));
@@ -4602,5 +4543,4 @@ describe("sdk-gateway", () => {
 			"old.ai_sdk_prompt.1.provider-request.json",
 		);
 	});
->>>>>>> 4d9ce4f8916fc0aecb7f8f7a14733e5c1173c28a
 });

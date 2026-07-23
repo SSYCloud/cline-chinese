@@ -95,30 +95,14 @@ export class SharedUriHandler {
 					Logger.warn("SharedUriHandler: Missing prompt parameter for task creation")
 					return false
 				}
-				case LG_TASK_URI_PATH: {
-					const promptFile = query.get("prompt-file")
-					const webhookUrl = query.get("webhook-url")
-					const webhookToken = query.get("webhook-token")
-
-					if (!promptFile || !webhookUrl || !webhookToken) {
-						Logger.warn("SharedUriHandler: Missing required parameters for LG task creation")
-						return false
+				case "/ssy":
+				case "shengsuanyun": {
+					const code = query.get("code")
+					if (code) {
+						await visibleWebview?.controller.handleShengSuanYunCallback(code)
+						return true
 					}
-
-					const specContents = await fs.readFile(promptFile, "utf-8")
-					const prompt = [
-						`The following file contains the development specification you must implement: ${promptFile}`,
-						"",
-						"Start by reading that file from disk. If context compaction happens later, re-read the same file path so you can continue tracking progress against the original requirements.",
-						"",
-						"For convenience, here is the current file content:",
-						"",
-						specContents,
-					].join("\n")
-					await writeLgWebhookConfig(webhookUrl, webhookToken)
-					await writeLgWebhookHooks()
-					await visibleWebview.controller.handleTaskCreation(prompt)
-					return true
+					return false
 				}
 				case LG_TASK_URI_PATH: {
 					const promptFile = query.get("prompt-file")
