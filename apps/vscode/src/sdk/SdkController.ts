@@ -1549,26 +1549,16 @@ export class Controller {
 				code: code,
 				callback_url: callbackUrl,
 			})
-			Logger.error("https://api.shengsuanyun.com/auth/keys :", res.data)
-			if (!res.data && !res.data.data) {
+			// Logger.error("https://api.shengsuanyun.com/auth/keys :", res.data)
+			if (!res.data || !res.data.data) {
 				throw new Error("Invalid response from handleShengSuanYunCallback()", {
 					cause: res,
 				})
 			}
-			const error = JSON.stringify(res.data.data, null, 2)
-			if (!res.data.data.api_key) {
+			if (!res.data.data.api_key || !res.data.data.jwt_token) {
 				HostProvider.window.showMessage({
 					type: ShowMessageType.ERROR,
-					message: "获取 API_Key 失败，请登陆胜算云控制台，创建和复制您的 API_KEY ！" + error,
-				})
-				throw new Error("获取 API_Key 失败，请登陆胜算云控制台，创建和复制您的 API_KEY ！", {
-					cause: res,
-				})
-			}
-			if (!res.data.data.jwt_token) {
-				HostProvider.window.showMessage({
-					type: ShowMessageType.ERROR,
-					message: "登录胜算云失败，请重试 ！" + error,
+					message: "登录胜算云失败，请重试 ！",
 				})
 				throw new Error("登录胜算云失败，请重试 ！", {
 					cause: res,

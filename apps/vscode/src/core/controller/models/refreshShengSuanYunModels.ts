@@ -25,10 +25,7 @@ export async function refreshShengSuanYunModels(
 				return undefined
 			}
 			for (const model of rawModels) {
-				if (
-					!model.support_apis ||
-					!(model.support_apis.includes("/v1/chat/completions") || model.support_apis.includes("/v1/responses"))
-				) {
+				if (Array.isArray(model.support_apis) || !model.support_apis.includes("/v1/messages")) {
 					continue
 				}
 				const modelInfo: Partial<ShengSuanYunModelInfo> = {
@@ -61,9 +58,6 @@ export async function refreshShengSuanYunModels(
 
 	const typedModels: Record<string, ShengSuanYunModelInfo> = {}
 	for (const [key, model] of Object.entries(models)) {
-		if (!Array.isArray(model.endPoints) || !model.endPoints.includes("/v1/messages")) {
-			continue
-		}
 		typedModels[key] = {
 			maxTokens: model.maxTokens ?? 0,
 			contextWindow: model.contextWindow ?? 0,
