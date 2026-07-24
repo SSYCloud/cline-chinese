@@ -1,6 +1,6 @@
 export const DEFAULT_REQUEST_HEADERS: Record<string, string> = {
-	"HTTP-Referer": "vscode://shengsuan-cloud.cline-shengsuan/ssy",
-	"X-Title": "ClineShengsuan",
+	"HTTP-Referer": "vscode://HybridTalentComputing.cline-shengsuan/ssy",
+	"X-Title": "cline-chinese",
 };
 
 export function serializeAbortReason(reason: unknown): unknown {

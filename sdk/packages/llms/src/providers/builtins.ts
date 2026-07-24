@@ -450,21 +450,6 @@ const OPENAI_COMPATIBLE_SPECS: BuiltinSpec[] = [
 		defaults: { baseUrl: "https://api.openai.com/v1" },
 	},
 	{
-		id: "shengsuanyun",
-		name: "胜算云",
-		description: "胜算云 API 接口",
-		family: "openai-compatible",
-		popular: 1,
-		capabilities: ["reasoning", "prompt-cache", "tools", "oauth"],
-		modelsSourceUrl: "https://router.shengsuanyun.com/api/v1/models",
-		defaultModelId: "anthropic/claude-sonnet-4.6",
-		apiKeyEnv: ["SHENGSUANYUN_API_KEY"],
-		defaults: {
-			baseUrl: "https://router.shengsuanyun.com/api/v1",
-		},
-		metadata: ANTHROPIC_AND_QWEN_CACHE_ROUTING_METADATA,
-	},
-	{
 		id: "deepseek",
 		name: "DeepSeek",
 		description: "Advanced AI models with reasoning capabilities",
@@ -1006,6 +991,21 @@ export const BUILTIN_SPECS: BuiltinSpec[] = [
 		apiKeyEnv: ["AICORE_SERVICE_KEY", "VCAP_SERVICES"],
 		modelsProviderId: "sapaicore",
 		metadata: ANTHROPIC_ROUTING_METADATA,
+	},
+	{
+		id: "shengsuanyun",
+		name: "胜算云",
+		description: "胜算云 API 接口",
+		family: "anthropic",
+		popular: 1,
+		capabilities: ["tools", "reasoning", "prompt-cache"],
+		modelsSourceUrl: "https://router.shengsuanyun.com/api/v1/models",
+		defaultModelId: "anthropic/claude-sonnet-4.6",
+		apiKeyEnv: ["SHENGSUANYUN_API_KEY"],
+		defaults: {
+			baseUrl: "https://router.shengsuanyun.com/api/v1",
+		},
+		metadata: ANTHROPIC_AND_QWEN_CACHE_ROUTING_METADATA,
 	},
 	...OPENAI_COMPATIBLE_SPECS,
 ];

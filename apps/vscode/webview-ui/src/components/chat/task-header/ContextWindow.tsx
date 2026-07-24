@@ -30,7 +30,7 @@ const ConfirmationDialog = memo<{
 	onCancel: (e: React.MouseEvent) => void
 }>(({ onConfirm, onCancel }) => (
 	<div className="text-sm my-2 flex items-center gap-0 justify-between">
-		<span className="font-semibold text-sm">Compact the current task?</span>
+		<span className="font-semibold text-sm">压缩当前任务？</span>
 		<span className="flex gap-1">
 			<VSCodeButton
 				appearance="secondary"
@@ -38,7 +38,7 @@ const ConfirmationDialog = memo<{
 				onClick={onCancel}
 				title="No, keep the task as is"
 				type="button">
-				Cancel
+				取消
 			</VSCodeButton>
 			<VSCodeButton
 				appearance="primary"
@@ -47,7 +47,7 @@ const ConfirmationDialog = memo<{
 				onClick={onConfirm}
 				title="Yes, compact the task"
 				type="button">
-				Yes
+				确定
 			</VSCodeButton>
 		</span>
 	</div>

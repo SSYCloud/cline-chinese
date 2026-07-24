@@ -1,7 +1,7 @@
 import { name, publisher, version } from "../package.json"
 import { HostProvider } from "./hosts/host-provider"
 
-const prefix = name === "claude-dev" ? "cline" : "ClineShengsuan"
+const prefix = name === "claude-dev" ? "cline" : "cline-chinese"
 
 /**
  * List of commands with the name of the extension they are registered under.
@@ -38,7 +38,7 @@ const ClineCommands = {
  * These should match the name + view IDs defined in package.json.
  */
 const ClineViewIds = {
-	Sidebar: "ClineShengsuan.SidebarProvider",
+	Sidebar: "cline-chinese.SidebarProvider",
 }
 
 /**

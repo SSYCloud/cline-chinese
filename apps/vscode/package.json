@@ -201,7 +201,8 @@
 				{
 					"type": "webview",
 					"id": "cline-chinese.SidebarProvider",
-					"name": ""
+					"name": "",
+					"icon": "assets/icons/icon.svg"
 				}
 			]
 		},
@@ -330,7 +331,8 @@
 			},
 			{
 				"command": "cline-chinese.generateGitCommitMessage",
-				"when": "config.git.enabled && scmProvider == git"
+				"when": "config.git.enabled && scmProvider == git",
+				"key": "cmd+"
 			},
 			{
 				"command": "cline-chinese.focusChatInput",

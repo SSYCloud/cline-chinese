@@ -79,8 +79,8 @@ Reka AI	|Reka Core
 国际
 Github: https://github.com/SSYCloud/cline-chinese-ssy <br>
 中国大陆<br>
-Gitcode:https://gitcode.com/shengsuan-cloud/cline-chinese-ssy<br>
-Gitee:  https://gitee.com/shengsuan-cloud/cline-chinese-ssy<br>
+Gitcode:https://gitcode.com/HybridTalentComputing/cline-chinese-ssy<br>
+Gitee:  https://gitee.com/HybridTalentComputing/cline-chinese-ssy<br>
 ---
 ## 文档地址(包括使用方法，MCP知识，常见问题解答等)<br>
 https://modelmesh.gitbook.io/cline-zhong-wen-ban-docs/<br>
@@ -88,10 +88,10 @@ https://modelmesh.gitbook.io/cline-zhong-wen-ban-docs/<br>
 ## 其他支持插件
 
 Kilo SSY Code Agent<br>
-https://marketplace.visualstudio.com/items?itemName=shengsuan-cloud.kilo-ssy<br>
+https://marketplace.visualstudio.com/items?itemName=HybridTalentComputing.kilo-ssy<br>
 
 Roo Code Chinese SSY<br>
-https://marketplace.visualstudio.com/items?itemName=shengsuan-cloud.roo-vibecoding<br>
+https://marketplace.visualstudio.com/items?itemName=HybridTalentComputing.roo-vibecoding<br>
 
 ---
 ## 欢迎关注我的自媒体账号
@@ -112,7 +112,7 @@ https://marketplace.visualstudio.com/items?itemName=shengsuan-cloud.roo-vibecodi
 <table>
 <tbody>
 <td align="center">
-<a href="https://marketplace.visualstudio.com/items?itemName=shengsuan-cloud.cline-shengsuan" target="_blank"><strong>在 VS Marketplace 下载</strong></a>
+<a href="https://marketplace.visualstudio.com/items?itemName=HybridTalentComputing.cline-chinese" target="_blank"><strong>在 VS Marketplace 下载</strong></a>
 </td>
 <td align="center">
 <a href="https://discord.gg/frBHkRKB4x" target="_blank"><strong>Discord</strong></a>
@@ -176,7 +176,7 @@ npm i -g @coohu/kanban
 创建文件、运行命令、浏览网页，
 并在“人在回路”的审批机制下使用各种工具。
 
-<a href="https://marketplace.visualstudio.com/items?itemName=shengsuan-cloud.cline-shengsuan">从 VSCode 插件市场安装</a>
+<a href="https://marketplace.visualstudio.com/items?itemName=HybridTalentComputing.cline-chinese">从 VSCode 插件市场安装</a>
 <br><br>
 
 </td>

@@ -578,10 +578,10 @@ export class Controller {
 			this.stateManager.setApiConfiguration(updatedConfig)
 
 			await this.postStateToWebview()
-			HostProvider.window.showMessage({
-				type: ShowMessageType.INFORMATION,
-				message: "成功登出 Cline 胜算云",
-			})
+			// HostProvider.window.showMessage({
+			// 	type: ShowMessageType.INFORMATION,
+			// 	message: "成功登出 Cline 胜算云",
+			// })
 		} catch (_error) {
 			HostProvider.window.showMessage({
 				type: ShowMessageType.INFORMATION,
@@ -1540,30 +1540,42 @@ export class Controller {
 	}
 
 	async handleShengSuanYunCallback(code: string) {
-		// console.log("handleShengSuanYunCallback() with code:", code)
+		// Logger.error("handleShengSuanYunCallback() with code:", code)
 		try {
 			let shengSuanYunApiKey: string
 			let shengSuanYunToken: string
+			const callbackUrl = await HostProvider.get().getCallbackUrl("/ssy")
 			const res = await axios.post("https://api.shengsuanyun.com/auth/keys", {
 				code: code,
-				callback_url: `vscode://shengsuan-cloud.cline-shengsuan/ssy`,
+				callback_url: callbackUrl,
 			})
-			// console.log("https://api.shengsuanyun.com/auth/keys :", res.data)
-			if (res.data && res.data.data && res.data.data.api_key) {
-				shengSuanYunApiKey = res.data.data.api_key
-				shengSuanYunToken = res.data.data.jwt_token
-			} else if (!res.data.data.api_key) {
-				shengSuanYunToken = res.data.data.jwt_token
-				shengSuanYunApiKey = ""
-				HostProvider.window.showMessage({
-					type: ShowMessageType.ERROR,
-					message: "登录账户成功，获取API_Key 失败，请先登录胜算云控制台创建 API_KEY 。",
-				})
-			} else {
+			Logger.error("https://api.shengsuanyun.com/auth/keys :", res.data)
+			if (!res.data && !res.data.data) {
 				throw new Error("Invalid response from handleShengSuanYunCallback()", {
 					cause: res,
 				})
 			}
+			const error = JSON.stringify(res.data.data, null, 2)
+			if (!res.data.data.api_key) {
+				HostProvider.window.showMessage({
+					type: ShowMessageType.ERROR,
+					message: "获取 API_Key 失败，请登陆胜算云控制台，创建和复制您的 API_KEY ！" + error,
+				})
+				throw new Error("获取 API_Key 失败，请登陆胜算云控制台，创建和复制您的 API_KEY ！", {
+					cause: res,
+				})
+			}
+			if (!res.data.data.jwt_token) {
+				HostProvider.window.showMessage({
+					type: ShowMessageType.ERROR,
+					message: "登录胜算云失败，请重试 ！" + error,
+				})
+				throw new Error("登录胜算云失败，请重试 ！", {
+					cause: res,
+				})
+			}
+			shengSuanYunApiKey = res.data.data.api_key
+			shengSuanYunToken = res.data.data.jwt_token
 
 			// await this.accountServiceSSY.handleAuthCallback(customToken, provider ? provider : "google")
 			const shengsuanyun: ApiProvider = "shengsuanyun"
@@ -1583,7 +1595,7 @@ export class Controller {
 				this.task.api = buildApiHandler({ ...updatedConfig, ulid: this.task.ulid }, currentMode)
 			}
 			const user: UserInfo = await this.accountServiceSSY.getUserInfo()
-			// console.log("Controller.fetchUserCreditsData().user", user)
+			// Logger.error("Controller.fetchUserCreditsData().user:", user)
 			this.stateManager.setGlobalState("userInfo", user)
 			await this.postStateToWebview()
 		} catch (error) {

@@ -192,7 +192,7 @@ async function generateCommitMsgForRepository(controller: Controller, repository
 
 async function performCommitMsgGeneration(controller: Controller, gitDiff: string, inputBox: GitRepositoryInputBox) {
 	try {
-		vscode.commands.executeCommand("setContext", "ClineShengsuan.isGeneratingCommit", true)
+		vscode.commands.executeCommand("setContext", "cline-chinese.isGeneratingCommit", true)
 
 		const prompts = [PROMPT.instruction]
 
@@ -256,13 +256,13 @@ async function performCommitMsgGeneration(controller: Controller, gitDiff: strin
 			message: `Failed to generate commit message: ${errorMessage}`,
 		})
 	} finally {
-		vscode.commands.executeCommand("setContext", "ClineShengsuan.isGeneratingCommit", false)
+		vscode.commands.executeCommand("setContext", "cline-chinese.isGeneratingCommit", false)
 	}
 }
 
 export function abortCommitGeneration() {
 	commitGenerationAbortController?.abort()
-	vscode.commands.executeCommand("setContext", "ClineShengsuan.isGeneratingCommit", false)
+	vscode.commands.executeCommand("setContext", "cline-chinese.isGeneratingCommit", false)
 }
 
 /**

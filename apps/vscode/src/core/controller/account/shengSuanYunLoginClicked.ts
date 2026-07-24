@@ -5,8 +5,8 @@ import { Controller } from ".."
 
 export async function shengSuanYunLoginClicked(_controller: Controller, _: EmptyRequest): Promise<String> {
 	const callbackUrl = await HostProvider.get().getCallbackUrl("/ssy")
-	const id = "CH_R39YE8W1"
-	const authUrl = new URL(`https://router.shengsuanyun.com/auth?from=${id}&callback_url=${callbackUrl}`)
+	// const id = "CH_R39YE8W1"
+	const authUrl = new URL(`https://router.shengsuanyun.com/auth?&callback_url=${callbackUrl}`)
 	const authUrlString = authUrl.toString()
 	await openExternal(authUrlString)
 	return String.create({ value: authUrlString })
