@@ -1,8 +1,9 @@
 # Cline-Chinese (Cline中文汉化版) 🌏
 
+
+
 ## 🎉 Cline Chinese 项目由胜算云担任开源项目管理方（2026.07.20）
 即日起，胜算云团队正式成为 Cline Chinese 开源项目的管理方和核心贡献者，负责项目的代码维护、插件更新及日常运营工作。Leo 老师及原有核心贡献者将继续活跃于开源社区，参与并持续关注项目。感谢各位的信任、陪伴与支持！
-
 
 > 🎉 截止到2026.7.14，Cline Chinese在VS Code插件市场的下载量突破266k啦！感谢大家的支持！
 
@@ -11,20 +12,21 @@
 
 </p>
 
-## 项目地址
-https://github.com/HybridTalentComputing/cline-chinese
-欢迎大家star，fork，提出issue，贡献代码，一起完善这个项目。
-
 ## 文档（感谢[@flyfreee](https://github.com/flyfreee)的翻译工作）
 https://hybridtalentcomputing.gitbook.io/cline-chinese-doc/
 
 
 
 
-## 赞助商
-
+## 赞助商 & 开源项目管理方
 
 > 胜算云是AI自动生产超级工厂，长三角国家技术创新中心重大扶持项目，打造工业级 AI 任务执行矩阵。依托完整的全球API算力供应链与弹性算力容器，实现云端快速并发执行 AI 任务，持久化工作流编排，矩阵式执行，共享知识库，高效低成本获得可靠计算结果。点击此处查看[网关实时稳定性监控](https://watch.shengsuanyun.com/status/shengsuanyun), 点击此处进入模型网关超市获取API算力：[胜算云](https://www.shengsuanyun.com)，注册新用户可获10元模力及首充10%赠送。
+> 
+
+<p align="center">
+  <img src="http://pinfans-tec.oss-cn-shanghai.aliyuncs.com/lean/20260727-120025.png" width="800" alt="胜算云架构图">
+</p>
+
 
 
 ## 功能展示
@@ -45,7 +47,7 @@ Cline-Chinese已发布到VSCode插件市场，欢迎感兴趣的小伙伴们下�
 
 ## 背景
 
-本人是一名AI从业者+爱好者，在使用Cline时，发现Cline的UI界面和提示词均为英文，使用中文输入时，有时会出现奇奇怪怪的输出，影响体验。因此，决定自己动手，汉化Cline。
+Leo 老师是一名AI从业者+爱好者，在使用Cline时，发现Cline的UI界面和提示词均为英文，使用中文输入时，有时会出现奇奇怪怪的输出，影响体验。因此，决定自己动手，汉化Cline。
 另外，秉着学习的态度，未来将着手修改Cline的核心代码，增加新的功能，以提升体验。
 
 
@@ -63,8 +65,6 @@ Cline-Chinese已发布到VSCode插件市场，欢迎感兴趣的小伙伴们下�
 
 ## 2026.06.02 （ver .3.86.1）
 同步官方 v3.86.1 版本
-
-
 
 
 
@@ -94,5 +94,5 @@ Cline-Chinese已发布到VSCode插件市场，欢迎感兴趣的小伙伴们下�
    - 开发者对用户利用本插件进行的任何违法行为及其产生的后果不承担任何法律责任。
 ---
 
-> 注：本项目是个人维护的汉化版本，与原版 Cline 团队无关。如果您喜欢这个项目，也请给原版 [Cline](https://github.com/cline/cline) 一个 star ⭐️
+> 注：本项目是公开开源维护的汉化版本，与原版 Cline 团队无关。如果您喜欢这个项目，也请给原版 [Cline](https://github.com/cline/cline) 一个 star ⭐️
 
