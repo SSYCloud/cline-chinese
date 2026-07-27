@@ -1,5 +1,5 @@
 # Cline-Chinese (Cline中文汉化版) 🌏
-
+![License](https://img.shields.io/github/license/SSYCloud/cline-chinese)  ![Stars](https://img.shields.io/github/stars/SSYCloud/cline-chinese?style=social)  ![VS Code](https://img.shields.io/badge/VS%20Code-Extension-007ACC?logo=visualstudiocode)  ![Last Commit](https://img.shields.io/github/last-commit/SSYCloud/cline-chinese)
 
 
 ## 🎉 Cline Chinese 项目由胜算云担任开源项目管理方（2026.07.20）
