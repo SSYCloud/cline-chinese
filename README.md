@@ -50,6 +50,17 @@ Cline-Chinese已发布到VSCode插件市场，欢迎感兴趣的小伙伴们下�
 Leo 老师是一名AI从业者+爱好者，在使用Cline时，发现Cline的UI界面和提示词均为英文，使用中文输入时，有时会出现奇奇怪怪的输出，影响体验。因此，决定自己动手，汉化Cline。
 另外，秉着学习的态度，未来将着手修改Cline的核心代码，增加新的功能，以提升体验。
 
+## 💡 加入Cline 中文版开发者社区
+- 第一时间获取版本更新
+- 获取使用教程和最佳实践
+- 与开发团队直接交流
+- 反馈 Bug 和提出功能建议
+- 了解胜算云最新 AI 产品
+<p align="center">
+  <img src="https://github.com/SSYCloud/cline-chinese-ssy/blob/main/assets/docs/Cline%E5%BC%80%E5%8F%91%E8%80%85%E4%BA%A4%E6%B5%81%E7%BE%A4.png?raw=true" width="320" alt="Cline开发者社区">
+</p>
+
+
 
 ## 版本更新说明
 ## 2026.06.29 （ver .3.86.5）
