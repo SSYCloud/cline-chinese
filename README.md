@@ -1,8 +1,8 @@
 
 # Cline Chinese · Cline 中文汉化版 
 
-![Installs](https://img.shields.io/visual-studio-marketplace/i/SSYCloud.cline-chinese)
-![Rating](https://img.shields.io/visual-studio-marketplace/r/SSYCloud.cline-chinese)
+![Installs](https://img.shields.io/visual-studio-marketplace/i/HybridTalentComputing.cline-chinese)
+![Rating](https://img.shields.io/visual-studio-marketplace/r/HybridTalentComputing.cline-chinese)
 ![VS Code](https://img.shields.io/badge/VS%20Code-1.85%2B-007ACC?logo=visualstudiocode)
 ![License](https://img.shields.io/github/license/SSYCloud/cline-chinese)
 
@@ -21,9 +21,29 @@
 
 ## 这是什么
 
-Cline Chinese 是 [Cline](https://github.com/cline/cline) 的开源社区汉化版本，由Leo老师作为发起人。即日起（2026.7.30），胜算云开源项目团队（SSYCloud）正式成为 Cline Chinese 开源项目的管理方和核心贡献者，负责项目的代码日常维护及Cline中文编程社区运营工作。感谢各位的信任、陪伴与支持！Leo 老师及依旧会持续关注和参与本项目。
+Cline Chinese 是 [Cline](https://github.com/cline/cline) 的开源社区汉化版本，由Leo老师作为发起人。即日起（2026.7.30），胜算云开源项目团队（SSYCloud）正式成为 Cline Chinese 开源项目的管理方和核心贡献者，负责项目的代码日常维护及Cline中文编程社区运营工作。感谢各位的信任、陪伴与支持！Leo 老师也依旧会持续关注和参与本项目。
 
-我们做的三件事：
+
+## 项目身份、来源与差异化
+
+Cline Chinese 是基于 [Cline](https://github.com/cline/cline) 的开源社区 fork做了UI、提示词、返回思考等全量汉化，不是原版 Cline 官方发布的扩展。本项目在 VS Code Marketplace 上使用独立的项目身份和发布信息：
+
+- **显示名称**：`Cline Chinese`
+- **扩展标识**：`cline-chinese`
+- **Code maintainer**: `SSYCloud`
+- **独立图标**：扩展包使用项目自己的 `apps/vscode/assets/icons/icon.png` 图标
+- **独立维护路径**：代码、README、版本发布和问题反馈均以本仓库为准
+- **保留的 Marketplace listing**：[Cline Chinese](https://marketplace.visualstudio.com/items?itemName=HybridTalentComputing.cline-chinese)
+与上游 Cline 相比，本项目的主要差异包括：
+
+- 中文 UI、中文提示词、中文错误信息和中文文档；
+- 面向 DeepSeek、Kimi、Qwen、GLM 等中文模型的 prompt 优化和适配；
+- 胜算云 API 供应商和统一模型网关集成；
+- 中文社区维护、中文使用指南以及面向中国用户的配置说明。
+
+此前用于灰度发布的重复 Marketplace listing `shengsuan-cloud.cline-shengsuan` 已 **Unpublish**。后续 Marketplace 上仅保留并维护 `Cline Chinese` 这一独立项目；本仓库的后续版本将从这里独立构建、发布和维护。
+
+## 我们做的三件事：
 
 | | |
 |---|---|
@@ -33,7 +53,7 @@ Cline Chinese 是 [Cline](https://github.com/cline/cline) 的开源社区汉化�
 
 **当前下载量**：271k+ VS Code 插件市场（截至 2026-07-30）
 
-## 为什么选 Cline Chinese，而不是原版 Cline
+## 中文编程为什么选 Cline Chinese，而不是原版 Cline？
 
 | | Cline Chinese | 原版 Cline |
 |---|---|---|
@@ -106,7 +126,7 @@ TypeScript 里 interface 和 type 到底有什么区别？
 
 ### 任务历史与上下文
 
-- **任务历史**：本地存储，不上传云端
+- **任务历史**：主要保存在本地扩展存储中；与当前任务相关的内容可能作为上下文发送给你选择的 AI 服务
 - **会话上下文长度**：根据模型自适应，也可手动设置上下文长度
 - **多文件操作**：用 `@文件名` 把文件加进上下文
 
@@ -129,6 +149,65 @@ Cline Chinese 可以直接在你的 VS Code 终端里执行命令。涉及安装
 当上下文超过模型窗口时，Cline Chinese 会自动压缩历史对话，保持上下文连贯。
 
 
+## 数据与隐私
+
+以下说明基于本项目当前源码和默认配置。Cline Chinese 是一个可配置的 VS Code 客户端，实际数据流取决于你选择的模型提供商、胜算云或其他网关、MCP 服务、组织策略以及遥测配置。本项目不能保证所有数据始终只保留在本机，请在使用前确认相关服务商的隐私政策和数据保留规则。
+
+### AI 请求与可能离开本机的数据
+
+使用 AI 功能时，以下内容可能被整理为请求上下文并发送给你选择的模型提供商或自定义 API endpoint：
+
+- 你的提示词、系统提示词和任务相关对话；
+- 你主动加入上下文的项目代码、文件内容、图片和工作区信息；
+- 终端输出、浏览器页面内容，以及检查点、压缩后的历史上下文；
+- MCP 请求、工具参数和工具返回结果；
+- 为完成请求所需的模型、提供商、token 数量、耗时等请求元数据。
+
+默认配置可能访问以下 Cline 服务：
+
+- Cline 应用服务：`https://app.cline.bot`；
+- Cline API 服务：`https://api.cline.bot`；
+- Cline MCP 服务：`https://api.cline.bot/v1/mcp`。
+
+如使用胜算云账户或模型网关，相关请求可能访问 `https://router.shengsuanyun.com/api`。如使用 Anthropic、OpenAI、DeepSeek、Qwen、Gemini、OpenRouter、Mistral、Bedrock、Vertex、Ollama、LM Studio 或其他兼容接口，请求将发送到对应的云服务或你配置的本地/自建 endpoint；这些服务如何处理、保存或删除请求数据，由相应服务商的政策和账户设置决定。
+
+### 选择胜算云 API 供应商时
+
+如果在扩展中选择“胜算云”作为 API 供应商，按胜算云当前向用户提供的服务说明：
+
+- **任务历史不上传云端**：任务历史由扩展保存在本地，不上传到胜算云云端；
+- **API Key 只存在本地**：API Key 只保存在本地 VS Code `SecretStorage` 或相关本地配置中，不在胜算云云端持久化保存；
+- **API 请求只转发、不做云端留存**：模型 API 请求仅经胜算云网关转发到相应模型服务，不在胜算云云端留存模型请求内容。
+
+上述三条针对任务历史、API Key 和模型 API 请求内容。使用胜算云登录、账户、余额、模型目录、用量或充值功能时，扩展仍需访问 `https://www.shengsuanyun.com` 处理账户认证和账户服务数据；相关账户服务数据与模型请求内容属于不同数据类别。切换到其他模型供应商、自定义 endpoint、MCP 服务或代码索引服务时，应以对应服务商的隐私政策和数据保留规则为准。
+
+### 本地保存的数据
+
+扩展会在 VS Code 的 `SecretStorage`、global state、workspace state、工作区配置或扩展数据目录中保存运行所需的信息，可能包括：
+
+- API Key、Cline token、胜算云 token、OAuth/MCP OAuth token 等敏感凭据；
+- 当前模型、提供商、endpoint、任务和功能设置；
+- 任务历史、对话消息、检查点、压缩状态以及工具调用相关状态。
+
+这些数据通常保存在本机，或保存在你通过配置指定的存储位置。但“本地保存”不等于“永不离开本机”：任务历史或文件内容可能在后续 AI 请求中作为上下文发送给模型提供商、网关或 MCP 服务。
+
+### 遥测、错误报告与企业 OpenTelemetry
+
+在构建时注入有效配置、且未被部署策略关闭时，Cline 可能使用 PostHog 发送使用遥测或错误报告，默认数据入口包括 `https://data.cline.bot`，生产环境的 PostHog 服务地址由构建配置决定。遥测或错误报告可能包含扩展版本、VS Code/宿主版本、操作系统、远程工作区标记、设备标识、模型/提供商、提示词长度、图片/文件标记、token 数量、成本、耗时、工具或 MCP 调用统计，以及错误名称、消息、堆栈和部分附加属性。错误消息中可能意外包含路径、URL 或服务商返回内容片段，因此请勿在错误文本中放入秘密信息。
+
+普通使用遥测通常受 Cline 的 telemetry 设置和 VS Code 的遥测设置控制，关闭后会停止相应的普通遥测；但某些构建、组织配置或必要事件路径可能仍按部署策略发送。企业或自托管部署还可以通过 OpenTelemetry 将指标和日志发送到组织配置的 OTLP collector，具体地址和字段由构建、环境变量或组织配置决定。
+
+### 用户控制、关闭与删除
+
+- 优先选择本地 Ollama、LM Studio、自建模型或自定义 endpoint，以便由你控制请求的传输位置；本地模型本身仍可能调用你配置的外部 MCP、索引或其他服务。
+- 在 Cline 和 VS Code 的设置中关闭可关闭的普通遥测；企业环境请同时检查组织或远程配置。
+- 通过扩展提供的任务/历史删除功能删除任务，并在需要彻底清理时删除 VS Code 扩展存储、工作区状态及你配置的自定义存储目录。
+- 在 VS Code 的凭据管理中删除不再使用的 API Key、OAuth token 和胜算云 token，并在对应服务商控制台撤销或删除密钥。
+- 如使用 `~/.cline/endpoints.json` 配置自定义服务，请一并检查和删除其中的 endpoint 配置。
+
+### 第三方服务的数据保留
+
+对于 Anthropic、OpenAI、DeepSeek、Qwen、Gemini、OpenRouter、Mistral、Bedrock、Vertex、Ollama、LM Studio、MCP server、PostHog 或组织 OTLP collector 等服务，Cline Chinese 的维护者无法决定其数据保留期限。选择胜算云 API 供应商时，任务历史不上传云端、API Key 只存在本地、模型 API 请求只转发且不做胜算云云端留存；但胜算云账户认证、余额、用量和充值等账户服务仍按其服务规则处理。使用任何服务前，请阅读对应隐私政策、服务条款和数据控制台设置。
 ## ❓ 常见问题
 
 ### 安装与升级
@@ -137,7 +216,7 @@ Cline Chinese 可以直接在你的 VS Code 终端里执行命令。涉及安装
 A：在。v4.0 升级会自动迁移；如遇异常可在设置里手动配置一次。
 
 **Q：和原版 Cline 同时安装会冲突吗？**
-A：会。建议只装一个，胜算云维护的 Cline Chinese 是从原版 fork 出来的，两者共用相同的扩展 ID 槽位。
+A：建议只装一个。Cline Chinese 是从原版 Cline fork 出来的独立扩展，使用前请确认所安装的 Marketplace listing、发布者和版本，避免同时维护两个同源项目。
 
 **Q：能装在 Cursor / Windsurf 等 VS Code 兼容编辑器里吗？**
 A：能。VSIX 直接安装即可。CLI 命令见 [安装文档](https://hybridtalentcomputing.gitbook.io/cline-chinese-doc/install)。
@@ -151,7 +230,7 @@ A：控制台里可以一键切换 DeepSeek / Kimi / Qwen / GLM / 智谱等模�
 A：[胜算云](https://www.shengsuanyun.com/?from=cline-chinese) 注册即送 10 元模力，可以跑约 200-400 万 tokens，足够体验整个产品。
 
 **Q：API Key 会被上传到云端吗？**
-A：不会。API Key 只存在你本地 VS Code 的 settings 里。
+A：如果选择胜算云 API 供应商，按胜算云当前服务说明，任务历史不上传云端、API Key 只存在本地，模型 API 请求只转发且不做云端留存。使用其他模型供应商或自定义 endpoint 时，以对应服务商的隐私政策和数据保留规则为准。详见上面的“数据与隐私”。
 
 **Q：可以用自己的 Key 吗？**
 A：可以。已有 DeepSeek / Kimi / Qwen / GLM 官方 Key 的用户，在第 3 步选择对应提供商即可，不强制走胜算云。
@@ -183,16 +262,12 @@ A：DeepSeek-V4-Pro 支持 64K / 128K / 1M 三档，超过 64K 会触发自动�
 A：[胜算云实时监控](https://watch.shengsuanyun.com/status/shengsuanyun) 可查，可用率 > 99.9%。
 
 ### 数据与隐私
-
 **Q：任务历史会上传云端吗？**
-A：不会。任务历史、API Key、对话内容全部本地存储。
-
+A：取决于所选供应商。选择胜算云 API 供应商时，按其当前服务说明，任务历史不上传胜算云云端；选择其他模型供应商、网关或远程 MCP 服务时，相关对话、代码、文件、终端输出或工具结果可能作为请求上下文发送给对应服务。
 **Q：会收集用户数据吗？**
-A：所有API请求一律只转发不做任何云端留存
-
+A：扩展会处理完成 AI 功能所需的请求内容和本地任务数据；在启用且构建配置有效时，还可能发送使用遥测或错误报告。具体数据类型、发送位置和控制方式见上面的“数据与隐私”。
 **Q：能离线用吗？**
-A：不能。Cline Chinese 依赖云端大模型推理，本地无法独立运行。
-
+A：可以配置本地 Ollama、LM Studio 等 provider；如果使用云端模型则需要网络，Cline 相关账户、MCP 或其他服务也可能仍需网络。
 ### 计费与充值
 
 **Q：胜算云怎么计费？**
@@ -306,7 +381,7 @@ Cline Chinese 是社区项目 + 胜算云团队共同维护的开源分支。Leo
 
 1. **使用风险**：本项目是一个开源的VSCode插件，用户在使用过程中可能会遇到的任何问题或风险，项目团队开发者不承担任何直接责任。
 
-2. **数据安全**：本插件不会收集或存储任何用户数据。但在使用过程中，用户应注意保护自己的敏感信息和代码安全。
+2. **数据安全**：本项目会处理 AI 请求、任务历史、凭据和可能的遥测/错误报告；具体数据流取决于模型提供商、网关、MCP 服务和部署配置。请阅读上面的“数据与隐私”，并注意保护敏感信息和代码安全。
 
 3. **知识产权**：
    - 本项目是基于Cline的汉化版本，原版权归属于Cline团队。
@@ -332,7 +407,7 @@ Cline Chinese 是社区项目 + 胜算云团队共同维护的开源分支。Leo
 
 [Apache-2.0](https://github.com/SSYCloud/cline-chinese/blob/main/LICENSE)
 
-汉化部分与上游 Cline 遵循相同许可证。本插件不收集或上传用户数据。安全披露流程见 [SECURITY.md](https://github.com/SSYCloud/cline-chinese/blob/main/SECURITY.md)。
+汉化部分与上游 Cline 遵循相同许可证。有关 AI 请求、本地存储、第三方服务和遥测的数据处理说明，请参阅上面的“数据与隐私”。安全披露流程见 [SECURITY.md](https://github.com/SSYCloud/cline-chinese/blob/main/SECURITY.md)。
 
 ## 致谢
 
@@ -341,4 +416,4 @@ Cline Chinese 是社区项目 + 胜算云团队共同维护的开源分支。Leo
 - Leo 老师 —— 项目发起人与初代维护者
 - 所有 [贡献者](https://github.com/SSYCloud/cline-chinese/graphs/contributors)
 
-> 如果喜欢这个项目，欢迎给本项目 **和** 上游 [Cline](https://github.com/cline/cline) 一个 ⭐️。
+> 如果喜欢这个项目，欢迎给本项目 **和上游** [Cline](https://github.com/cline/cline) 一个 ⭐️。

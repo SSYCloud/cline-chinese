@@ -68,9 +68,9 @@ export function registerScheduleCommands(
 		.option("--mode <act|plan|yolo>", "执行模式", "yolo")
 		.option("--model <model>", "使用的模型")
 		.option("--provider <id>", "提供方 ID")
-		.option("--system-prompt <text>", "系统提示覆盖")
+		.option("--system-prompt <text>", "系统提示词覆盖")
 		.option("--tags <list>", "逗号分隔的标签")
-		.option("--timeout <seconds>", "超时秒数");
+		.option("--timeout <seconds>", "超时时间（秒）");
 	addDeliveryOptions(createCmd);
 	addAutonomousOptions(createCmd);
 	addSharedOptions(createCmd);
