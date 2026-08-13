@@ -3,6 +3,7 @@ import os from "node:os"
 import path from "node:path"
 import { ClineFileStorage } from "./ClineFileStorage"
 import { ClineMemento } from "./ClineStorage"
+import { mergeLegacyClineChineseStorage } from "./cline-chinese-legacy-merge"
 
 /**
  * The storage backend context object used by StateManager and other components.
@@ -61,6 +62,12 @@ export interface StorageContextOptions {
 	 * once the JetBrains client side is cleaned up.
 	 */
 	workspaceStorageDir?: string
+
+	/**
+	 * Override the legacy `.cline-chinese` root directory that gets merged into
+	 * this data directory. Defaults to ~/.cline-chinese. Used by tests.
+	 */
+	legacyClineChineseDir?: string
 }
 
 const SETTINGS_SUBFOLDER = "data"
@@ -110,6 +117,9 @@ export function resolveDataDirFromEnv(): string {
  *   <dataDir>/secrets.json        — secrets (mode 0o600)
  *   <dataDir>/workspaces/<hash>/workspaceState.json — per-workspace state
  *
+ * Also merges in any data left behind under ~/.cline-chinese (an older
+ * "cline-chinese"-branded install) — see mergeLegacyClineChineseStorage.
+ *
  * @param opts Configuration options for path resolution
  * @returns A StorageContext ready for use by StateManager
  */
@@ -134,7 +144,7 @@ export function createStorageContext(opts: StorageContextOptions = {}): StorageC
 
 	const globalState = new ClineFileStorage(path.join(dataDir, "globalState.json"), "GlobalState")
 
-	return {
+	const context: StorageContext = {
 		globalState,
 		globalStateBackingStore: globalState,
 		secrets: new ClineFileStorage<string>(path.join(dataDir, "secrets.json"), "Secrets", {
@@ -144,4 +154,16 @@ export function createStorageContext(opts: StorageContextOptions = {}): StorageC
 		dataDir,
 		workspaceStoragePath: workspaceDir,
 	}
+
+	// Merge in any data left behind by older "cline-chinese"-branded installs
+	// under ~/.cline-chinese, so users never lose settings when consolidating
+	// onto the current ~/.cline install. Skipped when opts.clineDir points at
+	// an isolated/sandboxed directory (tests) unless a legacy dir override is
+	// explicitly given — otherwise this would merge the real user's
+	// ~/.cline-chinese data into an unrelated sandbox.
+	if (!opts.clineDir || opts.legacyClineChineseDir) {
+		mergeLegacyClineChineseStorage(context, { legacyClineDir: opts.legacyClineChineseDir })
+	}
+
+	return context
 }
