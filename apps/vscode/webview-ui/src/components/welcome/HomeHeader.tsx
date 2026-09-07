@@ -13,7 +13,7 @@ const HomeHeader = ({ shouldShowQuickWins = false }: HomeHeaderProps) => {
 			console.error("Error opening walkthrough:", error)
 		}
 	}
-	const headingText = "What can I do for you?"
+	const headingText = "我可以帮你做什么?"
 
 	return (
 		<div className="flex flex-col items-center mb-5">

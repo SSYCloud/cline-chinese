@@ -2,7 +2,7 @@
 import type { ChoiceContext } from "@opentui-ui/dialog";
 import { useDialogKeyboard } from "@opentui-ui/dialog/react";
 import { useCallback, useMemo, useState } from "react";
-import { palette } from "../tui/palette";
+import { useDialogPalette } from "../tui/hooks/use-theme";
 import {
 	type DialogDismissKey,
 	isAnyKeyDismiss,
@@ -35,6 +35,7 @@ export function MigrationNoticeContent(
 	},
 ) {
 	const { dialogId, notice, resolve } = props;
+	const palette = useDialogPalette();
 	const subscriptionUrl = useMemo(() => getCliSubscriptionUrl(), []);
 	const [status, setStatus] = useState<string | undefined>();
 
@@ -69,7 +70,6 @@ export function MigrationNoticeContent(
 					ClinePass 是一个每月 $9.99 的订阅套餐，可访问最新的开放权重编程模型，
 					配额足以满足日常工作需要，成本远低于直接支付 API 费用。
 				</text>
-				<text selectable>现在以限时促销价 $4.99 试用。</text>
 			</box>
 			<box flexDirection="row">
 				<text fg={palette.act} selectable>

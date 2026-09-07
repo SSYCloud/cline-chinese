@@ -1,5 +1,9 @@
 import { createInterface } from "node:readline";
-import type { ToolApprovalRequest, ToolApprovalResult } from "@cline/shared";
+import {
+	type ToolApprovalRequest,
+	type ToolApprovalResult,
+	USER_REJECTED_TOOL_REASON,
+} from "@cline/shared";
 import { truncate } from "./helpers";
 import { c, getActiveCliSession, write } from "./output";
 
@@ -91,7 +95,7 @@ async function requestTerminalToolApproval(
 	}
 	return {
 		approved: false,
-		reason: `工具 "${request.toolName}" 已被用户拒绝`,
+		reason: USER_REJECTED_TOOL_REASON,
 	};
 }
 

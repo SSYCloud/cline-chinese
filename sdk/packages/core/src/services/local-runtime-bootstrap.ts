@@ -5,6 +5,7 @@ import type {
 	AgentHooks,
 	AgentTool,
 	BasicLogger,
+	ClientContext,
 	ExtensionContext,
 	ITelemetryService,
 	RuntimeConfigExtensionKind,
@@ -14,6 +15,10 @@ import type {
 } from "@cline/shared";
 import { hasRuntimeConfigExtension } from "@cline/shared";
 import { version as corePackageVersion } from "../../package.json";
+import {
+	type AgentPluginPackageDiagnostic,
+	loadAgentPluginPackages,
+} from "../extensions/agent-plugin";
 import {
 	resolveAndLoadAgentPlugins,
 	resolvePluginSkillDirectoriesFromPaths,
@@ -48,7 +53,10 @@ import {
 	toProviderConfig,
 } from "../types/provider-settings";
 import { resolveWorkspacePath } from "./config";
-import { filterExtensionToolRegistrations } from "./global-settings";
+import {
+	filterExtensionToolRegistrations,
+	resolveDisabledAgentPluginNames,
+} from "./global-settings";
 import { hasRuntimeHooks, mergeAgentExtensions } from "./session-data";
 import type { ProviderSettingsManager } from "./storage/provider-settings-manager";
 import { InMemoryWorkspaceManager } from "./workspace/workspace-manager";
@@ -91,6 +99,38 @@ function logPluginDiagnostics(
 			},
 		);
 	}
+}
+
+function logAgentPluginDiagnostics(
+	diagnostics: ReadonlyArray<AgentPluginPackageDiagnostic>,
+	logger: BasicLogger | undefined,
+): void {
+	for (const item of diagnostics) {
+		const component = item.componentName ? ` (${item.componentName})` : "";
+		logger?.log(
+			`[agent-plugins] ${item.pluginName ?? item.pluginPath}${component}: ${item.message}`,
+			{ severity: item.level === "warning" ? "warn" : "error" },
+		);
+	}
+}
+
+/**
+ * Recover client identity from the Cline request headers baked into the
+ * session config. Hub-backed sessions do not transport `extensionContext`
+ * (it is local-only), but the hub client resolves `X-CLIENT-TYPE` /
+ * `X-CLIENT-VERSION` headers before `session.create`, so the daemon can
+ * rebuild `extensionContext.client` from them and keep trace metadata
+ * (Langfuse `clientName` / `clientVersion`) consistent with local runtimes.
+ */
+function resolveClientContextFromHeaders(
+	headers: Record<string, string> | undefined,
+): ClientContext | undefined {
+	const name = headers?.["X-CLIENT-TYPE"]?.trim();
+	if (!name) {
+		return undefined;
+	}
+	const version = headers?.["X-CLIENT-VERSION"]?.trim();
+	return { name, ...(version ? { version } : {}) };
 }
 
 function resolveReasoningSettings(
@@ -287,8 +327,12 @@ export async function prepareLocalRuntimeBootstrap(
 		initError,
 	} = await buildWorkspaceMetadataWithInfo(workspacePath);
 	const configuredExtensionContext = localConfig?.extensionContext;
+	const headerClientContext = configuredExtensionContext?.client
+		? undefined
+		: resolveClientContextFromHeaders(input.config.headers);
 	const extensionContext: ExtensionContext = {
 		...(configuredExtensionContext ?? {}),
+		...(headerClientContext ? { client: headerClientContext } : {}),
 		workspace: {
 			...workspaceInfo,
 			...(configuredExtensionContext?.workspace ?? {}),
@@ -317,13 +361,17 @@ export async function prepareLocalRuntimeBootstrap(
 		featureFlagEnabled: true,
 	});
 
-	const fileHookExtension = createHookConfigFileExtension({
-		cwd: input.config.cwd,
-		workspacePath,
-		rootSessionId: sessionId,
-		logger: localConfig?.logger,
-		workspaceInfo,
-	});
+	// Hosts with their own hook execution layer (the VS Code extension's
+	// hooks adapter) exclude "hooks" so file hooks run exactly once.
+	const fileHookExtension = hasConfigExtension(configExtensions, "hooks")
+		? createHookConfigFileExtension({
+				cwd: input.config.cwd,
+				workspacePath,
+				rootSessionId: sessionId,
+				logger: localConfig?.logger,
+				workspaceInfo,
+			})
+		: undefined;
 	const auditHooks = hasRuntimeHooks(localConfig?.hooks)
 		? undefined
 		: createHookAuditHooks({
@@ -362,6 +410,29 @@ export async function prepareLocalRuntimeBootstrap(
 			const message = error instanceof Error ? error.message : String(error);
 			localConfig?.logger?.log?.(
 				`plugin loading failed; continuing without plugins (${message})`,
+			);
+		}
+	}
+
+	let loadedAgentPluginPackages:
+		| Awaited<ReturnType<typeof loadAgentPluginPackages>>
+		| undefined;
+	if (hasConfigExtension(configExtensions, "plugins")) {
+		try {
+			loadedAgentPluginPackages = await loadAgentPluginPackages({
+				pluginPaths: input.config.agentPluginPaths,
+				cwd: input.config.cwd,
+				disabledPluginNames: [...resolveDisabledAgentPluginNames()],
+			});
+			logAgentPluginDiagnostics(
+				loadedAgentPluginPackages.diagnostics,
+				extensionContext.logger,
+			);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			extensionContext.logger?.log(
+				`[agent-plugins] Package discovery failed; continuing without Agent Plugins: ${message}`,
+				{ severity: "error" },
 			);
 		}
 	}
@@ -454,6 +525,8 @@ export async function prepareLocalRuntimeBootstrap(
 			onSubAgentEnd: subAgentLifecycleCallbacks?.onSubAgentEnd,
 			userInstructionService: userInstructionService,
 			pluginSkillDirectories,
+			agentPluginSkills: loadedAgentPluginPackages?.skills,
+			agentPluginMcpServers: loadedAgentPluginPackages?.mcpServers,
 			configExtensions: configExtensions,
 			toolExecutors: effectiveToolExecutors,
 			toolPolicies,
