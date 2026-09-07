@@ -65,7 +65,7 @@ export const recommendedModels = [
 		label: "NEW",
 	},
 	{
-		id: "moonshotai/kimi-k3",
+		id: "moonshot/kimi-k3",
 		name: "",
 		description: "国产最强开源编码模型",
 		label: "NEW",

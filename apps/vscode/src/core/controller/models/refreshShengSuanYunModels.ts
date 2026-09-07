@@ -13,12 +13,10 @@ export async function refreshShengSuanYunModels(
 	_request: EmptyRequest,
 ): Promise<ShengSuanYunCompatibleModelInfo> {
 	let typedModels: Record<string, ShengSuanYunModelInfo> = {}
-
 	try {
-		const baseUrl = "https://router.shengsuanyun.com/api/v1"
 		const [res, rate] = await Promise.all([
-			axios.get(`${baseUrl}/models/`, { timeout: 30000 }),
-			axios.get(`${baseUrl}/base/rate`, { timeout: 30000 }),
+			axios.get(`https://router.shengsuanyun.com/api/v1/models/`, { timeout: 30000 }),
+			axios.get(`https://api.shengsuanyun.com/base/rate`, { timeout: 30000 }),
 		])
 		const rawModels = res.data?.data
 		const usdRate = rate.data?.data
@@ -26,7 +24,6 @@ export async function refreshShengSuanYunModels(
 		if (!Array.isArray(rawModels) || typeof usdRate !== "number" || usdRate <= 0) {
 			throw new Error("Invalid response format or invalid rate from ShengSuanYun API")
 		}
-
 		for (const model of rawModels) {
 			if (!Array.isArray(model.support_apis) || !model.support_apis.includes("/v1/messages")) {
 				continue

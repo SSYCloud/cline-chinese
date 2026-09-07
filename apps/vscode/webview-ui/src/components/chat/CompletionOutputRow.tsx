@@ -92,7 +92,7 @@ export const CompletionOutputRow = memo(
 							}}
 							style={{ cursor: viewChangesPending ? "wait" : "pointer" }}>
 							<GitCompareIcon className="size-3 mr-1.5" />
-							View Changes
+							查看更改
 						</SuccessButton>
 					</div>
 				)}
