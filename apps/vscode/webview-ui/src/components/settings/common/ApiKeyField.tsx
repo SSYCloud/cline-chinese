@@ -89,16 +89,16 @@ export const ApiKeyField = ({
 					color: "var(--vscode-descriptionForeground)",
 				}}>
 				{helpText || "此密钥仅存储在本地，仅用于从此扩展发起 API 请求。"}
-				{!localValue && signupUrl && (
-					<VSCodeLink
-						href={signupUrl}
-						style={{
-							display: "inline",
-							fontSize: "inherit",
-						}}>
-						你可以在此注册获取 {providerName} API 密钥。
-					</VSCodeLink>
-				)}
+				{/* {!localValue && signupUrl && ( */}
+				<VSCodeLink
+					href={signupUrl}
+					style={{
+						display: "inline",
+						fontSize: "inherit",
+					}}>
+					你可以在此注册获取 {providerName} API 密钥。
+				</VSCodeLink>
+				{/*  )} */}
 			</p>
 		</div>
 	)

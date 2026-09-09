@@ -13,9 +13,19 @@
 
 ## 🎁 新用户福利
 
-> **首次注册胜算云即送 10 元模力 + 首充 10% 加赠** —— [点这里领取](https://www.shengsuanyun.com/?from=cline-chinese)
+> **新注册用户可领取免费体验key，支持 5 款模型；首充送10%。** —— [点这里注册领取](https://console.shengsuanyun.com/user/keys/?from=CH_MC7LPRV0)
 
-10 元模力可跑约 **200-400 万 tokens**（按 DeepSeek-V4-Flash 计价），足够一个完整项目的代码生成与调试。注册后即可在胜算云控制台一键拿到 API Key，免去逐家注册与充值 DeepSeek / Kimi / Qwen / GLM  等账号的麻烦。
+仅支持通过上方入口新注册的用户领取免费体验key，一个 key 支持以下 5 款模型：
+
+| 免费体验key支持的模型 |
+| --- |
+| `ali/qwen3.5-plus` |
+| `deepseek/deepseek-v4-flash` |
+| `baidu/ernie-4.5-turbo-128k` |
+| `minimax/minimax-m2.5` |
+| `bigmodel/glm-4.6` |
+
+首次使用选择 **“免费开始” → “新用户注册并获取免费体验key”**，在浏览器中完成注册后返回插件。胜算云账户页的充值入口提供 **“首充送10%”** 活动提示。
 
 ---
 
@@ -122,6 +132,22 @@ Cline Chinese 是基于 [Cline](https://github.com/cline/cline) 的开源社区 
 TypeScript 里 interface 和 type 到底有什么区别？
 ```
 
+## 🚀 开始使用
+
+- **前沿模型**：在引导页选择模型，点击 **“使用胜算云登录并使用此模型”**，[前往胜算云登录](https://router.shengsuanyun.com/auth?from=cline-chinese&callback_url=vscode://hybridtalentcomputing.cline-chinese/ssy)。
+- **免费开始**：点击 **“新用户注册并获取免费体验key”**，[前往注册领取](https://router.shengsuanyun.com/auth?from=CH_MC7LPRV0&callback_url=vscode://hybridtalentcomputing.cline-chinese/ssy)，体验上方 5 款模型。
+- **使用我自己的 API 密钥**：选择提供商，填写已有 API Key 和模型。
+
+胜算云 API 配置页提供 **“免费模型 / 体验模型”** 两个页签，点击模型即可填入模型 ID。
+
+| 分类 | 模型 |
+| --- | --- |
+| 免费模型 | `agnes/agnes-2.5-flash`、`agnes/agnes-2.0-flash`、`ali/qwen3.5-4b` |
+| 免费模型 · 书生系列 | `intern/intern-s1`、`intern/intern-s1-pro`、`intern/internvl3.5`、`intern/intern-s2-preview` |
+| 体验模型 | 上方 5 款模型，标记为 **“免费体验key专属”** |
+
+仅支持点击“[此处](https://console.shengsuanyun.com/user/keys/?from=CH_MC7LPRV0)”新注册的用户领取免费体验key。
+
 ## 📖 详细使用指南
 
 ### 任务历史与上下文
@@ -224,16 +250,16 @@ A：能。VSIX 直接安装即可。CLI 命令见 [安装文档](https://hybridt
 ### 模型与配置
 
 **Q：应该选哪个模型？**
-A：控制台里可以一键切换 DeepSeek / Kimi / Qwen / GLM / 智谱等模型，无需改配置。性价比选 DeepSeek-V4-Flash，长上下文选 DeepSeek-V4-Pro（64K-1M），代码生成选 Glm5.2r。
+A：可以先从 API 配置页的“免费模型”开始；通过专属入口新注册并领取免费体验key后，可选择“体验模型”中的 5 款模型。需要更多选择时，可在引导页进入“前沿模型”。
 
 **Q：没有 API Key 能试用吗？**
-A：[胜算云](https://www.shengsuanyun.com/?from=cline-chinese) 注册即送 10 元模力，可以跑约 200-400 万 tokens，足够体验整个产品。
+A：可以。在引导页选择“免费开始”，点击“新用户注册并获取免费体验key”；也可点击“[此处](https://console.shengsuanyun.com/user/keys/?from=CH_MC7LPRV0)”新注册并领取，支持上方列出的 5 款体验模型。
 
 **Q：API Key 会被上传到云端吗？**
 A：如果选择胜算云 API 供应商，按胜算云当前服务说明，任务历史不上传云端、API Key 只存在本地，模型 API 请求只转发且不做云端留存。使用其他模型供应商或自定义 endpoint 时，以对应服务商的隐私政策和数据保留规则为准。详见上面的“数据与隐私”。
 
 **Q：可以用自己的 Key 吗？**
-A：可以。已有 DeepSeek / Kimi / Qwen / GLM 官方 Key 的用户，在第 3 步选择对应提供商即可，不强制走胜算云。
+A：可以。已有 DeepSeek / Kimi / Qwen / GLM 官方 Key 的用户，在引导页选择“使用我自己的 API 密钥”，再选择对应提供商并填写密钥即可，不强制走胜算云。
 
 **Q：胜算云网关和自己直接接 DeepSeek 官方 API 有什么区别？**
 A：网关的优势是① 一份 Key 切多家模型，无需逐家注册；② 全球节点调度，自动选最优；③ 自动容灾，单家 API 故障不影响。劣势是多了 1-2 层网络跳转。如果你只用一个模型、对延迟敏感，直接接官方 API 也完全可以。
@@ -271,7 +297,7 @@ A：可以配置本地 Ollama、LM Studio 等 provider；如果使用云端模�
 ### 计费与充值
 
 **Q：胜算云怎么计费？**
-A：按 tokens 计费，不同模型单价不同（在控制台可查）。新用户送 10 元模力 + 首充 10% 加赠。
+A：付费模型按 tokens 计费，不同模型单价不同。通过专属入口新注册的用户可领取免费体验key；首充送10%。免费模型与免费体验key专属模型在 API 配置页分开展示。
 
 **Q：充值的余额是永久有效吗？**
 A：具体有效期见 [胜算云用户协议](https://lean.shengsuanyun.com/apidocs/account/recharge-agreement)。
@@ -290,6 +316,18 @@ A：企业用户可以，[胜算云控制台](https://console.shengsuanyun.com/u
 
 > 复杂问题请走 GitHub Issue，便于其他人搜索到相同问题。
 
+## 🏢 胜算云企业网关
+
+**企业 AI 生产经营基础设施**，让企业模型调用可治理、可路由、可追踪、可核算。
+
+- **帮企业省钱**：基于角色与项目的访问控制、精细预算与速率限制，对接企业级一模一价模型折扣，管理团队用量与成本。
+- **数据安全与操作审计**：企业网关提示词与输出内容 **0 留存**，仅保留排障、账单与消耗审计所需记录，提供消耗审计报告。
+- **接入与调度更方便**：支持通过 API 接入企业自有管理系统，提供自动路由、BYOK（自带模型密钥）、回退与重试、智能负载均衡等功能。
+
+[了解胜算云企业网关](https://www.shengsuanyun.com/companyGateway/?from=cline-chinese)
+
+以上为企业网关服务介绍；插件本身的数据处理范围见“数据与隐私”。
+
 ## 🏢 关于维护方 · 胜算云开源团队（SSY Cloud）
 
 [胜算云](https://www.shengsuanyun.com/?from=cline-chinese) 是本项目的购买方与日常维护方，长三角国家技术创新中心重大扶持项目，专注打造工业级 AI 任务执行矩阵：
@@ -305,7 +343,7 @@ A：企业用户可以，[胜算云控制台](https://console.shengsuanyun.com/u
 
 - ✅ **API 网关与全球算力调度** —— 一份 Key 切多家模型，无需逐家注册
 - ✅ **统一计费与发票** —— 多模型合并账单，企业可开票
-- ✅ **新用户 10 元模力 + 首充 10% 加赠**
+- ✅ **新注册用户免费体验key，支持 5 款模型；首充送10%**
 - ✅ **实时稳定性监控** —— 网关可用率公开透明
 
 Cline Chinese 是社区项目 + 胜算云团队共同维护的开源分支。Leo 老师及原有核心贡献者继续活跃参与。

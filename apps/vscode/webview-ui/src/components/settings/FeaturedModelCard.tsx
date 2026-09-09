@@ -1,5 +1,6 @@
 import React from "react"
 import styled from "styled-components"
+import { AccountServiceClient } from "@/services/grpc-client"
 
 interface FeaturedModelCardProps {
 	displayName: string
@@ -58,6 +59,25 @@ const FeaturedModelCard: React.FC<FeaturedModelCardProps> = ({ displayName, desc
 				<Label>{label}</Label>
 			</ModelHeader>
 			<Description>{description}</Description>
+		</CardContainer>
+	)
+}
+
+export const Lure = ({ from }: { from: string }) => {
+	const handleClick = async () => {
+		await AccountServiceClient.shengSuanYunLoginClicked({ from: from }).catch((error) => {
+			console.error("Failed to log in to ShengSuanYun during onboarding:", error)
+		})
+	}
+	return (
+		<CardContainer isSelected={true}>
+			<p className="my-2 text-foreground text-sm">
+				仅支持点击{" "}
+				<span className="text-link cursor-pointer" onClick={handleClick}>
+					“此处”
+				</span>{" "}
+				新注册的用户领取免费体验key。
+			</p>
 		</CardContainer>
 	)
 }

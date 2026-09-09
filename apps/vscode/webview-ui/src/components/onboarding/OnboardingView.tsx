@@ -5,7 +5,7 @@ import {
 	resolveClinePassModelInfo,
 	shengSuanYunDefaultModelInfo,
 } from "@shared/api"
-import { EmptyRequest, StringRequest } from "@shared/proto/cline/common"
+import { StringRequest } from "@shared/proto/cline/common"
 import type { OnboardingModel, OnboardingModelGroup, OpenRouterModelInfo } from "@shared/proto/index.cline"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { AlertCircleIcon, CircleCheckIcon, CircleIcon, ListIcon, LoaderCircleIcon, ZapIcon } from "lucide-react"
@@ -605,8 +605,11 @@ const OnboardingViewContent = ({ onboardingModels }: { onboardingModels: Onboard
 				setIsActionLoading(false)
 			}
 		}, 10_000)
-
-		await AccountServiceClient.shengSuanYunLoginClicked(EmptyRequest.create()).catch((error) => {
+		let from = "chine-chinese"
+		if (userType === NEW_USER_TYPE.FREE) {
+			from = "CH_MC7LPRV0"
+		}
+		await AccountServiceClient.shengSuanYunLoginClicked({ from }).catch((error) => {
 			console.error("Failed to log in to ShengSuanYun during onboarding:", error)
 		})
 
@@ -763,8 +766,13 @@ const OnboardingViewContent = ({ onboardingModels }: { onboardingModels: Onboard
 							请在浏览器中完成登录。完成后，我们将自动继续。
 						</div>
 					)}
-
-					{stepNumber !== 2 && (
+					{stepNumber !== 2 && userType === NEW_USER_TYPE.POWER && (
+						<div className="items-center justify-center flex text-sm text-foreground gap-2 mb-3 text-pretty">
+							<AlertCircleIcon className="shrink-0 size-2" />{" "}
+							模型列表与介绍来自胜算云实时接口；按各厂商最新版本优先展示。
+						</div>
+					)}
+					{stepNumber !== 2 && userType !== NEW_USER_TYPE.POWER && (
 						<div className="items-center justify-center flex text-sm text-foreground gap-2 mb-3 text-pretty">
 							<AlertCircleIcon className="shrink-0 size-2" /> 您稍后可以在设置中更改此设置。
 						</div>

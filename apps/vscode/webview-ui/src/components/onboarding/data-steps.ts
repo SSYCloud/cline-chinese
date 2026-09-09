@@ -29,9 +29,10 @@ export const STEP_CONFIG = {
 		],
 	},
 	[NEW_USER_TYPE.FREE]: {
-		title: "绝对免费",
+		title: "新用户免费体验key",
+		description: "领取免费体验key，体验以下 5 款模型。",
 		buttons: [
-			{ text: "新用户登录并免费获取模力", action: "signin_ssy", variant: "default" },
+			{ text: "新用户注册并获取免费体验key", action: "signin_ssy", variant: "default" },
 			{ text: "返回", action: "back", variant: "secondary" },
 		],
 	},
@@ -65,7 +66,7 @@ const CLINE_PASS_USER_TYPE_SELECTION: UserTypeSelection = {
 
 const BASE_USER_TYPE_SELECTIONS: UserTypeSelection[] = [
 	{ title: "前沿模型", description: "Claude\\GPT\\Kimi\\ Glm 等，稳定高速（无需魔法）", type: NEW_USER_TYPE.POWER },
-	{ title: "免费开始", description: "SSY Cloud新用户免费获取10元模力，1模力=1RMB", type: NEW_USER_TYPE.FREE },
+	{ title: "免费开始", description: "新用户可领取免费体验key，支持 5 款模型。", type: NEW_USER_TYPE.FREE },
 	{ title: "自带 API 密钥", description: "使用你选择的提供商", type: NEW_USER_TYPE.BYOK },
 ]
 

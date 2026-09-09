@@ -42,7 +42,7 @@ export const ShengSuanYunProvider = ({ showModelOptions, isPopup, currentMode, i
 				loginBtn={userInfo ? undefined : <LoginBtn />}
 				onChange={(value) => handleFieldChange("shengSuanYunApiKey", value)}
 				providerName="胜算云"
-				signupUrl="https://console.shengsuanyun.com/user/keys"
+				signupUrl="https://console.shengsuanyun.com/user/keys/?from=cline-chinese"
 			/>
 			{showModelOptions && (
 				<ShengSuanYunModelPicker currentMode={currentMode} initialModelTab={initialModelTab} isPopup={isPopup} />

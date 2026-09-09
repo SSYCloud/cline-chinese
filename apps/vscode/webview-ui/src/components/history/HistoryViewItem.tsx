@@ -1,6 +1,6 @@
 import { HistoryItem } from "@shared/HistoryItem"
 import { StringRequest } from "@shared/proto/cline/common"
-import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeCheckbox, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import {
 	ArrowDownIcon,
 	ArrowLeftIcon,
@@ -9,11 +9,13 @@ import {
 	ChevronsDownUpIcon,
 	ChevronsUpDownIcon,
 	DownloadIcon,
+	PencilIcon,
 	StarIcon,
 	TrashIcon,
 } from "lucide-react"
 import { memo, useCallback, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useUsageCostVisibility } from "@/hooks/useUsageCostVisibility"
 import { cn } from "@/lib/utils"
 import { TaskServiceClient } from "@/services/grpc-client"
@@ -25,6 +27,7 @@ type HistoryViewItemProps = {
 	selectedItems: string[]
 	pendingFavoriteToggles: Record<string, boolean>
 	handleDeleteHistoryItem: (id: string) => void
+	handleRenameTask: (id: string, title: string) => void
 	toggleFavorite: (id: string, isCurrentlyFavorited: boolean) => void
 	handleHistorySelect: (itemId: string, checked: boolean) => void
 }
@@ -33,11 +36,14 @@ const HistoryViewItem = ({
 	item,
 	pendingFavoriteToggles,
 	handleDeleteHistoryItem,
+	handleRenameTask,
 	toggleFavorite,
 	handleHistorySelect,
 	selectedItems,
 }: HistoryViewItemProps) => {
 	const [expanded, setExpanded] = useState(false)
+	const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
+	const [renameTitle, setRenameTitle] = useState("")
 	const isCostVisible = useUsageCostVisibility()
 
 	const isFavoritedItem = useMemo(
@@ -78,159 +84,210 @@ const HistoryViewItem = ({
 	}, [])
 
 	return (
-		<div className="history-item cursor-pointer flex group mb-1 hover:bg-list-hover border-b border-accent/10" key={item.id}>
-			<VSCodeCheckbox
-				checked={selectedItems.includes(item.id)}
-				className="pl-3 pr-1 py-auto self-start mt-3"
-				onClick={(e) => {
-					e.preventDefault()
-					e.stopPropagation()
-					const checked = (e.target as HTMLInputElement).checked
-					handleHistorySelect(item.id, checked)
-				}}
-			/>
-
+		<>
 			<div
-				className="flex flex-col gap-2 py-2 pl-2 pr-3 relative flex-grow min-w-0"
-				onClick={(e) => {
-					e.stopPropagation()
-					handleShowTaskWithId(item.id)
-				}}>
-				<div className="flex items-center gap-2">
-					<div className="line-clamp-1 overflow-hidden break-words whitespace-pre-wrap flex-1 min-w-0">
-						<span className="ph-no-capture">{item.task}</span>
-					</div>
-					{item.isLegacy && (
-						<span className="text-xs uppercase rounded px-1.5 py-0.5 bg-accent/20 text-description flex-shrink-0">
-							旧版
-						</span>
-					)}
-					<div className="flex gap-2 flex-shrink-0">
-						<Button
-							aria-label="删除"
-							className="p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-							disabled={isFavoritedItem}
-							onClick={(e) => {
-								e.stopPropagation()
-								handleDeleteHistoryItem(item.id)
-							}}
-							variant="ghost">
-							<span className="flex items-center gap-1 text-xs">
-								<TrashIcon className="stroke-1" />
-							</span>
-						</Button>
-						<Button
-							aria-label={isFavoritedItem ? "取消收藏" : "添加收藏"}
-							className="p-0"
-							disabled={pendingFavoriteToggles[item.id] !== undefined}
-							onClick={(e) => {
-								e.stopPropagation()
-								toggleFavorite(item.id, isFavoritedItem)
-							}}
-							variant="icon">
-							<StarIcon
-								className={cn("opacity-70", {
-									"text-button-background  fill-button-background opacity-100": isFavoritedItem,
-								})}
-							/>
-						</Button>
-					</div>
-				</div>
+				className="history-item cursor-pointer flex group mb-1 hover:bg-list-hover border-b border-accent/10"
+				key={item.id}>
+				<VSCodeCheckbox
+					checked={selectedItems.includes(item.id)}
+					className="pl-3 pr-1 py-auto self-start mt-3"
+					onClick={(e) => {
+						e.preventDefault()
+						e.stopPropagation()
+						const checked = (e.target as HTMLInputElement).checked
+						handleHistorySelect(item.id, checked)
+					}}
+				/>
 
-				<Button
-					className="p-0"
+				<div
+					className="flex flex-col gap-2 py-2 pl-2 pr-3 relative flex-grow min-w-0"
 					onClick={(e) => {
 						e.stopPropagation()
-						setExpanded(!expanded)
-					}}
-					variant="icon">
-					<div className="flex items-center justify-between w-full">
-						<div className="text-description text-xs uppercase">{formatDate(item.ts)}</div>
-						<div className="self-end flex items-center text-xs">
-							{isCostVisible(item.apiProvider) && (
-								<span className="text-description">${item.totalCost?.toFixed(4) ?? 0}</span>
-							)}
-							{expanded ? (
-								<ChevronsDownUpIcon className="text-description" />
-							) : (
-								<ChevronsUpDownIcon className="text-description hidden opacity-0 group-hover:opacity-100 transition-opacity group-hover:block" />
-							)}
+						handleShowTaskWithId(item.id)
+					}}>
+					<div className="flex items-center gap-2">
+						<div className="line-clamp-1 overflow-hidden break-words whitespace-pre-wrap flex-1 min-w-0">
+							<span className="ph-no-capture">{item.task}</span>
+						</div>
+						{item.isLegacy && (
+							<span className="text-xs uppercase rounded px-1.5 py-0.5 bg-accent/20 text-description flex-shrink-0">
+								旧版
+							</span>
+						)}
+						<div className="flex gap-2 flex-shrink-0">
+							<Button
+								aria-label={item.task ? "编辑标题" : "添加标题"}
+								className="p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+								onClick={(e) => {
+									e.stopPropagation()
+									setRenameTitle(item.task)
+									setIsRenameDialogOpen(true)
+								}}
+								variant="ghost">
+								<span className="flex items-center gap-1 text-xs">
+									<PencilIcon className="stroke-1" />
+								</span>
+							</Button>
+							<Button
+								aria-label="删除"
+								className="p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+								disabled={isFavoritedItem}
+								onClick={(e) => {
+									e.stopPropagation()
+									handleDeleteHistoryItem(item.id)
+								}}
+								variant="ghost">
+								<span className="flex items-center gap-1 text-xs">
+									<TrashIcon className="stroke-1" />
+								</span>
+							</Button>
+							<Button
+								aria-label={isFavoritedItem ? "取消收藏" : "添加收藏"}
+								className="p-0"
+								disabled={pendingFavoriteToggles[item.id] !== undefined}
+								onClick={(e) => {
+									e.stopPropagation()
+									toggleFavorite(item.id, isFavoritedItem)
+								}}
+								variant="icon">
+								<StarIcon
+									className={cn("opacity-70", {
+										"text-button-background  fill-button-background opacity-100": isFavoritedItem,
+									})}
+								/>
+							</Button>
 						</div>
 					</div>
-				</Button>
-				{expanded && (
+
 					<Button
-						className="m-0 text-xs cursor-pointer p-2 bg-accent/10 w-full rounded-xs"
+						className="p-0"
 						onClick={(e) => {
 							e.stopPropagation()
 							setExpanded(!expanded)
 						}}
-						variant="text">
-						<div className="flex flex-col gap-1 w-full text-xs">
-							<div className="flex items-center justify-between w-full">
-								<div className="flex items-center gap-1 flex-wrap w-full">
-									<div className="flex justify-between items-center w-full gap-1 text-xs">
-										<span className="font-medium text-description">Token：</span>
-										<div className="flex items-center gap-1 text-description text-xs">
-											<span className="flex items-center gap-1 text-description">
-												<ArrowUpIcon className="text-description !size-1" />
-												{formatLargeNumber(item.tokensIn || 0)}
-											</span>
-											<span className="flex items-center gap-1 text-description">
-												<ArrowDownIcon className="text-description !size-1" />
-												{formatLargeNumber(item.tokensOut || 0)}
-											</span>
-											{item.cacheWrites
-												? item.cacheWrites > 0 && (
-														<span className="flex items-center gap-1 text-description">
-															<ArrowRightIcon className="text-description !size-1" />
-															{formatLargeNumber(item.cacheWrites)}
-														</span>
-													)
-												: null}
-											{item.cacheReads
-												? item.cacheReads > 0 && (
-														<span className="flex items-center gap-1 text-description">
-															<ArrowLeftIcon className="text-description !size-1" />
-															{formatLargeNumber(item.cacheReads)}
-														</span>
-													)
-												: null}
-										</div>
-									</div>
-
-									{item.modelId && (
-										<div className="flex justify-between items-center w-full gap-1 text-xs">
-											<span className="font-medium text-description">模型：</span>
-											<span className="text-description">{item.modelId}</span>
-										</div>
-									)}
-
-									<div className="flex justify-between items-center w-full gap-1 text-xs">
-										<span className="font-medium text-description">大小：</span>
-										<span className="items-center gap-2 flex text-description">
-											{formatSize(item.size)}
-											<Button
-												aria-label="导出"
-												className="m-0 p-0"
-												onClick={(e) => {
-													e.stopPropagation()
-													TaskServiceClient.exportTaskWithId(
-														StringRequest.create({ value: item.id }),
-													).catch((err) => console.error("Failed to export task:", err))
-												}}
-												variant="ghost">
-												<DownloadIcon />
-											</Button>
-										</span>
-									</div>
-								</div>
+						variant="icon">
+						<div className="flex items-center justify-between w-full">
+							<div className="text-description text-xs uppercase">{formatDate(item.ts)}</div>
+							<div className="self-end flex items-center text-xs">
+								{isCostVisible(item.apiProvider) && (
+									<span className="text-description">${item.totalCost?.toFixed(4) ?? 0}</span>
+								)}
+								{expanded ? (
+									<ChevronsDownUpIcon className="text-description" />
+								) : (
+									<ChevronsUpDownIcon className="text-description hidden opacity-0 group-hover:opacity-100 transition-opacity group-hover:block" />
+								)}
 							</div>
 						</div>
 					</Button>
-				)}
+					{expanded && (
+						<Button
+							className="m-0 text-xs cursor-pointer p-2 bg-accent/10 w-full rounded-xs"
+							onClick={(e) => {
+								e.stopPropagation()
+								setExpanded(!expanded)
+							}}
+							variant="text">
+							<div className="flex flex-col gap-1 w-full text-xs">
+								<div className="flex items-center justify-between w-full">
+									<div className="flex items-center gap-1 flex-wrap w-full">
+										<div className="flex justify-between items-center w-full gap-1 text-xs">
+											<span className="font-medium text-description">Token：</span>
+											<div className="flex items-center gap-1 text-description text-xs">
+												<span className="flex items-center gap-1 text-description">
+													<ArrowUpIcon className="text-description !size-1" />
+													{formatLargeNumber(item.tokensIn || 0)}
+												</span>
+												<span className="flex items-center gap-1 text-description">
+													<ArrowDownIcon className="text-description !size-1" />
+													{formatLargeNumber(item.tokensOut || 0)}
+												</span>
+												{item.cacheWrites
+													? item.cacheWrites > 0 && (
+															<span className="flex items-center gap-1 text-description">
+																<ArrowRightIcon className="text-description !size-1" />
+																{formatLargeNumber(item.cacheWrites)}
+															</span>
+														)
+													: null}
+												{item.cacheReads
+													? item.cacheReads > 0 && (
+															<span className="flex items-center gap-1 text-description">
+																<ArrowLeftIcon className="text-description !size-1" />
+																{formatLargeNumber(item.cacheReads)}
+															</span>
+														)
+													: null}
+											</div>
+										</div>
+
+										{item.modelId && (
+											<div className="flex justify-between items-center w-full gap-1 text-xs">
+												<span className="font-medium text-description">模型：</span>
+												<span className="text-description">{item.modelId}</span>
+											</div>
+										)}
+
+										<div className="flex justify-between items-center w-full gap-1 text-xs">
+											<span className="font-medium text-description">大小：</span>
+											<span className="items-center gap-2 flex text-description">
+												{formatSize(item.size)}
+												<Button
+													aria-label="导出"
+													className="m-0 p-0"
+													onClick={(e) => {
+														e.stopPropagation()
+														TaskServiceClient.exportTaskWithId(
+															StringRequest.create({ value: item.id }),
+														).catch((err) => console.error("Failed to export task:", err))
+													}}
+													variant="ghost">
+													<DownloadIcon />
+												</Button>
+											</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</Button>
+					)}
+				</div>
 			</div>
-		</div>
+
+			<Dialog onOpenChange={setIsRenameDialogOpen} open={isRenameDialogOpen}>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>{item.task ? "编辑标题" : "添加标题"}</DialogTitle>
+					</DialogHeader>
+					<VSCodeTextField
+						className="w-full"
+						onInput={(e) => setRenameTitle((e.target as HTMLInputElement).value)}
+						placeholder="输入历史记录标题..."
+						value={renameTitle}>
+						<div className="codicon codicon-edit opacity-80 mt-0.5 !text-sm" slot="start" />
+					</VSCodeTextField>
+					<DialogFooter>
+						<Button
+							onClick={(e) => {
+								e.stopPropagation()
+								setIsRenameDialogOpen(false)
+							}}
+							variant="secondary">
+							取消
+						</Button>
+						<Button
+							disabled={!renameTitle.trim()}
+							onClick={(e) => {
+								e.stopPropagation()
+								handleRenameTask(item.id, renameTitle.trim())
+								setIsRenameDialogOpen(false)
+							}}>
+							保存
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
+		</>
 	)
 }
 

@@ -33,6 +33,8 @@ service TaskService {
   rpc exportTaskWithId(StringRequest) returns (Empty);
   // Toggles the favorite status of a task
   rpc toggleTaskFavorite(TaskFavoriteRequest) returns (Empty);
+  // Updates the title of a task in history
+  rpc updateTaskTitle(TaskTitleRequest) returns (Empty);
   // Gets filtered task history
   rpc getTaskHistory(GetTaskHistoryRequest) returns (TaskHistoryArray);
   // Sends a response to a previous ask operation
@@ -61,6 +63,13 @@ message TaskFavoriteRequest {
   Metadata metadata = 1;
   string task_id = 2;
   bool is_favorited = 3;
+}
+
+// Request message for updating the title of a task in history
+message TaskTitleRequest {
+  Metadata metadata = 1;
+  string task_id = 2;
+  string title = 3;
 }
 
 // Response for task details

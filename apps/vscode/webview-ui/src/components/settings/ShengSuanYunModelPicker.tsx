@@ -9,7 +9,7 @@ import { useDynamicProviderSelection } from "@/hooks/useDynamicProviderSelection
 import { ModelsServiceClient } from "@/services/grpc-client"
 import { useExtensionState } from "../../context/ExtensionStateContext"
 import { ModelInfoView } from "./common/ModelInfoView"
-import FeaturedModelCard from "./FeaturedModelCard"
+import FeaturedModelCard, { Lure } from "./FeaturedModelCard"
 import { getModeSpecificFields } from "./utils/providerUtils"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
 
@@ -41,42 +41,78 @@ const StarIcon = ({ isFavorite, onClick }: { isFavorite: boolean; onClick: (e: R
 
 export const recommendedModels = [
 	{
-		id: "anthropic/claude-opus-5",
+		id: "ali/qwen3.5-plus",
 		name: "",
-		description: "opus系列性能飞跃", // gitleaks:allow
+		description: "免费体验", // gitleaks:allow
 		label: "NEW",
 	},
 	{
-		id: "bigmodel/glm-5.2",
+		id: "deepseek/deepseek-v4-flash",
 		name: "",
-		description: "国产编程性价比",
+		description: "免费体验",
 		label: "NEW",
 	},
 	{
-		id: "anthropic/claude-fable-5",
+		id: "baidu/ernie-4.5-turbo-128k",
 		name: "",
-		description: "Anthropic当下最强模型",
+		description: "免费体验",
 		label: "NEW",
 	},
 	{
-		id: "openai/gpt-5.6-sol",
+		id: "minimax/minimax-m2.5",
 		name: "",
-		description: "编程排行当下第一",
+		description: "免费体验",
 		label: "NEW",
 	},
 	{
-		id: "moonshot/kimi-k3",
+		id: "bigmodel/glm-4.6",
 		name: "",
-		description: "国产最强开源编码模型",
+		description: "免费体验",
 		label: "NEW",
 	},
 ]
 
 export const freeModels = [
 	{
-		id: "xiaomi/mimo-v2-flash",
-		name: "",
-		description: "MiMo V2 Flash (Free)",
+		id: "agnes/agnes-2.5-flash",
+		name: "agnes/agnes-2.5-flash",
+		description: "免费体验",
+		label: "免费",
+	},
+	{
+		id: "agnes/agnes-2.0-flash",
+		name: "agnes/agnes-2.0-flash",
+		description: "免费体验",
+		label: "免费",
+	},
+	{
+		id: "ali/qwen3.5-4b",
+		name: "ali/qwen3.5-4b",
+		description: "免费体验",
+		label: "免费",
+	},
+	{
+		id: "intern/intern-s1",
+		name: "intern/intern-s1",
+		description: "免费体验",
+		label: "免费",
+	},
+	{
+		id: "intern/intern-s1-pro",
+		name: "intern/intern-s1-pro",
+		description: "免费体验",
+		label: "免费",
+	},
+	{
+		id: "intern/internvl3.5",
+		name: "intern/internvl3.5",
+		description: "免费体验",
+		label: "免费",
+	},
+	{
+		id: "intern/intern-s2-preview",
+		name: "intern/intern-s2-preview",
+		description: "免费体验",
 		label: "免费",
 	},
 ]
@@ -240,29 +276,33 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 				</label>
 				<TabsContainer style={{ marginTop: 4 }}>
 					<Tab active={activeTab === "recommended"} onClick={() => setActiveTab("recommended")}>
-						推荐
+						体验模型
 					</Tab>
-					{/* <Tab active={activeTab === "free"} onClick={() => setActiveTab("free")}>
-						免费
-					</Tab> */}
+					<Tab active={activeTab === "free"} onClick={() => setActiveTab("free")}>
+						免费模型
+					</Tab>
 				</TabsContainer>
 
 				{/* Model Cards */}
 				<div style={{ marginBottom: "6px" }}>
-					{activeTab === "recommended" &&
-						recommendedModels.map((model) => (
-							<FeaturedModelCard
-								description={model.description}
-								displayName={model.name || model.id}
-								isSelected={selectedModelId === model.id}
-								key={model.id}
-								label={model.label}
-								onClick={() => {
-									handleModelChange(model.id)
-									setIsDropdownVisible(false)
-								}}
-							/>
-						))}
+					{activeTab === "recommended" && (
+						<>
+							<Lure from="CH_MC7LPRV0" />
+							{recommendedModels.map((model) => (
+								<FeaturedModelCard
+									description={model.description}
+									displayName={model.name || model.id}
+									isSelected={selectedModelId === model.id}
+									key={model.id}
+									label={model.label}
+									onClick={() => {
+										handleModelChange(model.id)
+										setIsDropdownVisible(false)
+									}}
+								/>
+							))}
+						</>
+					)}
 					{activeTab === "free" &&
 						freeModels.map((model) => (
 							<FeaturedModelCard

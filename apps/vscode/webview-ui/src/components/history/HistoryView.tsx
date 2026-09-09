@@ -1,5 +1,5 @@
 import { EmptyRequest, StringArrayRequest } from "@shared/proto/cline/common"
-import { GetTaskHistoryRequest, TaskFavoriteRequest, type TaskItem } from "@shared/proto/cline/task"
+import { GetTaskHistoryRequest, TaskFavoriteRequest, type TaskItem, TaskTitleRequest } from "@shared/proto/cline/task"
 import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse, { FuseResult } from "fuse.js"
 import { FunnelIcon } from "lucide-react"
@@ -172,6 +172,23 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 			}
 		},
 		[showFavoritesOnly, showCurrentWorkspaceOnly, loadTaskHistory],
+	)
+
+	const handleRenameTask = useCallback(
+		async (taskId: string, title: string) => {
+			try {
+				await TaskServiceClient.updateTaskTitle(TaskTitleRequest.create({ taskId, title }))
+
+				// Optimistic UI update
+				setTasks((currentTasks) => currentTasks.map((task) => (task.id === taskId ? { ...task, task: title } : task)))
+
+				// Refresh to keep ordering/size metadata consistent
+				await loadTaskHistory(0)
+			} catch (err) {
+				console.error(`[RENAME_TASK_UI] Error for task ${taskId}:`, err)
+			}
+		},
+		[loadTaskHistory],
 	)
 
 	// Use the onRelinquishControl hook instead of message event
@@ -504,6 +521,7 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							<HistoryViewItem
 								handleDeleteHistoryItem={handleDeleteHistoryItem}
 								handleHistorySelect={handleHistorySelect}
+								handleRenameTask={handleRenameTask}
 								index={index}
 								item={item}
 								pendingFavoriteToggles={pendingFavoriteToggles}

@@ -2201,6 +2201,20 @@ export class Controller {
 		await this.postStateToWebview()
 	}
 
+	async updateTaskTitle(taskId: string, title: string): Promise<void> {
+		const historyItem = await this.taskHistory.findHistoryItem(taskId)
+		if (!historyItem) {
+			Logger.log(`[updateTaskTitle] Task not found in history: ${taskId}`)
+			return
+		}
+
+		await this.taskHistory.updateTaskHistory({
+			...historyItem,
+			task: title,
+		})
+		await this.postStateToWebview()
+	}
+
 	// ---- Background command state ----
 
 	updateBackgroundCommandState(running: boolean, taskId?: string): void {
