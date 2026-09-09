@@ -108,6 +108,8 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 			modeFields.apiProvider !== "ollama" &&
 			modeFields.apiProvider !== "lmstudio" &&
 			usageCostDisplay === "show")
+	const isShengSuanYun = modeFields.apiProvider === "shengsuanyun"
+	const costCurrency = isShengSuanYun ? "¥" : "$"
 
 	// Event handlers
 	const toggleTaskExpanded = useCallback(() => setIsTaskExpanded(!isTaskExpanded), [setIsTaskExpanded, isTaskExpanded])
@@ -175,7 +177,10 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 							<div
 								className="mx-1 px-1 py-0.25 rounded-full inline-flex shrink-0 text-badge-background bg-badge-foreground/80 items-center"
 								id="price-tag">
-								<span className="text-xs sm:text-sm">${totalCost?.toFixed(4)}</span>
+								<span className="text-xs sm:text-sm">
+									{costCurrency}
+									{totalCost?.toFixed(4)}
+								</span>
 							</div>
 						)}
 						<NewTaskButton className={BUTTON_CLASS} onClick={onClose} />

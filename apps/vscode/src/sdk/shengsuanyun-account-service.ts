@@ -42,14 +42,17 @@ export class ShengSuanYunAccountService {
 		if (!token) {
 			throw new Error("未找到胜算云 Auth Token")
 		}
-		const url = `${this.baseUrl}${endpoint}`
+		const method = config.method || "GET"
+		const cacheBustingEndpoint = method.toUpperCase() !== "POST" ? this.withCacheBust(endpoint) : endpoint
+		const url = `${this.baseUrl}${cacheBustingEndpoint}`
 		const requestConfig: AxiosRequestConfig = {
 			timeout: 50000,
 			...config,
 			url,
-			method: config.method || "GET",
+			method,
 			headers: {
 				"Content-Type": "application/json",
+				"Cache-Control": "no-cache, no-store, max-age=0",
 				...config.headers,
 				"x-token": token,
 			},
@@ -60,6 +63,11 @@ export class ShengSuanYunAccountService {
 			throw new Error(`Invalid response from ${endpoint} API`)
 		}
 		return response.data.data
+	}
+
+	private withCacheBust(endpoint: string): string {
+		const separator = endpoint.includes("?") ? "&" : "?"
+		return `${endpoint}${separator}_t=${Date.now()}`
 	}
 
 	private dateQueryString(): string {
@@ -119,7 +127,7 @@ export class ShengSuanYunAccountService {
 						UsageTransaction.create({
 							createdAt: it.request_time,
 							aiModelName: `${it.model?.company}/${it.model?.name}`,
-							creditsUsed: (rate * it.total_amount) / 10000000,
+							creditsUsed: it.total_amount,
 							totalTokens: it.total_amount,
 							promptTokens: it.input_tokens,
 							completionTokens: it.output_tokens,
@@ -132,7 +140,7 @@ export class ShengSuanYunAccountService {
 						PaymentTransaction.create({
 							paidAt: it.create_at,
 							creatorId: "",
-							amountCents: Math.round((rate * it.price) / 10000),
+							amountCents: Math.round(it.price),
 							credits: 0,
 						}),
 					)

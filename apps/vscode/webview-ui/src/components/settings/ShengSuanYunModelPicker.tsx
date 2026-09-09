@@ -287,17 +287,6 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 		}
 	}, [selectedIndex])
 
-	const showBudgetSlider = useMemo(() => {
-		setSearchTerm(selectedModelId)
-		return (
-			selectedModelId?.toLowerCase().includes("claude-sonnet-4") ||
-			selectedModelId?.toLowerCase().includes("claude-opus-4") ||
-			selectedModelId?.toLowerCase().includes("claude-3-7-sonnet") ||
-			selectedModelId?.toLowerCase().includes("claude-3.7-sonnet") ||
-			selectedModelId?.toLowerCase().includes(":thinking")
-		)
-	}, [selectedModelId])
-
 	return (
 		<div style={{ width: "100%" }}>
 			<style>
@@ -432,7 +421,12 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 			</div>
 
 			{hasInfo ? (
-				<ModelInfoView isPopup={isPopup} modelInfo={selectedModelInfo} selectedModelId={selectedModelId} />
+				<ModelInfoView
+					isPopup={isPopup}
+					modelInfo={selectedModelInfo}
+					provider="shengsuanyun"
+					selectedModelId={selectedModelId}
+				/>
 			) : (
 				<p
 					style={{

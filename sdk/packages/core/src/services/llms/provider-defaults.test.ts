@@ -527,6 +527,114 @@ describe("resolveProviderConfig", () => {
 		expect(Object.keys(resolved?.knownModels ?? {})).toEqual(["local-llama"]);
 	});
 
+	it("preserves ShengSuanYun model metadata from its public modelsSourceUrl", async () => {
+		const fetchMock = vi.fn(async () => {
+			return new Response(
+				JSON.stringify({
+					data: [
+						{
+							api_name: "anthropic/claude-sonnet-4.6",
+							context_window: 200_000,
+							max_tokens: 64_000,
+							supports_prompt_cache: true,
+							architecture: { input: "text,image" },
+							pricing: {
+								input_price: 20,
+								output_price: 100,
+								cached_price: 2,
+							},
+							support_apis: ["/v1/messages", "/v1/chat/completions"],
+						},
+					],
+				}),
+				{
+					status: 200,
+					headers: { "content-type": "application/json" },
+				},
+			);
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		const resolved = await resolveProviderConfig(
+			"shengsuanyun",
+			{ failOnError: false, cacheTtlMs: 0 },
+			{
+				providerId: "shengsuanyun",
+				modelId: "anthropic/claude-sonnet-4.6",
+				baseUrl: "https://router.shengsuanyun.com/api/v1",
+			},
+		);
+
+		expect(
+			resolved?.knownModels?.["anthropic/claude-sonnet-4.6"],
+		).toMatchObject({
+			id: "anthropic/claude-sonnet-4.6",
+			contextWindow: 200_000,
+			maxInputTokens: 200_000,
+			maxTokens: 64_000,
+			capabilities: expect.arrayContaining([
+				"tools",
+				"streaming",
+				"images",
+				"prompt-cache",
+			]),
+			pricing: { input: 20, output: 100, cacheRead: 2 },
+		});
+	});
+
+	it("prefers ShengSuanYun public pricing over user-known entries with the same model id", async () => {
+		const fetchMock = vi.fn(async () => {
+			return new Response(
+				JSON.stringify({
+					data: [
+						{
+							api_name: "anthropic/claude-sonnet-4.6",
+							context_window: 200_000,
+							max_tokens: 64_000,
+							supports_prompt_cache: true,
+							architecture: { input: "text,image" },
+							pricing: {
+								input_price: 20,
+								output_price: 100,
+								cached_price: 2,
+							},
+							support_apis: ["/v1/messages", "/v1/chat/completions"],
+						},
+					],
+				}),
+				{
+					status: 200,
+					headers: { "content-type": "application/json" },
+				},
+			);
+		});
+		vi.stubGlobal("fetch", fetchMock);
+
+		const resolved = await resolveProviderConfig(
+			"shengsuanyun",
+			{ failOnError: false, cacheTtlMs: 0 },
+			{
+				providerId: "shengsuanyun",
+				modelId: "anthropic/claude-sonnet-4.6",
+				baseUrl: "https://router.shengsuanyun.com/api/v1",
+				knownModels: {
+					"anthropic/claude-sonnet-4.6": {
+						id: "anthropic/claude-sonnet-4.6",
+						name: "anthropic/claude-sonnet-4.6",
+						capabilities: ["tools", "streaming"],
+						status: "active",
+					},
+				},
+			},
+		);
+
+		expect(
+			resolved?.knownModels?.["anthropic/claude-sonnet-4.6"],
+		).toMatchObject({
+			pricing: { input: 20, output: 100, cacheRead: 2 },
+		});
+	});
+
 	it("loads Poolside models from the authenticated models endpoint", async () => {
 		const fetchMock = vi.fn(async () => {
 			return new Response(

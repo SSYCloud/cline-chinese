@@ -2,7 +2,7 @@
 
 import * as Llms from "@cline/llms";
 import {
-	fetchModelIdsFromSource,
+	fetchModelsFromSource,
 	resolveModelsSourceUrl,
 } from "../providers/model-source";
 import type {
@@ -172,10 +172,16 @@ async function mergeKnownModels(
 		Llms.MODEL_COLLECTIONS_BY_PROVIDER_ID[providerId]?.provider.modelsSourceUrl,
 	);
 	if (hasPublicModelSource) {
-		return Llms.sortModelsByReleaseDate({
-			...publicModels,
-			...userKnownModels,
-		});
+		// ShengSuanYun's live catalog carries authoritative metadata (context
+		// window, pricing, capabilities) that must win over user/fallback
+		// entries with the same model id. Other live-source providers keep the
+		// previous user-override-first behavior; user-defined models that are
+		// absent from the live response remain available through the spread.
+		const models =
+			providerId === "shengsuanyun"
+				? { ...userKnownModels, ...publicModels }
+				: { ...publicModels, ...userKnownModels };
+		return Llms.sortModelsByReleaseDate(models);
 	}
 	if (providerId === "openai-codex") {
 		return Llms.sortModelsByReleaseDate({
@@ -714,12 +720,14 @@ async function getPublicProviderModels(
 		return inFlight;
 	}
 
-	const request = fetchModelIdsFromSource(sourceUrl, providerId)
-		.then((modelIds) => {
+	const request = fetchModelsFromSource(sourceUrl, providerId)
+		.then((models) => {
 			const data = Object.fromEntries(
-				modelIds.map((id) => [
+				Object.entries(models).map(([id, maybeModelInfo]) => [
 					id,
-					buildModelFromPrivateSource(id, { name: id }),
+					maybeModelInfo
+						? maybeModelInfo
+						: buildModelFromPrivateSource(id, { name: id }),
 				]),
 			);
 			PUBLIC_MODELS_CACHE.set(cacheKey, {

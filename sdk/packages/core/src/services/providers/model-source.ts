@@ -1,3 +1,5 @@
+import type { ModelInfo } from "@cline/llms";
+
 function parseModelIdList(input: unknown): string[] {
 	if (!Array.isArray(input)) return [];
 	return input
@@ -65,6 +67,158 @@ export async function fetchModelIdsFromSource(
 	return extractModelIdsFromPayload(
 		(await response.json()) as unknown,
 		providerId,
+	);
+}
+
+function toFiniteNumber(value: unknown): number | undefined {
+	const parsed =
+		typeof value === "number"
+			? value
+			: typeof value === "string"
+				? Number(value)
+				: NaN;
+	if (!Number.isFinite(parsed)) {
+		return undefined;
+	}
+	return parsed;
+}
+
+function toNonNegativeNumber(value: unknown): number | undefined {
+	const parsed = toFiniteNumber(value);
+	return parsed !== undefined && parsed >= 0 ? parsed : undefined;
+}
+
+function toPositiveInteger(value: unknown): number | undefined {
+	const parsed = toFiniteNumber(value);
+	if (parsed === undefined || parsed <= 0) {
+		return undefined;
+	}
+	return Math.floor(parsed);
+}
+
+/**
+ * Parse ShengSuanYun's `/api/v1/models` payload. The provider reports full
+ * model metadata (context window, max output tokens, pricing in RMB per
+ * million tokens, prompt-cache support, and image input support), which must
+ * flow through to the catalog so the TaskHeader can show the real context
+ * window and the SDK can compute usage cost with the correct prices.
+ */
+export function extractShengSuanYunModelsFromPayload(
+	payload: unknown,
+): Record<string, ModelInfo> {
+	if (!payload || typeof payload !== "object") {
+		return {};
+	}
+
+	const root = payload as { data?: unknown };
+	if (!Array.isArray(root.data)) {
+		return {};
+	}
+
+	const models: Record<string, ModelInfo> = {};
+	for (const rawModel of root.data) {
+		if (!rawModel || typeof rawModel !== "object") {
+			continue;
+		}
+		const model = rawModel as Record<string, unknown>;
+		const apiName = model.api_name;
+		if (typeof apiName !== "string" || !apiName.trim()) {
+			continue;
+		}
+		const supportApis = Array.isArray(model.support_apis)
+			? model.support_apis
+			: [];
+		if (!supportApis.includes("/v1/messages")) {
+			continue;
+		}
+
+		const inputArch =
+			typeof model.architecture === "object" && model.architecture !== null
+				? (model.architecture as Record<string, unknown>).input
+				: undefined;
+		const supportsImages =
+			typeof inputArch === "string" &&
+			inputArch.toLowerCase().includes("image");
+
+		const pricing =
+			typeof model.pricing === "object" && model.pricing !== null
+				? (model.pricing as Record<string, unknown>)
+				: {};
+		const inputPrice = toNonNegativeNumber(pricing.input_price);
+		const outputPrice = toNonNegativeNumber(pricing.output_price);
+		const cacheReadPrice = toNonNegativeNumber(pricing.cached_price);
+		const cacheWritePrice = toNonNegativeNumber(pricing.cache_write_price);
+		const contextWindow = toPositiveInteger(model.context_window);
+		const maxTokens = toPositiveInteger(model.max_tokens);
+		const capabilities: NonNullable<ModelInfo["capabilities"]> = [
+			"tools",
+			"streaming",
+		];
+		if (supportsImages) {
+			capabilities.push("images");
+		}
+		if (model.supports_prompt_cache) {
+			capabilities.push("prompt-cache");
+		}
+
+		const result: ModelInfo = {
+			id: apiName.trim(),
+			name: apiName.trim(),
+			capabilities,
+			status: "active",
+		};
+		if (contextWindow !== undefined) {
+			result.contextWindow = contextWindow;
+			result.maxInputTokens = contextWindow;
+		}
+		if (maxTokens !== undefined) {
+			result.maxTokens = maxTokens;
+		}
+		if (inputPrice !== undefined || outputPrice !== undefined) {
+			result.pricing = {
+				...(inputPrice !== undefined ? { input: inputPrice } : {}),
+				...(outputPrice !== undefined ? { output: outputPrice } : {}),
+				...(cacheReadPrice !== undefined ? { cacheRead: cacheReadPrice } : {}),
+				...(cacheWritePrice !== undefined
+					? { cacheWrite: cacheWritePrice }
+					: {}),
+			};
+		}
+		if (typeof model.description === "string") {
+			result.description = model.description;
+		}
+
+		models[result.id] = result;
+	}
+
+	return models;
+}
+
+/**
+ * Fetch provider public model metadata. For providers whose public endpoint
+ * carries full model details (currently ShengSuanYun), return typed models so
+ * context-window and pricing data are preserved instead of degrading to
+ * id-only entries. All other providers keep the previous id-only behavior.
+ */
+export async function fetchModelsFromSource(
+	url: string,
+	providerId: string,
+): Promise<Record<string, ModelInfo>> {
+	const response = await fetch(url, { method: "GET" });
+	if (!response.ok) {
+		throw new Error(
+			`failed to fetch models from ${url}: HTTP ${response.status}`,
+		);
+	}
+	const payload = (await response.json()) as unknown;
+	if (providerId === "shengsuanyun") {
+		return extractShengSuanYunModelsFromPayload(payload);
+	}
+	return Object.fromEntries(
+		extractModelIdsFromPayload(payload, providerId).map((id) => [
+			id,
+			{ id, name: id },
+		]),
 	);
 }
 

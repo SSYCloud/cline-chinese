@@ -14,15 +14,10 @@ export async function refreshShengSuanYunModels(
 ): Promise<ShengSuanYunCompatibleModelInfo> {
 	let typedModels: Record<string, ShengSuanYunModelInfo> = {}
 	try {
-		const [res, rate] = await Promise.all([
-			axios.get(`https://router.shengsuanyun.com/api/v1/models/`, { timeout: 30000 }),
-			axios.get(`https://api.shengsuanyun.com/base/rate`, { timeout: 30000 }),
-		])
+		const res = await axios.get(`https://router.shengsuanyun.com/api/v1/models/`, { timeout: 30000 })
 		const rawModels = res.data?.data
-		const usdRate = rate.data?.data
-
-		if (!Array.isArray(rawModels) || typeof usdRate !== "number" || usdRate <= 0) {
-			throw new Error("Invalid response format or invalid rate from ShengSuanYun API")
+		if (!Array.isArray(rawModels)) {
+			throw new Error("Invalid response format from ShengSuanYun API")
 		}
 		for (const model of rawModels) {
 			if (!Array.isArray(model.support_apis) || !model.support_apis.includes("/v1/messages")) {
@@ -30,7 +25,7 @@ export async function refreshShengSuanYunModels(
 			}
 			const inputArch = model.architecture?.input
 			const supportsImages = typeof inputArch === "string" ? inputArch.toLowerCase().includes("image") : false
-			const parsePrice = (price: unknown) => (Number(price) || 0) * usdRate
+			const parsePrice = (price: unknown) => Number(price) || 0
 			typedModels[model.api_name] = {
 				maxTokens: model.max_tokens ?? 0,
 				contextWindow: model.context_window ?? 0,
@@ -38,8 +33,8 @@ export async function refreshShengSuanYunModels(
 				supportsPromptCache: Boolean(model.supports_prompt_cache),
 				inputPrice: parsePrice(model.pricing?.input_price),
 				outputPrice: parsePrice(model.pricing?.output_price),
-				cacheWritesPrice: parsePrice(model.pricing?.cached_price),
-				cacheReadsPrice: 0,
+				cacheReadsPrice: parsePrice(model.pricing?.cached_price),
+				cacheWritesPrice: parsePrice(model.pricing?.cache_write_price),
 				description: model.description ?? "",
 				endPoints: model.support_apis || [],
 			}

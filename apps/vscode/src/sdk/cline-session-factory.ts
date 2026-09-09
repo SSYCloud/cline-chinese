@@ -13,9 +13,11 @@ import {
 	type ClineCoreStartInput,
 	type CoreSessionConfig,
 	getProviderAuthHandler,
+	type ModelCatalogConfig,
 	type ProviderSettings,
 	readCompactionStrategyGlobally,
 	resolveProviderApiKeyFromSettings,
+	resolveProviderConfig,
 	type StartSessionResult,
 } from "@cline/core"
 import type { ProviderApiLine, ModelInfo as SdkModelInfo } from "@cline/llms"
@@ -427,10 +429,12 @@ const PROVIDER_MODEL_ID_MAP: Record<string, { plan: keyof ApiConfiguration; act:
 const DEFAULT_PROVIDER_ID = "cline"
 
 /**
- * Providers whose model list comes from a live local endpoint (Ollama's
- * `/api/tags`, LM Studio's `/v1/models`). Their installed models are the only
- * meaningful catalog; a bundled-catalog default would silently select a model
- * the user never installed (e.g. an Ollama Cloud nemotron model).
+ * Providers whose model list comes from a live models endpoint — either a
+ * local server (Ollama's `/api/tags`, LM Studio's `/v1/models`) or a cloud
+ * public catalog such as ShengSuanYun's `/api/v1/models`. Their live models
+ * are the only meaningful catalog; a bundled-catalog default would silently
+ * select a model the user never installed (e.g. an Ollama Cloud nemotron
+ * model).
  */
 function providerHasLocalModelSource(providerId: string): boolean {
 	return Boolean(MODEL_COLLECTIONS_BY_PROVIDER_ID[toSdkProviderId(providerId)]?.provider.modelsSourceUrl)
@@ -980,6 +984,27 @@ export async function buildSessionConfig(input: SessionConfigInput): Promise<Cor
 			knownModels = {
 				...(knownModels ?? {}),
 				[modelId]: toSdkModelInfo(committedRuntimeModel),
+			}
+		}
+		// Providers backed by a public models endpoint (e.g. ShengSuanYun) carry
+		// live model metadata — context window and RMB pricing — that is not in
+		// the static `@cline/llms` registry. Resolve through the SDK catalog so
+		// the runtime model carries the same pricing the TaskHeader uses for
+		// cost display rather than an id-only entry.
+		if (providerHasLocalModelSource(providerId) && knownModels) {
+			const resolvedModels = await resolveProviderConfig(
+				sdkProviderId,
+				{ failOnError: false } satisfies ModelCatalogConfig,
+				{
+					providerId: sdkProviderId,
+					modelId,
+					...(apiKey ? { apiKey } : {}),
+					...(baseUrl !== undefined ? { baseUrl } : {}),
+					knownModels,
+				},
+			)
+			if (resolvedModels?.knownModels && Object.keys(resolvedModels.knownModels).length > 0) {
+				knownModels = resolvedModels.knownModels
 			}
 		}
 	} catch (error) {

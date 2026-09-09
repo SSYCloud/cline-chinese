@@ -297,6 +297,38 @@ describe("ai-sdk usage normalization", () => {
 			// (1000/1M) * 2.5 + (100/1M) * 10 = 0.0025 + 0.001 = 0.0035
 			expect(normalized.totalCost).toBeCloseTo(0.0035, 5);
 		});
+
+		it("ignores a zero provider cost for ShengSuanYun and falls back to catalog pricing", () => {
+			const pricingInput = { input: 4.5, output: 13.5, cacheRead: 0.15 };
+			const normalized = normalizeUsage(
+				{
+					inputTokens: 1_000_000,
+					outputTokens: 1_000_000,
+					raw: { cost: 0 },
+				},
+				undefined,
+				pricingInput,
+				"shengsuanyun",
+			);
+
+			expect(normalized.totalCost).toBeCloseTo(18, 5);
+		});
+
+		it("ignores zero provider and market costs for ShengSuanYun and falls back to catalog pricing", () => {
+			const pricingInput = { input: 4.5, output: 13.5, cacheRead: 0.15 };
+			const normalized = normalizeUsage(
+				{
+					inputTokens: 1_000_000,
+					outputTokens: 1_000_000,
+					raw: { cost: 0, market_cost: 0 },
+				},
+				undefined,
+				pricingInput,
+				"shengsuanyun",
+			);
+
+			expect(normalized.totalCost).toBeCloseTo(18, 5);
+		});
 	});
 
 	describe("field mapping across providers", () => {

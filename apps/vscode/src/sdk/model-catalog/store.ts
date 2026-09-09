@@ -415,6 +415,14 @@ function readBaseModelInfoForProvider(providerId: ProviderId, modelId: string): 
 	}
 
 	const collectionModelInfo = MODEL_COLLECTIONS_BY_PROVIDER_ID[sdkProviderId]?.models[modelId]
+	// Providers whose catalog is refreshed from a public models endpoint (for
+	// example ShengSuanYun) publish live metadata that supersedes the bundled
+	// fallback entry. Without this, the single built-in placeholder default
+	// would win over the user's real selection/state and produce the wrong
+	// context window and pricing in the TaskHeader.
+	if (collectionModelInfo && MODEL_COLLECTIONS_BY_PROVIDER_ID[sdkProviderId]?.provider.modelsSourceUrl) {
+		return undefined
+	}
 	if (isModelInfo(collectionModelInfo)) {
 		return collectionModelInfo
 	}

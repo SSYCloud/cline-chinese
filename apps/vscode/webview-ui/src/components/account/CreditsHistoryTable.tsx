@@ -50,7 +50,7 @@ const CreditsHistoryTable = memo(({ isLoading, usageData, paymentsData, showPaym
 												Tokens Used
 											</VSCodeDataGridCell> */}
 										<VSCodeDataGridCell cell-type="columnheader" grid-column="3">
-											已用积分
+											费用
 										</VSCodeDataGridCell>
 									</VSCodeDataGridRow>
 
@@ -70,7 +70,7 @@ const CreditsHistoryTable = memo(({ isLoading, usageData, paymentsData, showPaym
 															: row.aiModelName}
 											</VSCodeDataGridCell>
 											{/* <VSCodeDataGridCell grid-column="3">{`${row.promptTokens} → ${row.completionTokens}`}</VSCodeDataGridCell> */}
-											<VSCodeDataGridCell grid-column="3">{`$${Number(row.creditsUsed / 1000000).toFixed(4)}`}</VSCodeDataGridCell>
+											<VSCodeDataGridCell grid-column="3">{`¥${Number(row.creditsUsed / 10000000).toFixed(4)}`}</VSCodeDataGridCell>
 										</VSCodeDataGridRow>
 									))}
 								</VSCodeDataGrid>

@@ -3,7 +3,7 @@ import type { EnterpriseBillItem, EProject } from "@shared/proto/cline/account"
 import { EnterpriseBillRequest } from "@shared/proto/cline/account"
 import { EmptyRequest } from "@shared/proto/cline/common"
 import { VSCodeButton, VSCodeDivider, VSCodeLink } from "@vscode/webview-ui-toolkit/react"
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import ClineLogoPanda from "@/assets/ClineLogoPanda"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { AccountServiceClient } from "@/services/grpc-client"
@@ -19,11 +19,12 @@ type SSYAccountViewProps = {
 }
 
 export const SSYAccountView = ({ mode = "personal" }: SSYAccountViewProps) => {
-	const { userInfo } = useExtensionState()
+	const { userInfo, setUserInfo } = useExtensionState()
 	const [rate, setRate] = useState(0)
 	const [isLoading, setIsLoading] = useState(true)
 	const [usageData, setUsageData] = useState<UsageTransaction[]>([])
 	const [paymentsData, setPaymentsData] = useState<PaymentTransaction[]>([])
+	const [hasLoadedUserData, setHasLoadedUserData] = useState(false)
 
 	// Enterprise state
 	const [projects, setProjects] = useState<EProject[]>([])
@@ -31,21 +32,29 @@ export const SSYAccountView = ({ mode = "personal" }: SSYAccountViewProps) => {
 	const [enterpriseBills, setEnterpriseBills] = useState<EnterpriseBillItem[]>([])
 	const [isEnterpriseLoading, setIsEnterpriseLoading] = useState(false)
 
+	const refreshUserData = useCallback(async () => {
+		setIsLoading(true)
+		try {
+			const res = await AccountServiceClient.shengSuanYunUserData(EmptyRequest.create())
+			setRate(res.rate || 0)
+			setUsageData(res.usageTransactions as any)
+			setPaymentsData(res.paymentTransactions)
+			if (res.user) {
+				setUserInfo(res.user)
+			}
+			setHasLoadedUserData(true)
+		} catch (error) {
+			console.error("Failed to refresh user credits data:", error)
+		} finally {
+			setIsLoading(false)
+		}
+	}, [setUserInfo])
+
 	// Fetch personal account data
 	useEffect(() => {
-		if (mode !== "personal") return
-		setIsLoading(true)
-		AccountServiceClient.shengSuanYunUserData(EmptyRequest.create())
-			.then((res: any) => {
-				setRate(res.rate || 0)
-				setUsageData(res.usageTransactions)
-				setPaymentsData(res.paymentTransactions)
-			})
-			.catch((error: any) => {
-				console.error("Failed to fetch user credits data:", error)
-			})
-			.finally(() => setIsLoading(false))
-	}, [userInfo, mode])
+		if (mode !== "personal" || hasLoadedUserData) return
+		refreshUserData()
+	}, [mode, hasLoadedUserData, refreshUserData])
 
 	// Fetch enterprise project list when switching to enterprise mode
 	useEffect(() => {
@@ -159,25 +168,8 @@ export const SSYAccountView = ({ mode = "personal" }: SSYAccountViewProps) => {
 								) : (
 									<>
 										<span>¥</span>
-										<StyledCreditDisplaySSY
-											balance={userInfo.balance !== undefined ? userInfo.balance / 10000 : 0}
-										/>
-										<VSCodeButton
-											appearance="icon"
-											className="mt-1"
-											onClick={() => {
-												setIsLoading(true)
-												AccountServiceClient.shengSuanYunUserData(EmptyRequest.create())
-													.then((res) => {
-														setRate(res.rate || 0)
-														setUsageData(res.usageTransactions as any)
-														setPaymentsData(res.paymentTransactions)
-													})
-													.catch((error) => {
-														console.error("Failed to refresh user credits data:", error)
-													})
-													.finally(() => setIsLoading(false))
-											}}>
+										<StyledCreditDisplaySSY balance={userInfo.balance || 0} />
+										<VSCodeButton appearance="icon" className="mt-1" onClick={refreshUserData}>
 											<span className="codicon codicon-refresh" />
 										</VSCodeButton>
 									</>

@@ -96,7 +96,7 @@ const ProviderRoutingLabel = styled.label`
  * Format price for compact display (e.g., "$5/M" for $5 per million tokens)
  * Price is already in per-million format from OpenRouter
  */
-const formatCompactPrice = (price: number | undefined): string => {
+const formatCompactPrice = (price: number | undefined, unit: string = "$"): string => {
 	if (price === undefined) {
 		return "N/A"
 	}
@@ -104,12 +104,12 @@ const formatCompactPrice = (price: number | undefined): string => {
 		return "免费"
 	}
 	if (price < 0.01) {
-		return `$${price.toFixed(4)}/M`
+		return `${unit}${price.toFixed(4)}/M`
 	}
 	if (price < 1) {
-		return `$${price.toFixed(2)}/M`
+		return `${unit}${price.toFixed(2)}/M`
 	}
-	return `$${price % 1 === 0 ? price : price.toFixed(2)}/M`
+	return `${unit}${price % 1 === 0 ? price : price.toFixed(2)}/M`
 }
 
 /**
@@ -171,6 +171,7 @@ interface ModelInfoViewProps {
 	selectedModelId: string
 	modelInfo: ModelInfo
 	isPopup?: boolean
+	provider?: string
 	// Provider routing props (optional - only shown for Cline provider)
 	providerSorting?: string
 	onProviderSortingChange?: (value: string) => void
@@ -191,6 +192,7 @@ export const ModelInfoView = ({
 	selectedModelId,
 	modelInfo,
 	isPopup,
+	provider,
 	providerSorting,
 	onProviderSortingChange,
 	showProviderRouting,
@@ -229,7 +231,11 @@ export const ModelInfoView = ({
 				{!hideUsageCost && modelInfo.inputPrice !== undefined && (
 					<InfoItem>
 						<InfoLabel>输入： </InfoLabel>
-						<InfoValue>{formatCompactPrice(modelInfo.inputPrice)}</InfoValue>
+						<InfoValue>
+							{provider === "shengsuanyun"
+								? formatCompactPrice(modelInfo.inputPrice, "¥")
+								: formatCompactPrice(modelInfo.inputPrice)}
+						</InfoValue>
 					</InfoItem>
 				)}
 				{!hideUsageCost && modelInfo.outputPrice !== undefined && (
@@ -237,8 +243,12 @@ export const ModelInfoView = ({
 						<InfoLabel>输出： </InfoLabel>
 						<InfoValue>
 							{hasThinkingConfig && modelInfo.thinkingConfig?.outputPrice !== undefined
-								? formatCompactPrice(modelInfo.thinkingConfig.outputPrice)
-								: formatCompactPrice(modelInfo.outputPrice)}
+								? provider === "shengsuanyun"
+									? formatCompactPrice(modelInfo.thinkingConfig.outputPrice, "¥")
+									: formatCompactPrice(modelInfo.thinkingConfig.outputPrice)
+								: provider === "shengsuanyun"
+									? formatCompactPrice(modelInfo.outputPrice, "¥")
+									: formatCompactPrice(modelInfo.outputPrice)}
 						</InfoValue>
 					</InfoItem>
 				)}
@@ -273,13 +283,21 @@ export const ModelInfoView = ({
 							{modelInfo.cacheReadsPrice !== undefined && (
 								<AdvancedRow>
 									<AdvancedLabel>缓存读取</AdvancedLabel>
-									<AdvancedValue>{formatCompactPrice(modelInfo.cacheReadsPrice)}</AdvancedValue>
+									<AdvancedValue>
+										{provider === "shengsuanyun"
+											? formatCompactPrice(modelInfo.cacheReadsPrice, "¥")
+											: formatCompactPrice(modelInfo.cacheReadsPrice)}
+									</AdvancedValue>
 								</AdvancedRow>
 							)}
 							{modelInfo.cacheWritesPrice !== undefined && (
 								<AdvancedRow>
 									<AdvancedLabel>缓存写入</AdvancedLabel>
-									<AdvancedValue>{formatCompactPrice(modelInfo.cacheWritesPrice)}</AdvancedValue>
+									<AdvancedValue>
+										{provider === "shengsuanyun"
+											? formatCompactPrice(modelInfo.cacheWritesPrice, "¥")
+											: formatCompactPrice(modelInfo.cacheWritesPrice)}
+									</AdvancedValue>
 								</AdvancedRow>
 							)}
 						</>

@@ -108,7 +108,7 @@ export class SSYAccountService {
 				email: res.Email ?? undefined,
 				photoUrl: res.HeadImg ?? undefined,
 				uid: res.ID || undefined,
-				balance: res.Wallet.Assets / 10000,
+				balance: (res.Wallet.Assets - res.Wallet.LockBalance) / 10000,
 			}
 			return user
 		} catch (error) {

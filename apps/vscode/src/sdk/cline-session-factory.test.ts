@@ -715,6 +715,47 @@ describe("buildSessionConfig", () => {
 		expect(knownModel.family).toBe(expectedModel.family)
 	})
 
+	it("merges ShengSuanYun live public model metadata into runtime knownModels", async () => {
+		const core = await import("@cline/core")
+		const resolveProviderConfigSpy = vi.spyOn(core, "resolveProviderConfig").mockResolvedValue({
+			modelId: "deepseek/deepseek-v4-pro",
+			knownModels: {
+				"deepseek/deepseek-v4-pro": {
+					id: "deepseek/deepseek-v4-pro",
+					contextWindow: 1_000_000,
+					maxInputTokens: 1_000_000,
+					maxTokens: 384_000,
+					capabilities: ["tools", "streaming", "prompt-cache"],
+					pricing: { input: 4.5, output: 13.5, cacheRead: 0.15 },
+				},
+			},
+		})
+		mocks.stateManager.getApiConfiguration.mockReturnValue({
+			actModeApiProvider: "shengsuanyun",
+			actModeShengSuanYunModelId: "deepseek/deepseek-v4-pro",
+			shengSuanYunApiKey: "ssy-key",
+		} as any)
+		mocks.providerSettingsManager.getProviderSettings.mockReturnValue({
+			provider: "shengsuanyun",
+			model: "deepseek/deepseek-v4-pro",
+			apiKey: "ssy-key",
+		} as any)
+
+		const config = await buildSessionConfig({ cwd: "/tmp/workspace" })
+		const knownModel = (config.providerConfig as any).knownModels["deepseek/deepseek-v4-pro"]
+
+		expect(config.providerId).toBe("shengsuanyun")
+		expect(knownModel).toMatchObject({
+			id: "deepseek/deepseek-v4-pro",
+			contextWindow: 1_000_000,
+			maxInputTokens: 1_000_000,
+			maxTokens: 384_000,
+			pricing: { input: 4.5, output: 13.5, cacheRead: 0.15 },
+		})
+		expect(config.knownModels?.["deepseek/deepseek-v4-pro"]).toEqual(knownModel)
+		resolveProviderConfigSpy.mockRestore()
+	})
+
 	it("injects cached LiteLLM max input tokens when the dynamic model is absent from the SDK registry", async () => {
 		mocks.stateManager.getApiConfiguration.mockReturnValue({
 			actModeApiProvider: "litellm",

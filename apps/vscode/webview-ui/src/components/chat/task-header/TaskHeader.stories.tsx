@@ -22,7 +22,7 @@ const meta: Meta<typeof TaskHeader> = {
 		tokensOut: { control: "number", description: "Output tokens used" },
 		cacheWrites: { control: "number", description: "Cache write tokens" },
 		cacheReads: { control: "number", description: "Cache read tokens" },
-		totalCost: { control: "number", description: "Total cost in USD" },
+		totalCost: { control: "number", description: "Total cost (currency follows the provider, e.g. USD or CNY)" },
 		doesModelSupportPromptCache: { control: "boolean", description: "Whether model supports prompt caching" },
 	},
 }

@@ -1133,6 +1133,7 @@ function calculateUsageCostFromPricing(
  * @param usageValue - AI SDK normalized usage or raw provider response object
  * @param providerMetadata - Provider-specific metadata for cost extraction
  * @param pricingValue - Fallback pricing config (per 1M tokens) when no explicit cost found
+ * @param providerId - Provider id used to apply provider-specific cost policies
  */
 export function normalizeUsage(
 	usageValue:
@@ -1142,6 +1143,7 @@ export function normalizeUsage(
 		| undefined,
 	providerMetadata?: unknown,
 	pricingValue?: unknown,
+	providerId?: string,
 ): GatewayNormalizedUsage {
 	const usage =
 		usageValue && typeof usageValue === "object"
@@ -1192,10 +1194,21 @@ export function normalizeUsage(
 	const billedCost = shouldAddUpstreamCost
 		? baseCost + upstreamInferenceCost
 		: costOrUpstream;
+	// ShengSuanYun's gateway reports a placeholder zero cost from the AI SDK
+	// while the actual bill is computed from its catalog pricing (RMB per 1M
+	// tokens). Treat a zero provider cost as "unknown" for that provider so the
+	// fallback pricing is used instead of displaying 0.0000.
+	const ignoreZeroProviderCost = providerId === "shengsuanyun";
+	const hasUsableMarketCost =
+		!ignoreZeroProviderCost || (marketCost ?? 0) !== 0;
 	const totalCost =
 		billedCost !== undefined && billedCost !== 0
 			? billedCost
-			: (marketCost ?? billedCost);
+			: ignoreZeroProviderCost && billedCost === 0
+				? hasUsableMarketCost
+					? marketCost
+					: undefined
+				: (marketCost ?? billedCost);
 	const normalizedUsage = {
 		inputTokens:
 			getNestedUsageValue(usage, "inputTokens", "total") ||
@@ -1270,7 +1283,9 @@ export function normalizeUsage(
 		totalCost !== undefined
 			? totalCost
 			: hasExplicitCost
-				? undefined
+				? ignoreZeroProviderCost
+					? calculateUsageCostFromPricing(normalizedUsage, pricingValue)
+					: undefined
 				: calculateUsageCostFromPricing(normalizedUsage, pricingValue);
 
 	return {
@@ -1391,6 +1406,7 @@ async function* emitAiSdkEvents(
 	pricingValue?: unknown,
 	capturedError?: { current: CapturedStreamError | undefined },
 	modelToolAdapters?: BuiltModelTools,
+	providerId?: string,
 ): AsyncIterable<AgentModelEvent> {
 	let sawToolCalls = false;
 	const emittedToolCallIds = new Set<string>();
@@ -1890,7 +1906,12 @@ async function* emitAiSdkEvents(
 	if (usageToEmit) {
 		yield {
 			type: "usage",
-			usage: normalizeUsage(usageToEmit, metadataToUse, pricingValue),
+			usage: normalizeUsage(
+				usageToEmit,
+				metadataToUse,
+				pricingValue,
+				providerId,
+			),
 		};
 	}
 
@@ -2147,6 +2168,7 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 								result.usage as Record<string, unknown>,
 								result.providerMetadata,
 								context.model.metadata?.pricing,
+								request.providerId,
 							),
 						};
 					}
@@ -2292,6 +2314,7 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 					context.model.metadata?.pricing,
 					capturedError,
 					modelToolAdapters,
+					request.providerId,
 				);
 			} catch (error) {
 				suppressDanglingStreamPromises(stream);
