@@ -197,7 +197,7 @@ export default function SubagentStatusRow({ message, isLast, lastModifiedMessage
 			resumedBeforeNextVisibleMessage)
 
 	const singular = data.items.length === 1
-	const title = singular ? "Cline 想要使用子代理：" : "Cline 想要使用多个子代理："
+	const title = singular ? "Cline Chinese 想要使用子代理：" : "Cline Chinese 想要使用多个子代理："
 	const isPromptConstructionRow = message.ask === "use_subagents" || message.say === "use_subagents"
 	const toggleItem = (index: number) => {
 		setExpandedItems((prev) => ({

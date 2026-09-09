@@ -117,6 +117,44 @@ export const freeModels = [
 	},
 ]
 
+export const commonModels = [
+	{
+		id: "deepseek/deepseek-v4-pro",
+		name: "deepseek/deepseek-v4-pro",
+		description: "NEW",
+		label: "NEW",
+	},
+	{
+		id: "deepseek/deepseek-v4-flash-vision-exp",
+		name: "deepseek/deepseek-v4-flash-vision-exp",
+		description: "NEW",
+		label: "NEW",
+	},
+	{
+		id: "openai/gpt-6-astra",
+		name: "openai/gpt-6-astra",
+		description: "NEW",
+		label: "NEW",
+	},
+	{
+		id: "ali/qwen3.8-max-0902",
+		name: "ali/qwen3.8-max-0902",
+		description: "NEW",
+		label: "NEW",
+	},
+	{
+		id: "google/gemini-3.8-flash",
+		name: "google/gemini-3.8-flash",
+		description: "NEW",
+		label: "NEW",
+	},
+	{
+		id: "anthropic/claude-fable-5.1",
+		name: "anthropic/claude-fable-5.1",
+		description: "NEW",
+		label: "NEW",
+	},
+]
 const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPopup, currentMode, initialModelTab }) => {
 	const { apiConfiguration, shengSuanYunModels, setShengSuanYunModels } = useExtensionState()
 	const { handleModeFieldsChange } = useApiConfigurationHandlers()
@@ -127,7 +165,7 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 	const dropdownRef = useRef<HTMLDivElement>(null)
 	const itemRefs = useRef<(HTMLDivElement | null)[]>([])
 	const dropdownListRef = useRef<HTMLDivElement>(null)
-	const [activeTab, setActiveTab] = useState<"recommended" | "free">("recommended")
+	const [activeTab, setActiveTab] = useState<"recommended" | "common" | "free">("recommended")
 
 	const handleModelChange = (newModelId: string) => {
 		// could be setting invalid model id/undefined info but validation will catch it
@@ -281,6 +319,9 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 					<Tab active={activeTab === "free"} onClick={() => setActiveTab("free")}>
 						免费模型
 					</Tab>
+					<Tab active={activeTab === "common"} onClick={() => setActiveTab("common")}>
+						前沿模型
+					</Tab>
 				</TabsContainer>
 
 				{/* Model Cards */}
@@ -305,6 +346,20 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 					)}
 					{activeTab === "free" &&
 						freeModels.map((model) => (
+							<FeaturedModelCard
+								description={model.description}
+								displayName={model.name || model.id}
+								isSelected={selectedModelId === model.id}
+								key={model.id}
+								label={model.label}
+								onClick={() => {
+									handleModelChange(model.id)
+									setIsDropdownVisible(false)
+								}}
+							/>
+						))}
+					{activeTab === "common" &&
+						commonModels.map((model) => (
 							<FeaturedModelCard
 								description={model.description}
 								displayName={model.name || model.id}
@@ -389,7 +444,7 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 					<VSCodeLink href="https://router.shengsuanyun.com/model" style={{ display: "inline", fontSize: "inherit" }}>
 						胜算云
 					</VSCodeLink>
-					如果你不确定使用哪个模型, Cline 可以和{" "}
+					如果你不确定使用哪个模型, Cline Chinese 可以和{" "}
 					<VSCodeLink
 						onClick={() => handleModelChange("anthropic/claude-sonnet-5")}
 						style={{ display: "inline", fontSize: "inherit" }}>

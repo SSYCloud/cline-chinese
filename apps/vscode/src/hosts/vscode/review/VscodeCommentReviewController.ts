@@ -25,7 +25,7 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 	constructor() {
 		super()
 		// Create the comment controller
-		this.commentController = vscode.comments.createCommentController("cline-ai-review", "Cline AI Review")
+		this.commentController = vscode.comments.createCommentController("cline-ai-review", "Cline Chinese AI Review")
 	}
 
 	/**
@@ -64,7 +64,7 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 			body: new vscode.MarkdownString(comment.comment),
 			mode: vscode.CommentMode.Preview,
 			author: {
-				name: "Cline",
+				name: "Cline Chinese",
 				iconPath: vscode.Uri.parse(CLINE_AVATAR_URL),
 			},
 		}
@@ -109,7 +109,7 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 			body: new vscode.MarkdownString("_Thinking..._"),
 			mode: vscode.CommentMode.Preview,
 			author: {
-				name: "Cline",
+				name: "Cline Chinese",
 				iconPath: vscode.Uri.parse(CLINE_AVATAR_URL),
 			},
 		}
@@ -179,7 +179,7 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 			body: new vscode.MarkdownString(this.streamingContent || "_Thinking..._"),
 			mode: vscode.CommentMode.Preview,
 			author: {
-				name: "Cline",
+				name: "Cline Chinese",
 				iconPath: vscode.Uri.parse(CLINE_AVATAR_URL),
 			},
 		}
@@ -201,7 +201,7 @@ export class VscodeCommentReviewController extends CommentReviewController imple
 			body: new vscode.MarkdownString(finalContent),
 			mode: vscode.CommentMode.Preview,
 			author: {
-				name: "Cline",
+				name: "Cline Chinese",
 				iconPath: vscode.Uri.parse(CLINE_AVATAR_URL),
 			},
 		}

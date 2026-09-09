@@ -9,7 +9,7 @@
  * 2. Updates package.json with:
  *    - New version (major.minor.timestamp format)
  *    - Changes name to "cline-nightly"
- *    - Changes displayName to "Cline (Nightly)"
+ *    - Changes displayName to "Cline Chinese (Nightly)"
  * 3. Packages the extension as a .vsix file
  * 4. Publishes to VS Code Marketplace (if VSCE_PAT is set)
  * 5. Publishes to OpenVSX Registry (if OVSX_PAT is set)
@@ -78,7 +78,7 @@ const config = {
 	// The name and display name for the nightly version
 	nightlyName: "cline-nightly",
 	originalName: "cline-chinese",
-	nightlyDisplayName: "Cline (Nightly)",
+	nightlyDisplayName: "Cline Chinese(Nightly)",
 	projectRoot: path.join(__dirname, ".."),
 	get packageJsonPath() {
 		return path.join(this.projectRoot, "package.json")

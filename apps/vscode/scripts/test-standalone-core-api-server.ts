@@ -51,7 +51,7 @@ const coreFile = path.join(distDir, clineCoreFile)
 const childProcesses: ChildProcess[] = []
 
 async function main(): Promise<void> {
-	console.log("Starting Simple Cline gRPC Server...")
+	console.log("Starting Simple Cline Chinese gRPC Server...")
 	console.log(`Project Root: ${projectRoot}`)
 	console.log(`Workspace: ${WORKSPACE_DIR}`)
 	console.log(`ProtoBus Port: ${PROTOBUS_PORT}`)
@@ -72,9 +72,9 @@ async function main(): Promise<void> {
 
 	try {
 		await ClineApiServerMock.startGlobalServer()
-		console.log("Cline API Server started in-process")
+		console.log("Cline Chinese API Server started in-process")
 	} catch (error) {
-		console.error("Failed to start Cline API Server:", error)
+		console.error("Failed to start Cline Chinese API Server:", error)
 		process.exit(1)
 	}
 
@@ -122,7 +122,7 @@ async function main(): Promise<void> {
 	const spawnCommand = USE_C8 ? c8Bin : "node"
 	const spawnArgs = USE_C8 ? ["--report-dir", covDir, "node", ...baseArgs] : baseArgs
 
-	console.log(`Starting Cline Core Service... (useC8=${USE_C8})`)
+	console.log(`Starting Cline Chinese Core Service... (useC8=${USE_C8})`)
 
 	const coreService: ChildProcess = spawn(spawnCommand, spawnArgs, {
 		cwd: projectRoot,
@@ -174,13 +174,13 @@ async function main(): Promise<void> {
 		shutdown()
 	})
 
-	console.log(`Cline gRPC Server is running on 127.0.0.1:${PROTOBUS_PORT}`)
+	console.log(`Cline Chinese gRPC Server is running on 127.0.0.1:${PROTOBUS_PORT}`)
 	console.log("Press Ctrl+C to stop")
 }
 
 if (require.main === module) {
 	main().catch((err) => {
-		console.error("Failed to start simple Cline server:", err)
+		console.error("Failed to start simple Cline Chinese server:", err)
 		process.exit(1)
 	})
 }

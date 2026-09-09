@@ -81,7 +81,7 @@ const TaskWorkingDirectoryBadge: React.FC<{
 	return (
 		<Tooltip>
 			<TooltipContent className="max-w-xs" side="bottom">
-				此任务的工作目录为 {cwd}，位于当前工作区之外。Cline 会在该目录中读取、编辑文件并运行命令。
+				此任务的工作目录为 {cwd}，位于当前工作区之外。Cline Chinese 会在该目录中读取、编辑文件并运行命令。
 			</TooltipContent>
 			<TooltipTrigger className="flex items-center min-w-0">
 				<div

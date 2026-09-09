@@ -153,13 +153,15 @@ export const SSYAccountView = ({ mode = "personal" }: SSYAccountViewProps) => {
 						<VSCodeDivider className="w-full my-6" />
 						<div className="w-full flex flex-col items-center">
 							<div className="text-sm text-(--vscode-descriptionForeground) mb-3">余额</div>
-							<div className="text-4xl font-bold text-(--vscode-foreground) mb-6 flex items-center gap-2">
+							<div className="text-3xl font-bold text-(--vscode-foreground) mb-6 flex items-center gap-2">
 								{isLoading ? (
 									<div className="text-(--vscode-descriptionForeground)">加载中...</div>
 								) : (
 									<>
-										<span>$</span>
-										<StyledCreditDisplaySSY balance={(userInfo.balance || 0) * rate} />
+										<span>¥</span>
+										<StyledCreditDisplaySSY
+											balance={userInfo.balance !== undefined ? userInfo.balance / 10000 : 0}
+										/>
 										<VSCodeButton
 											appearance="icon"
 											className="mt-1"
@@ -181,7 +183,13 @@ export const SSYAccountView = ({ mode = "personal" }: SSYAccountViewProps) => {
 									</>
 								)}
 							</div>
-							<div className="w-full">
+							<div className="w-full relative mt-3">
+								<div className="absolute bottom-full left-1/2 z-10 mb-1 flex -translate-x-1/2 flex-col items-center">
+									<div className="whitespace-nowrap rounded-md bg-[#f1e83f] px-2 py-0.5 text-xs font-bold text-black shadow">
+										首充送10%
+									</div>
+									<div className="h-0 w-0 border-x-[5px] border-t-[6px] border-x-transparent border-t-[#e0a458]" />
+								</div>
 								<VSCodeButtonLink className="w-full" href="https://console.shengsuanyun.com/user/recharge">
 									充值
 								</VSCodeButtonLink>

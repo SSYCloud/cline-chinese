@@ -23,11 +23,12 @@ const ConfigureServersView = () => {
 				<VSCodeLink href="https://github.com/modelcontextprotocol" style={{ display: "inline" }}>
 					Model Context Protocol
 				</VSCodeLink>{" "}
-				让 Cline 能够与本地运行的 MCP 服务器通信，这些服务器可提供额外的工具和资源来扩展 Cline 的能力。你可以使用{" "}
+				让 Cline Chinese 能够与本地运行的 MCP 服务器通信，这些服务器可提供额外的工具和资源来扩展 Cline Chinese
+				的能力。你可以使用{" "}
 				<VSCodeLink href="https://github.com/modelcontextprotocol/servers" style={{ display: "inline" }}>
 					社区制作的服务器
 				</VSCodeLink>{" "}
-				或让 Cline 为你的工作流创建新工具（例如"添加一个获取最新 npm 文档的工具"）。{" "}
+				或让 Cline Chinese 为你的工作流创建新工具（例如"添加一个获取最新 npm 文档的工具"）。{" "}
 				<VSCodeLink href="https://x.com/sdrzn/status/1867271665086074969" style={{ display: "inline" }}>
 					在此查看演示。
 				</VSCodeLink>

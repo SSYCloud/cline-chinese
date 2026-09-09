@@ -221,8 +221,8 @@ export const OllamaProvider = ({ showModelOptions, isPopup, currentMode }: Ollam
 					快速入门指南。
 				</VSCodeLink>{" "}
 				<span style={{ color: "var(--vscode-errorForeground)" }}>
-					(<span style={{ fontWeight: 500 }}>注意：</span>Cline 使用复杂的提示词，因此不同模型的行为可能有所差异。
-					能力较弱的模型可能无法按预期工作。)
+					(<span style={{ fontWeight: 500 }}>注意：</span>Cline Chinese
+					使用复杂的提示词，因此不同模型的行为可能有所差异。 能力较弱的模型可能无法按预期工作。)
 				</span>
 			</p>
 		</div>

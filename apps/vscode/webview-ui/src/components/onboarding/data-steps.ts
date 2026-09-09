@@ -14,7 +14,7 @@ type UserTypeSelection = {
 
 export const STEP_CONFIG = {
 	0: {
-		title: "你想怎么使用 Cline?",
+		title: "你想怎么使用 Cline Chinese?",
 		description: "选择一个下面的选项来开始.",
 		buttons: [
 			{ text: "继续", action: "next", variant: "default" },

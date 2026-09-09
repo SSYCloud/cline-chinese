@@ -175,7 +175,7 @@ const NewRuleRow: React.FC<NewRuleRowProps> = ({ isGlobal, ruleType, existingHoo
 								选择要创建的钩子类型
 							</label>
 							<span className="sr-only" id="hook-select-description">
-								选择要创建的钩子类型。钩子在 Cline 生命周期的特定节点执行。可用类型：{" "}
+								选择要创建的钩子类型。钩子在 Cline Chinese 生命周期的特定节点执行。可用类型：{" "}
 								{availableHookTypes.map((h) => h.name).join(", ")}
 							</span>
 							{/* Controlled with a constant empty value so the trigger

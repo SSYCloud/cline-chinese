@@ -74,7 +74,7 @@ const handleFocusChainEnabledChange = useCallback(
 <div className="space-y-2 py-3">
     <FeatureRow
         checked={focusChainSettings?.enabled}
-        description="让 Cline 在长任务中定期回顾待办清单，保持专注。"
+        description="让 Cline Chinese 在长任务中定期回顾待办清单，保持专注。"
         label="任务焦点提醒"
         onChange={handleFocusChainEnabledChange}
     />

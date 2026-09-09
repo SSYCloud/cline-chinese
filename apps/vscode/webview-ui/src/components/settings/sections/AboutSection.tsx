@@ -19,7 +19,7 @@ const AboutSection = ({ version, extensionVariant, renderSectionHeader }: AboutS
 			<Section>
 				<div className="flex px-4 flex-col gap-2">
 					<h2 className="text-lg font-semibold">
-						Cline v{version}
+						Cline Chinese v{version}
 						{extensionVariant && (
 							<span className="ml-2 text-sm font-normal text-description">
 								({VARIANT_LABELS[extensionVariant]})
@@ -27,7 +27,7 @@ const AboutSection = ({ version, extensionVariant, renderSectionHeader }: AboutS
 						)}
 					</h2>
 					<p>
-						一款可使用你的 CLI 和编辑器的 AI 助手。Cline
+						一款可使用你的 CLI 和编辑器的 AI 助手。Cline Chinese
 						能够逐步处理复杂的软件开发任务，借助工具创建和编辑文件、探索大型项目、使用浏览器，以及在你授权后执行终端命令。
 					</p>
 

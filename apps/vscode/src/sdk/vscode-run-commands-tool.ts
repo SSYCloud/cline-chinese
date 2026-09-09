@@ -207,10 +207,9 @@ type DetachReason = "user" | "timeout"
 function formatDetachedResult(logFilePath: string, output: string, reason: DetachReason): string {
 	return [
 		reason === "user"
-			? "The user chose to proceed while the command is starting or still running in their terminal."
-			: `The command was still starting or running after ${FOREGROUND_COMMAND_AUTO_PROCEED_MS / 1000} seconds, so Cline automatically proceeded while leaving it running in the terminal.`,
-		`This is partial output; further output is being redirected to this file, which you can read to check progress: ${logFilePath}`,
-		output.length > 0 ? `Output so far:\n${output}` : "No output so far.",
+			? "用户选择继续操作，而此时该命令正在终端中启动或仍在运行。"
+			: `命令在 ${FOREGROUND_COMMAND_AUTO_PROCEED_MS / 1000} 秒后仍在启动或运行，因此 Cline Chinese 自动继续执行，同时使其在终端中保持运行。这是部分输出；后续输出将重定向到此文件，您可以阅读该文件以查看进度：${logFilePath}`,
+		output.length > 0 ? `输出:\n${output}` : "还没输出.",
 	].join("\n")
 }
 

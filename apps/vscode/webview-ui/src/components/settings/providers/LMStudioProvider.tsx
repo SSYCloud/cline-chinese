@@ -215,7 +215,7 @@ export const LMStudioProvider = ({ currentMode }: LMStudioProviderProps) => {
 				</VSCodeLink>{" "}
 				功能并使用 <code>lms server start</code> 命令来配合此扩展使用。{" "}
 				<div className="text-error">
-					<span className="font-semibold">注意：</span>Cline 使用复杂的提示词，因此不同模型的行为可能有所差异。
+					<span className="font-semibold">注意：</span>Cline Chinese 使用复杂的提示词，因此不同模型的行为可能有所差异。
 					能力较弱的模型可能无法按预期工作。
 				</div>
 			</div>

@@ -39,14 +39,14 @@ const WelcomeView = memo(() => {
 	return (
 		<div className="fixed inset-0 p-0 flex flex-col">
 			<div className="h-full px-5 overflow-auto flex flex-col gap-2.5">
-				<h2 className="text-lg font-semibold">你好，我是 Cline</h2>
+				<h2 className="text-lg font-semibold">你好，我是 Cline Chinese</h2>
 				<div className="flex justify-center my-5">
 					<ClineLogoPanda className="size-16" />
 				</div>
 				<p>
 					得益于{" "}
 					<VSCodeLink className="inline" href="https://www.anthropic.com/claude/sonnet">
-						Claude 4.6 Sonnet
+						Claude 5 Sonnet
 					</VSCodeLink>
 					在智能体编程能力上的突破，以及可创建和编辑文件、探索复杂项目、使用浏览器、执行终端命令的工具访问权限
 					<i>（当然，需要你的许可）</i>，我能完成各种任务。我甚至可以使用 MCP 创建新工具并扩展自身能力。

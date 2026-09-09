@@ -112,13 +112,13 @@ const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ open, onClose, version, w
 						<p className="text-sm text-center" style={{ color: "var(--vscode-descriptionForeground)" }}>
 							请通过在{" "}
 							<a
-								href="https://github.com/cline/cline"
+								href="https://github.com/SSYCloud/cline-chinese"
 								rel="noopener noreferrer"
 								style={{ color: "var(--vscode-textLink-foreground)" }}
 								target="_blank">
 								GitHub 上为我们加星
 							</a>
-							来支持 Cline。
+							来支持 Cline Chinese 。
 						</p>
 					</div>
 				</div>

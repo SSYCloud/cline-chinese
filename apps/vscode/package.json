@@ -48,7 +48,7 @@
 	"contributes": {
 		"icons": {
 			"cline-icon": {
-				"description": "Cline 图标",
+				"description": "Cline Chinese 图标",
 				"default": {
 					"fontPath": "assets/icons/cline-bot.woff",
 					"fontCharacter": "\\e900"
@@ -58,21 +58,21 @@
 		"walkthroughs": [
 			{
 				"id": "ClineWalkthrough",
-				"title": "认识 Cline，你的新编程伙伴",
-				"description": "Cline 像开发者一样编码，因为它像开发者一样思考。这里有 5 种让它为您工作的方式：",
+				"title": "认识 Cline Chinese，你的新编程伙伴",
+				"description": "Cline Chinese 像开发者一样编码，因为它像开发者一样思考。这里有 5 种让它为您工作的方式：",
 				"steps": [
 					{
 						"id": "welcome",
 						"title": "从目标开始，而不仅仅是一个提示",
-						"description": "告诉 Cline 你想要实现什么。它会像真正的伙伴一样，先规划、提问，然后编码。",
+						"description": "告诉 Cline Chinese 你想要实现什么。它会像真正的伙伴一样，先规划、提问，然后编码。",
 						"media": {
 							"markdown": "walkthrough/step1.md"
 						}
 					},
 					{
 						"id": "learn",
-						"title": "让 Cline 学习你的代码库",
-						"description": "将 Cline 指向你的项目。它会建立理解，从而做出智能、上下文感知的修改。",
+						"title": "让 Cline Chinese 学习你的代码库",
+						"description": "将 Cline Chinese 指向你的项目。它会建立理解，从而做出智能、上下文感知的修改。",
 						"media": {
 							"markdown": "walkthrough/step2.md"
 						}
@@ -80,7 +80,7 @@
 					{
 						"id": "advanced-features",
 						"title": "始终使用最佳的 AI 模型",
-						"description": "Cline 赋予您最先进的 AI 能力，连接到顶级模型（Anthropic、Gemini、OpenAI 等）。",
+						"description": "Cline Chinese 赋予您最先进的 AI 能力，连接到顶级模型（Anthropic、Gemini、OpenAI 等）。",
 						"media": {
 							"markdown": "walkthrough/step3.md"
 						}
@@ -96,7 +96,7 @@
 					{
 						"id": "getting-started",
 						"title": "你始终掌控一切",
-						"description": "审查 Cline 的计划和差异。在变更发生之前批准它们。没有意外。",
+						"description": "审查 Cline Chinese 的计划和差异。在变更发生之前批准它们。没有意外。",
 						"media": {
 							"markdown": "walkthrough/step5.md"
 						},
@@ -160,74 +160,74 @@
 			{
 				"command": "cline-chinese.dev.createTestTasks",
 				"title": "创建测试任务",
-				"category": "Cline",
+				"category": "ClineChinese",
 				"when": "cline-chinese.isDevMode"
 			},
 			{
 				"command": "cline-chinese.dev.expireMcpOAuthTokens",
 				"title": "过期 MCP OAuth 令牌（用于测试）",
-				"category": "Cline",
+				"category": "ClineChinese",
 				"when": "cline-chinese.isDevMode"
 			},
 			{
 				"command": "cline-chinese.addToChat",
-				"title": "添加到 Cline",
-				"category": "Cline"
+				"title": "添加到 Cline Chinese",
+				"category": "ClineChinese"
 			},
 			{
 				"command": "cline-chinese.addTerminalOutputToChat",
-				"title": "添加到 Cline",
-				"category": "Cline"
+				"title": "添加到 Cline Chinese",
+				"category": "ClineChinese"
 			},
 			{
 				"command": "cline-chinese.focusChatInput",
 				"title": "跳转到聊天输入",
-				"category": "Cline"
+				"category": "ClineChinese"
 			},
 			{
 				"command": "cline-chinese.generateGitCommitMessage",
 				"title": "使用 Cline 生成提交信息",
-				"category": "Cline",
+				"category": "ClineChinese",
 				"icon": "$(cline-icon)"
 			},
 			{
 				"command": "cline-chinese.abortGitCommitMessage",
 				"title": "使用 Cline 生成提交信息 - 停止",
-				"category": "Cline",
+				"category": "ClineChinese",
 				"icon": "$(debug-stop)"
 			},
 			{
 				"command": "cline-chinese.explainCode",
 				"title": "使用 Cline 解释代码",
-				"category": "Cline"
+				"category": "ClineChinese"
 			},
 			{
 				"command": "cline-chinese.improveCode",
 				"title": "使用 Cline 改进代码",
-				"category": "Cline"
+				"category": "ClineChinese"
 			},
 			{
 				"command": "cline-chinese.jupyterGenerateCell",
 				"title": "使用 Cline 生成 Jupyter 单元格",
-				"category": "Cline",
+				"category": "ClineChinese",
 				"icon": "$(sparkle)"
 			},
 			{
 				"command": "cline-chinese.jupyterExplainCell",
 				"title": "使用 Cline 解释 Jupyter 单元格",
-				"category": "Cline",
+				"category": "ClineChinese",
 				"icon": "$(question)"
 			},
 			{
 				"command": "cline-chinese.jupyterImproveCell",
 				"title": "使用 Cline 改进 Jupyter 单元格",
-				"category": "Cline",
+				"category": "ClineChinese",
 				"icon": "$(lightbulb)"
 			},
 			{
 				"command": "cline-chinese.openWalkthrough",
 				"title": "打开入门教程",
-				"category": "Cline"
+				"category": "ClineChinese"
 			}
 		],
 		"keybindings": [

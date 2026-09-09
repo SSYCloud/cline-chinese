@@ -250,7 +250,7 @@ const ClineRulesToggleModal: React.FC = () => {
 				}
 			})
 			.catch((error) => {
-				console.error("Error toggling Cline rule:", error)
+				console.error("Error toggling Cline Chinese rule:", error)
 			})
 	}
 
@@ -467,7 +467,7 @@ const ClineRulesToggleModal: React.FC = () => {
 						<div className="text-xs text-description mb-4">
 							{currentView === "rules" ? (
 								<p>
-									规则让你可以为 Cline
+									规则让你可以为 Cline Chinese
 									提供系统级指导。可以将它们视为一种持久的方式，为你的项目或每次对话全局地包含上下文和偏好。{" "}
 									<VSCodeLink
 										className="text-xs"
@@ -478,7 +478,7 @@ const ClineRulesToggleModal: React.FC = () => {
 								</p>
 							) : currentView === "workflows" ? (
 								<p>
-									工作流让你可以定义一系列步骤，引导 Cline 完成一组重复性任务，例如部署服务或提交
+									工作流让你可以定义一系列步骤，引导 Cline Chinese 完成一组重复性任务，例如部署服务或提交
 									PR。要调用工作流，请在聊天中输入{" "}
 									<span className="text-foreground font-bold">/workflow-name</span>。{" "}
 									<VSCodeLink
@@ -493,7 +493,10 @@ const ClineRulesToggleModal: React.FC = () => {
 									<span className="font-bold">use_skill</span> 工具加载完整指令。
 								</p>
 							) : (
-								<p>钩子让你可以在 Cline 执行生命周期的特定节点运行自定义脚本，从而实现自动化并与外部工具集成。</p>
+								<p>
+									钩子让你可以在 Cline Chinese
+									执行生命周期的特定节点运行自定义脚本，从而实现自动化并与外部工具集成。
+								</p>
 							)}
 						</div>
 					</div>

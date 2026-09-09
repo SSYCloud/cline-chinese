@@ -42,7 +42,7 @@ const GeneralSettingsSection = ({ renderSectionHeader }: GeneralSettingsSectionP
 					</Tooltip>
 
 					<p className="text-sm mt-[5px] text-description">
-						通过发送用量数据和错误报告帮助改进 Cline。绝不会发送代码、提示词或个人信息。详见我们的{" "}
+						通过发送用量数据和错误报告帮助改进 Cline 。绝不会发送代码、提示词或个人信息。详见我们的{" "}
 						<VSCodeLink
 							className="text-inherit"
 							href="https://docs.cline.bot/more-info/telemetry"

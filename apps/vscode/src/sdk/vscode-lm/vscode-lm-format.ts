@@ -29,7 +29,7 @@ export function asObjectSafe(value: unknown): object {
 		}
 		return {}
 	} catch (error) {
-		Logger.warn("Cline <Language Model API>: Failed to parse object:", error)
+		Logger.warn("Cline Chinese<Language Model API>: Failed to parse object:", error)
 		return {}
 	}
 }

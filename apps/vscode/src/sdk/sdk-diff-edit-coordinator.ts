@@ -326,9 +326,7 @@ export class SdkDiffEditCoordinator {
 		const preview = this.createPreview()
 		const fileName = path.basename(content.absolutePath)
 		const title =
-			content.editType === "create"
-				? `${fileName}: New File (Preview)`
-				: `${fileName}: Original ↔ Cline's Changes (Preview)`
+			content.editType === "create" ? `${fileName}: 新文件 (预览)` : `${fileName}: 原文件 ↔ Cline Chinese的修改 (预览)`
 		// The preview is cosmetic, so a vscode.diff call that rejects or stalls must never
 		// block the approval ask or fail the edit: race the open against a timer and let
 		// callers catch the failure and proceed without a preview.

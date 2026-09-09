@@ -230,7 +230,7 @@ function createAuthSucceededHtml(redirectUri?: string): string {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cline - Authentication Success</title>
+    <title>Cline Chinese - Authentication Success</title>
 	${redirect}
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;700&display=swap');

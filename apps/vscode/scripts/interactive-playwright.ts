@@ -70,7 +70,7 @@ async function main() {
 
 	await E2ETestHelper.openClineSidebar(page)
 
-	console.log("VSCode with Cline extension is now running!")
+	console.log("VSCode with Cline Chinese extension is now running!")
 	console.log(`Temporary data directory on: ${userDataDir}`)
 	console.log("You can manually interact with the extension.")
 	console.log("Press Ctrl+C to close when done.")

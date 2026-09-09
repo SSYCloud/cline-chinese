@@ -8,19 +8,19 @@ interface FeatureTipItem {
 
 const FEATURE_TIPS: FeatureTipItem[] = [
 	{
-		text: "在项目根目录下添加一个 `.clinerules` 文件，以便向 Cline 提供针对该项目的指令。",
+		text: "在项目根目录下添加一个 `.clinerules` 文件，以便向 Cline Chinese 提供针对该项目的指令。",
 	},
 	{
-		text: "切换到计划模式，在 Cline 采取行动之前讨论并规划方案。",
+		text: "切换到计划模式，在 Cline Chinese 采取行动之前讨论并规划方案。",
 	},
 	{
 		text: "在聊天输入框中使用 @ 添加文件、文件夹或 URL 作为任务的上下文。",
 	},
 	{
-		text: "配置 MCP 服务器，让 Cline 访问外部工具和 API。",
+		text: "配置 MCP 服务器，让 Cline Chinese 访问外部工具和 API。",
 	},
 	{
-		text: "Cline 会在更改后创建检查点——你随时可以恢复到之前的状态。",
+		text: "Cline Chinese 会在更改后创建检查点——你随时可以恢复到之前的状态。",
 	},
 	{
 		text: "使用 /compact 压缩冗长的对话，释放上下文窗口空间。",
@@ -29,10 +29,10 @@ const FEATURE_TIPS: FeatureTipItem[] = [
 		text: "为读取文件等只读工具启用自动批准，以加快探索速度。",
 	},
 	{
-		text: "使用引用按钮选择 Cline 回复中的文本，并在你的回复中引用它。",
+		text: "使用引用按钮选择 Cline Chinese 回复中的文本，并在你的回复中引用它。",
 	},
 	{
-		text: "你可以将图片拖放到聊天中，与 Cline 分享截图。",
+		text: "你可以将图片拖放到聊天中，与 Cline Chinese 分享截图。",
 	},
 	{
 		text: "你可以在 设置 → 功能 → “功能提示” 中关闭这些提示。",

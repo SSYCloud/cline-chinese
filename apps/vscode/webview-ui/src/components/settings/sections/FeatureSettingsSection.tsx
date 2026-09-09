@@ -34,7 +34,7 @@ const agentFeatures: FeatureToggle[] = [
 	{
 		id: "enable-subagent",
 		label: "子代理",
-		description: "让 Cline 并行运行专注型的子代理，为您探索代码库。",
+		description: "让 Cline Chinese 并行运行专注型的子代理，为您探索代码库。",
 		stateKey: "subagentsEnabled",
 		settingKey: "subagentsEnabled",
 	},
@@ -51,7 +51,7 @@ const editorFeatures: FeatureToggle[] = [
 	{
 		id: "show-feature-tips",
 		label: "功能提示",
-		description: "在思考阶段轮换显示提示，帮助你发现 Cline 功能。",
+		description: "在思考阶段轮换显示提示，帮助你发现 Cline Chinese 功能。",
 		stateKey: "showFeatureTips",
 		settingKey: "showFeatureTips",
 	},
@@ -72,7 +72,7 @@ const editorFeatures: FeatureToggle[] = [
 	{
 		id: "worktrees",
 		label: "工作树",
-		description: "启用 git worktree 管理，以并行运行 Cline 任务。",
+		description: "启用 git worktree 管理，以并行运行 Cline Chinese 任务。",
 		stateKey: "worktreesEnabled",
 		settingKey: "worktreesEnabled",
 	},
@@ -229,7 +229,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 							<div className="space-y-2 py-3">
 								<FeatureRow
 									checked={focusChainSettings?.enabled}
-									description="让 Cline 在长任务中定期回顾待办清单，保持专注。"
+									description="让 Cline Chinese 在长任务中定期回顾待办清单，保持专注。"
 									label="任务焦点提醒"
 									onChange={handleFocusChainEnabledChange}
 								/>

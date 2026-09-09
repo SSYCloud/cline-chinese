@@ -39,10 +39,9 @@ import type { SdkTaskHistory } from "./sdk-task-history"
 import { prepareTaskResumeStartInput } from "./sdk-task-resume"
 import type { SdkSessionHost } from "./session-host"
 
-const COMPACTION_FAILURE_MESSAGE = "Couldn't compact the conversation. Please try again."
-const COMPACTION_UNSUPPORTED_MESSAGE = "Compaction is not supported by this runtime yet. Please update Cline and try again."
-const COMPACTION_TURN_RUNNING_MESSAGE =
-	"Cannot compact while a response is in progress. Try again once the current turn finishes."
+const COMPACTION_FAILURE_MESSAGE = "无法压缩对话。请重试。"
+const COMPACTION_UNSUPPORTED_MESSAGE = "当前运行时尚不支持压缩功能。请更新 Cline Chinese后重试。"
+const COMPACTION_TURN_RUNNING_MESSAGE = "无法在响应进行中时压缩。请在当前回合完成后重试。"
 
 export interface SdkCompactionCoordinatorOptions {
 	stateManager: StateManager

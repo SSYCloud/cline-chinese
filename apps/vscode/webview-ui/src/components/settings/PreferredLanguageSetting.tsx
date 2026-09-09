@@ -26,7 +26,7 @@ const PreferredLanguageSetting: React.FC = () => {
 					))}
 				</SelectContent>
 			</Select>
-			<p className="text-sm text-description mt-1">Cline 用于沟通的语言。</p>
+			<p className="text-sm text-description mt-1">Cline Chinese 用于沟通的语言。</p>
 		</div>
 	)
 }

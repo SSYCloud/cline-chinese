@@ -55,7 +55,7 @@ const PRIMITIVES: PrimitiveConfig[] = [
 		title: "技能",
 		description: (
 			<>
-				可按需加载的可复用指令集，供 Cline 在特定任务中使用，而不会一直占用无关工作的上下文。浏览更多：{" "}
+				可按需加载的可复用指令集，供 Cline Chinese 在特定任务中使用，而不会一直占用无关工作的上下文。浏览更多：{" "}
 				<VSCodeLink href="https://agentskills.io/">Agent Skills</VSCodeLink>。
 			</>
 		),
@@ -69,7 +69,7 @@ const PRIMITIVES: PrimitiveConfig[] = [
 		title: "MCP 服务器",
 		description: (
 			<>
-				通过 <VSCodeLink href="https://modelcontextprotocol.io/">MCP</VSCodeLink> 服务器将 Cline 连接到外部
+				通过 <VSCodeLink href="https://modelcontextprotocol.io/">MCP</VSCodeLink> 服务器将 Cline Chinese 连接到外部
 				API、本地工具和托管服务。
 			</>
 		),

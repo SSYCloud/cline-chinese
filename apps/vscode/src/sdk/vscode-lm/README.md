@@ -10,7 +10,7 @@ other hosts (e.g. JetBrains), so the provider is gated on the API being present.
 
 ## Files
 
-- **`vscode-lm-handler.ts`** — `VsCodeLmHandler`, a Cline SDK `ApiHandler`
+- **`vscode-lm-handler.ts`** — `VsCodeLmHandler`, a Cline Chinese SDK `ApiHandler`
   (`@cline/llms`) backed by `vscode.lm`. Selects a chat model, streams the
   response, forwards tool definitions, and surfaces tool calls and usage.
 - **`vscode-lm-format.ts`** — converts SDK `Message`s to

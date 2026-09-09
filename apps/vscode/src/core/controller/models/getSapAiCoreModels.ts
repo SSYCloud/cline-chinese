@@ -62,7 +62,7 @@ async function fetchAiCoreDeploymentsAndOrchestration(
 		Authorization: `Bearer ${accessToken}`,
 		"AI-Resource-Group": resourceGroup || "default",
 		"Content-Type": "application/json",
-		"AI-Client-Type": "Cline",
+		"AI-Client-Type": "Cline Chinese",
 	}
 
 	const url = `${baseUrl}/v2/lm/deployments?$top=10000&$skip=0`

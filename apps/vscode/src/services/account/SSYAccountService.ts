@@ -65,7 +65,7 @@ export class SSYAccountService {
 				usage = usage.logs.map((it: any) => ({
 					spentAt: it.request_time,
 					model: `${it.model?.company}/${it.model?.name}`,
-					credits: (rate * it.total_amount) / 10000000,
+					credits: it.total_amount,
 					totalTokens: it.total_amount,
 					promptTokens: it.input_tokens,
 					completionTokens: it.output_tokens,
@@ -78,7 +78,7 @@ export class SSYAccountService {
 				payment = payment.records.map((it: any) => ({
 					paidAt: it.create_at,
 					creatorId: "",
-					amountCents: ((rate * it.price) / 10000).toString(),
+					amountCents: it.price.toString(),
 					credits: 0,
 				}))
 			}

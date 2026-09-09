@@ -101,7 +101,7 @@ describe("FileContextTracker", () => {
 		expect(fileEntry.cline_edit_date).to.be.null
 	})
 
-	it("should add a record when a file is edited by Cline", async () => {
+	it("should add a record when a file is edited by Cline Chinese", async () => {
 		await tracker.trackFileContext(filePath, "cline_edited")
 
 		// Verify saveTaskMetadata was called with the correct data
@@ -222,7 +222,7 @@ describe("FileContextTracker", () => {
 		expect(modifiedFiles).to.include(filePath)
 	})
 
-	it("should not track Cline edits as user edits", async () => {
+	it("should not track Cline Chinese edits as user edits", async () => {
 		// First track the file to set up the watcher
 		await tracker.trackFileContext(filePath, "read_tool")
 

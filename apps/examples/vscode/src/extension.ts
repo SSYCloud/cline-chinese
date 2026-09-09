@@ -66,7 +66,7 @@ let extensionTelemetryHandle:
 	| undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
-	const outputChannel = vscode.window.createOutputChannel("Cline");
+	const outputChannel = vscode.window.createOutputChannel("ClineChinese");
 	extensionTelemetryHandle = createVscodeTelemetry({
 		extensionVersion: version,
 		clineType: displayName,

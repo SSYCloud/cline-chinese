@@ -394,5 +394,5 @@ export function getToolGroupSummaryFromParsedTools(tools: ClineSayTool[]): strin
 		parts.push(`执行了 ${counts.search} 次搜索`)
 	}
 
-	return parts.length === 0 ? "上下文" : "Cline" + action + parts.join("，")
+	return parts.length === 0 ? "上下文" : "Cline Chinese" + action + parts.join("，")
 }

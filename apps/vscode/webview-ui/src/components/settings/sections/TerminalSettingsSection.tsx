@@ -106,7 +106,7 @@ const TerminalSettingsSection: React.FC<TerminalSettingsSectionProps> = ({ rende
 								<VSCodeOption value="backgroundExec">后台执行</VSCodeOption>
 							</VSCodeDropdown>
 							<p className="text-xs text-[var(--vscode-descriptionForeground)] mt-1">
-								选择 Cline 是在 VS Code 终端中运行命令，还是在后台进程中运行。
+								选择 Cline Chinese 是在 VS Code 终端中运行命令，还是在后台进程中运行。
 							</p>
 						</div>
 					)}
@@ -130,7 +130,7 @@ const TerminalSettingsSection: React.FC<TerminalSettingsSectionProps> = ({ rende
 									)}
 								</div>
 								<p className="text-xs text-(--vscode-descriptionForeground)">
-									设置 Cline 在执行命令前等待 shell 集成激活的时长。如果遇到终端连接超时，请增大此值。
+									设置 Cline Chinese 在执行命令前等待 shell 集成激活的时长。如果遇到终端连接超时，请增大此值。
 								</p>
 							</div>
 
@@ -167,7 +167,7 @@ const TerminalSettingsSection: React.FC<TerminalSettingsSectionProps> = ({ rende
 							))}
 						</VSCodeDropdown>
 						<p className="text-xs text-(--vscode-descriptionForeground) mt-1">
-							选择 Cline 使用的默认终端。“Default” 使用你的 VSCode 全局设置。
+							选择 Cline Chinese 使用的默认终端。“Default” 使用你的 VSCode 全局设置。
 						</p>
 					</div>
 					<div className="mt-5 p-3 bg-(--vscode-textBlockQuote-background) rounded border border-(--vscode-textBlockQuote-border)">

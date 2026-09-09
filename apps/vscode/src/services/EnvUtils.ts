@@ -15,7 +15,7 @@ const ClineHeaders = {
 
 export function buildExternalBasicHeaders(): Record<string, string> {
 	return {
-		"User-Agent": `Cline/${ExtensionRegistryInfo.version}`,
+		"User-Agent": `Cline Chinese/${ExtensionRegistryInfo.version}`,
 	}
 }
 

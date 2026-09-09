@@ -38,8 +38,8 @@ const ClinePassLimitError = ({ message }: ClinePassLimitErrorProps) => {
 			)
 			setDidSwitch(true)
 		} catch (error) {
-			console.error("Failed to switch to Cline usage-based billing:", error)
-			setError("切换提供商失败。请在 API 配置设置中选择 Cline 按用量计费。")
+			console.error("Failed to switch to Cline Chinese Chinese usage-based billing:", error)
+			setError("切换提供商失败。请在 API 配置设置中选择 Cline Chinese Chinese 按用量计费。")
 		} finally {
 			setIsSwitching(false)
 		}
@@ -52,7 +52,7 @@ const ClinePassLimitError = ({ message }: ClinePassLimitErrorProps) => {
 			<div className="text-error mb-2">ClinePass 限额已用尽</div>
 			<div className="text-(--vscode-descriptionForeground) text-xs wrap-anywhere">{message}</div>
 			<div className="text-(--vscode-descriptionForeground) text-xs mt-2">
-				是否要切换到按用量计费，并使用 Cline 提供商重试？
+				是否要切换到按用量计费，并使用 Cline Chinese 提供商重试？
 			</div>
 			<VSCodeButton
 				appearance="primary"

@@ -96,7 +96,7 @@ export class SdkTaskStartCoordinator {
 
 			if (usesClineAccountAuth(config.providerId) && !config.apiKey) {
 				Logger.warn(
-					`[SdkController] ${config.providerId} provider selected but no Cline auth token — emitting auth error`,
+					`[SdkController] ${config.providerId} provider selected but no Cline Chinese auth token — emitting auth error`,
 				)
 				// No task/session id exists yet, so this preflight auth UI path is
 				// intentionally not recorded as task-joinable provider error telemetry.
