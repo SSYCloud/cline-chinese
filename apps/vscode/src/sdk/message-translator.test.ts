@@ -9,6 +9,7 @@ import {
 	extractToolOutputText,
 	historyItemToSessionFields,
 	MessageTranslatorState,
+	reshapeErrorForWebview,
 	sdkMessagesToClineMessages,
 	translateSessionEvent,
 } from "./message-translator"
@@ -1682,6 +1683,53 @@ describe("translateSessionEvent — agent_event error", () => {
 		const result = translateSessionEvent(event, state)
 		expect(result.messages).toHaveLength(2)
 		expect(result.messages[1].text).toBe(message)
+	})
+
+	it("reshapes ShengSuanYun insufficient balance errors with its recharge URL", () => {
+		const payload = reshapeErrorForWebview(
+			{
+				message:
+					"insufficient balance: available balance: 0.0000, assets: 0.0000, gateway scoped voucher: 0.0000, credit limit: 0.0000, pending bill: 0.0000. Please recharge at: https://console.shengsuanyun.com/user/recharge",
+				code: "insufficient_credits",
+			},
+			"shengsuanyun",
+			"anthropic/claude-sonnet-4.6",
+		)
+		const parsed = JSON.parse(payload)
+		expect(parsed.code).toBe("insufficient_credits")
+		expect(parsed.providerId).toBe("shengsuanyun")
+		expect(parsed.modelId).toBe("anthropic/claude-sonnet-4.6")
+		expect(parsed.details.current_balance).toBe(0)
+		expect(parsed.details.buy_credits_url).toBe("https://console.shengsuanyun.com/user/recharge")
+	})
+
+	it("reshapes ShengSuanYun auth errors into a webview-readable sign-in payload", () => {
+		const payload = reshapeErrorForWebview({ message: "login expired", status: 401, code: "UNAUTHORIZED" }, "shengsuanyun")
+		const parsed = JSON.parse(payload)
+		expect(parsed.providerId).toBe("shengsuanyun")
+		expect(parsed.code).toBe("ERR_BAD_REQUEST")
+		expect(parsed.status).toBe(401)
+		expect(parsed.details.code).toBe("SSY_AUTH_REQUIRED")
+	})
+
+	it("reshapes ShengSuanYun tpm/rpm/quota errors preserving their codes", () => {
+		const tpmPayload = JSON.parse(
+			reshapeErrorForWebview({ code: "tpm_limit_exceeded", message: "tpm limit" }, "shengsuanyun"),
+		)
+		expect(tpmPayload.code).toBe("tpm_limit_exceeded")
+		expect(tpmPayload.providerId).toBe("shengsuanyun")
+
+		const rpmPayload = JSON.parse(
+			reshapeErrorForWebview({ code: "rpm_limit_exceeded", message: "rpm limit" }, "shengsuanyun"),
+		)
+		expect(rpmPayload.code).toBe("rpm_limit_exceeded")
+		expect(rpmPayload.providerId).toBe("shengsuanyun")
+
+		const quotaPayload = JSON.parse(
+			reshapeErrorForWebview({ code: "quota_exceeded", message: "quota exceeded" }, "shengsuanyun"),
+		)
+		expect(quotaPayload.code).toBe("quota_exceeded")
+		expect(quotaPayload.providerId).toBe("shengsuanyun")
 	})
 
 	it("rewrites Anthropic bare 'model: <id>' 404 into an actionable message", () => {

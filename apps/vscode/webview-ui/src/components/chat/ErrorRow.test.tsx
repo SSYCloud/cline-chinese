@@ -6,6 +6,7 @@ import ErrorRow from "./ErrorRow"
 const mockSetUserOrganization = vi.hoisted(() => vi.fn())
 const mockUpdateApiConfigurationProto = vi.hoisted(() => vi.fn())
 const mockNavigateToSettingsModelPicker = vi.hoisted(() => vi.fn())
+const mockShengSuanYunSignIn = vi.hoisted(() => vi.fn())
 const mockApiConfiguration = vi.hoisted(() => ({
 	planModeApiProvider: "cline-pass",
 	actModeApiProvider: "cline-pass",
@@ -22,6 +23,13 @@ vi.mock("@/context/ClineAuthContext", () => ({
 		isLoginLoading: false,
 	}),
 	handleSignOut: vi.fn(),
+}))
+
+vi.mock("@/context/ShengSuanYunAuthContext", () => ({
+	useSignIn: () => ({
+		isLoginLoading: false,
+		handleSignIn: mockShengSuanYunSignIn,
+	}),
 }))
 
 vi.mock("@/context/ExtensionStateContext", () => ({
@@ -379,6 +387,26 @@ describe("ErrorRow", () => {
 			expect(screen.queryByText("Authentication failed")).not.toBeInTheDocument()
 			expect(screen.getByText(/Whoops looks like you're logged out/)).toBeInTheDocument()
 			expect(screen.getByText("Sign in to Cline")).toBeInTheDocument()
+		})
+
+		it("renders ShengSuanYun sign in button when its auth error is detected", async () => {
+			const mockClineError = {
+				message: "胜算云登录已过期，请重新登录后重试。",
+				isErrorType: vi.fn((type) => type === "auth"),
+				providerId: "shengsuanyun",
+				_error: {
+					code: "ERR_BAD_REQUEST",
+				},
+			}
+
+			const { ClineError } = await import("../../../../src/services/error/ClineError")
+			vi.mocked(ClineError.parse).mockReturnValue(mockClineError as any)
+
+			render(<ErrorRow apiRequestFailedMessage="login expired" errorType="error" message={mockMessage} />)
+
+			expect(screen.getByText("胜算云登录状态无效或已过期")).toBeInTheDocument()
+			fireEvent.click(screen.getByText("登录胜算云"))
+			expect(mockShengSuanYunSignIn).toHaveBeenCalled()
 		})
 
 		it("renders PowerShell troubleshooting link when error mentions PowerShell", async () => {

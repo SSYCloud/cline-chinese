@@ -23,6 +23,9 @@ export enum SSYErrorType {
 	ClineFreeModelLimit = "clineFreeModelLimit",
 }
 
+export const SSY_PROVIDER_ID = "shengsuanyun"
+export const SSY_BUY_CREDITS_URL = "https://console.shengsuanyun.com/user/recharge"
+
 interface ErrorDetails {
 	/**
 	 * The HTTP status code of the error, if applicable.
@@ -58,6 +61,33 @@ interface ErrorDetails {
 
 const RATE_LIMIT_PATTERNS = [/status code 429/i, /rate limit/i, /too many requests/i, /quota exceeded/i, /resource exhausted/i]
 
+const BALANCE_PATTERNS = [
+	/用户余额不足/i,
+	/账户余额不足/i,
+	/余额不足/i,
+	/insufficient[ _-]?quota/i,
+	/insufficient[ _-]?(?:balance|credits)/i,
+	/not enough (?:balance|credits)/i,
+]
+
+const NETWORK_PATTERNS = [
+	/network error/i,
+	/socket hang up/i,
+	/fetch failed/i,
+	/connect(?:ion)? (?:refused|reset|closed)/i,
+	/etimedout/i,
+	/econnreset/i,
+	/econnrefused/i,
+]
+
+const AUTH_MESSAGE_PATTERNS = [
+	/(?:invalid|unauthorized|missing) (?:api )?(?:key|token)/i,
+	/authentication[ _-]?failed/i,
+	/unauthorized/i,
+	/认证失败/i,
+	/登录(?:已)?过期/i,
+]
+
 export class SSYError extends Error {
 	readonly title = "SSYError"
 	readonly _error: ErrorDetails
@@ -73,25 +103,29 @@ export class SSYError extends Error {
 	) {
 		const error = serializeError(raw)
 
-		const message = error.message || String(error) || error?.cause?.means
+		const message = error.message || error?.response?.message || String(error) || error?.cause?.means
 		super(message)
 
 		// Extract status from multiple possible locations
 		const status = error.status || error.statusCode || error.response?.status
 		this.modelId = modelId || error.modelId
-		this.providerId = providerId || error.providerId
+		this.providerId = providerId || error.providerId || SSY_PROVIDER_ID
 
 		// Construct the error details object to includes relevant information
 		// And ensure it has a consistent structure
 		this._error = {
+			...error,
 			message: raw.message || message,
 			status,
-			request_id: error.request_id || error.response?.request_id,
+			request_id:
+				error.error?.request_id ||
+				error.request_id ||
+				error.response?.request_id ||
+				error.response?.headers?.["x-request-id"],
 			code: error.code || error?.cause?.code,
 			modelId: this.modelId,
 			providerId: this.providerId,
 			details: error.details || error.error, // Additional details provided by the server
-			...error,
 			stack: undefined, // Avoid serializing stack trace to keep the error object clean
 		}
 	}
@@ -120,14 +154,18 @@ export class SSYError extends Error {
 		return this._error.request_id
 	}
 
+	public get code(): string | undefined {
+		return this._error.code
+	}
+
 	/**
 	 * Parses a stringified error into a SSYError instance.
 	 */
-	static parse(errorStr?: string, modelId?: string): SSYError | undefined {
+	static parse(errorStr?: string, modelId?: string, providerId?: string): SSYError | undefined {
 		if (!errorStr || typeof errorStr !== "string") {
 			return undefined
 		}
-		return SSYError.transform(errorStr, modelId)
+		return SSYError.transform(errorStr, modelId, providerId)
 	}
 
 	/**
@@ -158,15 +196,17 @@ export class SSYError extends Error {
 		const { code, status, details } = err._error
 		const rawMessage = err._error?.message || err.message || JSON.stringify(err._error)
 		const detailMessage = typeof details?.message === "string" ? details.message : undefined
+		const messages = [rawMessage, detailMessage, typeof details === "string" ? details : undefined].filter(
+			Boolean,
+		) as string[]
 
 		// Check balance error first (most specific)
-		if (code === "insufficient_quota" && typeof details?.message.includes("用户余额不足")) {
-			err._error.details = {
-				balance: 0,
-				bill: 0,
-				message: "账户余额不足，请充值！",
-				buyCreditsUrl: "https://console.shengsuanyun.com/user/recharge",
-			}
+		if (
+			code === "insufficient_quota" ||
+			code === "insufficient_balance" ||
+			code === "insufficient_credits" ||
+			messages.some((message) => BALANCE_PATTERNS.some((pattern) => pattern.test(message)))
+		) {
 			return SSYErrorType.Balance
 		}
 
@@ -205,37 +245,48 @@ export class SSYError extends Error {
 			return SSYErrorType.ClinePassLimit
 		}
 
-		// Check auth errors
-		if (code === "ERR_BAD_REQUEST" || status === 401 || err instanceof AuthInvalidTokenError) {
+		// Check auth errors: ShengSuanYun rejects invalid/expired x-token or API key.
+		const isAuthStatus = status === 401 || status === 403
+		if (
+			code === "ERR_BAD_REQUEST" ||
+			code === "UNAUTHORIZED" ||
+			code === "INVALID_TOKEN" ||
+			code === "AUTH_REQUIRED" ||
+			isAuthStatus ||
+			err instanceof AuthInvalidTokenError ||
+			messages.some((message) => AUTH_MESSAGE_PATTERNS.some((pattern) => pattern.test(message))) ||
+			messages.some((message) => message.includes(CLINE_ACCOUNT_AUTH_ERROR_MESSAGE))
+		) {
 			return SSYErrorType.Auth
 		}
 
 		// Check quota exceeded errors
-		if (code === "quota_exceeded") {
+		if (code === "quota_exceeded" || messages.some((message) => /quota[ _-]?exceeded/i.test(message))) {
 			return SSYErrorType.QuotaExceeded
 		}
 
-		if (code === "tpm_limit_exceeded") {
+		if (code === "tpm_limit_exceeded" || messages.some((message) => /tpm[ _-]?limit/i.test(message))) {
 			return SSYErrorType.TpmLimitExceeded
 		}
 
-		if (code === "rpm_limit_exceeded") {
+		if (code === "rpm_limit_exceeded" || messages.some((message) => /rpm[ _-]?limit/i.test(message))) {
 			return SSYErrorType.RpmLimitExceeded
 		}
 
-		// Check for auth message (only if message exists)
-		const message = err.message
-		if (message?.includes(CLINE_ACCOUNT_AUTH_ERROR_MESSAGE)) {
-			return SSYErrorType.Auth
-		}
-
 		// Check rate limit patterns
+		const message = err.message
 		if (message) {
 			const lowerMessage = message.toLowerCase()
 			if (RATE_LIMIT_PATTERNS.some((pattern) => pattern.test(lowerMessage))) {
 				return SSYErrorType.RateLimit
 			}
 		}
+
+		// Check network errors
+		if (message && NETWORK_PATTERNS.some((pattern) => pattern.test(message))) {
+			return SSYErrorType.Network
+		}
+
 		return undefined
 	}
 }

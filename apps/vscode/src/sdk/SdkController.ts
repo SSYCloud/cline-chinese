@@ -42,6 +42,7 @@ import { ExtensionRegistryInfo } from "@/registry"
 import { OcaAuthService } from "@/services/auth/oca/OcaAuthService"
 import { UrlContentFetcher } from "@/services/browser/UrlContentFetcher"
 import { ClineError } from "@/services/error/ClineError"
+import { SSY_PROVIDER_ID, SSYError, SSYErrorType } from "@/services/error/SSYError"
 import { McpHub } from "@/services/mcp/McpHub"
 import { telemetryService } from "@/services/telemetry"
 import type { ClineExtensionContext } from "@/shared/cline"
@@ -437,13 +438,37 @@ export class Controller {
 				this.turnStateTracker.set("error")
 				const errorMessage = error instanceof Error ? error.message : String(error)
 				const providerId = this.getSessionProviderId(sessionId) ?? this.getActiveProviderId()
+				const modelId = this.getSessionModelId(sessionId) ?? this.getTaskModelId()
 				const isClineAuthError =
 					isClineManagedProvider(providerId) &&
 					(errorMessage.includes(CLINE_ACCOUNT_AUTH_ERROR_MESSAGE) ||
 						errorMessage.toLowerCase().includes("missing api key") ||
 						errorMessage.toLowerCase().includes("unauthorized"))
+				const isShengSuanYunProvider = providerId === SSY_PROVIDER_ID
+				const ssyError = isShengSuanYunProvider ? SSYError.transform(error, modelId, providerId) : undefined
+				const ssyErrorType = ssyError ? SSYError.getErrorType(ssyError) : undefined
 
-				if (isClineAuthError) {
+				if (isShengSuanYunProvider && ssyErrorType === SSYErrorType.Auth) {
+					this.captureProviderFailure({
+						sessionId,
+						error,
+						providerId,
+						modelId,
+						errorType: PROVIDER_FAILURE_ERROR_TYPE.AUTH,
+						failurePhase: PROVIDER_FAILURE_PHASE.PREFLIGHT,
+					})
+					this.emitSSYAuthError(modelId)
+				} else if (isShengSuanYunProvider && ssyErrorType === SSYErrorType.Balance) {
+					this.captureProviderFailure({
+						sessionId,
+						error,
+						providerId,
+						modelId,
+						errorType: PROVIDER_FAILURE_ERROR_TYPE.BALANCE,
+						failurePhase: PROVIDER_FAILURE_PHASE.PREFLIGHT,
+					})
+					this.emitSSYBalanceError(errorMessage, modelId)
+				} else if (isClineAuthError) {
 					this.captureProviderFailure({
 						sessionId,
 						error,
@@ -1387,6 +1412,89 @@ export class Controller {
 			},
 		})
 
+		this.postStateToWebview().catch(() => {})
+	}
+
+	private emitSSYAuthError(modelId?: string): void {
+		const ts = Date.now()
+		const serializedError = reshapeErrorForWebview(
+			{
+				message: "胜算云登录状态无效或已过期，请重新登录后重试。",
+				code: "ERR_BAD_REQUEST",
+				status: 401,
+			},
+			SSY_PROVIDER_ID,
+			modelId,
+		)
+
+		const failedAskTs = ts + 1
+		const messages: ClineMessage[] = [
+			{
+				ts,
+				type: "say",
+				say: "api_req_started",
+				text: JSON.stringify({
+					streamingFailedMessage: serializedError,
+				} satisfies ClineApiReqInfo),
+				partial: false,
+			},
+			{
+				ts: failedAskTs,
+				type: "ask",
+				ask: "api_req_failed",
+				text: serializedError,
+				partial: false,
+			},
+		]
+
+		this.turnStateTracker.set("error", failedAskTs)
+		this.messages.appendAndEmit(messages, {
+			type: "status",
+			payload: {
+				sessionId: this.sessions.getActiveSession()?.sessionId ?? "",
+				status: "error",
+			},
+		})
+		this.postStateToWebview().catch(() => {})
+	}
+
+	private emitSSYBalanceError(rawErrorMessage: string, modelId?: string): void {
+		const ts = Date.now()
+		const serializedError = reshapeErrorForWebview(
+			{
+				message: rawErrorMessage,
+			},
+			SSY_PROVIDER_ID,
+			modelId,
+		)
+		const failedAskTs = ts + 1
+		const messages: ClineMessage[] = [
+			{
+				ts,
+				type: "say",
+				say: "api_req_started",
+				text: JSON.stringify({
+					streamingFailedMessage: serializedError,
+				} satisfies ClineApiReqInfo),
+				partial: false,
+			},
+			{
+				ts: failedAskTs,
+				type: "ask",
+				ask: "api_req_failed",
+				text: serializedError,
+				partial: false,
+			},
+		]
+
+		this.turnStateTracker.set("error", failedAskTs)
+		this.messages.appendAndEmit(messages, {
+			type: "status",
+			payload: {
+				sessionId: this.sessions.getActiveSession()?.sessionId ?? "",
+				status: "error",
+			},
+		})
 		this.postStateToWebview().catch(() => {})
 	}
 

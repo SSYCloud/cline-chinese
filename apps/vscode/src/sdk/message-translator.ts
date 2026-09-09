@@ -48,6 +48,7 @@ import * as path from "path"
 import { isClineManagedProvider } from "@/shared/utils/cline"
 import { arePathsEqual, getDesktopDir } from "@/utils/path"
 import { CLINE_FREE_PROMOTION_ENDED_ERROR_CODE, isClineFreePromotionEndedMessage } from "../services/error/ClineError"
+import { SSY_BUY_CREDITS_URL, SSY_PROVIDER_ID, SSYError, SSYErrorType } from "../services/error/SSYError"
 import { MessageIdMinter } from "./message-id-minter"
 import { describeCredentialRejectedError, describeMissingCredentialError } from "./provider-credential-error"
 import { extractPersistedHookContextChips, isSyntheticSdkUserMessage, isSyntheticUserPrompt } from "./sdk-user-message-mapping"
@@ -2635,6 +2636,130 @@ function describeVertexGlobalRegionError(rawMessage: string, providerId?: string
 }
 
 /**
+ * Reshape a ShengSuanYun (胜算云) SDK error into the ClineError-compatible JSON
+ * the webview's ErrorRow expects. SSY uses different error codes such as
+ * `insufficient_quota`, `tpm_limit_exceeded`, and `rpm_limit_exceeded`, so it
+ * needs its own classification before the generic provider path runs.
+ *
+ * Returns undefined when the error has no SSY-specific classification so the
+ * caller can fall back to the generic reshape logic.
+ */
+function reshapeSSYErrorForWebview(
+	error: { message?: string; status?: number; code?: string },
+	providerId?: string,
+	modelId?: string,
+): string | undefined {
+	const rawMessage = error.message ?? "Unknown error"
+	const ssyProviderId = providerId ?? SSY_PROVIDER_ID
+	const ssyError = SSYError.transform(error, modelId, ssyProviderId)
+	const errorType = SSYError.getErrorType(ssyError)
+	const requestId = ssyError.requestId
+	const details = ssyError._error.details ?? {}
+
+	switch (errorType) {
+		case SSYErrorType.Balance: {
+			const currentBalance =
+				typeof details.current_balance === "number"
+					? details.current_balance
+					: typeof details.balance === "number"
+						? details.balance
+						: 0
+			return JSON.stringify({
+				message: ssyError.message || "账户余额不足，请充值后重试。",
+				code: "insufficient_credits",
+				status: ssyError.status,
+				request_id: requestId,
+				providerId: ssyProviderId,
+				modelId,
+				details: {
+					current_balance: currentBalance,
+					message: ssyError.message || "账户余额不足，请充值后重试。",
+					buy_credits_url: SSY_BUY_CREDITS_URL,
+				},
+			})
+		}
+
+		case SSYErrorType.SpendLimit:
+			return JSON.stringify({
+				message: ssyError.message || rawMessage,
+				code: "SPEND_LIMIT_EXCEEDED",
+				status: ssyError.status,
+				request_id: requestId,
+				providerId: ssyProviderId,
+				modelId,
+				details: {
+					code: "SPEND_LIMIT_EXCEEDED",
+					limit_scope: details.limit_scope,
+					budget_period: details.budget_period,
+					limit_usd: details.limit_usd,
+					spent_usd: details.spent_usd,
+					resets_at: details.resets_at,
+					message: ssyError.message || rawMessage,
+				},
+			})
+
+		case SSYErrorType.Auth:
+			return JSON.stringify({
+				message: "胜算云登录已过期，请重新登录后重试。",
+				code: "ERR_BAD_REQUEST",
+				status: ssyError.status ?? 401,
+				request_id: requestId,
+				providerId: ssyProviderId,
+				modelId,
+				details: {
+					code: "SSY_AUTH_REQUIRED",
+					message: "胜算云登录已过期，请重新登录后重试。",
+				},
+			})
+
+		case SSYErrorType.TpmLimitExceeded:
+			return JSON.stringify({
+				message: ssyError.message || rawMessage,
+				code: ssyError.code ?? "tpm_limit_exceeded",
+				status: ssyError.status,
+				request_id: requestId,
+				providerId: ssyProviderId,
+				modelId,
+				details: {
+					code: ssyError.code ?? "tpm_limit_exceeded",
+					message: ssyError.message || rawMessage,
+				},
+			})
+
+		case SSYErrorType.RpmLimitExceeded:
+			return JSON.stringify({
+				message: ssyError.message || rawMessage,
+				code: ssyError.code ?? "rpm_limit_exceeded",
+				status: ssyError.status,
+				request_id: requestId,
+				providerId: ssyProviderId,
+				modelId,
+				details: {
+					code: ssyError.code ?? "rpm_limit_exceeded",
+					message: ssyError.message || rawMessage,
+				},
+			})
+
+		case SSYErrorType.QuotaExceeded:
+			return JSON.stringify({
+				message: ssyError.message || rawMessage,
+				code: ssyError.code ?? "quota_exceeded",
+				status: ssyError.status,
+				request_id: requestId,
+				providerId: ssyProviderId,
+				modelId,
+				details: {
+					code: ssyError.code ?? "quota_exceeded",
+					message: ssyError.message || rawMessage,
+				},
+			})
+
+		default:
+			return undefined
+	}
+}
+
+/**
  * Reshape an SDK error into the serialized ClineError JSON the webview's
  * ErrorRow expects (`code`, `providerId`, `details`), extracting structured
  * info from the error message when present and falling back to raw text.
@@ -2645,6 +2770,15 @@ export function reshapeErrorForWebview(
 	modelId?: string,
 	errorClass?: ProviderErrorClass,
 ): string {
+	// ShengSuanYun has its own error codes and product-specific recovery URLs.
+	// Run its classifier before the generic Cline/BYOK branches below.
+	if (providerId === SSY_PROVIDER_ID) {
+		const ssyPayload = reshapeSSYErrorForWebview(error, providerId, modelId)
+		if (ssyPayload) {
+			return ssyPayload
+		}
+	}
+
 	// The ClineError-JSON branches below are cline-provider flows (balance,
 	// spend limit), so "cline" stays their fallback id. The missing-credential
 	// message instead gets the raw value: defaulting there would name the wrong

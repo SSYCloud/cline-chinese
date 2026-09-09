@@ -10,6 +10,7 @@ import OrgClinePassRestrictionError from "@/components/chat/OrgClinePassRestrict
 import SpendLimitError from "@/components/chat/SpendLimitError"
 import { Button } from "@/components/ui/button"
 import { useClineAuth, useClineSignIn } from "@/context/ClineAuthContext"
+import { useSignIn as useShengSuanYunSignIn } from "@/context/ShengSuanYunAuthContext"
 import { ClineError, ClineErrorType } from "../../../../src/services/error/ClineError"
 
 const _errorColor = "var(--vscode-errorForeground)"
@@ -26,6 +27,7 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 	const rawApiError = apiRequestFailedMessage || apiReqStreamingFailedMessage
 
 	const { isLoginLoading, authStatusMessage, handleSignIn } = useClineSignIn()
+	const { isLoginLoading: isShengSuanYunLoginLoading, handleSignIn: handleShengSuanYunSignIn } = useShengSuanYunSignIn()
 
 	const renderErrorContent = () => {
 		switch (errorType) {
@@ -133,6 +135,27 @@ const ErrorRow = memo(({ message, errorType, apiRequestFailedMessage, apiReqStre
 							// Don't show sign in button after the user has logged in, just ask them to retry
 							<div className="mt-4">
 								<span className="text-description">（点击下方“重试”）</span>
+							</div>
+						)
+					}
+
+					if (clineError?.isErrorType(ClineErrorType.Auth) && providerId === "shengsuanyun") {
+						return (
+							<div className="flex flex-col gap-3">
+								<div className="flex items-center justify-center rounded border border-neutral-500/30 bg-vscode-editor-background p-6 text-center text-vscode-foreground">
+									胜算云登录状态无效或已过期
+								</div>
+								<Button
+									className="w-full"
+									disabled={isShengSuanYunLoginLoading}
+									onClick={handleShengSuanYunSignIn}>
+									登录胜算云
+									{isShengSuanYunLoginLoading && (
+										<span className="ml-1 animate-spin">
+											<span className="codicon codicon-refresh" />
+										</span>
+									)}
+								</Button>
 							</div>
 						)
 					}

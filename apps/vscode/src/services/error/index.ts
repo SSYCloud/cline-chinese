@@ -2,6 +2,7 @@ import { ErrorSettings } from "./providers/IErrorProvider"
 
 export { ErrorService } from "./ErrorService"
 export type { ErrorSettings } from "./providers/IErrorProvider"
+export { AuthInvalidTokenError, SSY_BUY_CREDITS_URL, SSY_PROVIDER_ID, SSYError, SSYErrorType } from "./SSYError"
 export function getErrorLevelFromString(level: string | undefined): ErrorSettings["level"] {
 	switch (level) {
 		case "disabled":
