@@ -1,6 +1,6 @@
 import { HistoryItem } from "@shared/HistoryItem"
 import { StringRequest } from "@shared/proto/cline/common"
-import { VSCodeCheckbox, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
+import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import {
 	ArrowDownIcon,
 	ArrowLeftIcon,
@@ -14,8 +14,8 @@ import {
 	TrashIcon,
 } from "lucide-react"
 import { memo, useCallback, useMemo, useState } from "react"
+import { RenameItem } from "@/components/history/RenameItem"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useUsageCostVisibility } from "@/hooks/useUsageCostVisibility"
 import { cn } from "@/lib/utils"
 import { TaskServiceClient } from "@/services/grpc-client"
@@ -42,8 +42,6 @@ const HistoryViewItem = ({
 	selectedItems,
 }: HistoryViewItemProps) => {
 	const [expanded, setExpanded] = useState(false)
-	const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false)
-	const [renameTitle, setRenameTitle] = useState("")
 	const isCostVisible = useUsageCostVisibility()
 
 	const isFavoritedItem = useMemo(
@@ -115,19 +113,24 @@ const HistoryViewItem = ({
 							</span>
 						)}
 						<div className="flex gap-2 flex-shrink-0">
-							<Button
-								aria-label={item.task ? "编辑标题" : "添加标题"}
-								className="p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-								onClick={(e) => {
-									e.stopPropagation()
-									setRenameTitle(item.task)
-									setIsRenameDialogOpen(true)
-								}}
-								variant="ghost">
-								<span className="flex items-center gap-1 text-xs">
-									<PencilIcon className="stroke-1" />
-								</span>
-							</Button>
+							<RenameItem
+								item={item}
+								onRename={handleRenameTask}
+								renderTrigger={(openRenameDialog) => (
+									<Button
+										aria-label={item.task ? "编辑标题" : "添加标题"}
+										className="p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+										onClick={(e) => {
+											e.stopPropagation()
+											openRenameDialog()
+										}}
+										variant="ghost">
+										<span className="flex items-center gap-1 text-xs">
+											<PencilIcon className="stroke-1" />
+										</span>
+									</Button>
+								)}
+							/>
 							<Button
 								aria-label="删除"
 								className="p-0 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -253,40 +256,6 @@ const HistoryViewItem = ({
 					)}
 				</div>
 			</div>
-
-			<Dialog onOpenChange={setIsRenameDialogOpen} open={isRenameDialogOpen}>
-				<DialogContent>
-					<DialogHeader>
-						<DialogTitle>{item.task ? "编辑标题" : "添加标题"}</DialogTitle>
-					</DialogHeader>
-					<VSCodeTextField
-						className="w-full"
-						onInput={(e) => setRenameTitle((e.target as HTMLInputElement).value)}
-						placeholder="输入历史记录标题..."
-						value={renameTitle}>
-						<div className="codicon codicon-edit opacity-80 mt-0.5 !text-sm" slot="start" />
-					</VSCodeTextField>
-					<DialogFooter>
-						<Button
-							onClick={(e) => {
-								e.stopPropagation()
-								setIsRenameDialogOpen(false)
-							}}
-							variant="secondary">
-							取消
-						</Button>
-						<Button
-							disabled={!renameTitle.trim()}
-							onClick={(e) => {
-								e.stopPropagation()
-								handleRenameTask(item.id, renameTitle.trim())
-								setIsRenameDialogOpen(false)
-							}}>
-							保存
-						</Button>
-					</DialogFooter>
-				</DialogContent>
-			</Dialog>
 		</>
 	)
 }

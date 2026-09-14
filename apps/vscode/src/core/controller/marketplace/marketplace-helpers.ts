@@ -36,7 +36,9 @@ import {
 	MarketplaceLocalInstalledEntryRequest,
 	ToggleMarketplaceLocalInstalledEntryRequest,
 } from "@shared/proto/cline/marketplace"
+import { StateManager } from "@/core/storage/StateManager"
 import { HostProvider } from "@/hosts/host-provider"
+import { Logger } from "@/shared/services/Logger"
 import type { Controller } from "../index"
 
 type MarketplaceType = "mcp" | "skill" | "plugin"
@@ -48,6 +50,7 @@ type SpawnResult = {
 }
 
 const MARKETPLACE_CATALOG_URL = "https://cline.github.io/marketplace/catalog.json"
+const SHENG_SUAN_YUN = "https://loomloom.shengsuanyun.com/loom/v1"
 const OFFICIAL_PLUGINS_REPO = "https://github.com/cline/plugins.git"
 const INSTALL_COMMAND_TIMEOUT_MS = 120_000
 const MAX_OUTPUT_CHARS = 12_000
@@ -119,17 +122,66 @@ function sanitizeEntry(raw: unknown): MarketplaceEntry | undefined {
 }
 
 export async function fetchMarketplaceCatalog(): Promise<MarketplaceCatalog> {
-	const response = await fetch(MARKETPLACE_CATALOG_URL, {
+	const catalogPromise = fetch(MARKETPLACE_CATALOG_URL, {
 		headers: { Accept: "application/json" },
-	})
-	if (!response.ok) {
-		throw new Error(`Failed to fetch marketplace catalog: ${response.status} ${response.statusText}`.trim())
+	}).catch(() => null)
+	const shengSuanYunToken = StateManager.get().getSecretKey("shengSuanYunToken")
+	const ssyPromise = shengSuanYunToken
+		? fetch(`${SHENG_SUAN_YUN}/marketListings`, {
+				headers: {
+					Accept: "application/json",
+					Authorization: `Bearer ${shengSuanYunToken}`,
+				},
+			}).catch(() => null)
+		: null
+	const [response, ssyResponse] = await Promise.all([catalogPromise, ssyPromise])
+	let entries: MarketplaceEntry[] = []
+	if (response?.ok) {
+		try {
+			const json = (await response.json()) as { entries?: unknown[] }
+			if (Array.isArray(json.entries)) {
+				entries = json.entries.map(sanitizeEntry).filter((entry): entry is MarketplaceEntry => entry !== undefined)
+			}
+		} catch (e) {
+			Logger.warn("Failed to parse marketplace catalog json:", e)
+		}
+	} else if (response) {
+		Logger.warn(`Marketplace catalog request failed: ${response.status}`)
 	}
-	const json = (await response.json()) as Record<string, unknown>
-	const entries = Array.isArray(json.entries)
-		? json.entries.map(sanitizeEntry).filter((entry): entry is MarketplaceEntry => entry !== undefined)
-		: []
-	return MarketplaceCatalog.create({ entries })
+	let ssyEntries: MarketplaceEntry[] = []
+	if (ssyResponse?.ok) {
+		try {
+			const skls = (await ssyResponse.json()) as { items?: any[] }
+			const base = "https://www.shengsuanyun.com"
+			if (Array.isArray(skls.items)) {
+				ssyEntries = skls.items
+					.map((it) =>
+						MarketplaceEntry.create({
+							id: String(it.id),
+							type: "skill",
+							name: typeof it.displayName === "string" ? it.displayName : String(it.id),
+							tagline: "联系胜算云 LoomLoom 团队获取支持。",
+							description: typeof it.description === "string" ? it.description : undefined,
+							tags: ["胜算云", "creative", "LoomLoom"],
+							author: it.creator?.nickname || "胜算云",
+							sourceUrl: `${base}${it.skillPackage?.archiveUrl}`,
+							homepageUrl: `${base}/zh/loomloom/market`,
+							install: {
+								args: ["cline/skills", "--skill", String(it.id)],
+								env: [],
+								command: `cline skill install cline/skills --skill ${base}${it.skillPackage?.archiveUrl}`,
+							},
+						}),
+					)
+					.filter((entry): entry is MarketplaceEntry => entry !== undefined)
+			}
+		} catch (e) {
+			Logger.warn("Failed to parse ShengSuanYun json:", e)
+		}
+	} else if (ssyResponse) {
+		Logger.warn(`ShengSuanYun request failed: ${ssyResponse.status}`)
+	}
+	return MarketplaceCatalog.create({ entries: [...ssyEntries, ...entries] })
 }
 
 function normalizeMatchValue(value: string | undefined): string {

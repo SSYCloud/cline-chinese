@@ -292,6 +292,7 @@ message Settings {
   optional OpenRouterModelInfo plan_mode_sheng_suan_yun_model_info = 188;
   optional string act_mode_sheng_suan_yun_model_id = 189;
   optional OpenRouterModelInfo act_mode_sheng_suan_yun_model_info = 190;
+  optional string open_telemetry_traces_exporter = 191;
 }
 
 message State {

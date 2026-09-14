@@ -43,6 +43,7 @@ import {
 	wrapLanguageModel,
 } from "ai";
 import { nanoid } from "nanoid";
+import type { AiSdkTelemetryDecision } from "../services/langfuse-telemetry";
 import { classifyProviderError } from "./error-classification";
 import { extractErrorMessage } from "./format";
 import { createRetryEmptyResponseMiddleware } from "./middleware/retry-empty-response";
@@ -588,15 +589,39 @@ function shouldIncludeReasoningHistory(
 	return !isCerebrasProvider(request, context);
 }
 
-async function ensureGatewayLangfuseTelemetry(
+async function resolveGatewayAiSdkTelemetry(
 	providerId: string,
-): Promise<boolean> {
+	request: GatewayStreamRequest,
+): Promise<AiSdkTelemetryDecision> {
 	try {
 		const runtime = await import("../services/langfuse-telemetry");
-		return runtime.ensureLangfuseTelemetry(providerId);
+		return await runtime.resolveAiSdkTelemetry(
+			providerId,
+			resolveTraceSamplingKey(request),
+		);
 	} catch {
-		return false;
+		return { isEnabled: false };
 	}
+}
+
+/**
+ * Whole-task sampling key: prefer the session/task id so every request in a
+ * task gets the same sampling decision and traces stay complete.
+ */
+function resolveTraceSamplingKey(
+	request: GatewayStreamRequest,
+): string | undefined {
+	const metadata =
+		request.metadata && typeof request.metadata === "object"
+			? (request.metadata as Record<string, unknown>)
+			: {};
+	for (const key of ["sessionId", "conversationId", "distinctId"]) {
+		const value = metadata[key];
+		if (typeof value === "string" && value.trim().length > 0) {
+			return value;
+		}
+	}
+	return undefined;
 }
 
 async function withAiSdkLangfuseTraceContext<T>(
@@ -1143,7 +1168,7 @@ export function normalizeUsage(
 		| undefined,
 	providerMetadata?: unknown,
 	pricingValue?: unknown,
-	providerId?: string,
+	selection?: Pick<GatewayStreamRequest, "providerId" | "modelId">,
 ): GatewayNormalizedUsage {
 	const usage =
 		usageValue && typeof usageValue === "object"
@@ -1198,7 +1223,7 @@ export function normalizeUsage(
 	// while the actual bill is computed from its catalog pricing (RMB per 1M
 	// tokens). Treat a zero provider cost as "unknown" for that provider so the
 	// fallback pricing is used instead of displaying 0.0000.
-	const ignoreZeroProviderCost = providerId === "shengsuanyun";
+	const ignoreZeroProviderCost = selection?.providerId === "shengsuanyun";
 	const hasUsableMarketCost =
 		!ignoreZeroProviderCost || (marketCost ?? 0) !== 0;
 	const totalCost =
@@ -1279,8 +1304,22 @@ export function normalizeUsage(
 		[usage, rawUsage, providerUsage ?? {}],
 		REASONING_TOKEN_PATHS,
 	);
-	const resolvedTotalCost =
-		totalCost !== undefined
+	const pricing = pricingValue as Record<string, unknown> | undefined;
+	// Cline's included models have no per-request charge, even when the
+	// response includes the upstream inference or market cost.
+	const includedClineUsage =
+		selection?.providerId === "cline-pass" ||
+		(selection?.providerId === "cline" &&
+			(selection.modelId.startsWith("cline-pass/") ||
+				selection.modelId.startsWith("cline-free/") ||
+				selection.modelId.endsWith(":free") ||
+				(pricing?.input === 0 &&
+					pricing?.output === 0 &&
+					(pricing.cacheRead ?? 0) === 0 &&
+					(pricing.cacheWrite ?? 0) === 0)));
+	const resolvedTotalCost = includedClineUsage
+		? 0
+		: totalCost !== undefined
 			? totalCost
 			: hasExplicitCost
 				? ignoreZeroProviderCost
@@ -1406,7 +1445,6 @@ async function* emitAiSdkEvents(
 	pricingValue?: unknown,
 	capturedError?: { current: CapturedStreamError | undefined },
 	modelToolAdapters?: BuiltModelTools,
-	providerId?: string,
 ): AsyncIterable<AgentModelEvent> {
 	let sawToolCalls = false;
 	const emittedToolCallIds = new Set<string>();
@@ -1906,12 +1944,7 @@ async function* emitAiSdkEvents(
 	if (usageToEmit) {
 		yield {
 			type: "usage",
-			usage: normalizeUsage(
-				usageToEmit,
-				metadataToUse,
-				pricingValue,
-				providerId,
-			),
+			usage: normalizeUsage(usageToEmit, metadataToUse, pricingValue, request),
 		};
 	}
 
@@ -2040,9 +2073,14 @@ export function withEmptyResponseRetry(
 	});
 }
 
-function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
+function createAiSdkProvider(
+	defaultKind: ProviderModuleKind,
+): GatewayProviderFactory {
 	return async (config) => ({
 		async *stream(request, context) {
+			// Multi-protocol HTTP gateways declare model adapters in models.dev.
+			// Keep native and local CLI transports authoritative for their models.
+			const kind = resolveModelProviderKind(defaultKind, context);
 			const log = context.logger;
 			let stream: AiSdkStreamResult | undefined;
 			const capturedError: { current: CapturedStreamError | undefined } = {
@@ -2168,15 +2206,16 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 								result.usage as Record<string, unknown>,
 								result.providerMetadata,
 								context.model.metadata?.pricing,
-								request.providerId,
+								request,
 							),
 						};
 					}
 					yield { type: "finish", reason: "stop" };
 					return;
 				}
-				const langfuse = await ensureGatewayLangfuseTelemetry(
+				const aiSdkTelemetry = await resolveGatewayAiSdkTelemetry(
 					config.providerId,
+					request,
 				);
 				const externalToolExecutionDisabled =
 					providerDisablesExternalToolExecution(context);
@@ -2228,7 +2267,7 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 					},
 				});
 				stream = await withAiSdkLangfuseTraceContext(
-					langfuse,
+					aiSdkTelemetry.isEnabled,
 					request,
 					() =>
 						streamText({
@@ -2243,7 +2282,7 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 							abortSignal: request.signal,
 							experimental_repairToolCall: repairMalformedToolCall as never,
 							telemetry: {
-								isEnabled: langfuse,
+								...aiSdkTelemetry,
 								functionId: "cline-agent-turn",
 								includeRuntimeContext: {
 									distinctId: true,
@@ -2314,7 +2353,6 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 					context.model.metadata?.pricing,
 					capturedError,
 					modelToolAdapters,
-					request.providerId,
 				);
 			} catch (error) {
 				suppressDanglingStreamPromises(stream);
@@ -2357,6 +2395,27 @@ function createAiSdkProvider(kind: ProviderModuleKind): GatewayProviderFactory {
 			}
 		},
 	});
+}
+
+function resolveModelProviderKind(
+	defaultKind: ProviderModuleKind,
+	context: GatewayProviderContext,
+): ProviderModuleKind {
+	if (
+		defaultKind !== "openai-compatible" ||
+		!context.provider.metadata?.routing?.modelApiProtocol
+	)
+		return defaultKind;
+	switch (context.model.metadata?.apiProtocol) {
+		case "openai-responses":
+			return "openai";
+		case "anthropic":
+			return "anthropic";
+		case "gemini":
+			return "google";
+		default:
+			return defaultKind;
+	}
 }
 
 export const createOpenAIProvider = createAiSdkProvider("openai");

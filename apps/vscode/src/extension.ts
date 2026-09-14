@@ -264,7 +264,7 @@ export async function activate(context: vscode.ExtensionContext) {
 					const addAction = new vscode.CodeAction("添加到 Cline Chinese", vscode.CodeActionKind.QuickFix)
 					addAction.command = {
 						command: commands.AddToChat,
-						title: "Add to Cline Chinese",
+						title: "添加到 Cline Chinese",
 					}
 					actions.push(addAction)
 
@@ -272,28 +272,25 @@ export async function activate(context: vscode.ExtensionContext) {
 					const explainAction = new vscode.CodeAction("使用 Cline Chinese 解释", vscode.CodeActionKind.RefactorExtract) // Using a refactor kind
 					explainAction.command = {
 						command: commands.ExplainCode,
-						title: "Explain with Cline Chinese",
+						title: "使用 Cline Chinese 解释",
 					}
 					actions.push(explainAction)
 
 					// Improve with Cline Chinese (Always available)
-					const improveAction = new vscode.CodeAction(
-						"Improve with Cline Chinese",
-						vscode.CodeActionKind.RefactorRewrite,
-					) // Using a refactor kind
+					const improveAction = new vscode.CodeAction("使用 Cline Chinese 改进", vscode.CodeActionKind.RefactorRewrite) // Using a refactor kind
 					improveAction.command = {
 						command: commands.ImproveCode,
-						title: "Improve with Cline Chinese",
+						title: "使用 Cline Chinese 改进",
 					}
 					actions.push(improveAction)
 
 					// Fix with Cline Chinese (Only if diagnostics exist)
 					if (context.diagnostics.length > 0) {
-						const fixAction = new vscode.CodeAction("Fix with Cline Chinese", vscode.CodeActionKind.QuickFix)
+						const fixAction = new vscode.CodeAction("使用 Cline Chinese 修复", vscode.CodeActionKind.QuickFix)
 						fixAction.isPreferred = true
 						fixAction.command = {
 							command: commands.FixWithCline,
-							title: "Fix with Cline Chinese",
+							title: "使用 Cline Chinese 修复",
 						}
 						actions.push(fixAction)
 					}

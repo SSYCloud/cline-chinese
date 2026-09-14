@@ -2,10 +2,10 @@ import "opentui-spinner/react";
 import type { ScrollBoxRenderable } from "@opentui/core";
 import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
-import {
-	CODEX_CLI_INSTALL_URL,
-	type CodexCliStatus,
-} from "../../../utils/codex-cli";
+import type {
+	LocalCliStatus,
+	ProviderLocalCli,
+} from "../../../utils/local-cli";
 import {
 	ClineModelPicker,
 	type ClineModelPickerEntry,
@@ -25,6 +25,7 @@ import { FIELD_ORDER } from "./fields";
 import {
 	type ClinePassSubscriptionOption,
 	type ClinePassSubscriptionStatus,
+	canContinueLocalCliSetup,
 	type MenuOption,
 	THINKING_LEVELS,
 } from "./model";
@@ -362,18 +363,20 @@ export function OnboardingProviderConfigScreen(props: {
 	);
 }
 
-export function OnboardingCodexCliScreen(props: {
+export function OnboardingLocalCliScreen(props: {
 	activeProviderName: string;
 	checking: boolean;
+	cli?: ProviderLocalCli;
 	compact: boolean;
 	contentWidth: number;
 	mouse: MouseTrackerState;
-	status?: CodexCliStatus;
+	status?: LocalCliStatus;
 }) {
 	const defaultFg = useDefaultFg();
 	const colors = useOnboardingColors();
 	const installedStatus =
 		props.status?.installed === true ? props.status : undefined;
+	const canContinue = canContinueLocalCliSetup(props.cli, props.status);
 	return (
 		<OnboardingFrame
 			compact={props.compact}
@@ -386,33 +389,39 @@ export function OnboardingCodexCliScreen(props: {
 				{props.checking && (
 					<box flexDirection="row" gap={1}>
 						<spinner name="dots" color="gray" />
-						<text fg="gray">\u6b63\u5728\u68c0\u67e5 Codex CLI...</text>
+						<text fg="gray">检查 {props.activeProviderName}...</text>
 					</box>
 				)}
 
 				{installedStatus && (
 					<box flexDirection="column" gap={1} alignItems="center">
-						<text fg={colors.success}>{"\u25cf"} Codex CLI \u5df2\u5b89\u88c5</text>
+						<text fg={colors.success}>
+							{"\u25cf"} {props.activeProviderName} 已安装
+						</text>
 						<text fg="gray">{installedStatus.version}</text>
 					</box>
 				)}
 
-				{props.status && !props.status.installed && (
+				{props.cli && props.status && !props.status.installed && (
 					<box flexDirection="column" gap={1} width={props.contentWidth}>
-						<text fg="yellow">未找到 Codex CLI</text>
+						<text fg="yellow">{props.activeProviderName} 未找到</text>
 						<text fg="gray">{props.status.reason}</text>
-						<text fg="gray">从此处安装 Codex CLI：</text>
-						<text fg={colors.accent} selectable>
-							{CODEX_CLI_INSTALL_URL}
-						</text>
+						{props.cli.docsUrl && (
+							<box flexDirection="column">
+								<text fg={colors.accent} selectable>
+									从{props.cli.docsUrl}
+								</text>
+								<text fg="gray">安装 {props.activeProviderName}</text>
+							</box>
+						)}
 					</box>
 				)}
 
 				<text fg="gray">
 					<em>
-						{installedStatus
-							? "按 Enter 继续，按 R 重新检查，按 Esc 返回，Ctrl+C 退出"
-							: "按 R 重新检查，按 Esc 返回，Ctrl+C 退出"}
+						{canContinue
+							? "回车继续, R 重检查, Esc 返回, Ctrl+C 退出"
+							: "R 重检查, Esc 返回, Ctrl+C 退出"}
 					</em>
 				</text>
 			</box>
