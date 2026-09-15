@@ -1,8 +1,11 @@
 import { spawn } from "node:child_process"
 import { createHash } from "node:crypto"
-import { existsSync } from "node:fs"
-import { homedir, platform } from "node:os"
-import { isAbsolute, join, relative, resolve } from "node:path"
+import fs, { existsSync } from "node:fs"
+import fsp from "node:fs/promises"
+import os, { homedir, platform } from "node:os"
+import path, { isAbsolute, join, relative, resolve } from "node:path"
+import { Readable } from "node:stream"
+import { pipeline } from "node:stream/promises"
 import {
 	disablePluginMcpServersInSettings,
 	discoverPluginModulePaths,
@@ -51,6 +54,7 @@ type SpawnResult = {
 
 const MARKETPLACE_CATALOG_URL = "https://cline.github.io/marketplace/catalog.json"
 const SHENG_SUAN_YUN = "https://loomloom.shengsuanyun.com/loom/v1"
+const SHENG_SUAN_YUN_SKILL_URL_PREFIX = "https://loomloom.shengsuanyun.com"
 const OFFICIAL_PLUGINS_REPO = "https://github.com/cline/plugins.git"
 const INSTALL_COMMAND_TIMEOUT_MS = 120_000
 const MAX_OUTPUT_CHARS = 12_000
@@ -152,7 +156,7 @@ export async function fetchMarketplaceCatalog(): Promise<MarketplaceCatalog> {
 	if (ssyResponse?.ok) {
 		try {
 			const skls = (await ssyResponse.json()) as { items?: any[] }
-			const base = "https://www.shengsuanyun.com"
+			const base = SHENG_SUAN_YUN_SKILL_URL_PREFIX
 			if (Array.isArray(skls.items)) {
 				ssyEntries = skls.items
 					.map((it) =>
@@ -417,6 +421,9 @@ async function installPluginMarketplaceEntry(entry: MarketplaceEntry, args: stri
 }
 
 async function installSkillMarketplaceEntry(entry: MarketplaceEntry, args: string[]): Promise<MarketplaceInstallResult> {
+	if (entry.sourceUrl?.startsWith(SHENG_SUAN_YUN_SKILL_URL_PREFIX)) {
+		return await downloadAndExtractSkillZeroDep(entry)
+	}
 	const command = "npx"
 	const commandArgs = ["-y", "skills@latest", "add", ...args, "-g", "-a", "cline", "-y"]
 	const displayCommand = formatCommand(command, commandArgs)
@@ -693,4 +700,65 @@ export async function uninstallLocalMarketplaceInstalledEntry(
 		})
 	}
 	throw new Error(`Marketplace uninstall is not supported for ${entry.type}.`)
+}
+export async function downloadAndExtractSkillZeroDep(entry: MarketplaceEntry): Promise<MarketplaceInstallResult> {
+	const targetDir = path.join(os.homedir(), ".agents", "skills")
+	await fsp.mkdir(targetDir, { recursive: true })
+	const tempZipPath = path.join(targetDir, `_temp_${Date.now()}.zip`)
+	try {
+		if (!entry.sourceUrl) {
+			throw new Error(`No source URL available for ${entry.name || entry.id}.`)
+		}
+		const shengSuanYunToken = StateManager.get().getSecretKey("shengSuanYunToken")
+		const headers: Record<string, string> = {
+			"User-Agent": "Mozilla/5.0 (compatible; Cline/1.0)",
+		}
+		if (shengSuanYunToken) {
+			headers["Authorization"] = `Bearer ${shengSuanYunToken}`
+		}
+
+		const response = await fetch(entry.sourceUrl, { headers })
+
+		if (!response.ok || !response.body) {
+			throw new Error(`下载失败 [${response.status}]: ${response.statusText}`)
+		}
+
+		const fileStream = fs.createWriteStream(tempZipPath)
+		// @ts-expect-error Node 18+ 原生 fetch body 转换为 Node 流
+		await pipeline(Readable.fromWeb(response.body), fileStream)
+
+		// 2. 校验文件 Magic Bytes (PK\x03\x04)
+		const handle = await fsp.open(tempZipPath, "r")
+		const headerBuffer = Buffer.alloc(4)
+		await handle.read(headerBuffer, 0, 4, 0)
+		await handle.close()
+
+		const isZip = headerBuffer[0] === 0x50 && headerBuffer[1] === 0x4b && headerBuffer[2] === 0x03 && headerBuffer[3] === 0x04
+		if (!isZip) {
+			const preview = (await fsp.readFile(tempZipPath, "utf-8")).slice(0, 30000)
+			throw new Error(`下载失败:\n${preview}`)
+		}
+
+		const command = "tar"
+		const commandArgs = ["-xvf", tempZipPath, "-C", targetDir]
+		const result = await runCommand(command, commandArgs)
+		const output = commandOutput(result)
+		if (result.exitCode !== 0) {
+			throw new Error(
+				`${entry.name || entry.id} extract failed with exit code ${result.exitCode}.${output ? `\n\n${output}` : ""}`,
+			)
+		}
+
+		return MarketplaceInstallResult.create({
+			id: entry.id,
+			type: entry.type,
+			status: "installed",
+			message: `Installed ${entry.name || entry.id}.`,
+			output,
+		})
+	} finally {
+		if (fs.existsSync(tempZipPath)) {
+			await fsp.unlink(tempZipPath).catch(() => {})
+		}
+	}
 }
