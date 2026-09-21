@@ -11,6 +11,8 @@ interface InputSectionProps {
 	placeholderText: string
 	shouldDisableFilesAndImages: boolean
 	selectFilesAndImages: () => Promise<void>
+	batchMode?: boolean
+	onBatchModeChange?: (batch: boolean) => void
 }
 
 /**
@@ -23,6 +25,8 @@ export const InputSection: React.FC<InputSectionProps> = ({
 	placeholderText,
 	shouldDisableFilesAndImages,
 	selectFilesAndImages,
+	batchMode = false,
+	onBatchModeChange = () => {},
 }) => {
 	const {
 		activeQuote,
@@ -50,7 +54,7 @@ export const InputSection: React.FC<InputSectionProps> = ({
 
 	return (
 		<>
-			{activeQuote && (
+			{!batchMode && activeQuote && (
 				<div style={{ marginBottom: "-12px", marginTop: "10px" }}>
 					<QuotedMessagePreview
 						isFocused={isTextAreaFocused}
@@ -62,7 +66,9 @@ export const InputSection: React.FC<InputSectionProps> = ({
 
 			<ChatTextArea
 				activeQuote={activeQuote}
+				batchMode={batchMode}
 				inputValue={inputValue}
+				onBatchModeChange={onBatchModeChange}
 				onFocusChange={handleFocusChange}
 				onHeightChange={() => {
 					if (isAtBottom) {

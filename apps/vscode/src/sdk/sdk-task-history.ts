@@ -87,9 +87,20 @@ function compareSessionHistoryRecordsByRecencyDesc(a: SessionHistoryRecord, b: S
 	)
 }
 
+/**
+ * Batch (LoomLoom) results pack their display title and full result body into
+ * `item.task` as `title\n\nbody`. The session `title` is capped at 120 chars by
+ * the persistence layer (`MAX_TITLE_LENGTH`), so it must never hold the whole
+ * `task` — derive just the title line here and keep the full body in `prompt`.
+ */
+export function batchResultTitle(task: string | undefined): string {
+	const firstLine = task?.split("\n\n")[0]?.trim()
+	return firstLine || "LoomLoom 批量执行结果"
+}
+
 export function historyItemToSessionMetadata(item: HistoryItem, fallbackModelId?: string): Record<string, unknown> {
 	return {
-		title: item.task,
+		title: item.isBatchResult ? batchResultTitle(item.task) : item.task,
 		isFavorited: item.isFavorited ?? false,
 		size: item.size ?? 0,
 		totalCost: item.totalCost ?? 0,
@@ -177,10 +188,17 @@ function sanitizeSdkUserMessagesForDisplay(messages: SdkMessage[]): SdkDisplayMe
 
 export function sessionHistoryRecordToHistoryItem(item: SessionHistoryRecord): HistoryItem {
 	const metadata = item.metadata
+	// Batch results store the full body in `prompt` and only a short title line in
+	// `metadata.title` (which is capped at 120 chars). Prefer `prompt` there so the
+	// saved result isn't truncated when it round-trips back into the history list.
+	const isBatchResult = metadataBoolean(metadata, "isBatchResult") === true
+	const rawTask = isBatchResult
+		? (item.prompt ?? metadataString(metadata, "title") ?? "")
+		: (metadataString(metadata, "title") ?? item.prompt ?? "")
 	return {
 		id: item.sessionId,
 		ts: dateStringToTimestamp(item.updatedAt ?? item.endedAt ?? item.startedAt),
-		task: formatDisplayUserInput(metadataString(metadata, "title") ?? item.prompt ?? ""),
+		task: formatDisplayUserInput(rawTask),
 		tokensIn: metadataNumber(metadata, "tokensIn") ?? 0,
 		tokensOut: metadataNumber(metadata, "tokensOut") ?? 0,
 		cacheWrites: metadataNumber(metadata, "cacheWrites") ?? 0,
@@ -193,6 +211,7 @@ export function sessionHistoryRecordToHistoryItem(item: SessionHistoryRecord): H
 		cwdOnTaskInitialization: item.cwd ?? item.workspaceRoot,
 		isLegacy:
 			metadataBoolean(metadata, "legacyTask") === true || metadataBoolean(metadata, "migratedFromLegacyTask") === true,
+		isBatchResult,
 	}
 }
 
@@ -567,7 +586,7 @@ export class SdkTaskHistory {
 			const result = await host.update(sessionId, {
 				prompt: item.task,
 				metadata,
-				title: item.task,
+				title: item.isBatchResult ? batchResultTitle(item.task) : item.task,
 			})
 			return { metadata, updated: result.updated }
 		})

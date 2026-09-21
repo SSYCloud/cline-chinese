@@ -77,6 +77,9 @@ export interface ExtensionStateContextType extends ExtensionState {
 	showWorktrees: boolean
 	showAnnouncement: boolean
 	expandTaskHeader: boolean
+	// Batch-mode result pending to open (set from the history list). When
+	// non-null, ChatView switches into batch mode and opens the result tab.
+	batchResultToOpen: { title: string; content: string } | null
 
 	// Setters
 	setShengSuanYunModels: (value: Record<string, ShengSuanYunModelInfo>) => void
@@ -128,6 +131,10 @@ export interface ExtensionStateContextType extends ExtensionState {
 	navigateToWorktrees: () => void
 	navigateToChat: () => void
 
+	// Batch result routing
+	openBatchResult: (result: { title: string; content: string }) => void
+	clearBatchResult: () => void
+
 	// Hide functions
 	hideSettings: () => void
 	hideHistory: () => void
@@ -157,6 +164,7 @@ export const ExtensionStateContextProvider: React.FC<{
 	const [showAccount, setShowAccount] = useState(false)
 	const [showWorktrees, setShowWorktrees] = useState(false)
 	const [showAnnouncement, setShowAnnouncement] = useState(false)
+	const [batchResultToOpen, setBatchResultToOpen] = useState<{ title: string; content: string } | null>(null)
 
 	// Helper for MCP view
 	const closeMcpView = useCallback(() => {
@@ -266,6 +274,14 @@ export const ExtensionStateContextProvider: React.FC<{
 		setShowAccount(false)
 		setShowWorktrees(false)
 	}, [closeMarketplaceView, setShowSettings, closeMcpView, setShowHistory, setShowAccount, setShowWorktrees])
+
+	const openBatchResult = useCallback((result: { title: string; content: string }) => {
+		setBatchResultToOpen(result)
+	}, [])
+
+	const clearBatchResult = useCallback(() => {
+		setBatchResultToOpen(null)
+	}, [])
 
 	const [state, setState] = useState<ExtensionState>({
 		version: "",
@@ -914,6 +930,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		showAccount,
 		showWorktrees,
 		showAnnouncement,
+		batchResultToOpen,
 		globalClineRulesToggles: state.globalClineRulesToggles || {},
 		localClineRulesToggles: state.localClineRulesToggles || {},
 		localCursorRulesToggles: state.localCursorRulesToggles || {},
@@ -934,6 +951,10 @@ export const ExtensionStateContextProvider: React.FC<{
 		navigateToAccount,
 		navigateToWorktrees,
 		navigateToChat,
+
+		// Batch result routing
+		openBatchResult,
+		clearBatchResult,
 
 		// Hide functions
 		hideSettings,

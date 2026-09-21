@@ -170,7 +170,7 @@ function searchTextForEntry(entry: MarketplaceEntry): string {
 		.toLowerCase()
 }
 
-const MarketplaceStyles = () => (
+export const MarketplaceStyles = () => (
 	<style>{`
 		.marketplace-view {
 			background: var(--vscode-sideBar-background);
@@ -639,6 +639,139 @@ const MarketplaceStyles = () => (
 			height: 18px;
 		}
 
+		.marketplace-text-button {
+			display: inline-flex;
+			align-items: center;
+			gap: 5px;
+			height: 24px;
+			padding: 0 10px;
+			border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
+			border-radius: 3px;
+			background: var(--vscode-button-secondaryBackground);
+			color: var(--vscode-button-secondaryForeground);
+			font: inherit;
+			font-size: calc(var(--vscode-font-size) * 0.9);
+			white-space: nowrap;
+			cursor: pointer;
+		}
+
+		.marketplace-text-button:hover:not(:disabled) {
+			background: var(--vscode-button-secondaryHoverBackground);
+		}
+
+		.marketplace-text-button:focus-visible {
+			outline: 1px solid var(--vscode-focusBorder);
+			outline-offset: 1px;
+		}
+
+		.marketplace-text-button:disabled {
+			cursor: default;
+			opacity: 0.65;
+		}
+
+		.marketplace-text-button-primary {
+			background: var(--vscode-button-background);
+			color: var(--vscode-button-foreground);
+			border-color: var(--vscode-button-background);
+		}
+
+		.marketplace-text-button-primary:hover:not(:disabled) {
+			background: var(--vscode-button-hoverBackground);
+		}
+
+		.marketplace-text-button svg {
+			width: 14px;
+			height: 14px;
+		}
+
+		.marketplace-form {
+			display: grid;
+			gap: 12px;
+		}
+
+		.marketplace-form-summary {
+			color: var(--vscode-descriptionForeground);
+			font-size: calc(var(--vscode-font-size) * 0.9);
+			line-height: 1.4;
+			overflow-wrap: anywhere;
+			word-break: break-word;
+		}
+
+		.marketplace-form-instructions {
+			margin: 0;
+			padding-left: 18px;
+			color: var(--vscode-descriptionForeground);
+			font-size: calc(var(--vscode-font-size) * 0.9);
+			line-height: 1.5;
+		}
+
+		.marketplace-field {
+			display: grid;
+			gap: 4px;
+		}
+
+		.marketplace-field-label {
+			color: var(--vscode-foreground);
+			font-size: var(--vscode-font-size);
+			font-weight: 500;
+		}
+
+		.marketplace-required {
+			color: var(--vscode-errorForeground, var(--vscode-foreground));
+			margin-left: 3px;
+		}
+
+		.marketplace-field-hint {
+			color: var(--vscode-descriptionForeground);
+			font-size: calc(var(--vscode-font-size) * 0.82);
+			line-height: 1.3;
+			overflow-wrap: anywhere;
+			word-break: break-word;
+		}
+
+		.marketplace-field-input {
+			box-sizing: border-box;
+			width: 100%;
+			min-height: 26px;
+			padding: 3px 6px;
+			border: 1px solid var(--vscode-input-border, transparent);
+			border-radius: 2px;
+			background: var(--vscode-input-background);
+			color: var(--vscode-input-foreground);
+			font: inherit;
+			font-size: var(--vscode-font-size);
+			resize: vertical;
+		}
+
+		.marketplace-field-input:focus {
+			outline: 1px solid var(--vscode-focusBorder);
+			outline-offset: -1px;
+		}
+
+		.marketplace-field-input::placeholder {
+			color: var(--vscode-input-placeholderForeground);
+		}
+
+		.marketplace-form-actions {
+			display: flex;
+			justify-content: flex-end;
+			gap: 8px;
+			padding-top: 4px;
+		}
+
+		.marketplace-result-pre {
+			margin: 0;
+			padding: 10px;
+			border: 1px solid var(--vscode-panel-border);
+			background: var(--vscode-sideBar-background);
+			color: var(--vscode-foreground);
+			font-family: var(--vscode-editor-font-family);
+			font-size: calc(var(--vscode-font-size) * 0.9);
+			white-space: pre-wrap;
+			word-break: break-word;
+			overflow: auto;
+		}
+
 		@media (max-width: 520px) {
 			.marketplace-nav {
 				padding: 0 4px;
@@ -668,7 +801,7 @@ const MarketplaceStyles = () => (
 	`}</style>
 )
 
-const Section = ({
+export const Section = ({
 	children,
 	count,
 	empty,
@@ -677,7 +810,7 @@ const Section = ({
 }: {
 	children: React.ReactNode
 	count: number
-	empty: string
+	empty: React.ReactNode
 	showHeader?: boolean
 	title: string
 }) => (

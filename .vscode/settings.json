@@ -43,5 +43,8 @@
 		"source.organizeImports.biome": "always"
 	},
 	// Disable auto-forwarding ports to prevent Simple Browser from opening the Vite dev server
-	"remote.autoForwardPorts": false
+	"remote.autoForwardPorts": false,
+	"[json]": {
+		"editor.defaultFormatter": "vscode.json-language-features"
+	}
 }

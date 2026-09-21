@@ -19,7 +19,7 @@ import {
 	setTelemetryOptOutGlobally,
 	type UserInstructionConfigService,
 } from "@cline/core"
-import { formatDisplayUserInput, type RemoteConfig, type RemoteConfigBundle } from "@cline/shared"
+import { formatDisplayUserInput, type MessageWithMetadata, type RemoteConfig, type RemoteConfigBundle } from "@cline/shared"
 import type { ApiConfiguration } from "@shared/api"
 import type { ChatContent } from "@shared/ChatContent"
 import { CLINE_ACCOUNT_AUTH_ERROR_MESSAGE } from "@shared/ClineAccount"
@@ -87,7 +87,7 @@ import { SdkSessionHistoryLoader } from "./sdk-session-history-loader"
 import { SdkSessionLifecycle } from "./sdk-session-lifecycle"
 import { SdkSessionRebuildScheduler } from "./sdk-session-rebuild-scheduler"
 import { SdkTaskControlCoordinator } from "./sdk-task-control-coordinator"
-import { SdkTaskHistory, sessionHistoryRecordToHistoryItem } from "./sdk-task-history"
+import { batchResultTitle, SdkTaskHistory, sessionHistoryRecordToHistoryItem } from "./sdk-task-history"
 import { SdkTaskStartCoordinator } from "./sdk-task-start-coordinator"
 import { createVscodeSdkTelemetryHandle, type VscodeSdkTelemetryHandle } from "./sdk-telemetry"
 import { SdkTerminalExecutionModeCoordinator } from "./sdk-terminal-execution-mode-coordinator"
@@ -2133,7 +2133,12 @@ export class Controller {
 		if (searchQuery) {
 			const query = searchQuery.toLowerCase()
 			filteredTasks = filteredTasks.filter((item) => {
-				const task = metadataString(item.metadata, "title") ?? item.prompt ?? ""
+				// Search the full result body for batch results, not just the
+				// 120-char-capped title line.
+				const task =
+					metadataBoolean(item.metadata, "isBatchResult") === true
+						? (item.prompt ?? metadataString(item.metadata, "title") ?? "")
+						: (metadataString(item.metadata, "title") ?? item.prompt ?? "")
 				return task.toLowerCase().includes(query)
 			})
 		}
@@ -2169,9 +2174,16 @@ export class Controller {
 		const hasMore = sessionHistory.length > limit
 		const tasks = filteredTasks.slice(0, limit).map((item) => {
 			const metadata = item.metadata
+			// Batch results keep the full body in `prompt` and only a short title
+			// line in `metadata.title` (capped at 120 chars). Prefer `prompt` there
+			// so the saved result isn't truncated when it round-trips into the list.
+			const isBatchResult = metadataBoolean(metadata, "isBatchResult") === true
+			const rawTask = isBatchResult
+				? (item.prompt ?? metadataString(metadata, "title") ?? "")
+				: (metadataString(metadata, "title") ?? item.prompt ?? "")
 			return {
 				id: item.sessionId,
-				task: formatDisplayUserInput(metadataString(metadata, "title") ?? item.prompt ?? ""),
+				task: formatDisplayUserInput(rawTask),
 				ts: dateStringToTimestamp(item.updatedAt ?? item.endedAt ?? item.startedAt),
 				isFavorited: metadataBoolean(metadata, "isFavorited") ?? metadataBoolean(metadata, "is_favorited") ?? false,
 				size: metadataNumber(metadata, "size") ?? 0,
@@ -2185,6 +2197,7 @@ export class Controller {
 				isLegacy:
 					metadataBoolean(metadata, "legacyTask") === true ||
 					metadataBoolean(metadata, "migratedFromLegacyTask") === true,
+				isBatchResult,
 			}
 		})
 
@@ -2208,6 +2221,7 @@ export class Controller {
 					modelId: this.task.api?.getModel?.().id ?? "",
 					apiProvider: "",
 					isLegacy: false,
+					isBatchResult: false,
 				})
 			}
 		}
@@ -2320,6 +2334,61 @@ export class Controller {
 			...historyItem,
 			task: title,
 		})
+		await this.postStateToWebview()
+	}
+
+	/**
+	 * Persist a batch-mode (marketplace) run result as a new task-history entry.
+	 *
+	 * There is no lightweight "insert history row" path — a history entry is
+	 * backed by a persisted session, and the only public way to create one is a
+	 * session start. We start an idle session (interactive, no prompt) and then
+	 * record its session id under `item.task` so the result shows up in the
+	 * task list. The caller is responsible for composing a useful title/content
+	 * into `item.task`.
+	 */
+	async saveMarketplaceRunResult(item: HistoryItem): Promise<void> {
+		const cwd = item.cwdOnTaskInitialization?.trim() || (await this.getWorkspaceRoot())
+		const mode = this.stateManager.getGlobalSettingsKey("mode") === "plan" ? "plan" : "act"
+		const config = await this.sessionConfigBuilder.build({ cwd, mode, prompt: item.task })
+
+		// A batch run has no interactive turn to trigger lazy persistence, so
+		// seed the session with a synthetic "task" user message. This satisfies
+		// the SDK host's eager-persist guard (initialMessages.length > 0) and
+		// creates the SQLite session row + manifest up front. Without it the
+		// subsequent updateTaskHistoryItem finds no persisted row and silently
+		// no-ops, so the result never shows up in the task-history list.
+		const initialMessages: MessageWithMetadata[] = [
+			{
+				role: "user",
+				content: [{ type: "text", text: item.task }],
+				ts: Date.now(),
+			},
+		]
+
+		const { startResult } = await this.sessions.startNewSession({
+			...buildStartSessionInput(config, { cwd, mode }),
+			initialMessages,
+			sessionMetadata: {
+				title: batchResultTitle(item.task),
+				modelId: config.modelId,
+				isBatchResult: true,
+			},
+		})
+
+		this.turnStateTracker.set("idle")
+		this.messageTranslatorState.clearTurnOutcome()
+		this.resetMessageTranslatorAndFence()
+
+		this.task = createTaskProxy(
+			startResult.sessionId,
+			(text?: string, images?: string[], files?: string[]) => this.askResponse(text, images, files),
+			() => this.cancelTask(),
+		)
+
+		const newHistoryItem = createHistoryItemFromSession(startResult.sessionId, item.task, config.modelId, cwd)
+		newHistoryItem.isBatchResult = true
+		await this.taskHistory.updateTaskHistoryItem(newHistoryItem)
 		await this.postStateToWebview()
 	}
 

@@ -1,3 +1,4 @@
+import { HistoryItem } from "@shared/HistoryItem"
 import { StringRequest } from "@shared/proto/cline/common"
 import { memo } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -9,10 +10,24 @@ type HistoryPreviewProps = {
 }
 
 const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
-	const { taskHistory } = useExtensionState()
+	const { taskHistory, openBatchResult, hideHistory } = useExtensionState()
 	const isCostVisible = useUsageCostVisibility()
-	const handleHistorySelect = (id: string) => {
-		TaskServiceClient.showTaskWithId(StringRequest.create({ value: id })).catch((error) =>
+	const handleHistorySelect = (item: HistoryItem) => {
+		// Batch (LoomLoom) results open on the Batch result page rather than
+		// being loaded into Plan/Act chat. The saved title and content are
+		// stored back-to-back in `item.task`, separated by a blank line.
+		if (item.isBatchResult) {
+			const separatorIndex = item.task.indexOf("\n\n")
+			const title =
+				separatorIndex >= 0
+					? item.task.slice(0, separatorIndex).trim() || "LoomLoom 批量执行结果"
+					: "LoomLoom 批量执行结果"
+			const content = separatorIndex >= 0 ? item.task.slice(separatorIndex + 2) : ""
+			openBatchResult({ title, content })
+			hideHistory()
+			return
+		}
+		TaskServiceClient.showTaskWithId(StringRequest.create({ value: item.id })).catch((error) =>
 			console.error("Error showing task:", error),
 		)
 	}
@@ -150,7 +165,7 @@ const HistoryPreview = ({ showHistoryView }: HistoryPreviewProps) => {
 							.filter((item) => item.ts && item.task)
 							.slice(0, 3)
 							.map((item) => (
-								<div className="history-preview-item" key={item.id} onClick={() => handleHistorySelect(item.id)}>
+								<div className="history-preview-item" key={item.id} onClick={() => handleHistorySelect(item)}>
 									<div className="history-task-content">
 										{item.isFavorited && (
 											<span

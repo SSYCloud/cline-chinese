@@ -16,6 +16,7 @@ import {
 import { memo, useCallback, useMemo, useState } from "react"
 import { RenameItem } from "@/components/history/RenameItem"
 import { Button } from "@/components/ui/button"
+import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useUsageCostVisibility } from "@/hooks/useUsageCostVisibility"
 import { cn } from "@/lib/utils"
 import { TaskServiceClient } from "@/services/grpc-client"
@@ -43,17 +44,35 @@ const HistoryViewItem = ({
 }: HistoryViewItemProps) => {
 	const [expanded, setExpanded] = useState(false)
 	const isCostVisible = useUsageCostVisibility()
+	const { openBatchResult, hideHistory } = useExtensionState()
 
 	const isFavoritedItem = useMemo(
 		() => pendingFavoriteToggles[item.id] ?? item.isFavorited,
 		[item.id, item.isFavorited, pendingFavoriteToggles],
 	)
 
-	const handleShowTaskWithId = useCallback((id: string) => {
-		TaskServiceClient.showTaskWithId(StringRequest.create({ value: id })).catch((error) =>
-			console.error("Error showing task:", error),
-		)
-	}, [])
+	const handleShowTaskWithId = useCallback(
+		(item: HistoryItem) => {
+			// Batch (LoomLoom) results open on the Batch result page rather than
+			// being loaded into Plan/Act chat. The saved title and content are
+			// stored back-to-back in `item.task`, separated by a blank line.
+			if (item.isBatchResult) {
+				const separatorIndex = item.task.indexOf("\n\n")
+				const title =
+					separatorIndex >= 0
+						? item.task.slice(0, separatorIndex).trim() || "LoomLoom 批量执行结果"
+						: "LoomLoom 批量执行结果"
+				const content = separatorIndex >= 0 ? item.task.slice(separatorIndex + 2) : ""
+				openBatchResult({ title, content })
+				hideHistory()
+				return
+			}
+			TaskServiceClient.showTaskWithId(StringRequest.create({ value: item.id })).catch((error) =>
+				console.error("Error showing task:", error),
+			)
+		},
+		[openBatchResult, hideHistory],
+	)
 
 	const formatDate = useCallback((timestamp: number) => {
 		const date = new Date(timestamp)
@@ -101,7 +120,7 @@ const HistoryViewItem = ({
 					className="flex flex-col gap-2 py-2 pl-2 pr-3 relative flex-grow min-w-0"
 					onClick={(e) => {
 						e.stopPropagation()
-						handleShowTaskWithId(item.id)
+						handleShowTaskWithId(item)
 					}}>
 					<div className="flex items-center gap-2">
 						<div className="line-clamp-1 overflow-hidden break-words whitespace-pre-wrap flex-1 min-w-0">

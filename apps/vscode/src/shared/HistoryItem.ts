@@ -23,4 +23,10 @@ export type HistoryItem = {
 	 */
 	apiProvider?: string
 	isLegacy?: boolean
+	/**
+	 * Marks a batch-mode (LoomLoom) execution result. When true, the history
+	 * list opens it on the Batch result page instead of loading it into
+	 * Plan/Act chat.
+	 */
+	isBatchResult?: boolean
 }

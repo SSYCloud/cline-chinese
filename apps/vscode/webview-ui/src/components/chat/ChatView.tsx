@@ -3,7 +3,7 @@ import { combineCommandSequences } from "@shared/combineCommandSequences"
 import { combineHookSequences } from "@shared/combineHookSequences"
 import { getApiMetrics, getLastApiReqTotalTokens } from "@shared/getApiMetrics"
 import { BooleanRequest, StringRequest } from "@shared/proto/cline/common"
-import { useCallback, useEffect, useMemo, useRef } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useMount } from "react-use"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useShowNavbar } from "@/context/PlatformContext"
@@ -14,6 +14,7 @@ import AutoApproveBar from "./auto-approve-menu/AutoApproveBar"
 // Import utilities and hooks from the new structure
 import {
 	ActionButtons,
+	BatchArea,
 	CHAT_CONSTANTS,
 	ChatLayout,
 	convertHtmlToMarkdown,
@@ -59,9 +60,33 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 		checkpointRestoreInput,
 		queuedPrompts,
 		turnState,
+		batchResultToOpen,
+		clearBatchResult,
 	} = useExtensionState()
 	const isProdHostedApp = userInfo?.apiBaseUrl === "https://app.cline.bot"
 	const shouldShowQuickWins = isProdHostedApp && (!taskHistory || taskHistory.length < QUICK_WINS_HISTORY_THRESHOLD)
+	const [batchMode, setBatchMode] = useState(false)
+	const [savedResult, setSavedResult] = useState<{ title: string; content: string } | null>(null)
+	const [batchResultNonce, setBatchResultNonce] = useState(0)
+
+	// When a batch result is opened from the task history, switch into Batch
+	// mode and show the result tab pre-populated with the saved result.
+	useEffect(() => {
+		if (!batchResultToOpen) return
+		setSavedResult(batchResultToOpen)
+		setBatchResultNonce((nonce) => nonce + 1)
+		setBatchMode(true)
+		clearBatchResult()
+	}, [batchResultToOpen, clearBatchResult])
+
+	const handleBatchModeChange = useCallback((next: boolean) => {
+		setBatchMode(next)
+		// Leaving Batch mode clears any saved result so re-entering it starts
+		// fresh on the catalog tab.
+		if (!next) {
+			setSavedResult(null)
+		}
+	}, [])
 
 	// Use custom hooks for state management
 	const chatState = useChatState(messages)
@@ -379,52 +404,66 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 		<ChatLayout isHidden={isHidden}>
 			<div className="flex flex-col flex-1 overflow-hidden">
 				{showNavbar && <Navbar />}
-				{task ? (
-					<TaskSection
-						apiMetrics={apiMetrics}
-						lastApiReqTotalTokens={lastApiReqTotalTokens}
-						messageHandlers={messageHandlers}
-						selectedModelInfo={{
-							supportsPromptCache: selectedModelInfo.supportsPromptCache,
-							supportsImages: selectedModelInfo.supportsImages || false,
-						}}
-						task={task}
-					/>
+				{batchMode ? (
+					savedResult ? (
+						<BatchArea key={batchResultNonce} savedResult={savedResult} start="result" />
+					) : (
+						<BatchArea />
+					)
 				) : (
-					<WelcomeSection
-						hideAnnouncement={hideAnnouncement}
-						shouldShowQuickWins={shouldShowQuickWins}
-						showAnnouncement={showAnnouncement}
-						showHistoryView={showHistoryView}
-						taskHistory={taskHistory}
-						telemetrySetting={telemetrySetting}
-						version={version}
-					/>
-				)}
-				{task && (
-					<MessagesArea
-						chatState={chatState}
-						groupedMessages={groupedMessages}
-						messageHandlers={messageHandlers}
-						modifiedMessages={modifiedMessages}
-						scrollBehavior={scrollBehavior}
-						task={task}
-					/>
+					<>
+						{task ? (
+							<TaskSection
+								apiMetrics={apiMetrics}
+								lastApiReqTotalTokens={lastApiReqTotalTokens}
+								messageHandlers={messageHandlers}
+								selectedModelInfo={{
+									supportsPromptCache: selectedModelInfo.supportsPromptCache,
+									supportsImages: selectedModelInfo.supportsImages || false,
+								}}
+								task={task}
+							/>
+						) : (
+							<WelcomeSection
+								hideAnnouncement={hideAnnouncement}
+								shouldShowQuickWins={shouldShowQuickWins}
+								showAnnouncement={showAnnouncement}
+								showHistoryView={showHistoryView}
+								taskHistory={taskHistory}
+								telemetrySetting={telemetrySetting}
+								version={version}
+							/>
+						)}
+						{task && (
+							<MessagesArea
+								chatState={chatState}
+								groupedMessages={groupedMessages}
+								messageHandlers={messageHandlers}
+								modifiedMessages={modifiedMessages}
+								scrollBehavior={scrollBehavior}
+								task={task}
+							/>
+						)}
+					</>
 				)}
 			</div>
 			<footer className="bg-(--vscode-sidebar-background) flex flex-col" style={{ gridRow: "2" }}>
-				<AutoApproveBar />
-				<ActionButtons
-					chatState={chatState}
-					messageHandlers={messageHandlers}
-					messages={messages}
-					mode={mode}
-					task={task}
-				/>
-				<QueuedPrompts items={queuedPrompts} />
+				{!batchMode && <AutoApproveBar />}
+				{!batchMode && (
+					<ActionButtons
+						chatState={chatState}
+						messageHandlers={messageHandlers}
+						messages={messages}
+						mode={mode}
+						task={task}
+					/>
+				)}
+				{!batchMode && <QueuedPrompts items={queuedPrompts} />}
 				<InputSection
+					batchMode={batchMode}
 					chatState={chatState}
 					messageHandlers={messageHandlers}
+					onBatchModeChange={handleBatchModeChange}
 					placeholderText={placeholderText}
 					scrollBehavior={scrollBehavior}
 					selectFilesAndImages={selectFilesAndImages}

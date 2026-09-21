@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process"
-import { createHash } from "node:crypto"
+import { createHash, randomUUID } from "node:crypto"
 import fs, { existsSync } from "node:fs"
 import fsp from "node:fs/promises"
 import os, { homedir, platform } from "node:os"
@@ -32,11 +32,15 @@ import { DeleteSkillRequest, ToggleSkillRequest } from "@shared/proto/cline/file
 import {
 	MarketplaceCatalog,
 	MarketplaceEntry,
+	MarketplaceEntryDetail,
+	MarketplaceEntryExecuteResult,
+	MarketplaceEntryQuoteResult,
 	MarketplaceInstalledEntries,
 	MarketplaceInstallResult,
 	MarketplaceLocalInstalledEntries,
 	MarketplaceLocalInstalledEntry,
 	MarketplaceLocalInstalledEntryRequest,
+	MarketplaceRunResultArtifacts,
 	ToggleMarketplaceLocalInstalledEntryRequest,
 } from "@shared/proto/cline/marketplace"
 import { StateManager } from "@/core/storage/StateManager"
@@ -129,15 +133,10 @@ export async function fetchMarketplaceCatalog(): Promise<MarketplaceCatalog> {
 	const catalogPromise = fetch(MARKETPLACE_CATALOG_URL, {
 		headers: { Accept: "application/json" },
 	}).catch(() => null)
-	const shengSuanYunToken = StateManager.get().getSecretKey("shengSuanYunToken")
-	const ssyPromise = shengSuanYunToken
-		? fetch(`${SHENG_SUAN_YUN}/marketListings`, {
-				headers: {
-					Accept: "application/json",
-					Authorization: `Bearer ${shengSuanYunToken}`,
-				},
-			}).catch(() => null)
-		: null
+
+	const ssyPromise = fetch(`${SHENG_SUAN_YUN}/marketListings`, {
+		headers: loomLoomHeaders(),
+	}).catch(() => null)
 	const [response, ssyResponse] = await Promise.all([catalogPromise, ssyPromise])
 	let entries: MarketplaceEntry[] = []
 	if (response?.ok) {
@@ -166,8 +165,8 @@ export async function fetchMarketplaceCatalog(): Promise<MarketplaceCatalog> {
 							name: typeof it.displayName === "string" ? it.displayName : String(it.id),
 							tagline: "联系胜算云 LoomLoom 团队获取支持。",
 							description: typeof it.description === "string" ? it.description : undefined,
-							tags: ["胜算云", "creative", "LoomLoom"],
-							author: it.creator?.nickname || "胜算云",
+							tags: ["creative", "LoomLoom"],
+							author: it.creator?.nickname || undefined,
 							sourceUrl: `${base}${it.skillPackage?.archiveUrl}`,
 							homepageUrl: `${base}/zh/loomloom/market`,
 							install: {
@@ -175,15 +174,16 @@ export async function fetchMarketplaceCatalog(): Promise<MarketplaceCatalog> {
 								env: [],
 								command: `cline skill install cline/skills --skill ${base}${it.skillPackage?.archiveUrl}`,
 							},
+							fee: it.taskFixedFee?.amount || undefined,
 						}),
 					)
 					.filter((entry): entry is MarketplaceEntry => entry !== undefined)
 			}
 		} catch (e) {
-			Logger.warn("Failed to parse ShengSuanYun json:", e)
+			Logger.warn("fetchMarketplaceCatalog() Failed to parse ShengSuanYun json:", e)
 		}
 	} else if (ssyResponse) {
-		Logger.warn(`ShengSuanYun request failed: ${ssyResponse.status}`)
+		Logger.warn(`fetchMarketplaceCatalog() ShengSuanYun request failed: ${ssyResponse.status}`)
 	}
 	return MarketplaceCatalog.create({ entries: [...ssyEntries, ...entries] })
 }
@@ -268,18 +268,59 @@ function isOfficialPluginInstalled(entry: MarketplaceEntry): boolean {
 	return existsSync(installPath)
 }
 
-function isSkillInstalled(entry: MarketplaceEntry): boolean {
+type InstalledLoomLoomSkill = { name: string; skillMdPath: string; listingId: string }
+
+/**
+ * LoomLoom 技能通过 ZIP 解压到 ~/.agents/skills，目录名形如 loomloom-market-<hash>，
+ * 与目录条目的 id（LoomLoom listing UUID）并不一致，核心的 isMarketplaceSkillInstalled
+ * 无法按 skill 名称定位。这里改为扫描 SKILL.md 正文中的 "Listing ID" 字段进行匹配。
+ */
+function listInstalledLoomLoomSkills(): InstalledLoomLoomSkill[] {
+	const skillsDir = join(homedir(), ".agents", "skills")
+	const skills: InstalledLoomLoomSkill[] = []
+	let entries: string[] = []
+	try {
+		entries = fs
+			.readdirSync(skillsDir, { withFileTypes: true })
+			.filter((dirent) => dirent.isDirectory())
+			.map((dirent) => dirent.name)
+	} catch {
+		return skills
+	}
+	for (const name of entries) {
+		const skillMdPath = join(skillsDir, name, "SKILL.md")
+		try {
+			const content = fs.readFileSync(skillMdPath, "utf-8")
+			const match = content.match(/^-\s*Listing ID:\s*["']?([0-9a-fA-F-]{36})["']?/m)
+			if (match?.[1]) {
+				skills.push({ name, skillMdPath, listingId: match[1] })
+			}
+		} catch {
+			// 忽略无法读取的 SKILL.md
+		}
+	}
+	return skills
+}
+
+function isSkillInstalled(entry: MarketplaceEntry, loomLoomListingIds: Set<string>): boolean {
 	if (entry.type !== "skill") return false
-	return isMarketplaceSkillInstalled(toCoreMarketplaceEntry(entry))
+	if (isMarketplaceSkillInstalled(toCoreMarketplaceEntry(entry))) return true
+	return loomLoomListingIds.has(entry.id)
 }
 
 export function listInstalledMarketplaceEntries(
 	controller: Controller,
 	entries: MarketplaceEntry[],
 ): MarketplaceInstalledEntries {
+	const loomLoomListingIds = new Set(listInstalledLoomLoomSkills().map((skill) => skill.listingId))
 	return MarketplaceInstalledEntries.create({
 		installedKeys: entries
-			.filter((entry) => isMcpInstalled(controller, entry) || isSkillInstalled(entry) || isOfficialPluginInstalled(entry))
+			.filter(
+				(entry) =>
+					isMcpInstalled(controller, entry) ||
+					isSkillInstalled(entry, loomLoomListingIds) ||
+					isOfficialPluginInstalled(entry),
+			)
 			.map(marketplaceKey),
 	})
 }
@@ -490,6 +531,26 @@ export async function uninstallMarketplaceEntryFromCatalog(
 	controller: Controller,
 	entry: MarketplaceEntry,
 ): Promise<MarketplaceInstallResult> {
+	// LoomLoom 技能通过 ZIP 解压到 ~/.agents/skills，目录名是 loomloom-market-<hash>，
+	// 核心 uninstall 无法按 skill 名称定位；这里按 SKILL.md 中的 Listing ID 定位并删除。
+	if (entry.type === "skill" && entry.sourceUrl?.startsWith(SHENG_SUAN_YUN_SKILL_URL_PREFIX)) {
+		const installed = listInstalledLoomLoomSkills().find((skill) => skill.listingId === entry.id)
+		if (!installed) {
+			return MarketplaceInstallResult.create({
+				id: entry.id,
+				type: entry.type,
+				status: "uninstalled",
+				message: `${entry.name || entry.id} 未安装。`,
+			})
+		}
+		await deleteSkillFile(controller, DeleteSkillRequest.create({ skillPath: installed.skillMdPath, isGlobal: true }))
+		return MarketplaceInstallResult.create({
+			id: entry.id,
+			type: entry.type,
+			status: "uninstalled",
+			message: `已卸载 ${entry.name || entry.id}。`,
+		})
+	}
 	const workspaceRoot = await getWorkspacePath()
 	const result = await uninstallCoreMarketplaceEntry(toCoreMarketplaceEntry(entry), {
 		deleteMcpServer: async (name) => {
@@ -709,15 +770,7 @@ export async function downloadAndExtractSkillZeroDep(entry: MarketplaceEntry): P
 		if (!entry.sourceUrl) {
 			throw new Error(`No source URL available for ${entry.name || entry.id}.`)
 		}
-		const shengSuanYunToken = StateManager.get().getSecretKey("shengSuanYunToken")
-		const headers: Record<string, string> = {
-			"User-Agent": "Mozilla/5.0 (compatible; Cline/1.0)",
-		}
-		if (shengSuanYunToken) {
-			headers["Authorization"] = `Bearer ${shengSuanYunToken}`
-		}
-
-		const response = await fetch(entry.sourceUrl, { headers })
+		const response = await fetch(entry.sourceUrl, { headers: loomLoomHeaders() })
 
 		if (!response.ok || !response.body) {
 			throw new Error(`下载失败 [${response.status}]: ${response.statusText}`)
@@ -761,4 +814,250 @@ export async function downloadAndExtractSkillZeroDep(entry: MarketplaceEntry): P
 			await fsp.unlink(tempZipPath).catch(() => {})
 		}
 	}
+}
+
+export async function fetchMarketplaceEntryDetail(id: string): Promise<MarketplaceEntryDetail> {
+	const response = await fetch(`${SHENG_SUAN_YUN}/marketListings/${encodeURIComponent(id)}`, { headers: loomLoomHeaders() })
+	if (!response.ok) {
+		throw new Error(`获取 Skill 详情失败 [${response.status}]: ${response.statusText}`)
+	}
+	const json = (await response.json()) as Record<string, unknown>
+	return MarketplaceEntryDetail.create({
+		id: typeof json.id === "string" ? json.id : id,
+		name: typeof json.displayName === "string" ? json.displayName : undefined,
+		inputSchemaSnapshot: typeof json.inputSchemaSnapshot === "string" ? json.inputSchemaSnapshot : undefined,
+	})
+}
+
+function loomLoomHeaders(): Record<string, string> {
+	const shengSuanYunApiKey = StateManager.get().getSecretKey("shengSuanYunApiKey")
+	const headers: Record<string, string> = {
+		Accept: "application/json",
+		"Content-Type": "application/json",
+	}
+	if (shengSuanYunApiKey) {
+		headers.Authorization = `Bearer ${shengSuanYunApiKey}`
+	}
+	return headers
+}
+
+function parseJson(text: string): Record<string, unknown> | null {
+	const trimmed = text.trim()
+	if (!trimmed) return null
+	try {
+		const parsed = JSON.parse(trimmed)
+		return parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : null
+	} catch {
+		return null
+	}
+}
+
+function formatExecuteOutput(text: string): string {
+	const trimmed = text.trim()
+	if (!trimmed) return ""
+	const json = parseJson(trimmed)
+	if (json) return JSON.stringify(json, null, 2)
+	return trimmed
+}
+
+/** 将接口返回的任意值安全地转为字符串。 */
+function asString(value: unknown): string {
+	if (value === null || value === undefined) return ""
+	if (typeof value === "string") return value
+	if (typeof value === "number" || typeof value === "boolean") return String(value)
+	return JSON.stringify(value)
+}
+
+/** 防御式地格式化 server.moneyResponse，兼容字符串/数字/对象等多种返回形态。 */
+function formatMoney(value: unknown): string {
+	if (value === null || value === undefined) return ""
+	if (typeof value === "string" || typeof value === "number") return String(value)
+	if (typeof value === "object") {
+		const record = value as Record<string, unknown>
+		const amount = record.amount ?? record.value ?? record.total ?? record.estimatedBuyerPayable
+		const currency = record.currency ?? record.currencyCode
+		if (amount !== undefined && amount !== null) {
+			const amountText = String(amount)
+			return currency ? `${amountText} ${currency}` : amountText
+		}
+		return JSON.stringify(value)
+	}
+	return String(value)
+}
+
+/** 从胜算云接口返回的错误响应中提取可读的错误信息，剥离 gRPC / batchjob 等外层包装。 */
+function extractLoomError(text: string): string {
+	const trimmed = text.trim()
+	if (!trimmed) return ""
+	let message = trimmed
+	const parsed = parseJson(trimmed)
+	if (parsed && typeof parsed.error === "string" && parsed.error.trim()) {
+		message = parsed.error
+	}
+	// 剥离 gRPC 包装：rpc error: code = X desc = ...
+	message = message.replace(/^rpc error: code = \S+ desc = /, "")
+	// 剥离 batchjob 包装：batchjob endpoint returned NNN: ...
+	message = message.replace(/batchjob endpoint returned \d+: /, "")
+	// 剥离后若仍为 JSON（形如 {"error":"..."}），再取内层 error。
+	const nested = parseJson(message)
+	if (nested && typeof nested.error === "string" && nested.error.trim()) {
+		message = nested.error
+	}
+	return message.trim() || trimmed
+}
+
+/** 将常见的胜算云接口错误映射为更可读、可操作的中文提示。 */
+function humanizeLoomError(status: number, text: string): string {
+	const message = extractLoomError(text) || text
+	if (status === 403 && /verified API Token identity/i.test(message)) {
+		return "该 Skill 需要已验证的 API Token 身份才能执行，请前往胜算云 LoomLoom 平台完成 API Token 身份验证后再试。"
+	}
+	return message
+}
+
+const RUN_PENDING_STATUSES = new Set(["pending", "running", "processing", "queued", "submitted", "in_progress", "in-progress"])
+
+/** 判断单个运行结果是否已经进入终态（成功或失败）。 */
+function isTerminalRunStatus(status: string | undefined): boolean {
+	if (!status) return false
+	return !RUN_PENDING_STATUSES.has(status.trim().toLowerCase())
+}
+
+/** 判断一次 run 是否已完成：优先看顶层 status，其次看所有 resultRows item 是否都进入终态。 */
+function isRunDone(json: Record<string, unknown> | null, items: Array<Record<string, unknown>>): boolean {
+	const topStatus = asString(json?.status).trim().toLowerCase()
+	if (topStatus && isTerminalRunStatus(topStatus)) return true
+	return items.length > 0 && items.every((item) => isTerminalRunStatus(asString(item.status)))
+}
+
+/**
+ * 调用胜算云 LoomLoom 接口预估任务执行价格：
+ * POST https://loomloom.shengsuanyun.com/loom/v1/marketListings/{marketListing}:quote
+ * 请求体中的每个 inputRow 对应用户填写的一个任务；listingVersionId 可选。
+ */
+export async function quoteMarketplaceEntryFromCatalog(
+	id: string,
+	inputRows: Array<Record<string, string>>,
+	listingVersionId?: string,
+): Promise<MarketplaceEntryQuoteResult> {
+	const body: Record<string, unknown> = { inputRows }
+	if (listingVersionId) {
+		body.listingVersionId = listingVersionId
+	}
+	const response = await fetch(`${SHENG_SUAN_YUN}/marketListings/${encodeURIComponent(id)}:quote`, {
+		method: "POST",
+		headers: loomLoomHeaders(),
+		body: JSON.stringify(body),
+	})
+	const text = await response.text()
+	if (!response.ok) {
+		throw new Error(`预估价格失败 [${response.status}]: ${humanizeLoomError(response.status, text) || response.statusText}`)
+	}
+	const json = parseJson(text)
+	return MarketplaceEntryQuoteResult.create({
+		status: "success",
+		message: "已获取报价。",
+		output: formatExecuteOutput(text),
+		currency: asString(json?.currency),
+		estimatedBuyerPayable: formatMoney(json?.estimatedBuyerPayable),
+		estimatedExecutionCost: formatMoney(json?.estimatedExecutionCost),
+		taskFixedFee: formatMoney(json?.taskFixedFee),
+		taskCount: Number(json?.taskCount ?? 0),
+		quoteId: asString(json?.quoteId),
+		listingVersionId: asString(json?.listingVersionId),
+	})
+}
+
+/**
+ * 调用胜算云 LoomLoom 接口执行一个 marketplace listing：
+ * POST https://loomloom.shengsuanyun.com/loom/v1/marketListings/{marketListing}:execute
+ * 请求体中的每个 inputRow 对应用户填写的一个任务。
+ */
+export async function executeMarketplaceEntryFromCatalog(
+	id: string,
+	inputRows: Array<Record<string, string>>,
+	confirm: boolean,
+	clientRequestId?: string,
+): Promise<MarketplaceEntryExecuteResult> {
+	const body = JSON.stringify({
+		inputRows,
+		confirm,
+		clientRequestId: clientRequestId || randomUUID(),
+	})
+	const response = await fetch(`${SHENG_SUAN_YUN}/marketListings/${encodeURIComponent(id)}:execute`, {
+		method: "POST",
+		headers: loomLoomHeaders(),
+		body,
+	})
+	const text = await response.text()
+	if (!response.ok) {
+		throw new Error(
+			`执行 Skill 失败 [${response.status}]: ${humanizeLoomError(response.status, text) || response.statusText}`,
+		)
+	}
+	const json = parseJson(text)
+	return MarketplaceEntryExecuteResult.create({
+		status: "success",
+		message: "已提交执行。",
+		output: formatExecuteOutput(text),
+		runId: asString(json?.runId),
+		runTransactionId: asString(json?.runTransactionId),
+		transactionStatus: asString(json?.transactionStatus),
+		skillName: asString(json?.skillName),
+		currency: asString(json?.currency),
+		finalBuyerPayable: formatMoney(json?.finalBuyerPayable),
+		listingId: asString(json?.listingId),
+		listingVersionId: asString(json?.listingVersionId),
+	})
+}
+
+/**
+ * 轮询执行结果：
+ * 1. GET https://loomloom.shengsuanyun.com/loom/v1/users/me/runs/{runId}/resultRows —— 判断 run 是否已结束；
+ * 2. 结束（status 为 done）后，再 GET .../users/me/runs/{runId}/artifacts 拉取产物返回。
+ */
+export async function getMarketplaceRunResultArtifacts(runId: string): Promise<MarketplaceRunResultArtifacts> {
+	const rowsResponse = await fetch(`${SHENG_SUAN_YUN}/users/me/runs/${encodeURIComponent(runId)}/resultRows`, {
+		headers: loomLoomHeaders(),
+	})
+	const rowsText = await rowsResponse.text()
+	if (!rowsResponse.ok) {
+		throw new Error(
+			`获取执行结果失败 [${rowsResponse.status}]: ${humanizeLoomError(rowsResponse.status, rowsText) || rowsResponse.statusText}`,
+		)
+	}
+	const rowsJson = parseJson(rowsText)
+	const rowItems = Array.isArray(rowsJson?.items) ? (rowsJson.items as Array<Record<string, unknown>>) : []
+	if (!isRunDone(rowsJson, rowItems)) {
+		return MarketplaceRunResultArtifacts.create({
+			status: "success",
+			message: "执行进行中。",
+			output: "",
+			done: false,
+			totalCount: Number(rowsJson?.totalCount ?? rowItems.length),
+		})
+	}
+
+	const artifactsResponse = await fetch(`${SHENG_SUAN_YUN}/users/me/runs/${encodeURIComponent(runId)}/artifacts`, {
+		headers: loomLoomHeaders(),
+	})
+	const artifactsText = await artifactsResponse.text()
+	if (!artifactsResponse.ok) {
+		throw new Error(
+			`获取执行结果失败 [${artifactsResponse.status}]: ${humanizeLoomError(artifactsResponse.status, artifactsText) || artifactsResponse.statusText}`,
+		)
+	}
+	const artifactsJson = parseJson(artifactsText)
+	const artifacts = Array.isArray(artifactsJson)
+		? (artifactsJson as Array<Record<string, unknown>>)
+		: Array.isArray(artifactsJson?.items)
+			? (artifactsJson.items as Array<Record<string, unknown>>)
+			: []
+	return MarketplaceRunResultArtifacts.create({
+		status: "success",
+		message: "执行已完成。",
+		output: artifacts.length > 0 ? JSON.stringify(artifacts, null, 2) : "",
+		done: true,
+		totalCount: artifacts.length,
+	})
 }

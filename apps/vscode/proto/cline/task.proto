@@ -122,6 +122,9 @@ message TaskItem {
   // Provider id the task ran on. Empty for tasks recorded before this
   // field existed and for legacy imports; consumers show cost in that case.
   string api_provider = 13;
+  // Marks a batch-mode (LoomLoom) execution result, which should open on the
+  // Batch result page instead of being loaded into Plan/Act chat.
+  bool is_batch_result = 14;
 }
 
 // Request for ask response operation

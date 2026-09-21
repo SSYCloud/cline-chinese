@@ -16,6 +16,11 @@ service MarketplaceService {
   rpc uninstallMarketplaceEntry(MarketplaceEntryRequest) returns (MarketplaceInstallResult);
   rpc toggleMarketplaceLocalInstalledEntry(ToggleMarketplaceLocalInstalledEntryRequest) returns (MarketplaceLocalInstalledEntries);
   rpc uninstallMarketplaceLocalInstalledEntry(MarketplaceLocalInstalledEntryRequest) returns (MarketplaceInstallResult);
+  rpc getMarketplaceEntryDetail(MarketplaceEntryDetailRequest) returns (MarketplaceEntryDetail);
+  rpc executeMarketplaceEntry(MarketplaceEntryExecuteRequest) returns (MarketplaceEntryExecuteResult);
+  rpc quoteMarketplaceEntry(MarketplaceEntryQuoteRequest) returns (MarketplaceEntryQuoteResult);
+  rpc getMarketplaceRunResultArtifacts(MarketplaceRunResultArtifactsRequest) returns (MarketplaceRunResultArtifacts);
+  rpc saveMarketplaceRunResult(MarketplaceSaveRunResultRequest) returns (Empty);
 }
 
 message MarketplaceTag {
@@ -56,6 +61,7 @@ message MarketplaceEntry {
   optional string homepage_url = 10;
   optional MarketplaceCounts counts = 11;
   optional MarketplaceInstall install = 12;
+  optional string fee = 13;
 }
 
 message MarketplaceCatalog {
@@ -103,4 +109,75 @@ message MarketplaceInstallResult {
   string status = 3;
   string message = 4;
   optional string output = 5;
+}
+
+message MarketplaceEntryDetailRequest {
+  string id = 1;
+}
+
+message MarketplaceEntryDetail {
+  string id = 1;
+  optional string name = 2;
+  optional string input_schema_snapshot = 3;
+}
+
+message MarketplaceEntryExecuteInputRow {
+  map<string, string> fields = 1;
+}
+
+message MarketplaceEntryExecuteRequest {
+  string id = 1;
+  repeated MarketplaceEntryExecuteInputRow input_rows = 2;
+  bool confirm = 3;
+  string client_request_id = 4;
+}
+
+message MarketplaceEntryExecuteResult {
+  string status = 1;
+  string message = 2;
+  string output = 3;
+  string run_id = 4;
+  string run_transaction_id = 5;
+  string transaction_status = 6;
+  string skill_name = 7;
+  string currency = 8;
+  string final_buyer_payable = 9;
+  string listing_id = 10;
+  string listing_version_id = 11;
+}
+
+message MarketplaceEntryQuoteRequest {
+  string id = 1;
+  repeated MarketplaceEntryExecuteInputRow input_rows = 2;
+  optional string listing_version_id = 3;
+}
+
+message MarketplaceEntryQuoteResult {
+  string status = 1;
+  string message = 2;
+  string output = 3;
+  string currency = 4;
+  string estimated_buyer_payable = 5;
+  string estimated_execution_cost = 6;
+  string task_fixed_fee = 7;
+  int64 task_count = 8;
+  string quote_id = 9;
+  string listing_version_id = 10;
+}
+
+message MarketplaceRunResultArtifactsRequest {
+  string run_id = 1;
+}
+
+message MarketplaceRunResultArtifacts {
+  string status = 1;
+  string message = 2;
+  string output = 3;
+  bool done = 4;
+  int64 total_count = 5;
+}
+
+message MarketplaceSaveRunResultRequest {
+  string title = 1;
+  string content = 2;
 }

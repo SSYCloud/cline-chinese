@@ -84,6 +84,8 @@ interface ChatTextAreaProps {
 	shouldDisableFilesAndImages: boolean
 	onHeightChange?: (height: number) => void
 	onFocusChange?: (isFocused: boolean) => void
+	batchMode?: boolean
+	onBatchModeChange?: (batch: boolean) => void
 }
 
 interface GitCommit {
@@ -95,6 +97,7 @@ interface GitCommit {
 
 const PLAN_MODE_COLOR = "var(--vscode-activityWarningBadge-background)"
 const ACT_MODE_COLOR = "var(--vscode-focusBorder)"
+const BATCH_MODE_COLOR = "var(--vscode-activityBarBadge-background)"
 
 const SwitchContainer = styled.div<{ disabled: boolean }>`
 	display: flex;
@@ -112,14 +115,14 @@ const SwitchContainer = styled.div<{ disabled: boolean }>`
 `
 
 const Slider = styled.div.withConfig({
-	shouldForwardProp: (prop) => !["isAct", "isPlan"].includes(prop),
-})<{ isAct: boolean; isPlan?: boolean }>`
+	shouldForwardProp: (prop) => !["position"].includes(prop),
+})<{ position: 0 | 1 | 2 }>`
 	position: absolute;
 	height: 100%;
-	width: 50%;
-	background-color: ${(props) => (props.isPlan ? PLAN_MODE_COLOR : ACT_MODE_COLOR)};
+	width: 33.333%;
+	background-color: ${(props) => (props.position === 0 ? PLAN_MODE_COLOR : props.position === 1 ? ACT_MODE_COLOR : BATCH_MODE_COLOR)};
 	transition: transform 0.2s ease;
-	transform: translateX(${(props) => (props.isAct ? "100%" : "0%")});
+	transform: translateX(${(props) => (props.position === 0 ? "0%" : props.position === 1 ? "100%" : "200%")});
 `
 
 const ButtonGroup = styled.div`
@@ -211,6 +214,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			shouldDisableFilesAndImages,
 			onHeightChange,
 			onFocusChange,
+			batchMode = false,
+			onBatchModeChange = () => {},
 		},
 		ref,
 	) => {
@@ -1027,60 +1032,89 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			[updateCursorPosition],
 		)
 
+		const switchMode = useCallback(
+			(targetMode: "plan" | "act") => {
+				void (async () => {
+					const convertedProtoMode = targetMode === "plan" ? PlanActMode.PLAN : PlanActMode.ACT
+					const submittedText = inputValue
+					const submittedImages = selectedImages
+					const submittedFiles = selectedFiles
+					const response = await StateServiceClient.togglePlanActModeProto(
+						TogglePlanActModeRequest.create({
+							mode: convertedProtoMode,
+							chatContent: {
+								message: submittedText.trim() ? submittedText : undefined,
+								images: submittedImages,
+								files: submittedFiles,
+							},
+						}),
+					)
+					// Focus the textarea after mode toggle with slight delay
+					setTimeout(() => {
+						const consumedComposerContent = response.value === true
+						const currentText = textAreaRef.current?.value ?? ""
+						// Reconcile only the submitted draft: the rebuild can take a moment
+						// and the user may have typed new content in the meantime.
+						const draftAction = getModeToggleDraftAction({
+							consumed: consumedComposerContent,
+							currentText,
+							submittedText,
+						})
+
+						switch (draftAction) {
+							case "clear":
+								setInputValue("")
+								break
+							case "restore":
+								setInputValue(submittedText)
+								break
+							case "keep":
+								break
+						}
+
+						if (consumedComposerContent) {
+							setSelectedImages((current) => (current === submittedImages ? [] : current))
+							setSelectedFiles((current) => (current === submittedFiles ? [] : current))
+						} else {
+							if (submittedImages.length > 0) {
+								setSelectedImages((current) => (current.length === 0 ? submittedImages : current))
+							}
+							if (submittedFiles.length > 0) {
+								setSelectedFiles((current) => (current.length === 0 ? submittedFiles : current))
+							}
+						}
+						textAreaRef.current?.focus()
+					}, 100)
+				})()
+			},
+			[mode, inputValue, selectedImages, selectedFiles, setInputValue, setSelectedImages, setSelectedFiles],
+		)
+
 		const onModeToggle = useCallback(() => {
-			void (async () => {
-				const convertedProtoMode = mode === "plan" ? PlanActMode.ACT : PlanActMode.PLAN
-				const submittedText = inputValue
-				const submittedImages = selectedImages
-				const submittedFiles = selectedFiles
-				const response = await StateServiceClient.togglePlanActModeProto(
-					TogglePlanActModeRequest.create({
-						mode: convertedProtoMode,
-						chatContent: {
-							message: submittedText.trim() ? submittedText : undefined,
-							images: submittedImages,
-							files: submittedFiles,
-						},
-					}),
-				)
-				// Focus the textarea after mode toggle with slight delay
-				setTimeout(() => {
-					const consumedComposerContent = response.value === true
-					const currentText = textAreaRef.current?.value ?? ""
-					// Reconcile only the submitted draft: the rebuild can take a moment
-					// and the user may have typed new content in the meantime.
-					const draftAction = getModeToggleDraftAction({
-						consumed: consumedComposerContent,
-						currentText,
-						submittedText,
-					})
+			if (batchMode) {
+				onBatchModeChange(false)
+				return
+			}
+			switchMode(mode === "plan" ? "act" : "plan")
+		}, [batchMode, mode, onBatchModeChange, switchMode])
 
-					switch (draftAction) {
-						case "clear":
-							setInputValue("")
-							break
-						case "restore":
-							setInputValue(submittedText)
-							break
-						case "keep":
-							break
-					}
-
-					if (consumedComposerContent) {
-						setSelectedImages((current) => (current === submittedImages ? [] : current))
-						setSelectedFiles((current) => (current === submittedFiles ? [] : current))
-					} else {
-						if (submittedImages.length > 0) {
-							setSelectedImages((current) => (current.length === 0 ? submittedImages : current))
-						}
-						if (submittedFiles.length > 0) {
-							setSelectedFiles((current) => (current.length === 0 ? submittedFiles : current))
-						}
-					}
-					textAreaRef.current?.focus()
-				}, 100)
-			})()
-		}, [mode, inputValue, selectedImages, selectedFiles, setInputValue, setSelectedImages, setSelectedFiles])
+		const handleModeSegmentClick = useCallback(
+			(m: string) => {
+				const lower = m.toLowerCase()
+				if (lower === "batch") {
+					onBatchModeChange(true)
+					return
+				}
+				const target = lower === "plan" ? "plan" : "act"
+				if (batchMode) {
+					onBatchModeChange(false)
+				}
+				if (target !== mode) {
+					switchMode(target)
+				}
+			},
+			[batchMode, mode, onBatchModeChange, switchMode],
+		)
 
 		useShortcut(usePlatform().togglePlanActKeys, onModeToggle, { disableTextInputs: false }) // important that we don't disable the text input here
 
@@ -1413,7 +1447,10 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		return (
 			<div>
 				<div
-					className="relative flex transition-colors ease-in-out duration-100 px-3.5 py-2.5"
+					className={cn(
+						"relative flex transition-colors ease-in-out duration-100 px-3.5 py-2.5",
+						batchMode && "hidden",
+					)}
 					onDragEnter={handleDragEnter}
 					onDragLeave={handleDragLeave}
 					onDragOver={onDragOver}
@@ -1597,7 +1634,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						</div>
 					</div>
 				</div>
-				{unsupportedImagesAttached && (
+				{!batchMode && unsupportedImagesAttached && (
 					<div
 						className="flex items-center gap-1.5 px-3.5 pb-1.5 text-xs"
 						data-testid="images-unsupported-notice"
@@ -1624,46 +1661,50 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					<div className="relative flex-1 min-w-0 h-5">
 						{/* ButtonGroup - always in DOM but visibility controlled */}
 						<ButtonGroup className="absolute top-0 left-0 right-0 ease-in-out w-full h-5 z-10 flex items-center">
-							<Tooltip>
-								<TooltipContent>添加上下文</TooltipContent>
-								<TooltipTrigger>
-									<VSCodeButton
-										appearance="icon"
-										aria-label="添加上下文"
-										className="p-0 m-0 flex items-center"
-										data-testid="context-button"
-										onClick={handleContextButtonClick}>
-										<ButtonContainer>
-											<AtSignIcon size={12} />
-										</ButtonContainer>
-									</VSCodeButton>
-								</TooltipTrigger>
-							</Tooltip>
+							{!batchMode && (
+								<>
+									<Tooltip>
+										<TooltipContent>添加上下文</TooltipContent>
+										<TooltipTrigger>
+											<VSCodeButton
+												appearance="icon"
+												aria-label="添加上下文"
+												className="p-0 m-0 flex items-center"
+												data-testid="context-button"
+												onClick={handleContextButtonClick}>
+												<ButtonContainer>
+													<AtSignIcon size={12} />
+												</ButtonContainer>
+											</VSCodeButton>
+										</TooltipTrigger>
+									</Tooltip>
 
-							<Tooltip>
-								<TooltipContent>添加文件与图片</TooltipContent>
-								<TooltipTrigger>
-									<VSCodeButton
-										appearance="icon"
-										aria-label="添加文件与图片"
-										className="p-0 m-0 flex items-center"
-										data-testid="files-button"
-										disabled={shouldDisableFilesAndImages}
-										onClick={() => {
-											if (!shouldDisableFilesAndImages) {
-												onSelectFilesAndImages()
-											}
-										}}>
-										<ButtonContainer>
-											<PlusIcon size={13} />
-										</ButtonContainer>
-									</VSCodeButton>
-								</TooltipTrigger>
-							</Tooltip>
+									<Tooltip>
+										<TooltipContent>添加文件与图片</TooltipContent>
+										<TooltipTrigger>
+											<VSCodeButton
+												appearance="icon"
+												aria-label="添加文件与图片"
+												className="p-0 m-0 flex items-center"
+												data-testid="files-button"
+												disabled={shouldDisableFilesAndImages}
+												onClick={() => {
+													if (!shouldDisableFilesAndImages) {
+														onSelectFilesAndImages()
+													}
+												}}>
+												<ButtonContainer>
+													<PlusIcon size={13} />
+												</ButtonContainer>
+											</VSCodeButton>
+										</TooltipTrigger>
+									</Tooltip>
 
-							<ServersToggleModal />
+									<ServersToggleModal />
 
-							<ClineRulesToggleModal />
+									<ClineRulesToggleModal />
+								</>
+							)}
 
 							<ModelContainer>
 								<ModelButtonWrapper>
@@ -1691,22 +1732,29 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							</p>
 						</TooltipContent>
 						<TooltipTrigger>
-							<SwitchContainer data-testid="mode-switch" disabled={false} onClick={onModeToggle}>
-								<Slider isAct={mode === "act"} isPlan={mode === "plan"} />
-								{["Plan", "Act"].map((m) => (
-									<div
-										aria-checked={mode === m.toLowerCase()}
-										className={cn(
-											"pt-0.5 pb-px px-2 z-10 text-xs w-1/2 text-center bg-transparent",
-											mode === m.toLowerCase() ? "text-white" : "text-input-foreground",
-										)}
-										key={m}
-										onMouseLeave={() => setShownTooltipMode(null)}
-										onMouseOver={() => setShownTooltipMode(m.toLowerCase() === "plan" ? "plan" : "act")}
-										role="switch">
-										{m}
-									</div>
-								))}
+							<SwitchContainer data-testid="mode-switch" disabled={false}>
+								<Slider position={batchMode ? 2 : mode === "act" ? 1 : 0} />
+								{["Plan", "Act", "Batch"].map((m) => {
+									const lower = m.toLowerCase()
+									const isSelected = lower === "batch" ? batchMode : !batchMode && mode === lower
+									return (
+										<div
+											aria-checked={isSelected}
+											className={cn(
+												"pt-0.5 pb-px px-4 z-10 text-xs w-1/3 text-center bg-transparent",
+												isSelected ? "text-white" : "text-input-foreground",
+											)}
+											key={m}
+											onClick={() => handleModeSegmentClick(m)}
+											onMouseLeave={() => setShownTooltipMode(null)}
+											onMouseOver={() =>
+												setShownTooltipMode(lower === "plan" ? "plan" : lower === "act" ? "act" : null)
+											}
+											role="switch">
+											{m}
+										</div>
+									)
+								})}
 							</SwitchContainer>
 						</TooltipTrigger>
 					</Tooltip>
