@@ -40,7 +40,7 @@ export class ShengSuanYunAccountService {
 	private async authenticatedRequest<T>(endpoint: string, config: AxiosRequestConfig = {}): Promise<T> {
 		const token = StateManager.get().getSecretKey("shengSuanYunToken")
 		if (!token) {
-			throw new Error("未找到胜算云 Auth Token")
+			throw new Error("ShengSuanYunAccountService.authenticatedRequest() 未找到胜算云 Auth Token")
 		}
 		const method = config.method || "GET"
 		const cacheBustingEndpoint = method.toUpperCase() !== "POST" ? this.withCacheBust(endpoint) : endpoint
@@ -119,7 +119,7 @@ export class ShengSuanYunAccountService {
 				this.getUserInfo(),
 			])
 			if (!rate) {
-				throw new Error("获取胜算云账户信息失败！")
+				throw new Error("ShengSuanYunAccountService.fetchUserDataRPC() 获取胜算云账户信息失败！")
 			}
 
 			const usageTransactions: UsageTransaction[] = Array.isArray(usage?.logs)
@@ -154,7 +154,7 @@ export class ShengSuanYunAccountService {
 				rate,
 			})
 		} catch (error) {
-			Logger.error("Failed fetchUserDataRPC (ShengSuanYun):", error)
+			Logger.error("ShengSuanYunAccountService.fetchUserDataRPC():", error)
 			throw error
 		}
 	}
