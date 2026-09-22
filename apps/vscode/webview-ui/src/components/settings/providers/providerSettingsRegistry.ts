@@ -99,7 +99,7 @@ const GENERIC_PROVIDER_PRESENTATION_OVERRIDES: Record<string, GenericProviderPre
 	},
 	v0: {},
 	wandb: {
-		signupUrl: "https://wandb.ai",
+		signupUrl: "https://wandb.ai/settings",
 	},
 	xiaomi: {},
 	"tencent-tokenhub": {
@@ -166,7 +166,7 @@ const FALLBACK_GENERIC_PROVIDER_NAMES = {
 	poolside: "Poolside",
 	together: "Together",
 	v0: "Vercel v0",
-	wandb: "W&B",
+	wandb: "CoreWeave",
 	xiaomi: "Xiaomi",
 	"tencent-tokenhub": "Tencent TokenHub",
 	chutes: "Chutes",

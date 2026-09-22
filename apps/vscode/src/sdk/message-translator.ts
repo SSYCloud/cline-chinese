@@ -27,7 +27,7 @@
 // - SDK "ended" event → finalizes the session
 
 import type { CoreSessionEvent } from "@cline/core"
-import { PATCH_MARKERS, projectSessionMessagesForDisplay } from "@cline/core"
+import { PATCH_MARKERS, projectSessionMessagesForDisplay, truncateCommandOutput } from "@cline/core"
 import type { MessageWithMetadata as SdkMessage } from "@cline/llms"
 import { type AgentEvent, formatDisplayUserInput, type ProviderErrorClass } from "@cline/shared"
 import { COMMAND_OUTPUT_STRING } from "@shared/combineCommandSequences"
@@ -132,6 +132,8 @@ export class MessageTranslatorState {
 	private streamingToolInput: unknown | undefined
 	/** Stored tool name from content_start — used at content_end for consistency */
 	private streamingToolName: string | undefined
+	/** Output snapshot for the active command tool's partial row. */
+	private streamingCommandOutput: { toolCallId: string | undefined; text: string; totalChars: number } | undefined
 	/** Approved tool-call ids mapped to the approval row that should be updated in place. */
 	private approvedToolMessageTsByCallId = new Map<string, number>()
 	/**
@@ -257,9 +259,10 @@ export class MessageTranslatorState {
 	}
 
 	/** Store tool input from content_start for use at content_end */
-	setStreamingToolContext(toolName: string, input: unknown): void {
+	setStreamingToolContext(toolName: string, toolCallId: string | undefined, input: unknown): void {
 		this.streamingToolName = toolName
 		this.streamingToolInput = input
+		this.streamingCommandOutput = { toolCallId, text: "", totalChars: 0 }
 	}
 
 	/** Remember the approval prompt row for a tool call after the user approves it. */
@@ -323,12 +326,33 @@ export class MessageTranslatorState {
 		return this.streamingToolName
 	}
 
+	appendStreamingCommandOutput(toolCallId: string | undefined, chunk: string): string | undefined {
+		const output = this.streamingCommandOutput
+		if (!output || (toolCallId !== undefined && toolCallId !== output.toolCallId)) {
+			return undefined
+		}
+		output.totalChars += chunk.length
+		output.text = truncateCommandOutput(output.text + chunk, {
+			totalChars: output.totalChars,
+		})
+		return output.text
+	}
+
+	isMismatchedStreamingCommand(toolName: string, toolCallId: string | undefined): boolean {
+		const output = this.streamingCommandOutput
+		return (
+			output !== undefined &&
+			(this.streamingToolName !== toolName || (toolCallId !== undefined && toolCallId !== output.toolCallId))
+		)
+	}
+
 	/** Clear streaming tool */
 	clearStreamingTool(): number {
 		const ts = this.streamingToolTs ?? this.nextTs()
 		this.streamingToolTs = undefined
 		this.streamingToolInput = undefined
 		this.streamingToolName = undefined
+		this.streamingCommandOutput = undefined
 		return ts
 	}
 
@@ -508,6 +532,7 @@ export class MessageTranslatorState {
 		this.streamingToolTs = undefined
 		this.streamingToolInput = undefined
 		this.streamingToolName = undefined
+		this.streamingCommandOutput = undefined
 		this.clearApprovedToolMessageTs()
 		this.deniedToolApprovalsByCallId.clear()
 		this.clearSpawnAgents()
@@ -1319,7 +1344,7 @@ function translateAgentEvent(event: AgentEvent, state: MessageTranslatorState): 
 
 					// Store tool context so content_end can use it
 					// (content_end doesn't carry the input)
-					state.setStreamingToolContext(toolName, input)
+					state.setStreamingToolContext(toolName, event.toolCallId, input)
 					const approvedToolMessageTs = state.consumeApprovedToolMessageTs(event.toolCallId)
 					if (approvedToolMessageTs !== undefined) {
 						state.setStreamingToolTs(approvedToolMessageTs)
@@ -1436,11 +1461,38 @@ function translateAgentEvent(event: AgentEvent, state: MessageTranslatorState): 
 		}
 
 		case "content_update": {
+			const updateToolName = event.toolName ?? state.getStreamingToolName()
+			if (updateToolName === "run_commands" || updateToolName === "execute_command") {
+				const update = event.update
+				if (
+					state.getStreamingToolName() !== updateToolName ||
+					!update ||
+					typeof update !== "object" ||
+					Array.isArray(update) ||
+					!("chunk" in update) ||
+					typeof update.chunk !== "string" ||
+					!update.chunk
+				) {
+					break
+				}
+				const output = state.appendStreamingCommandOutput(event.toolCallId, update.chunk)
+				if (output === undefined) {
+					break
+				}
+				messages.push({
+					ts: state.getStreamingToolTs(),
+					type: "say",
+					say: "command",
+					text: `${extractCommandText(state.getStreamingToolInput())}\n${COMMAND_OUTPUT_STRING}\n${output}`,
+					partial: true,
+				})
+				break
+			}
+
 			// spawn_agent progress updates → emit say:"subagent" with live stats.
 			// The SDK's spawn_agent tool may emit content_update events with
 			// sub-agent progress (iterations, tool calls, usage). We translate
 			// these into the ClineSaySubagentStatus format for the rich UI.
-			const updateToolName = event.toolName ?? state.getStreamingToolName()
 			if (updateToolName === "spawn_agent" && state.hasSpawnAgents()) {
 				const callId = event.toolCallId ?? ""
 				const entry = callId ? state.getSpawnAgent(callId) : undefined
@@ -1525,7 +1577,10 @@ function translateAgentEvent(event: AgentEvent, state: MessageTranslatorState): 
 					break
 				}
 				case "tool": {
-					const toolName = event.toolName ?? "unknown"
+					const toolName = event.toolName ?? state.getStreamingToolName() ?? "unknown"
+					if (state.isMismatchedStreamingCommand(toolName, event.toolCallId)) {
+						break
+					}
 
 					// A completed tool call after a text block means that text wasn't the
 					// turn-final response — drop the retag candidate.

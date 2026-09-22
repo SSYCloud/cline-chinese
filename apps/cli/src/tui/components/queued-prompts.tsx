@@ -33,10 +33,10 @@ export function QueuedPrompts(props: {
 			? "Enter 确认，Esc 取消"
 			: selected.steer
 				? session.isRunning
-					? "等待中。↑/↓ 导航，Tab 编辑，Esc 取消本轮"
-					: `已转向下一步。↑/↓ 导航，Tab 编辑，${escapeHint}`
-				: `↑/↓ 导航，Enter 转向，Tab 编辑，${escapeHint}`
-		: "↑ 转向或编辑消息";
+					? "等待中. ↑/↓ 导航, Tab 编辑, Esc 取消本轮"
+					: `已转向下一步. ↑/↓ 导航, Tab edit, ${escapeHint}`
+				: `↑/↓ navigate, Enter steer, Tab 编辑， ${escapeHint}`
+		: "直接输入以开始引导 · ↑ 选择或编辑";
 
 	return (
 		<box

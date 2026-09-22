@@ -1,18 +1,17 @@
 // @jsxImportSource @opentui/react
 import type { ChoiceContext } from "@opentui-ui/dialog";
 import { useDialogKeyboard } from "@opentui-ui/dialog/react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useDialogPalette } from "../tui/hooks/use-theme";
 import {
 	type DialogDismissKey,
 	isAnyKeyDismiss,
 } from "../tui/utils/dialog-keys";
-import { getCliSubscriptionUrl } from "../utils/cline-pass-errors";
 import open from "../utils/open";
 import type { CliMigrationNotice } from "./notice";
 
 /**
- * Enter opens the subscription page; any other (unmodified) key dismisses the
+ * Enter opens the notice's page; any other (unmodified) key dismisses the
  * dialog; modifier-held keys are ignored.
  *
  * The dialog used to be dismissible only with Esc, but Esc is the least
@@ -20,7 +19,7 @@ import type { CliMigrationNotice } from "./notice";
  * timeout disambiguation, and Windows console input layers are known to
  * swallow it), which left users stuck behind the promo with no way out.
  * Modifier-held keys are ignored so that holding Cmd/Ctrl to click the
- * subscription link never dismisses the dialog mid-click.
+ * link never dismisses the dialog mid-click.
  */
 export function resolveMigrationNoticeKeyAction(
 	key: DialogDismissKey,
@@ -36,27 +35,26 @@ export function MigrationNoticeContent(
 ) {
 	const { dialogId, notice, resolve } = props;
 	const palette = useDialogPalette();
-	const subscriptionUrl = useMemo(() => getCliSubscriptionUrl(), []);
 	const [status, setStatus] = useState<string | undefined>();
 
-	const openSubscriptionPage = useCallback(() => {
-		setStatus("正在浏览器中打开 ClinePass...");
-		void open(subscriptionUrl, { wait: false })
+	const openNoticePage = useCallback(() => {
+		setStatus("Opening in your browser...");
+		void open(notice.url, { wait: false })
 			.then(() => {
-				setStatus("已在你的浏览器中打开 ClinePass。");
+				setStatus("Opened in your browser.");
 			})
 			.catch(() => {
 				setStatus(
 					"无法自动打开浏览器。请使用下面的网址。",
 				);
 			});
-	}, [subscriptionUrl]);
+	}, [notice.url]);
 
 	useDialogKeyboard((key) => {
 		const action = resolveMigrationNoticeKeyAction(key);
 		if (action === "ignore") return;
 		if (action === "open") {
-			openSubscriptionPage();
+			openNoticePage();
 			return;
 		}
 		resolve(true);
@@ -66,19 +64,20 @@ export function MigrationNoticeContent(
 		<box flexDirection="column" paddingX={1} gap={1}>
 			<text fg={palette.act}>{notice.title}</text>
 			<box flexDirection="column">
-				<text selectable>
-					ClinePass 是一个每月 $9.99 的订阅套餐，可访问最新的开放权重编程模型，
-					配额足以满足日常工作需要，成本远低于直接支付 API 费用。
-				</text>
+				{notice.body.split("\n").map((line) => (
+					<text key={line} selectable>
+						{line}
+					</text>
+				))}
 			</box>
 			<box flexDirection="row">
 				<text fg={palette.act} selectable>
-					<a href={subscriptionUrl}>{subscriptionUrl}</a>
+					<a href={notice.url}>{notice.url}</a>
 				</text>
 			</box>
 			<box flexDirection="row">
 				<box paddingX={1} backgroundColor={palette.act}>
-					<text fg={palette.textOnSelection}>打开 ClinePass</text>
+					<text fg={palette.textOnSelection}>{notice.openLabel}</text>
 				</box>
 			</box>
 			{status && <text fg={palette.muted}>{status}</text>}
