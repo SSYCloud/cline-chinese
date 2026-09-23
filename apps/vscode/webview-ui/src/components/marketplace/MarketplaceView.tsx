@@ -27,12 +27,14 @@ import ViewHeader from "../common/ViewHeader"
 import AddRemoteServerForm from "../mcp/configuration/tabs/add-server/AddRemoteServerForm"
 import ServersToggleList, { type MarketplaceMcpMetadata } from "../mcp/configuration/tabs/installed/ServersToggleList"
 import { entryMatchesLocalEntry, localEntryKey } from "./marketplaceMatch"
+import { SkillBotMarket } from "../loomloom/SkillBotMarket"
+import { sendBatch } from "../loomloom/batch-api"
 
 type PrimitiveType = "mcp" | "skill" | "plugin"
 type MarketplaceSectionType = "installed" | "marketplace"
 
 type MarketplaceViewProps = {
-	initialType?: PrimitiveType
+	initialType?: PrimitiveType | "skillbot"
 	onDone: () => void
 }
 
@@ -1126,7 +1128,7 @@ const CatalogEntryRow = ({
 
 const MarketplaceView = ({ initialType = "skill", onDone }: MarketplaceViewProps) => {
 	const { environment, remoteConfigSettings } = useExtensionState()
-	const [activeType, setActiveType] = useState<PrimitiveType>(initialType)
+	const [activeType, setActiveType] = useState<PrimitiveType | "skillbot">(initialType)
 	const [activeSection, setActiveSection] = useState<MarketplaceSectionType>("installed")
 	const [catalogEntries, setCatalogEntries] = useState<MarketplaceEntry[]>([])
 	const [localEntries, setLocalEntries] = useState<MarketplaceLocalInstalledEntry[]>([])
@@ -1181,7 +1183,7 @@ const MarketplaceView = ({ initialType = "skill", onDone }: MarketplaceViewProps
 		}
 	}, [activeSection, mcpMarketplaceDisabled])
 
-	const primitive = getPrimitive(activeType)
+	const primitive = getPrimitive(activeType === "skillbot" ? "skill" : activeType)
 	const searchedCatalogEntries = useMemo(() => {
 		const normalizedQuery = query.trim().toLowerCase()
 		return catalogEntries.filter(
@@ -1337,7 +1339,7 @@ const MarketplaceView = ({ initialType = "skill", onDone }: MarketplaceViewProps
 	}, [])
 
 	const handleTabChange = useCallback((value: string) => {
-		setActiveType(value as PrimitiveType)
+		setActiveType(value as PrimitiveType | "skillbot")
 		setQuery("")
 		setSelectedTag(null)
 		setActiveSection("installed")
@@ -1358,6 +1360,9 @@ const MarketplaceView = ({ initialType = "skill", onDone }: MarketplaceViewProps
 
 			<div className="marketplace-shell">
 				<TabList className="marketplace-nav" onValueChange={handleTabChange} value={activeType}>
+					<TabTrigger className="marketplace-tab" value="skillbot">
+						SkillBot
+					</TabTrigger>
 					{VISIBLE_PRIMITIVES.map((item) => (
 						<TabTrigger className="marketplace-tab" key={item.type} value={item.type}>
 							<item.icon aria-hidden className="h-4 w-4 shrink-0" />
@@ -1368,120 +1373,137 @@ const MarketplaceView = ({ initialType = "skill", onDone }: MarketplaceViewProps
 
 				<TabContent className="marketplace-content">
 					<div className="marketplace-inner">
-						<TabList
-							aria-label={`${primitive.title} 分区`}
-							className="marketplace-subnav"
-							onValueChange={handleSectionTabChange}
-							value={currentSection}>
-							{MARKETPLACE_SECTIONS.map((section) => (
-								<TabTrigger
-									className="marketplace-subtab"
-									disabled={mcpMarketplaceDisabled && section.type === "marketplace"}
-									key={section.type}
-									value={section.type}>
-									{section.label}
-								</TabTrigger>
-							))}
-						</TabList>
-
-						<div className="marketplace-primitive-description">{primitive.description}</div>
-						{error && <div className="marketplace-error">{error}</div>}
-
-						{loading ? (
-							<div className="marketplace-loading">
-								<VSCodeProgressRing />
-								<span>正在加载 {primitive.plural}</span>
-							</div>
+						{activeType === "skillbot" ? (
+							<SkillBotMarket
+								onSelect={(item) => {
+									void (async () => {
+										const session = await sendBatch({ action: "mode", mode: "batch" })
+										await sendBatch({ action: "select", listingId: item.id }, session?.taskId)
+										onDone()
+									})().catch((e) => setError(String(e.message || e)))
+								}}
+							/>
 						) : (
 							<>
-								{currentSection === "installed" &&
-									(activeType === "mcp" ? (
-										<McpManagementPanel
-											marketplaceMetadataByServerName={marketplaceMcpMetadataByServerName}
-											showHeader={false}
-											showServerList={true}
-										/>
-									) : (
-										<Section
-											count={installedCatalogEntries.length + localOnlyInstalledEntries.length}
-											empty={`暂无已安装的 ${primitive.plural}。`}
-											showHeader={false}
-											title={`已安装的 ${primitive.title}`}>
-											{installedCatalogEntries.map((entry) => (
-												<InstalledMarketplaceRow
-													entry={entry}
-													key={entryKey(entry)}
-													matchedLocalEntries={
-														matchedLocalEntriesByCatalogKey.get(entryKey(entry)) ?? []
-													}
-													onToggle={handleToggleLocal}
-													onUninstall={handleUninstallMarketplace}
-													togglingLocalId={togglingLocalId}
-													uninstalling={uninstallingId === entryKey(entry)}
-												/>
-											))}
-											{localOnlyInstalledEntries.map((entry) => (
-												<LocalInstalledRow
-													entry={entry}
-													key={localEntryKey(entry)}
-													onToggle={handleToggleLocal}
-													onUninstall={handleUninstallLocal}
-													toggling={togglingLocalId === localEntryKey(entry)}
-													uninstalling={uninstallingId === localEntryKey(entry)}
-												/>
-											))}
-										</Section>
+								<TabList
+									aria-label={`${primitive.title} 分区`}
+									className="marketplace-subnav"
+									onValueChange={handleSectionTabChange}
+									value={currentSection}>
+									{MARKETPLACE_SECTIONS.map((section) => (
+										<TabTrigger
+											className="marketplace-subtab"
+											disabled={mcpMarketplaceDisabled && section.type === "marketplace"}
+											key={section.type}
+											value={section.type}>
+											{section.label}
+										</TabTrigger>
 									))}
+								</TabList>
 
-								{currentSection === "marketplace" && (
-									<MarketplaceCatalogSection
-										count={visibleCatalogEntries.length}
-										empty={
-											query || selectedTag
-												? `没有匹配搜索的 ${primitive.plural}。`
-												: `市场中暂无 ${primitive.plural}。`
-										}
-										filters={
-											<TagFilters
-												counts={tagFilters.counts}
-												onSelect={setSelectedTag}
-												selectedTag={selectedTag}
-												tags={tagFilters.tags}
-											/>
-										}
-										search={
-											<div className="marketplace-search">
-												<VSCodeTextField
-													aria-label={`搜索 ${primitive.title}`}
-													onInput={(event) => setQuery((event.target as HTMLInputElement).value)}
-													placeholder={`搜索 ${primitive.plural}`}
-													value={query}>
-													<span className="codicon codicon-search" slot="start" />
-													{query && (
-														<button
-															aria-label="清除搜索"
-															className="codicon codicon-close marketplace-clear-search"
-															onClick={() => setQuery("")}
-															slot="end"
-															type="button"
+								<div className="marketplace-primitive-description">{primitive.description}</div>
+								{error && <div className="marketplace-error">{error}</div>}
+
+								{loading ? (
+									<div className="marketplace-loading">
+										<VSCodeProgressRing />
+										<span>正在加载 {primitive.plural}</span>
+									</div>
+								) : (
+									<>
+										{currentSection === "installed" &&
+											(activeType === "mcp" ? (
+												<McpManagementPanel
+													marketplaceMetadataByServerName={marketplaceMcpMetadataByServerName}
+													showHeader={false}
+													showServerList={true}
+												/>
+											) : (
+												<Section
+													count={installedCatalogEntries.length + localOnlyInstalledEntries.length}
+													empty={`暂无已安装的 ${primitive.plural}。`}
+													showHeader={false}
+													title={`已安装的 ${primitive.title}`}>
+													{installedCatalogEntries.map((entry) => (
+														<InstalledMarketplaceRow
+															entry={entry}
+															key={entryKey(entry)}
+															matchedLocalEntries={
+																matchedLocalEntriesByCatalogKey.get(entryKey(entry)) ?? []
+															}
+															onToggle={handleToggleLocal}
+															onUninstall={handleUninstallMarketplace}
+															togglingLocalId={togglingLocalId}
+															uninstalling={uninstallingId === entryKey(entry)}
 														/>
-													)}
-												</VSCodeTextField>
-											</div>
-										}
-										showHeader={false}>
-										{visibleCatalogEntries.map((entry) => (
-											<CatalogEntryRow
-												entry={entry}
-												installing={installingId === entryKey(entry)}
-												key={entryKey(entry)}
-												onInstall={handleInstall}
-											/>
-										))}
-									</MarketplaceCatalogSection>
+													))}
+													{localOnlyInstalledEntries.map((entry) => (
+														<LocalInstalledRow
+															entry={entry}
+															key={localEntryKey(entry)}
+															onToggle={handleToggleLocal}
+															onUninstall={handleUninstallLocal}
+															toggling={togglingLocalId === localEntryKey(entry)}
+															uninstalling={uninstallingId === localEntryKey(entry)}
+														/>
+													))}
+												</Section>
+											))}
+
+										{currentSection === "marketplace" && (
+											<MarketplaceCatalogSection
+												count={visibleCatalogEntries.length}
+												empty={
+													query || selectedTag
+														? `没有匹配搜索的 ${primitive.plural}。`
+														: `市场中暂无 ${primitive.plural}。`
+												}
+												filters={
+													<TagFilters
+														counts={tagFilters.counts}
+														onSelect={setSelectedTag}
+														selectedTag={selectedTag}
+														tags={tagFilters.tags}
+													/>
+												}
+												search={
+													<div className="marketplace-search">
+														<VSCodeTextField
+															aria-label={`搜索 ${primitive.title}`}
+															onInput={(event) =>
+																setQuery((event.target as HTMLInputElement).value)
+															}
+															placeholder={`搜索 ${primitive.plural}`}
+															value={query}>
+															<span className="codicon codicon-search" slot="start" />
+															{query && (
+																<button
+																	aria-label="清除搜索"
+																	className="codicon codicon-close marketplace-clear-search"
+																	onClick={() => setQuery("")}
+																	slot="end"
+																	type="button"
+																/>
+															)}
+														</VSCodeTextField>
+													</div>
+												}
+												showHeader={false}>
+												{visibleCatalogEntries.map((entry) => (
+													<CatalogEntryRow
+														entry={entry}
+														installing={installingId === entryKey(entry)}
+														key={entryKey(entry)}
+														onInstall={handleInstall}
+													/>
+												))}
+											</MarketplaceCatalogSection>
+										)}
+									</>
 								)}
 							</>
 						)}
+						{activeType === "skillbot" && error && <p role="alert">{error}</p>}
 					</div>
 				</TabContent>
 			</div>

@@ -1,0 +1,279 @@
+.batch-ui {
+	color: var(--vscode-foreground);
+	font: inherit;
+	line-height: 1.5;
+	min-width: 0;
+}
+.batch-timeline-event {
+	padding: 3px 0;
+	color: var(--vscode-descriptionForeground);
+	margin: 8px 15px;
+	font-size: 12px;
+	line-height: 1.5;
+}
+.batch-turn {
+	padding: 12px 15px 16px;
+}
+.batch-conversation {
+	margin: 8px 10px 10px;
+	padding: 10px;
+	border: 1px solid var(--vscode-focusBorder, #007fd4);
+	border-color: color-mix(in srgb, var(--vscode-focusBorder, #007fd4) 55%, var(--vscode-panel-border, #343434));
+	border-radius: 3px;
+	background: color-mix(in srgb, var(--vscode-focusBorder, #007fd4) 7%, var(--vscode-editor-background, #1e1e1e));
+}
+.batch-turn header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+.batch-conversation .batch-assistant-header {
+	font-size: 14px;
+	gap: 8px;
+	margin-bottom: 6px;
+}
+.batch-conversation .batch-guidance p {
+	margin: 5px 0;
+}
+.batch-conversation .batch-entry-auth {
+	padding: 5px 0 8px;
+}
+.batch-conversation .batch-entry-auth p {
+	margin: 5px 0;
+}
+.batch-conversation .batch-entry-auth small {
+	display: block;
+	margin-top: 6px;
+}
+.batch-conversation .batch-actions {
+	gap: 5px;
+	margin: 7px 0;
+}
+.batch-conversation .batch-actions button {
+	padding: 3px 7px;
+}
+.batch-conversation input[type="number"] {
+	display: block;
+	max-width: 7rem;
+	margin: 5px 0;
+}
+.batch-conversation .batch-catalog-row {
+	gap: 8px;
+	padding: 7px 8px;
+}
+.batch-conversation .batch-catalog-row p {
+	margin: 2px 0;
+	-webkit-line-clamp: 1;
+}
+.batch-conversation .batch-catalog-row strong {
+	overflow-wrap: anywhere;
+}
+.batch-conversation .batch-catalog-row > .batch-actions {
+	flex: 0 0 auto;
+	margin: 0;
+}
+.batch-assistant-mark {
+	font-family: var(--vscode-editor-font-family, monospace);
+	font-size: 13px;
+}
+.batch-conversation .batch-sheet-summary > p {
+	margin: 10px 0;
+	line-height: 1.65;
+}
+.batch-conversation .batch-sheet-summary > .batch-actions {
+	column-gap: 16px;
+}
+.batch-conversation .batch-link {
+	line-height: 1.6;
+}
+.batch-conversation .batch-link:hover:not(:disabled) {
+	text-decoration: underline;
+}
+.batch-ui p {
+	margin: 8px 0;
+}
+.batch-ui small {
+	color: var(--vscode-descriptionForeground);
+}
+.batch-output-location {
+	overflow-wrap: anywhere;
+}
+.batch-output-location summary {
+	cursor: pointer;
+	color: var(--vscode-descriptionForeground);
+	font-size: 12px;
+}
+.batch-output-location small {
+	display: block;
+	padding: 4px 0;
+}
+.batch-ui button {
+	font: inherit;
+	padding: 4px 9px;
+	border: 1px solid var(--vscode-button-border, var(--vscode-panel-border));
+	color: var(--vscode-button-secondaryForeground);
+	background: var(--vscode-button-secondaryBackground);
+	border-radius: 2px;
+	cursor: pointer;
+}
+.batch-ui button:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
+.batch-ui button.primary {
+	background: var(--vscode-button-background);
+	color: var(--vscode-button-foreground);
+}
+.batch-ui :is(button, input, select, textarea):focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: 2px;
+}
+.batch-ui :is(input, select, textarea) {
+	box-sizing: border-box;
+	width: 100%;
+	color: var(--vscode-input-foreground);
+	background: var(--vscode-input-background);
+	border: 1px solid var(--vscode-input-border, var(--vscode-panel-border));
+	border-radius: 2px;
+	padding: 6px;
+	font: inherit;
+}
+.batch-ui textarea {
+	resize: vertical;
+}
+.batch-ui [role="alert"] {
+	color: var(--vscode-errorForeground);
+	overflow-wrap: anywhere;
+}
+.batch-ui pre {
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+	max-height: 350px;
+	overflow: auto;
+}
+.batch-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 7px;
+	margin: 10px 0;
+}
+.batch-catalog {
+	border: 1px solid var(--vscode-panel-border);
+}
+.batch-auth-guide {
+	border: 1px solid var(--vscode-panel-border);
+	background: var(--vscode-editor-background);
+	padding: 10px;
+}
+.batch-catalog-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 10px;
+	border-bottom: 1px solid var(--vscode-panel-border);
+}
+.batch-catalog-row > div:first-child {
+	min-width: 0;
+	flex: 1;
+}
+.batch-catalog-row p {
+	font-size: 12px;
+	color: var(--vscode-descriptionForeground);
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+.batch-ui .batch-link {
+	border: 0;
+	padding: 0;
+	color: var(--vscode-textLink-foreground);
+	background: transparent;
+	text-align: left;
+}
+.batch-badge {
+	font-size: 11px;
+	padding: 0 5px;
+	border: 1px solid var(--vscode-panel-border);
+	color: var(--vscode-descriptionForeground);
+}
+.batch-events {
+	color: var(--vscode-descriptionForeground);
+	margin: 8px 0;
+	font-size: 12px;
+}
+.batch-field {
+	display: grid;
+	gap: 4px;
+	margin: 12px 0;
+}
+.batch-editor {
+	padding: 12px;
+	margin: 10px 0;
+	border: 1px solid var(--vscode-focusBorder);
+	background: var(--vscode-editor-background);
+}
+.batch-table-wrap {
+	overflow-x: auto;
+	margin: 12px 0;
+	border: 1px solid var(--vscode-panel-border);
+}
+.batch-ui table {
+	border-collapse: collapse;
+	width: 100%;
+	font-size: 12px;
+}
+.batch-ui caption {
+	text-align: left;
+	padding: 8px;
+	font-weight: 600;
+}
+.batch-ui :is(th, td) {
+	min-width: 80px;
+	max-width: 260px;
+	padding: 7px;
+	text-align: left;
+	vertical-align: top;
+	border: 1px solid var(--vscode-panel-border);
+	overflow-wrap: anywhere;
+}
+.batch-ui th {
+	background: var(--vscode-editor-inactiveSelectionBackground);
+}
+.batch-ui td:first-child {
+	min-width: 20px;
+}
+.batch-ui td button {
+	margin: 2px;
+	white-space: nowrap;
+}
+.batch-file {
+	white-space: nowrap;
+	font-size: 11px;
+}
+.batch-quote {
+	padding: 12px;
+	margin: 12px 0;
+	border: 1px solid var(--vscode-focusBorder);
+	background: var(--vscode-textBlockQuote-background);
+}
+.batch-quote.stale {
+	opacity: 0.6;
+	border-color: var(--vscode-panel-border);
+}
+@media (max-width: 360px) {
+	.batch-conversation {
+		margin-inline: 6px;
+		padding: 8px;
+	}
+	.batch-conversation .batch-catalog-row {
+		align-items: start;
+		flex-direction: column;
+	}
+	.batch-conversation .batch-catalog-row > .batch-actions {
+		align-self: end;
+	}
+}

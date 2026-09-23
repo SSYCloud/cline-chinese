@@ -9,13 +9,16 @@ import rehypeHighlight, { Options } from "rehype-highlight"
 import remarkGfm from "remark-gfm"
 import type { Node } from "unist"
 import { visit } from "unist-util-visit"
-import MermaidBlock from "@/components/common/MermaidBlock"
 import { Button } from "@/components/ui/button"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { cn } from "@/lib/utils"
 import { FileServiceClient, StateServiceClient } from "@/services/grpc-client"
 import { WithCopyButton } from "./CopyButton"
 import UnsafeImage from "./UnsafeImage"
+
+// Mermaid and its diagram engines are large. Load them only when a message
+// actually contains a mermaid code fence, never during the ordinary chat boot.
+const MermaidBlock = React.lazy(() => import("@/components/common/MermaidBlock"))
 
 function parseMarkdownIntoBlocks(markdown: string): string[] {
 	try {
@@ -44,7 +47,11 @@ const MemoizedMarkdownBlock = memo(
 						const className = props.className || ""
 						if (className.includes("language-mermaid")) {
 							const codeText = String(props.children || "")
-							return <MermaidBlock code={codeText} />
+							return (
+								<React.Suspense fallback={<pre>{codeText}</pre>}>
+									<MermaidBlock code={codeText} />
+								</React.Suspense>
+							)
 						}
 
 						// Use the async file check component for potential file paths

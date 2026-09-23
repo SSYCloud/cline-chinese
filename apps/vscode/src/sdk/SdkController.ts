@@ -19,18 +19,21 @@ import {
 	setTelemetryOptOutGlobally,
 	type UserInstructionConfigService,
 } from "@cline/core"
-import { formatDisplayUserInput, type MessageWithMetadata, type RemoteConfig, type RemoteConfigBundle } from "@cline/shared"
+import { formatDisplayUserInput, type RemoteConfig, type RemoteConfigBundle } from "@cline/shared"
 import type { ApiConfiguration } from "@shared/api"
 import type { ChatContent } from "@shared/ChatContent"
 import { CLINE_ACCOUNT_AUTH_ERROR_MESSAGE } from "@shared/ClineAccount"
 import { mentionRegexGlobal } from "@shared/context-mentions"
 import type { ClineApiReqInfo, ClineMessage, ExtensionState } from "@shared/ExtensionMessage"
 import type { HistoryItem } from "@shared/HistoryItem"
+import type { BatchTableHostAction, ProductAgentMode } from "@shared/loomloom"
 import { DeleteAllTaskHistoryCount, type GetTaskHistoryRequest, TaskHistoryArray, TaskResponse } from "@shared/proto/cline/task"
 import type { Settings } from "@shared/storage/state-keys"
 import type { Mode } from "@shared/storage/types"
 import type { TelemetrySetting } from "@shared/TelemetrySetting"
 import type { ClineCheckpointRestore } from "@shared/WebviewMessage"
+import { selectBatchAttachment } from "@/core/controller/loomLoom/selectBatchAttachment"
+import { listInstalledLoomLoomSkills } from "@/core/controller/marketplace/marketplace-helpers"
 import { parseMentions } from "@/core/mentions"
 import { ensureMcpServersDirectoryExists } from "@/core/storage/disk"
 import { clearSdkRemoteConfig, refreshSdkRemoteConfig } from "@/core/storage/remote-config/sdk-refresh"
@@ -43,6 +46,15 @@ import { OcaAuthService } from "@/services/auth/oca/OcaAuthService"
 import { UrlContentFetcher } from "@/services/browser/UrlContentFetcher"
 import { ClineError } from "@/services/error/ClineError"
 import { SSY_PROVIDER_ID, SSYError, SSYErrorType } from "@/services/error/SSYError"
+import { BatchAgentBridge } from "@/services/loomloom/batch-agent-bridge"
+import { BatchPresentationCoordinator } from "@/services/loomloom/batch-presentation"
+import { BatchService, FileBatchStore } from "@/services/loomloom/batch-service"
+import { LoomLoomClient } from "@/services/loomloom/client"
+import { CreatorService } from "@/services/loomloom/creator-service"
+import { BatchOutputCoordinator } from "@/services/loomloom/output-coordinator"
+import { SkillBotRegistry } from "@/services/loomloom/registry"
+import { SkillBotDirectory } from "@/services/loomloom/skillbot-directory"
+import { BatchTableService } from "@/services/loomloom/table-operations"
 import { McpHub } from "@/services/mcp/McpHub"
 import { telemetryService } from "@/services/telemetry"
 import type { ClineExtensionContext } from "@/shared/cline"
@@ -87,7 +99,7 @@ import { SdkSessionHistoryLoader } from "./sdk-session-history-loader"
 import { SdkSessionLifecycle } from "./sdk-session-lifecycle"
 import { SdkSessionRebuildScheduler } from "./sdk-session-rebuild-scheduler"
 import { SdkTaskControlCoordinator } from "./sdk-task-control-coordinator"
-import { batchResultTitle, SdkTaskHistory, sessionHistoryRecordToHistoryItem } from "./sdk-task-history"
+import { SdkTaskHistory, sessionHistoryRecordToHistoryItem } from "./sdk-task-history"
 import { SdkTaskStartCoordinator } from "./sdk-task-start-coordinator"
 import { createVscodeSdkTelemetryHandle, type VscodeSdkTelemetryHandle } from "./sdk-telemetry"
 import { SdkTerminalExecutionModeCoordinator } from "./sdk-terminal-execution-mode-coordinator"
@@ -177,6 +189,7 @@ export class Controller {
 	private sessionConfigBuilder: SdkSessionConfigBuilder
 	private taskHistory: SdkTaskHistory
 	private mode: SdkModeCoordinator
+	private batchModeChange: Promise<void> = Promise.resolve()
 	private mcpTools: SdkMcpCoordinator
 	private terminalExecutionMode: SdkTerminalExecutionModeCoordinator
 	private providerChanges: SdkProviderChangeCoordinator
@@ -202,7 +215,23 @@ export class Controller {
 
 	// Presents the Task interface that gRPC handlers expect, delegating to the
 	// active SDK session.
-	task?: TaskProxy
+	private displayedTask?: TaskProxy
+	get task(): TaskProxy | undefined {
+		return this.displayedTask
+	}
+	set task(task: TaskProxy | undefined) {
+		const previousTaskId = this.displayedTask?.taskId
+		this.displayedTask = task
+		if (previousTaskId === task?.taskId || this.isDisposed) return
+		// All coordinator and direct assignments share this boundary. This only
+		// refreshes task-pinned views; it never starts or resumes an SDK turn.
+		this.batch?.notifyActiveTaskChanged(previousTaskId, task?.taskId)
+		this.batchPresentation?.activateTask(task?.taskId)
+		if (task?.taskId && this.batch && this.taskHistory)
+			void this.prepareBatchOutputDestination(task.taskId).catch((error) =>
+				Logger.warn("Unable to prepare original task output directory", error),
+			)
+	}
 
 	mcpHub: McpHub
 	accountService: ClineAccountService
@@ -210,6 +239,20 @@ export class Controller {
 	authService: AuthService
 	ocaAuthService: OcaAuthService
 	readonly stateManager: StateManager
+	readonly loomLoom: LoomLoomClient
+	readonly creator: CreatorService
+	readonly batch: BatchService
+	readonly batchOutputs: BatchOutputCoordinator
+	private readonly batchPresentation: BatchPresentationCoordinator
+	readonly skillBots: SkillBotRegistry
+	readonly skillBotDirectory: SkillBotDirectory
+	readonly batchAgent: BatchAgentBridge
+	readonly batchTable: BatchTableService
+	/** Installed by the existing VS Code view. It opens a view over this controller, never another SDK session. */
+	batchTableHost?: {
+		open(taskId: string, preserveFocus?: boolean): Promise<void>
+		action(input: BatchTableHostAction): Promise<void>
+	}
 
 	// Lazy terminal manager for foreground (VS Code terminal) command execution.
 	// Created on first use; shared across all sessions in this Controller's lifetime.
@@ -287,6 +330,56 @@ export class Controller {
 			debounceMs: Controller.STATE_POST_DEBOUNCE_MS,
 			flush: () => this.flushStateToWebview(),
 		})
+		this.loomLoom = new LoomLoomClient(() => this.stateManager.getSecretKey("shengSuanYunApiKey"))
+		this.creator = new CreatorService(this.loomLoom, path.join(context.globalStorageUri.fsPath, "loomloom", "creator"))
+		this.skillBots = new SkillBotRegistry(path.join(context.globalStorageUri.fsPath, "loomloom", "installed.json"), () =>
+			listInstalledLoomLoomSkills().map((skill) => skill.listingId),
+		)
+		this.batch = new BatchService(
+			new FileBatchStore(path.join(context.globalStorageUri.fsPath, "loomloom", "sessions")),
+			this.loomLoom,
+			() => {
+				void this.postStateToWebview().catch(() => {})
+			},
+		)
+		void this.batch.ready.catch((error) => Logger.error("Unable to restore Batch sessions", error))
+		this.batchOutputs = new BatchOutputCoordinator(this.batch)
+		this.batchPresentation = new BatchPresentationCoordinator(this.batch, {
+			currentTask: () => this.task?.taskId,
+			open: async (taskId, preserveFocus) => {
+				if (!this.batchTableHost) throw new Error("工作表视图需要 VS Code。")
+				await this.batchTableHost.open(taskId, preserveFocus)
+			},
+			onError: (error) => Logger.error("无法自动打开 Batch 工作表，可从聊天中的工作表入口重试。", error),
+		})
+		this.skillBotDirectory = new SkillBotDirectory(this.loomLoom, this.skillBots)
+		this.batchTable = new BatchTableService(
+			this.batch,
+			{
+				models: (stepType) => this.loomLoom.models(stepType),
+				open: async (taskId, preserveFocus) => {
+					if (!this.batchTableHost) throw new Error("工作表视图需要 VS Code。")
+					await this.batchTableHost.open(taskId, preserveFocus)
+				},
+				action: async (input) => {
+					if (!this.batchTableHost) throw new Error("此操作需要 VS Code。")
+					await this.batchTableHost.action(input)
+				},
+				attach: async (taskId, revision, rowId, field, sourceAttachmentId) => {
+					await selectBatchAttachment(this, {
+						value: JSON.stringify({ taskId, revision, rowId, field, sourceAttachmentId }),
+					})
+				},
+			},
+			() => this.task?.taskId,
+		)
+		this.batchAgent = new BatchAgentBridge(
+			this.batch,
+			this.skillBotDirectory,
+			() => this.task?.taskId,
+			this.batchTable,
+			this.creator,
+		)
 		this.providerConfigStore = createProviderConfigStore()
 		this.providerCatalog = createProviderCatalog(this.providerConfigStore)
 		this.providerConfigStoreSubscription = this.providerConfigStore.subscribe((event) => {
@@ -385,6 +478,7 @@ export class Controller {
 			getCwd: () => this.lastKnownWorkspaceRoot,
 		})
 		this.sessions = new SdkSessionLifecycle({
+			getBatchAgent: () => this.batchAgent,
 			mcpHub: this.mcpHub,
 			telemetry: this.sdkTelemetry.telemetry,
 			requestToolApproval: (request) => this.interactions.handleRequestToolApproval(request),
@@ -900,6 +994,7 @@ export class Controller {
 
 	private createRemoteConfigAwareSessionHost(): Promise<VscodeSessionHost> {
 		return VscodeSessionHost.create({
+			getBatchAgent: () => this.batchAgent,
 			mcpHub: this.mcpHub,
 			beforeStartSession: () => this.ensureRemoteConfigForSessionStart(),
 			getRemoteConfigIntegration: () => this.remoteConfigCoreIntegration,
@@ -950,6 +1045,9 @@ export class Controller {
 	}
 
 	async dispose(): Promise<void> {
+		this.batchOutputs.dispose()
+		this.batchPresentation.dispose()
+		this.batch.dispose()
 		this.providerConfigStoreSubscription.dispose()
 		// Clear the remote config timer to prevent stale fetches
 		if (this.remoteConfigTimer) {
@@ -1992,7 +2090,92 @@ export class Controller {
 	// ---- Mode switching ----
 
 	async togglePlanActMode(modeToSwitchTo: Mode, chatContent?: ChatContent): Promise<boolean> {
+		if (this.task?.taskId) await this.batch.setEnabled(this.task.taskId, false)
 		return this.mode.togglePlanActMode(modeToSwitchTo, chatContent)
+	}
+
+	/** Batch keeps the logical session; entering never auto-continues or aborts an active turn. */
+	async setProductAgentMode(target: ProductAgentMode): Promise<void> {
+		const pending = this.batchModeChange.catch(() => {}).then(() => this.performProductAgentModeChange(target))
+		this.batchModeChange = pending
+		await pending
+	}
+	/** Resolve only the task's persisted workspace. Never send an old run to the active editor's folder. */
+	async prepareBatchOutputDestination(taskId: string, runId?: string, notifyState = true): Promise<void> {
+		const batch = await this.batch.chatSnapshot(taskId)
+		if (!batch || (!batch.enabled && !runId)) return
+		if (batch.outputDestination && !runId) return
+		const original = await this.taskHistory.findHistoryItem(taskId)
+		const baseDirectory = batch.outputDestination?.baseDirectory || original?.cwdOnTaskInitialization?.trim()
+		if (!baseDirectory || !path.isAbsolute(baseDirectory))
+			throw new Error("找不到原会话的工作区目录，暂未自动保存文件；不会写入其他会话的目录。")
+		if (notifyState) await this.batch.configureOutputDestination(taskId, baseDirectory, runId)
+		else await this.batch.configureOutputDestination(taskId, baseDirectory, runId, false)
+	}
+
+	private async performProductAgentModeChange(target: ProductAgentMode): Promise<void> {
+		if (this.sessions.getActiveSession()?.isRunning) throw new Error("请等待当前 Cline 回复完成后切换模式。")
+		if (target !== "batch") {
+			if (this.task?.taskId) await this.batch.setEnabled(this.task.taskId, false, undefined, false)
+			// Batch already runs on the Act SDK session. Returning to Act changes
+			// only the Batch overlay; rebuilding the same session would reload its
+			// whole transcript, provider config and tools for no behavior change.
+			if (this.stateManager.getGlobalSettingsKey("mode") !== target)
+				await this.mode.rebuildSessionForMode(target, { autoContinue: false, deferStatePosts: true })
+			await this.postStateToWebview()
+			return
+		}
+		if (this.stateManager.getGlobalSettingsKey("mode") !== "act") {
+			// With no active SDK session there is nothing to rebuild. The generic
+			// coordinator would post a full state snapshot here, only to create a
+			// fresh session and post it again below.
+			if (this.sessions.getActiveSession()) {
+				await this.mode.rebuildSessionForMode("act", {
+					autoContinue: false,
+					preserveModel: true,
+					deferStatePosts: true,
+				})
+			} else {
+				this.stateManager.setGlobalState("mode", "act")
+			}
+			if (this.stateManager.getGlobalSettingsKey("mode") !== "act")
+				throw new Error("无法进入 Act 运行模式，请检查模型配置。")
+		}
+		let newTaskCwd: string | undefined
+		if (!this.task) {
+			const cwd = await this.getWorkspaceRoot()
+			newTaskCwd = cwd
+			const config = await this.sessionConfigBuilder.build({ cwd, mode: "act" })
+			const title = "LoomLoom 批量任务"
+			const { startResult } = await this.sessions.startNewSession({
+				...buildStartSessionInput(config, { cwd, mode: "act" }),
+				initialMessages: [{ role: "user", content: [{ type: "text", text: title }], ts: Date.now() }],
+				sessionMetadata: { title, modelId: config.modelId },
+			})
+			this.sessions.setRunning(false)
+			this.resetMessageTranslatorAndFence()
+			this.task = createTaskProxy(
+				startResult.sessionId,
+				(text, images, files) => this.askResponse(text, images, files),
+				() => this.cancelTask(),
+			)
+			this.task.messageStateHandler.addMessages([{ ts: Date.now(), type: "say", say: "task", text: title }])
+			await this.taskHistory.updateTaskHistoryItem(
+				createHistoryItemFromSession(startResult.sessionId, title, config.modelId, cwd),
+			)
+			this.turnStateTracker.set("idle")
+		}
+		// Fresh tasks already have their original workspace in hand. Persist
+		// their output destination with the initial Batch state in one disk write.
+		await this.batch.setEnabled(this.task.taskId, true, newTaskCwd, false)
+		if (!newTaskCwd) {
+			try {
+				await this.prepareBatchOutputDestination(this.task.taskId, undefined, false)
+			} catch (error) {
+				Logger.warn("Batch output directory is not available", error)
+			}
+		}
+		await this.postStateToWebview()
 	}
 
 	// ---- Telemetry ----
@@ -2337,61 +2520,6 @@ export class Controller {
 		await this.postStateToWebview()
 	}
 
-	/**
-	 * Persist a batch-mode (marketplace) run result as a new task-history entry.
-	 *
-	 * There is no lightweight "insert history row" path — a history entry is
-	 * backed by a persisted session, and the only public way to create one is a
-	 * session start. We start an idle session (interactive, no prompt) and then
-	 * record its session id under `item.task` so the result shows up in the
-	 * task list. The caller is responsible for composing a useful title/content
-	 * into `item.task`.
-	 */
-	async saveMarketplaceRunResult(item: HistoryItem): Promise<void> {
-		const cwd = item.cwdOnTaskInitialization?.trim() || (await this.getWorkspaceRoot())
-		const mode = this.stateManager.getGlobalSettingsKey("mode") === "plan" ? "plan" : "act"
-		const config = await this.sessionConfigBuilder.build({ cwd, mode, prompt: item.task })
-
-		// A batch run has no interactive turn to trigger lazy persistence, so
-		// seed the session with a synthetic "task" user message. This satisfies
-		// the SDK host's eager-persist guard (initialMessages.length > 0) and
-		// creates the SQLite session row + manifest up front. Without it the
-		// subsequent updateTaskHistoryItem finds no persisted row and silently
-		// no-ops, so the result never shows up in the task-history list.
-		const initialMessages: MessageWithMetadata[] = [
-			{
-				role: "user",
-				content: [{ type: "text", text: item.task }],
-				ts: Date.now(),
-			},
-		]
-
-		const { startResult } = await this.sessions.startNewSession({
-			...buildStartSessionInput(config, { cwd, mode }),
-			initialMessages,
-			sessionMetadata: {
-				title: batchResultTitle(item.task),
-				modelId: config.modelId,
-				isBatchResult: true,
-			},
-		})
-
-		this.turnStateTracker.set("idle")
-		this.messageTranslatorState.clearTurnOutcome()
-		this.resetMessageTranslatorAndFence()
-
-		this.task = createTaskProxy(
-			startResult.sessionId,
-			(text?: string, images?: string[], files?: string[]) => this.askResponse(text, images, files),
-			() => this.cancelTask(),
-		)
-
-		const newHistoryItem = createHistoryItemFromSession(startResult.sessionId, item.task, config.modelId, cwd)
-		newHistoryItem.isBatchResult = true
-		await this.taskHistory.updateTaskHistoryItem(newHistoryItem)
-		await this.postStateToWebview()
-	}
-
 	// ---- Background command state ----
 
 	updateBackgroundCommandState(running: boolean, taskId?: string): void {
@@ -2518,9 +2646,11 @@ export class Controller {
 			// from the SAME counter that stamps messages. This lets the webview ignore stale
 			// out-of-order state pushes and fence traffic from a previous task/render. Sampled
 			// synchronously here (no await between sampling and return).
+			const loomLoomBatch = await this.batch.chatSnapshot(this.task?.taskId)
 			const minter = this.messageTranslatorState.getMinter()
 			return {
 				...state,
+				loomLoomBatch,
 				currentTaskItem: this.task?.taskId
 					? processedTaskHistory.find((item) => item.id === this.task?.taskId)
 					: undefined,

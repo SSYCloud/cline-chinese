@@ -4,6 +4,89 @@ import { isClineManagedProvider } from "@/shared/utils/cline"
 import { Controller as SdkController } from "./SdkController"
 import { resolveWorkspaceManagerPaths, resolveWorkspaceRootPath } from "./workspace-root"
 
+describe("SDK displayed-task Batch lifecycle", () => {
+	it("returns from Batch to the existing Act session without rebuilding the SDK", async () => {
+		const controller = {
+			sessions: { getActiveSession: () => ({ isRunning: false }) },
+			task: { taskId: "same-session" },
+			batch: { setEnabled: vi.fn(async () => {}) },
+			stateManager: { getGlobalSettingsKey: () => "act" },
+			mode: { rebuildSessionForMode: vi.fn(async () => {}) },
+			postStateToWebview: vi.fn(async () => {}),
+		}
+		const changeMode = SdkController.prototype as unknown as {
+			performProductAgentModeChange(this: typeof controller, mode: "act"): Promise<void>
+		}
+		await changeMode.performProductAgentModeChange.call(controller, "act")
+		expect(controller.batch.setEnabled).toHaveBeenCalledWith("same-session", false, undefined, false)
+		expect(controller.mode.rebuildSessionForMode).not.toHaveBeenCalled()
+		expect(controller.postStateToWebview).toHaveBeenCalledOnce()
+	})
+	it("binds output saving to the original task history rather than the active workspace", async () => {
+		const controller = Object.create(SdkController.prototype) as SdkController
+		const configureOutputDestination = vi.fn(async () => {})
+		const findHistoryItem = vi.fn(async () => ({ cwdOnTaskInitialization: "D:/original-task" }))
+		Object.assign(controller, {
+			batch: { chatSnapshot: vi.fn(async () => ({ enabled: false })), configureOutputDestination },
+			taskHistory: { findHistoryItem },
+		})
+		await controller.prepareBatchOutputDestination("old-task", "old-run")
+		expect(findHistoryItem).toHaveBeenCalledWith("old-task")
+		expect(configureOutputDestination).toHaveBeenCalledWith("old-task", "D:/original-task", "old-run")
+	})
+	it("refuses an output fallback into a different workspace when task history lacks its directory", async () => {
+		const controller = Object.create(SdkController.prototype) as SdkController
+		const configureOutputDestination = vi.fn(async () => {})
+		Object.assign(controller, {
+			batch: { chatSnapshot: vi.fn(async () => ({ enabled: true })), configureOutputDestination },
+			taskHistory: { findHistoryItem: vi.fn(async () => undefined) },
+		})
+		await expect(controller.prepareBatchOutputDestination("unknown-task")).rejects.toThrow("原会话")
+		expect(configureOutputDestination).not.toHaveBeenCalled()
+	})
+	it("notifies old and new task-pinned views for switching and clearing without starting inference", () => {
+		const controller = Object.create(SdkController.prototype) as SdkController
+		const notifyActiveTaskChanged = vi.fn(),
+			activateTask = vi.fn()
+		Object.assign(controller, { batch: { notifyActiveTaskChanged }, batchPresentation: { activateTask } })
+		controller.task = { taskId: "A" } as NonNullable<SdkController["task"]>
+		controller.task = { taskId: "B" } as NonNullable<SdkController["task"]>
+		controller.task = undefined
+		expect(notifyActiveTaskChanged.mock.calls).toEqual([
+			[undefined, "A"],
+			["A", "B"],
+			["B", undefined],
+		])
+		expect(activateTask.mock.calls).toEqual([["A"], ["B"], [undefined]])
+		expect(controller.task).toBeUndefined()
+	})
+
+	it("does not reopen the table when the same logical task proxy is rebuilt", () => {
+		const controller = Object.create(SdkController.prototype) as SdkController
+		const notifyActiveTaskChanged = vi.fn(),
+			activateTask = vi.fn()
+		Object.assign(controller, { batch: { notifyActiveTaskChanged }, batchPresentation: { activateTask } })
+		controller.task = { taskId: "A" } as NonNullable<SdkController["task"]>
+		const replacement = { taskId: "A" } as NonNullable<SdkController["task"]>
+		controller.task = replacement
+		expect(controller.task).toBe(replacement)
+		expect(notifyActiveTaskChanged).toHaveBeenCalledTimes(1)
+		expect(activateTask).toHaveBeenCalledTimes(1)
+	})
+
+	it("is safe before Batch initialization and during disposal", () => {
+		const controller = Object.create(SdkController.prototype) as SdkController
+		controller.task = { taskId: "A" } as NonNullable<SdkController["task"]>
+		const notifyActiveTaskChanged = vi.fn(),
+			activateTask = vi.fn()
+		Object.assign(controller, { isDisposed: true, batch: { notifyActiveTaskChanged }, batchPresentation: { activateTask } })
+		controller.task = undefined
+		expect(controller.task).toBeUndefined()
+		expect(notifyActiveTaskChanged).not.toHaveBeenCalled()
+		expect(activateTask).not.toHaveBeenCalled()
+	})
+})
+
 describe("isClineManagedProvider", () => {
 	it("treats both Cline account providers as Cline providers", () => {
 		expect(isClineManagedProvider("cline")).toBe(true)
@@ -50,6 +133,7 @@ describe("SDK remote-config coordination", () => {
 			isRemoteConfigAvailable: true,
 			currentRemoteConfigRevision: 7,
 			ensureWorkspaceManager: async () => undefined,
+			batch: { chatSnapshot: async () => undefined },
 			taskHistory: { listHistory: async () => [] },
 			sessions: { getActiveSession: () => undefined },
 			turnStateTracker: { get: () => undefined },
