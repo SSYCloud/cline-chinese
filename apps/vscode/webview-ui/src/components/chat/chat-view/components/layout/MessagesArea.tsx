@@ -1,9 +1,12 @@
 import type { ClineMessage } from "@shared/ExtensionMessage"
+import type { BatchEvent } from "@shared/loomloom"
 import type React from "react"
 import { useCallback, useEffect, useMemo, useRef } from "react"
 import { Virtuoso } from "react-virtuoso"
 import ChatRow from "@/components/chat/ChatRow"
 import { StickyUserMessage } from "@/components/chat/task-header/StickyUserMessage"
+import { BatchEventRows } from "@/components/loomloom/BatchEventRows"
+import { placeBatchEvents } from "@/components/loomloom/batch-timeline"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { cn } from "@/lib/utils"
 import { useThinkingLoaderRow } from "../../hooks/useThinkingLoaderRow"
@@ -14,6 +17,16 @@ import { createMessageRenderer } from "../messages/MessageRenderer"
 // Sentinel ts for the synthetic "Thinking..." placeholder row. Not a real message; ignored when
 // deriving scroll triggers from the tail of the rendered list.
 const WAITING_ROW_TS = Number.MIN_SAFE_INTEGER
+// Keep a small buffer around the viewport. An unbounded bottom overscan makes
+// Virtuoso render the entire conversation, including large tool outputs, on
+// every streamed update.
+const MESSAGE_OVERSCAN = { top: 600, bottom: 800 }
+const TimelineFooter = ({ context }: { context?: React.ReactNode }) => (
+	<>
+		{context}
+		<div className="min-h-1" />
+	</>
+)
 
 // Synthetic placeholder rendered while waiting for the model with no visible rows streaming.
 const WAITING_ROW: ClineMessage = {
@@ -25,6 +38,8 @@ const WAITING_ROW: ClineMessage = {
 }
 
 interface MessagesAreaProps {
+	batchEvents?: BatchEvent[]
+	timelineFooter?: React.ReactNode
 	task: ClineMessage
 	groupedMessages: (ClineMessage | ClineMessage[])[]
 	modifiedMessages: ClineMessage[]
@@ -38,6 +53,8 @@ interface MessagesAreaProps {
  * Handles rendering of chat rows and browser sessions
  */
 export const MessagesArea: React.FC<MessagesAreaProps> = ({
+	batchEvents,
+	timelineFooter,
 	task,
 	groupedMessages,
 	modifiedMessages,
@@ -164,7 +181,7 @@ export const MessagesArea: React.FC<MessagesAreaProps> = ({
 		}
 	}, [turnState?.phase, scrollToBottomSmooth, disableAutoScrollRef])
 
-	const itemContent = useMemo(
+	const renderMessage = useMemo(
 		() =>
 			createMessageRenderer(
 				displayedGroupedMessages,
@@ -191,10 +208,26 @@ export const MessagesArea: React.FC<MessagesAreaProps> = ({
 		],
 	)
 
-	// Keep footer as a simple spacer. Thinking loading is rendered as an in-list row.
+	const batchPlacement = useMemo(
+		() => placeBatchEvents(displayedGroupedMessages, batchEvents ?? []),
+		[displayedGroupedMessages, batchEvents],
+	)
+	const itemContent = useCallback(
+		(index: number, message: ClineMessage | ClineMessage[]) => (
+			<>
+				{index === 0 && <BatchEventRows events={batchPlacement.before} />}
+				{renderMessage(index, message)}
+				<BatchEventRows events={batchPlacement.after.get(index)} />
+			</>
+		),
+		[batchPlacement, renderMessage],
+	)
+
+	// Batch controls are the current interaction surface, while events stay in the
+	// chronological conversation above instead of a separate Batch transcript.
 	const virtuosoComponents = useMemo(
 		() => ({
-			Footer: () => <div className="min-h-1" />,
+			Footer: TimelineFooter,
 		}),
 		[],
 	)
@@ -247,12 +280,14 @@ export const MessagesArea: React.FC<MessagesAreaProps> = ({
 					atBottomThreshold={10} // trick to make sure virtuoso re-renders when task changes, and we use initialTopMostItemIndex to start at the bottom
 					className="scrollable grow overflow-y-scroll"
 					components={virtuosoComponents}
+					context={
+						<>
+							{displayedGroupedMessages.length === 0 && <BatchEventRows events={batchEvents} />}
+							{timelineFooter}
+						</>
+					}
 					data={displayedGroupedMessages}
-					// increasing top by 3_000 to prevent jumping around when user collapses a row
-					increaseViewportBy={{
-						top: 3_000,
-						bottom: Number.MAX_SAFE_INTEGER,
-					}} // hack to make sure the last message is always rendered to get truly perfect scroll to bottom animation when new messages are added (Number.MAX_SAFE_INTEGER is safe for arithmetic operations, which is all virtuoso uses this value for in src/sizeRangeSystem.ts)
+					increaseViewportBy={MESSAGE_OVERSCAN}
 					initialTopMostItemIndex={displayedGroupedMessages.length - 1} // messages is the raw format returned by extension, modifiedMessages is the manipulated structure that combines certain messages of related type, and visibleMessages is the filtered structure that removes messages that should not be rendered
 					itemContent={itemContent}
 					key={task.ts}

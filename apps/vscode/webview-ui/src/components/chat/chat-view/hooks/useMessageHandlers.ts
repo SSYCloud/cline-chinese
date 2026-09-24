@@ -268,12 +268,17 @@ export function useMessageHandlers(messages: ClineMessage[], chatState: ChatStat
 					//      does not emit a trailing ask:"completion_result", so clineAsk is
 					//      undefined even when the user can keep talking; turnState is the source
 					//      of truth.
+					//      An idle task is also ready for its first prompt: entering Batch creates
+					//      the shared SDK session before any model turn. Continue that session,
+					//      rather than silently dropping the send or starting a separate task.
 					//   2. Legacy fallback (no turnState): the task looks actively running from the
 					//      message tail.
 					const lastMessage = messages[messages.length - 1]
 					const isTaskRunning =
 						lastMessage.partial === true || (lastMessage.type === "say" && lastMessage.say === "api_req_started")
+					const isIdleTask = turnState?.phase === "idle" && messages[0]?.type === "say" && messages[0].say === "task"
 					const turnAllowsFollowup =
+						isIdleTask ||
 						turnState?.phase === "completed" ||
 						turnState?.phase === "awaiting_followup" ||
 						turnState?.phase === "streaming"
@@ -288,7 +293,8 @@ export function useMessageHandlers(messages: ClineMessage[], chatState: ChatStat
 								files,
 							}),
 							{
-								showPendingMessage: turnState?.phase === "completed" || turnState?.phase === "awaiting_followup",
+								showPendingMessage:
+									isIdleTask || turnState?.phase === "completed" || turnState?.phase === "awaiting_followup",
 							},
 						)
 						messageSent = true

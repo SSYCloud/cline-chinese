@@ -37,59 +37,67 @@ export function useScrollBehavior(
 	const [pendingScrollToMessage, setPendingScrollToMessage] = useState<number | null>(null)
 	const [scrolledPastUserMessage, setScrolledPastUserMessage] = useState<ClineMessage | null>(null)
 
-	// Find all user feedback messages
-	const userFeedbackMessages = useMemo(() => {
-		return visibleMessages.filter((msg) => msg.say === "user_feedback")
-	}, [visibleMessages])
+	// Index user messages by virtual row when the transcript changes. Scroll
+	// events then use a binary search instead of one DOM query per old message.
+	const feedbackRows = useMemo(() => {
+		const rows: { rowIndex: number; message: ClineMessage }[] = []
+		groupedMessages.forEach((row, rowIndex) => {
+			for (const message of Array.isArray(row) ? row : [row]) {
+				if (message.say === "user_feedback") rows.push({ rowIndex, message })
+			}
+		})
+		return rows
+	}, [groupedMessages])
+	const feedbackRowsRef = useRef(feedbackRows)
+	feedbackRowsRef.current = feedbackRows
+	const messageCountRef = useRef(groupedMessages.length)
+	messageCountRef.current = groupedMessages.length
+	const stickyCheckFrameRef = useRef<number | null>(null)
 
-	// Track scroll position to detect which user message has been scrolled past
-	// Shows the most recent user message that's above the current viewport
 	const checkScrolledPastUserMessage = useCallback(() => {
 		const scrollContainer = scrollContainerRef.current
-		if (!scrollContainer || userFeedbackMessages.length === 0) {
+		const userMessages = feedbackRowsRef.current
+		if (!scrollContainer || userMessages.length === 0) {
 			setScrolledPastUserMessage(null)
 			return
 		}
-
-		const containerRect = scrollContainer.getBoundingClientRect()
-
-		// Find the most recent (last in order) user message that's been scrolled past
-		// We iterate from the end to find the latest one that's above the viewport
-		let mostRecentScrolledPast: ClineMessage | null = null
-
-		// Track if we've found any visible message element in the DOM
-		// This helps us determine if missing elements are above or below viewport
-		let foundAnyVisibleElement = false
-
-		for (let i = userFeedbackMessages.length - 1; i >= 0; i--) {
-			const msg = userFeedbackMessages[i]
-			const messageElement = scrollContainer.querySelector(`[data-message-ts="${msg.ts}"]`) as HTMLElement
-
-			if (messageElement) {
-				foundAnyVisibleElement = true
-				const messageRect = messageElement.getBoundingClientRect()
-				// Message is scrolled past if its bottom edge is above (or near) the container's top
-				// Add a small threshold so the pin appears slightly before message fully scrolls out
-				const threshold = 10
-				if (messageRect.bottom < containerRect.top + threshold) {
-					mostRecentScrolledPast = msg
-					break // Found the most recent one that's scrolled past
-				}
-			} else {
-				// Element not in DOM - it's virtualized out
-				// Only consider it scrolled past if we've already found a visible element after it
-				// (meaning this missing element is above the viewport, not below)
-				if (foundAnyVisibleElement) {
-					mostRecentScrolledPast = msg
-					break
-				}
-				// If we haven't found any visible elements yet, this message might be
-				// below the viewport, so continue looking for visible elements
+		const top = scrollContainer.getBoundingClientRect().top + 10
+		const renderedRows = scrollContainer.querySelectorAll<HTMLElement>('[data-testid="virtuoso-item-list"] > [data-index]')
+		if (!renderedRows.length) return
+		let firstVisibleIndex = messageCountRef.current
+		let firstVisibleRow: HTMLElement | undefined
+		for (const row of renderedRows) {
+			if (row.getBoundingClientRect().bottom >= top) {
+				firstVisibleIndex = Number(row.dataset.index)
+				firstVisibleRow = row
+				break
 			}
 		}
-
-		setScrolledPastUserMessage(mostRecentScrolledPast)
-	}, [userFeedbackMessages])
+		let low = 0
+		let high = userMessages.length
+		while (low < high) {
+			const mid = (low + high) >>> 1
+			if (userMessages[mid].rowIndex < firstVisibleIndex) low = mid + 1
+			else high = mid
+		}
+		let pinned = userMessages[low - 1]?.message ?? null
+		// A grouped row can stay partly visible after its user message is gone.
+		if (firstVisibleRow) {
+			for (let index = low; index < userMessages.length && userMessages[index].rowIndex === firstVisibleIndex; index++) {
+				const message = userMessages[index].message
+				const element = firstVisibleRow.querySelector<HTMLElement>(`[data-message-ts="${message.ts}"]`)
+				if (element && element.getBoundingClientRect().bottom < top) pinned = message
+			}
+		}
+		setScrolledPastUserMessage((current) => (current?.ts === pinned?.ts ? current : pinned))
+	}, [])
+	const scheduleStickyCheck = useCallback(() => {
+		if (stickyCheckFrameRef.current !== null) return
+		stickyCheckFrameRef.current = requestAnimationFrame(() => {
+			stickyCheckFrameRef.current = null
+			checkScrolledPastUserMessage()
+		})
+	}, [checkScrolledPastUserMessage])
 
 	// Use scroll event listener - attach to the scrollable element inside the container
 	useEffect(() => {
@@ -112,25 +120,21 @@ export function useScrollBehavior(
 
 		const scrollableElement = findScrollableElement()
 
-		const handleScroll = () => {
-			checkScrolledPastUserMessage()
-		}
-
-		scrollableElement.addEventListener("scroll", handleScroll, { passive: true })
+		scrollableElement.addEventListener("scroll", scheduleStickyCheck, { passive: true })
 
 		// Also check on mount and when dependencies change
-		checkScrolledPastUserMessage()
+		scheduleStickyCheck()
 
 		return () => {
-			scrollableElement.removeEventListener("scroll", handleScroll)
+			scrollableElement.removeEventListener("scroll", scheduleStickyCheck)
+			if (stickyCheckFrameRef.current !== null) cancelAnimationFrame(stickyCheckFrameRef.current)
+			stickyCheckFrameRef.current = null
 		}
-	}, [checkScrolledPastUserMessage])
+	}, [scheduleStickyCheck])
+	useEffect(() => scheduleStickyCheck(), [feedbackRows, scheduleStickyCheck])
 
-	// Handler for when visible range changes in Virtuoso (kept for compatibility but not used for sticky)
-	const handleRangeChanged = useCallback((_range: ListRange) => {
-		// Range changed callback - we now use scroll position instead
-		// but keep this for potential future use
-	}, [])
+	// Recheck after Virtuoso updates the mounted range following a scroll.
+	const handleRangeChanged = useCallback((_range: ListRange) => scheduleStickyCheck(), [scheduleStickyCheck])
 	const scrollToBottomSmooth = useMemo(
 		() =>
 			debounce(

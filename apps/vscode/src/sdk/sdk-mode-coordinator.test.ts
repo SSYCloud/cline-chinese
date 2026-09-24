@@ -17,6 +17,28 @@ vi.mock("@core/storage/disk", () => ({
 }))
 
 describe("SdkModeCoordinator", () => {
+	it("enters the Batch Act profile without changing the selected provider/model or auto-continuing", async () => {
+		const activeSession = makeActiveSession()
+		const task = makeTask("old-session", planMessages())
+		const { coordinator, options } = makeCoordinator({ mode: "plan", activeSession, task })
+		options.sessionConfigBuilder.build.mockImplementation(async ({ mode }: { mode: string }) => ({
+			providerId: mode === "plan" ? "openai" : "anthropic",
+			modelId: mode === "plan" ? "selected-model" : "other-model",
+			apiKey: "test-credential",
+			mode,
+		}))
+		await coordinator.rebuildSessionForMode("act", {
+			autoContinue: false,
+			preserveModel: true,
+			deferStatePosts: true,
+		})
+		expect(options.buildStartSessionInput).toHaveBeenCalledWith(
+			expect.objectContaining({ sessionId: "old-session", providerId: "openai", modelId: "selected-model", mode: "act" }),
+			{ cwd: "/workspace", mode: "act" },
+		)
+		expect(options.sessions.fireAndForgetSend).not.toHaveBeenCalled()
+		expect(options.postStateToWebview).not.toHaveBeenCalled()
+	})
 	beforeEach(() => {
 		vi.clearAllMocks()
 	})

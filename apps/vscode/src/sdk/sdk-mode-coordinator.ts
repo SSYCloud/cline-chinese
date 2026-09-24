@@ -187,6 +187,9 @@ export class SdkModeCoordinator {
 		newMode: Mode,
 		options: {
 			autoContinue?: boolean
+			preserveModel?: boolean
+			/** Batch posts one coherent state after its Act rebuild and draft activation. */
+			deferStatePosts?: boolean
 			userContinuationPrompt?: string
 			userImages?: string[]
 			userFiles?: string[]
@@ -207,17 +210,20 @@ export class SdkModeCoordinator {
 		newMode: Mode,
 		options: {
 			autoContinue?: boolean
+			preserveModel?: boolean
+			deferStatePosts?: boolean
 			userContinuationPrompt?: string
 			userImages?: string[]
 			userFiles?: string[]
 		},
 	): Promise<boolean> {
+		const postState = () => (options.deferStatePosts ? Promise.resolve() : this.options.postStateToWebview())
 		const previousMode = this.options.stateManager.getGlobalSettingsKey("mode")
 		this.options.stateManager.setGlobalState("mode", newMode)
 
 		const activeSession = this.options.sessions.getActiveSession()
 		if (!activeSession) {
-			await this.options.postStateToWebview()
+			await postState()
 			return false
 		}
 
@@ -231,7 +237,7 @@ export class SdkModeCoordinator {
 		// make the toggle feel unresponsive. A failed rebuild posts again after
 		// rolling back to the previous mode.
 		try {
-			await this.options.postStateToWebview()
+			await postState()
 		} catch (error) {
 			// A detached webview must not prevent the active session from being
 			// rebuilt with tools matching the newly persisted mode.
@@ -246,12 +252,30 @@ export class SdkModeCoordinator {
 		let continuationSent = false
 		let sessionReplaced = false
 		try {
-			const initialMessages = await this.options.loadInitialMessages(oldManager, oldSessionId)
-			const cwd = await this.options.getWorkspaceRoot()
+			const [initialMessages, cwd] = await Promise.all([
+				this.options.loadInitialMessages(oldManager, oldSessionId),
+				this.options.getWorkspaceRoot(),
+			])
 			const config = await this.options.sessionConfigBuilder.build({
 				cwd,
 				mode: newMode,
 			})
+			if (options.preserveModel && previousMode) {
+				const previous = await this.options.sessionConfigBuilder.build({ cwd, mode: previousMode })
+				const { providerId, modelId, apiKey, baseUrl, headers, providerConfig, knownModels, reasoningEffort, thinking } =
+					previous
+				Object.assign(config, {
+					providerId,
+					modelId,
+					apiKey,
+					baseUrl,
+					headers,
+					providerConfig,
+					knownModels,
+					reasoningEffort,
+					thinking,
+				})
+			}
 			Logger.log(
 				`[SdkController] Mode rebuild config: mode=${newMode}, provider=${config.providerId}, model=${config.modelId}, hasApiKey=${!!config.apiKey}`,
 			)
@@ -265,7 +289,7 @@ export class SdkModeCoordinator {
 				// setting back to keep the UI toggle coherent with it.
 				this.options.stateManager.setGlobalState("mode", previousMode)
 				this.options.emitClineAuthError()
-				await this.options.postStateToWebview()
+				await postState()
 				return false
 			}
 
@@ -289,7 +313,7 @@ export class SdkModeCoordinator {
 				if (this.options.sessions.getActiveSession() === activeSession) {
 					this.options.stateManager.setGlobalState("mode", previousMode)
 				}
-				await this.options.postStateToWebview()
+				await postState()
 				return false
 			}
 
@@ -348,7 +372,7 @@ export class SdkModeCoordinator {
 			// messages (clineMessages ride on the state post), and auto-continue
 			// flips the running flag and turn phase. Post again so the webview
 			// converges on the post-rebuild state.
-			await this.options.postStateToWebview()
+			await postState()
 
 			Logger.log(`[SdkController] Session rebuilt for mode ${newMode}: ${oldSessionId} -> ${startResult.sessionId}`)
 		} catch (error) {
@@ -385,7 +409,7 @@ export class SdkModeCoordinator {
 				type: "status",
 				payload: { sessionId: oldSessionId, status: "error" },
 			})
-			await this.options.postStateToWebview()
+			await postState()
 		}
 		return continuationSent
 	}

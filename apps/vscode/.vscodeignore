@@ -72,6 +72,7 @@ buf.yaml
 webview-ui/src/**
 webview-ui/public/**
 webview-ui/index.html
+webview-ui/batch-preview.html
 webview-ui/README.md
 webview-ui/package.json
 webview-ui/package-lock.json
@@ -105,3 +106,9 @@ webview-ui/.vite-port
 *storybook.log
 storybook-static
 **/StorybookDecorator.tsx
+
+# Development-only files are never needed by the installed extension.
+plans/**
+skills-lock.json
+webview-ui/**
+!webview-ui/build/**

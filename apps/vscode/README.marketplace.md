@@ -1,4 +1,13 @@
-# Cline
+# Cline Chinese · Cline 中文汉化版
+
+Cline Chinese 基于开源 [Cline](https://github.com/cline/cline)，保留原有编程 Agent 能力，并加入面向中文开发场景的体验。下面的 Cline 功能介绍是基础能力；**Batch 是 Cline Chinese 新增的独特模式**。
+
+## Batch：Cline Agent × LoomLoom SkillBot
+
+在 `Plan / Act / Batch` 中切到 Batch，仍沿用当前 Cline 会话和 Act Agent 的对话上下文，不必在两套聊天之间切换。你可以从 LoomLoom SkillBot 市场安装工作流，在聊天中让 Cline 帮忙整理文字、代码文件和其他输入，也可以在右侧 VS Code 深色 **Batch 工作表** 中增删任务行、逐格检查和修改。确认输入后先查看费用预算，再由你明确确认执行；聊天显示关键反馈，工作表集中记录逐条进度、结果、错误和历史。它是 Excel 风格的编辑界面，**不要求导入 Excel 文件**。
+
+你还可以在工作表的创作模式中设计、验证和测试自己的工作流，保存私有版本，并申请发布为 LoomLoom 市场 SkillBot。申请需经过平台审核；审核通过且符合定价、结算规则后，才可按任务收费并获得收益，**不保证上架或收入**。Batch 使用胜算云账户/API 凭据；云端执行会将你确认的输入和相关素材发送到 LoomLoom，请在提交前检查内容与费用。
+
 <div align="center">
 <table>
 <tbody>

@@ -97,7 +97,9 @@ function resolveTsProtoPlugin() {
 	fsSync.mkdirSync(wrapperDir, { recursive: true })
 	const wrapperPath = path.join(wrapperDir, "protoc-gen-ts_proto.cmd")
 	// %* forwards protoc's plugin args/stdio to the JS entry run under node.
-	fsSync.writeFileSync(wrapperPath, `@echo off\r\nnode "${pluginJs}" %*\r\n`)
+	// Keep the batch file ASCII: cmd/protoc may use the ANSI code page even when the
+	// checkout lives in a Unicode directory. %~dp0 resolves the native directory.
+	fsSync.writeFileSync(wrapperPath, `@echo off\r\nnode "%~dp0${path.relative(wrapperDir, pluginJs)}" %*\r\n`)
 	return wrapperPath
 }
 
@@ -141,8 +143,9 @@ async function compileProtos() {
 
 	const descriptorFile = path.join(DESCRIPTOR_OUT_DIR, "descriptor_set.pb")
 	const descriptorProtocArgs = [
-		`--proto_path=${PROTO_DIR}`,
-		`--descriptor_set_out=${descriptorFile}`,
+		`--proto_path=${path.relative(process.cwd(), PROTO_DIR) || "."}`,
+		`--proto_path=${path.relative(process.cwd(), path.join(GRPC_TOOLS_DIR, "bin"))}`,
+		`--descriptor_set_out=${path.relative(process.cwd(), descriptorFile)}`,
 		"--include_imports",
 		...protoFiles,
 	]
@@ -161,9 +164,10 @@ async function compileProtos() {
 
 function tsProtoc(outDir, protoFiles, protoOptions) {
 	const args = [
-		`--proto_path=${PROTO_DIR}`,
-		`--plugin=protoc-gen-ts_proto=${TS_PROTO_PLUGIN}`,
-		`--ts_proto_out=${outDir}`,
+		`--proto_path=${path.relative(process.cwd(), PROTO_DIR) || "."}`,
+		`--proto_path=${path.relative(process.cwd(), path.join(GRPC_TOOLS_DIR, "bin"))}`,
+		`--plugin=protoc-gen-ts_proto=${path.relative(process.cwd(), TS_PROTO_PLUGIN)}`,
+		`--ts_proto_out=${path.relative(process.cwd(), outDir)}`,
 		`--ts_proto_opt=${protoOptions.join(",")}`,
 		...protoFiles,
 	]

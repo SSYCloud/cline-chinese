@@ -1,4 +1,5 @@
-import { act, renderHook } from "@testing-library/react"
+import type { ClineMessage } from "@shared/ExtensionMessage"
+import { act, fireEvent, render, renderHook } from "@testing-library/react"
 import type { MutableRefObject } from "react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { useScrollBehavior } from "./useScrollBehavior"
@@ -17,6 +18,55 @@ describe("useScrollBehavior", () => {
 
 	afterEach(() => {
 		vi.useRealTimers()
+		vi.unstubAllGlobals()
+	})
+
+	it("keeps the latest virtualized user message pinned with one bounded DOM scan per frame", () => {
+		vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => setTimeout(() => callback(0), 0))
+		vi.stubGlobal("cancelAnimationFrame", (timer: number) => clearTimeout(timer))
+		const messages = [
+			{ ts: 1, type: "say", say: "user_feedback", text: "Earlier user" },
+			{ ts: 2, type: "say", say: "text", text: "Reply" },
+			{ ts: 3, type: "say", say: "user_feedback", text: "Recent user" },
+			{ ts: 4, type: "say", say: "text", text: "Reply" },
+		] as ClineMessage[]
+		let behavior!: ReturnType<typeof useScrollBehavior>
+		function Harness() {
+			behavior = useScrollBehavior(messages, messages, messages, {}, vi.fn())
+			return (
+				<div data-testid="container" ref={behavior.scrollContainerRef}>
+					<div data-testid="scroller" data-virtuoso-scroller="true">
+						<div data-testid="virtuoso-item-list">
+							<div data-index="2" data-testid="user-row" />
+							<div data-index="3" data-testid="last-row" />
+						</div>
+					</div>
+				</div>
+			)
+		}
+		const view = render(<Harness />)
+		const container = view.getByTestId("container")
+		const scroller = view.getByTestId("scroller")
+		const userRow = view.getByTestId("user-row")
+		const lastRow = view.getByTestId("last-row")
+		vi.spyOn(container, "getBoundingClientRect").mockReturnValue({ top: 100 } as DOMRect)
+		let userBottom = 150
+		vi.spyOn(userRow, "getBoundingClientRect").mockImplementation(() => ({ bottom: userBottom }) as DOMRect)
+		vi.spyOn(lastRow, "getBoundingClientRect").mockReturnValue({ bottom: 200 } as DOMRect)
+		const scan = vi.spyOn(container, "querySelectorAll")
+		act(() => {
+			fireEvent.scroll(scroller)
+			fireEvent.scroll(scroller)
+			vi.advanceTimersByTime(1)
+		})
+		expect(scan).toHaveBeenCalledTimes(1)
+		expect(behavior.scrolledPastUserMessage?.ts).toBe(1)
+		userBottom = 90
+		act(() => {
+			fireEvent.scroll(scroller)
+			vi.advanceTimersByTime(1)
+		})
+		expect(behavior.scrolledPastUserMessage?.ts).toBe(3)
 	})
 
 	it("scrolls to bottom after command output layout has been quiet for 500ms", () => {

@@ -1,11 +1,9 @@
 import type { MarketplaceEntryExecuteRequest, MarketplaceEntryExecuteResult } from "@shared/proto/cline/marketplace"
 import type { Controller } from "../index"
-import { executeMarketplaceEntryFromCatalog } from "./marketplace-helpers"
 
 export async function executeMarketplaceEntry(
 	_controller: Controller,
-	request: MarketplaceEntryExecuteRequest,
+	_request: MarketplaceEntryExecuteRequest,
 ): Promise<MarketplaceEntryExecuteResult> {
-	const inputRows = (request.inputRows ?? []).map((row) => row.fields ?? {})
-	return executeMarketplaceEntryFromCatalog(request.id, inputRows, request.confirm, request.clientRequestId)
+	throw new Error("旧版直接执行入口已停用。请在 Batch 对话中检查输入、获取预算并确认运行。")
 }

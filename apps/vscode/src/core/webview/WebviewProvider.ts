@@ -110,12 +110,26 @@ export abstract class WebviewProvider {
 					font-src ${this.getCspSource()} data:; 
 					style-src ${this.getCspSource()} 'unsafe-inline'; 
 					img-src ${this.getCspSource()} https: data:; 
-					script-src 'nonce-${nonce}' 'unsafe-eval';">
+					script-src ${this.getCspSource()} 'nonce-${nonce}' 'unsafe-eval';">
 				<title>Cline Chinese</title>
 			</head>
 			<body>
 				<noscript>You need to enable JavaScript to run this app.</noscript>
-				<div id="root"></div>
+				<div id="root"><div id="cline-boot-status" style="padding: 16px; color: var(--vscode-foreground); font-size: 13px">正在启动 Cline Chinese…</div></div>
+				<script nonce="${nonce}">
+					// A Webview can fail before React runs (for example, a missing JS asset).
+					// Keep a visible recovery path instead of leaving the VS Code sidebar blank.
+					window.setTimeout(() => {
+						const status = document.getElementById("cline-boot-status")
+						if (!status) return
+						status.textContent = "Cline Chinese 启动超时。"
+						const retry = document.createElement("button")
+						retry.textContent = "重新加载侧栏"
+						retry.style.cssText = "display:block;margin-top:12px;color:var(--vscode-textLink-foreground);background:none;border:0;padding:0;cursor:pointer"
+						retry.addEventListener("click", () => window.location.reload())
+						status.appendChild(retry)
+					}, 12000)
+				</script>
 				<script type="module" nonce="${nonce}" src="${scriptUrl}"></script>
 			</body>
 		</html>

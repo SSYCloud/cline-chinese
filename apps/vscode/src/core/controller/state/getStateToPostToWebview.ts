@@ -49,6 +49,8 @@ export async function getStateToPostToWebview(controller: {
 	const subagentsEnabled = stateManager.getGlobalSettingsKey("subagentsEnabled")
 	const focusChainSettings = stateManager.getGlobalSettingsKey("focusChainSettings")
 	const userInfo = stateManager.getGlobalStateKey("userInfo")
+	const loomLoomCredentialAvailable = !!stateManager.getSecretKey("shengSuanYunApiKey")
+	const loomLoomSignedIn = !!stateManager.getSecretKey("shengSuanYunToken")
 	const mcpMarketplaceEnabled = stateManager.getGlobalStateKey("mcpMarketplaceEnabled")
 	const mcpDisplayMode = stateManager.getGlobalStateKey("mcpDisplayMode")
 	const telemetrySetting = stateManager.getGlobalSettingsKey("telemetrySetting")
@@ -128,6 +130,8 @@ export async function getStateToPostToWebview(controller: {
 		subagentsEnabled,
 		focusChainSettings,
 		userInfo,
+		loomLoomCredentialAvailable,
+		loomLoomSignedIn,
 		mcpMarketplaceEnabled,
 		mcpDisplayMode,
 		telemetrySetting,

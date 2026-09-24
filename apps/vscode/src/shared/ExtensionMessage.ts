@@ -38,6 +38,7 @@ export const DEFAULT_PLATFORM = "unknown"
 
 export const COMMAND_CANCEL_TOKEN = "__cline_command_cancel__"
 export interface ExtensionState {
+	loomLoomBatch?: import("./loomloom").BatchChatSnapshot
 	isNewUser: boolean
 	welcomeViewCompleted: boolean
 	onboardingModels: OnboardingModelGroup | undefined
@@ -101,6 +102,10 @@ export interface ExtensionState {
 	foregroundCommandRunning?: boolean
 	lastCompletedCommandTs?: number
 	userInfo?: UserInfo
+	/** Whether the existing ShengSuanYun API key can authenticate LoomLoom. Never send the key to the webview. */
+	loomLoomCredentialAvailable?: boolean
+	/** The ShengSuanYun interactive login token is present; distinct from an API key configured for models. */
+	loomLoomSignedIn?: boolean
 	version: string
 	/**
 	 * Which rollout bundle this build is ("legacy" or "next"). Only present for

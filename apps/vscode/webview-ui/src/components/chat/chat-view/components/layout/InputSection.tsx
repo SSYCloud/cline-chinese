@@ -12,7 +12,7 @@ interface InputSectionProps {
 	shouldDisableFilesAndImages: boolean
 	selectFilesAndImages: () => Promise<void>
 	batchMode?: boolean
-	onBatchModeChange?: (batch: boolean) => void
+	onBatchModeChange?: (batch: boolean, mode?: "plan" | "act") => void
 }
 
 /**
@@ -54,7 +54,7 @@ export const InputSection: React.FC<InputSectionProps> = ({
 
 	return (
 		<>
-			{!batchMode && activeQuote && (
+			{activeQuote && (
 				<div style={{ marginBottom: "-12px", marginTop: "10px" }}>
 					<QuotedMessagePreview
 						isFocused={isTextAreaFocused}

@@ -2,7 +2,7 @@
 	"name": "cline-chinese",
 	"displayName": "Cline Chinese",
 	"description": "Cline 的开源社区汉化版本",
-	"version": "4.1.20",
+  "version": "4.1.31",
 	"icon": "assets/icons/icon.png",
 	"engines": {
 		"vscode": "^1.101.0"
@@ -378,6 +378,7 @@
 		"test:integration": "bun run compile-tests && vscode-test",
 		"test:unit": "bun scripts/run-bun-unit-tests.ts",
 		"test:vitest": "vitest run --config vitest.config.ts",
+		"test:batch-runtime": "vitest run --config vitest.batch-integration.config.ts",
 		"test:vitest:watch": "vitest --config vitest.config.ts",
 		"test:bun": "bun scripts/run-bun-tests.ts",
 		"test:bun:unit": "bun scripts/run-bun-unit-tests.ts",

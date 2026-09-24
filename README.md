@@ -39,17 +39,19 @@ Cline Chinese 是基于 [Cline](https://github.com/cline/cline) 的开源社区 
 - 中文 UI、中文提示词、中文错误信息和中文文档；
 - 面向 DeepSeek、Kimi、Qwen、GLM 等中文模型的 prompt 优化和适配；
 - 胜算云 API 供应商和统一模型网关集成；
+- 与当前 Cline 会话协作的 Batch 模式，接入 LoomLoom SkillBot 与批量工作表；
 - 中文社区维护、中文使用指南以及面向中国用户的配置说明。
 
 此前用于灰度发布的重复 Marketplace listing `shengsuan-cloud.cline-shengsuan` 已 **Unpublish**。后续 Marketplace 上仅保留并维护 `Cline Chinese` 这一独立项目；本仓库的后续版本将从这里独立构建、发布和维护。
 
-## 我们做的三件事：
+## 我们做的四件事：
 
 | | |
 |---|---|
 |**完整中文化** | 界面、提示词、错误信息、文档全部本地化 |
 |**国产大模型深度调优** | 解决"中文输入 → 英文 prompt → 输出走样"的链路问题，DeepSeek / Kimi / Qwen / GLM 等最新模型开箱即用 |
 |**默认对接胜算云统一 API 网关** | 一份 Key 切换多家模型，全球算力调度 + 自动容灾，无需自配代理 |
+|**Batch 批量工作流** | 在原有 Cline 会话中使用 LoomLoom SkillBot，由 Agent 与工作表协作准备、检查和运行多条任务 |
 
 **当前下载量**：271k+ VS Code 插件市场（截至 2026-07-30）
 
@@ -62,6 +64,17 @@ Cline Chinese 是基于 [Cline](https://github.com/cline/cline) 的开源社区 
 | 中文 prompt 工程 | ✅ 内置 | ❌ 需要自己调 |
 | 插件 / MCP | ✅ Skills / Plugins / MCP 全支持 | ✅ 支持 |
 | API 网关 / 多模型切换 | ✅ 胜算云网关，一 Key 切多模型 | ❌ 需自配代理 |
+| Batch 模式 / LoomLoom SkillBot | ✅ 同一会话中的 Agent 协作与批量工作表 | — 本项目新增能力 |
+
+## Batch：让 Cline 和 LoomLoom 一起完成批量任务
+
+`Plan / Act / Batch` 中的 **Batch** 是 Cline Chinese 新增的模式，不是另一套独立聊天。切换后仍沿用当前 Cline 会话和 Act Agent 的对话上下文；Agent 可以帮你选择已安装的 LoomLoom SkillBot、理解所需输入，并与右侧 **Batch 工作表** 协作整理多行任务。没有合适的 SkillBot 时，可到 LoomLoom SkillBot 市场查看和安装。
+
+你可以在聊天中描述需求、引用文件，让 Cline 帮你整理输入，也可以在 VS Code 深色工作表中逐格编辑、增删任务行。输入先以表格检查和修改，再获取费用预算；只有你明确确认后才提交批量运行。聊天中保留关键反馈，工作表集中显示每条任务的进度、输出、错误和历史。工作表是 Excel 风格的操作界面，**不要求导入 Excel 文件**。
+
+**创作自己的 SkillBot：** 在 Batch 工作表的创作模式中，可以设计并验证自定义工作流、保存私有版本和测试；准备就绪后可申请发布到 LoomLoom 市场。提交申请不等于立即上架：通过平台审核且符合定价与结算规则后，才可按任务收费并获得相应收益；不保证审核通过或产生收入。
+
+Batch 使用胜算云账户/API 凭据访问 LoomLoom。执行云端任务时，你确认的输入、相关附件或素材会按所选工作流发送到 LoomLoom；提交前请检查内容与费用。
 
 
 ## 🎯 典型使用场景

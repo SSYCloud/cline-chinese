@@ -1,8 +1,8 @@
-import { cn } from "@heroui/react"
 import { StringRequest } from "@shared/proto/cline/common"
 import React, { memo, useLayoutEffect, useRef, useState } from "react"
 import { useWindowSize } from "react-use"
 import { FileServiceClient } from "@/services/grpc-client"
+import { cn } from "@/lib/utils"
 
 interface ThumbnailsProps {
 	images: string[]

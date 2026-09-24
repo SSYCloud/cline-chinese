@@ -94,9 +94,27 @@ export default defineConfig({
 		sourcemap: isDevBuild ? "inline" : false,
 		rollupOptions: {
 			output: {
-				inlineDynamicImports: true,
+				// VS Code can load lazy route chunks from the extension's Webview URI.
+				// Keep the standalone/JetBrains build single-file for its host contract.
+				inlineDynamicImports: platform !== "vscode",
+				// Rollup otherwise emits one tiny chunk per icon and Mermaid diagram
+				// (over a thousand Webview resource requests). Keep each deferred
+				// feature in one chunk, per VS Code's extension bundling guidance.
+				manualChunks:
+					platform === "vscode"
+						? (id: string) => {
+								const file = id.replaceAll("\\", "/")
+								if (file.includes("/node_modules/lucide-react/")) return "icons"
+								if (
+									file.includes("/node_modules/mermaid/") ||
+									file.includes("/node_modules/@mermaid-js/") ||
+									file.includes("/node_modules/cytoscape/")
+								)
+									return "mermaid"
+							}
+						: undefined,
 				entryFileNames: `assets/[name].js`,
-				chunkFileNames: `assets/[name].js`,
+				chunkFileNames: `assets/[name]-[hash].js`,
 				assetFileNames: `assets/[name].[ext]`,
 				// Disable compact output for dev build
 				compact: !isDevBuild,

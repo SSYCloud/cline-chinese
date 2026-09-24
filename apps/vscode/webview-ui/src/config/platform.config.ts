@@ -54,6 +54,15 @@ declare global {
 // Initialize the vscode API if available
 const vsCodeApi = typeof acquireVsCodeApi === "function" ? acquireVsCodeApi() : null
 
+/** VS Code persists this small Webview-local draft while a hidden editor tab is unloaded. */
+export function getWebviewState(): unknown {
+	return vsCodeApi?.getState?.()
+}
+
+export function setWebviewState(state: unknown): void {
+	vsCodeApi?.setState?.(state)
+}
+
 // Expose the VSCode API for debug harness access
 if (vsCodeApi && typeof window !== "undefined") {
 	;(window as any).__clineVsCodeApi = vsCodeApi

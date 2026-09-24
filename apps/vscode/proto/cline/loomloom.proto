@@ -1,0 +1,19 @@
+syntax = "proto3";
+package cline;
+import "cline/common.proto";
+option go_package = "github.com/cline/grpc-go/cline";
+option java_multiple_files = true;
+option java_package = "bot.cline.proto";
+// JSON envelopes preserve public schema value types. Each request is runtime-validated.
+service LoomLoomService {
+  rpc batchCommand(StringRequest) returns (String);
+  rpc creatorCommand(StringRequest) returns (String);
+  rpc skillBotCatalog(StringRequest) returns (String);
+  rpc selectBatchAttachment(StringRequest) returns (String);
+  rpc batchModels(StringRequest) returns (String);
+  rpc openBatchTable(StringRequest) returns (String);
+  rpc getBatchTableSnapshot(StringRequest) returns (String);
+  rpc subscribeBatchTable(StringRequest) returns (stream String);
+  rpc batchTableAction(StringRequest) returns (String);
+  rpc worksheetOperation(StringRequest) returns (String);
+}

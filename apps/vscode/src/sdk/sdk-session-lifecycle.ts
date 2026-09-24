@@ -24,6 +24,7 @@ type ApplyPatchExecutorHandler = NonNullable<Parameters<typeof VscodeSessionHost
 type ReadFileExecutorHandler = NonNullable<Parameters<typeof VscodeSessionHost.create>[0]["readFileExecutor"]>
 
 export interface SdkSessionLifecycleOptions {
+	getBatchAgent?: NonNullable<Parameters<typeof VscodeSessionHost.create>[0]>["getBatchAgent"]
 	mcpHub: McpHub
 	requestToolApproval: RequestToolApprovalHandler
 	askQuestion: AskQuestionHandler
@@ -335,6 +336,7 @@ export class SdkSessionLifecycle {
 			// Host-lifetime dependencies only. Anything task/session-specific must be
 			// supplied to sdkHost.start(...), otherwise it can leak across reused sessions.
 			this.sharedHostPromise = VscodeSessionHost.create({
+				getBatchAgent: this.options.getBatchAgent,
 				mcpHub: this.options.mcpHub,
 				requestToolApproval: this.options.requestToolApproval,
 				askQuestion: this.options.askQuestion,
