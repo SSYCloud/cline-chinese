@@ -45,7 +45,7 @@ import {
 } from "@shared/proto/cline/marketplace"
 import { StateManager } from "@/core/storage/StateManager"
 import { HostProvider } from "@/hosts/host-provider"
-import { Logger } from "@/shared/services/Logger"
+import { fetch } from "@/shared/net"
 import type { Controller } from "../index"
 
 type MarketplaceType = "mcp" | "skill" | "plugin"
@@ -130,62 +130,12 @@ function sanitizeEntry(raw: unknown): MarketplaceEntry | undefined {
 }
 
 export async function fetchMarketplaceCatalog(): Promise<MarketplaceCatalog> {
-	const catalogPromise = fetch(MARKETPLACE_CATALOG_URL, {
-		headers: { Accept: "application/json" },
-	}).catch(() => null)
-
-	const ssyPromise = fetch(`${SHENG_SUAN_YUN}/marketListings`, {
-		headers: loomLoomHeaders(),
-	}).catch(() => null)
-	const [response, ssyResponse] = await Promise.all([catalogPromise, ssyPromise])
-	let entries: MarketplaceEntry[] = []
-	if (response?.ok) {
-		try {
-			const json = (await response.json()) as { entries?: unknown[] }
-			if (Array.isArray(json.entries)) {
-				entries = json.entries.map(sanitizeEntry).filter((entry): entry is MarketplaceEntry => entry !== undefined)
-			}
-		} catch (e) {
-			Logger.warn("Failed to parse marketplace catalog json:", e)
-		}
-	} else if (response) {
-		Logger.warn(`Marketplace catalog request failed: ${response.status}`)
-	}
-	let ssyEntries: MarketplaceEntry[] = []
-	if (ssyResponse?.ok) {
-		try {
-			const skls = (await ssyResponse.json()) as { items?: any[] }
-			const base = SHENG_SUAN_YUN_SKILL_URL_PREFIX
-			if (Array.isArray(skls.items)) {
-				ssyEntries = skls.items
-					.map((it) =>
-						MarketplaceEntry.create({
-							id: String(it.id),
-							type: "skill",
-							name: typeof it.displayName === "string" ? it.displayName : String(it.id),
-							tagline: "联系胜算云 LoomLoom 团队获取支持。",
-							description: typeof it.description === "string" ? it.description : undefined,
-							tags: ["creative", "LoomLoom"],
-							author: it.creator?.nickname || undefined,
-							sourceUrl: `${base}${it.skillPackage?.archiveUrl}`,
-							homepageUrl: `${base}/zh/loomloom/market`,
-							install: {
-								args: ["cline/skills", "--skill", String(it.id)],
-								env: [],
-								command: `cline skill install cline/skills --skill ${base}${it.skillPackage?.archiveUrl}`,
-							},
-							fee: it.taskFixedFee?.amount || undefined,
-						}),
-					)
-					.filter((entry): entry is MarketplaceEntry => entry !== undefined)
-			}
-		} catch (e) {
-			Logger.warn("fetchMarketplaceCatalog() Failed to parse ShengSuanYun json:", e)
-		}
-	} else if (ssyResponse) {
-		Logger.warn(`fetchMarketplaceCatalog() ShengSuanYun request failed: ${ssyResponse.status}`)
-	}
-	return MarketplaceCatalog.create({ entries: [...ssyEntries, ...entries] })
+	const response = await fetch(MARKETPLACE_CATALOG_URL, { headers: { Accept: "application/json" } })
+	if (!response.ok) throw new Error(`Marketplace catalog request failed: ${response.status}`)
+	const json = (await response.json()) as { entries?: unknown[] }
+	const entries = (json.entries ?? []).map(sanitizeEntry).filter((entry): entry is MarketplaceEntry => entry !== undefined)
+	// Cloud SkillBots use their dedicated channel and local pins, never the package installer.
+	return MarketplaceCatalog.create({ entries })
 }
 
 function normalizeMatchValue(value: string | undefined): string {
@@ -275,7 +225,7 @@ type InstalledLoomLoomSkill = { name: string; skillMdPath: string; listingId: st
  * 与目录条目的 id（LoomLoom listing UUID）并不一致，核心的 isMarketplaceSkillInstalled
  * 无法按 skill 名称定位。这里改为扫描 SKILL.md 正文中的 "Listing ID" 字段进行匹配。
  */
-function listInstalledLoomLoomSkills(): InstalledLoomLoomSkill[] {
+export function listInstalledLoomLoomSkills(): InstalledLoomLoomSkill[] {
 	const skillsDir = join(homedir(), ".agents", "skills")
 	const skills: InstalledLoomLoomSkill[] = []
 	let entries: string[] = []

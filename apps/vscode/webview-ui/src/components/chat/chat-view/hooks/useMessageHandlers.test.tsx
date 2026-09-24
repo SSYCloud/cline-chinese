@@ -203,6 +203,37 @@ describe("useMessageHandlers — send routing", () => {
 		)
 	})
 
+	it.each([
+		false,
+		true,
+	])("sends the first Batch chat prompt into its idle task (with workflow events: %s)", async (withEvents) => {
+		mockTurnState = { phase: "idle", seq: 1 }
+		const messages: ClineMessage[] = [{ ts: 1, type: "say", say: "task", text: "LoomLoom 批量任务" }]
+		if (withEvents) messages.push({ ts: 2, type: "say", say: "text", text: "本次准备 3 条输入。" })
+		const setPendingUserMessage = vi.fn()
+		const setPendingResponse = vi.fn()
+		const { result } = renderHook(() =>
+			useMessageHandlers(messages, makeChatState(messages, { setPendingUserMessage, setPendingResponse })),
+		)
+
+		await act(async () => {
+			await result.current.handleSendMessage("帮我整理这 3 条输入", [], ["brief.md"])
+		})
+
+		expect(newTask).not.toHaveBeenCalled()
+		expect(askResponse).toHaveBeenCalledExactlyOnceWith({
+			responseType: "messageResponse",
+			text: "帮我整理这 3 条输入",
+			images: [],
+			files: ["brief.md"],
+		})
+		expect(setPendingResponse).toHaveBeenCalledWith({ id: 1, turnStateSeq: 1, messageCount: messages.length })
+		expect(setPendingUserMessage).toHaveBeenCalledWith({
+			afterTs: withEvents ? 2 : 1,
+			message: expect.objectContaining({ say: "user_feedback", text: "帮我整理这 3 条输入", files: ["brief.md"] }),
+		})
+	})
+
 	it("shows pending composer state before a follow-up askResponse resolves", async () => {
 		mockTurnState = { phase: "completed", seq: 7 }
 		let resolveAskResponse: () => void = () => {}

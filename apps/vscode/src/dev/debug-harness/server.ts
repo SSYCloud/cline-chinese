@@ -341,6 +341,7 @@ class DebugHarness {
 			execSync("bun esbuild.mjs", execOpts)
 			log("Building webview (unminified, with inline sourcemaps)...")
 			execSync("cd webview-ui && bunx vite build -- --dev-build", execOpts)
+			execSync("cd webview-ui && bunx vite build --config vite.batch.config.ts -- --dev-build", execOpts)
 		}
 
 		// Verify build output exists

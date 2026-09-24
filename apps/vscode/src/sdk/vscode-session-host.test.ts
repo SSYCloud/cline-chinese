@@ -30,9 +30,48 @@ vi.mock("./vscode-runtime-builder", () => ({
 	createVscodeExtraTools: mockCreateVscodeExtraTools,
 }))
 
+import { BatchAgentBridge } from "@/services/loomloom/batch-agent-bridge"
+import { BatchService } from "@/services/loomloom/batch-service"
+import { SkillBotDirectory } from "@/services/loomloom/skillbot-directory"
 import { VscodeSessionHost } from "./vscode-session-host"
 
 describe("VscodeSessionHost telemetry wiring", () => {
+	it("wires the Batch policy, dynamic hooks and tools into the actual Core start input together", async () => {
+		const api = { detail: vi.fn(), catalog: vi.fn() }
+		const batch = new BatchService({ loadAll: async () => [], save: async () => {} }, api as never, () => {})
+		await batch.setEnabled("session-batch", true)
+		const directory = new SkillBotDirectory(api, { list: async () => [], set: async () => {} })
+		const bridge = new BatchAgentBridge(batch, directory, () => "session-batch")
+		try {
+			await VscodeSessionHost.create({ mcpHub: {} as never, getBatchAgent: () => bridge })
+			const bootstrap = await mockClineCoreCreate.mock.calls[0][0].prepare()
+			const existingBeforeTool = vi.fn()
+			const prepared = await bootstrap.applyToStartSessionInput({
+				config: {
+					cwd: "/workspace",
+					systemPrompt: "Original Act prompt",
+					extraTools: [],
+					hooks: { beforeTool: existingBeforeTool },
+				},
+			})
+			expect(prepared.config.systemPrompt).toContain("ONE Cline Agent")
+			expect(prepared.config.systemPrompt).toContain("Original Act prompt")
+			expect(prepared.config.extraTools.map((tool: { name: string }) => tool.name)).toContain("loomloom_prepare_batch")
+			expect(prepared.config.hooks.beforeTool).toBe(existingBeforeTool)
+			const result = await prepared.config.hooks.beforeModel({
+				snapshot: { conversationId: "session-batch" },
+				request: {
+					tools: prepared.config.extraTools,
+					messages: [
+						{ id: "hello", role: "user", content: [{ type: "text", text: "推荐一个skillbot吧" }], createdAt: 1 },
+					],
+				},
+			})
+			expect(result.messages[0].content[1].text).toContain('"taskId":"session-batch"')
+		} finally {
+			batch.dispose()
+		}
+	})
 	beforeEach(() => {
 		mockClineCoreCreate.mockReset()
 		mockClineCoreCreate.mockResolvedValue({ runtimeAddress: undefined })

@@ -85,7 +85,7 @@ interface ChatTextAreaProps {
 	onHeightChange?: (height: number) => void
 	onFocusChange?: (isFocused: boolean) => void
 	batchMode?: boolean
-	onBatchModeChange?: (batch: boolean) => void
+	onBatchModeChange?: (batch: boolean, mode?: "plan" | "act") => void
 }
 
 interface GitCommit {
@@ -1107,7 +1107,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				}
 				const target = lower === "plan" ? "plan" : "act"
 				if (batchMode) {
-					onBatchModeChange(false)
+					onBatchModeChange(false, target)
+					return
 				}
 				if (target !== mode) {
 					switchMode(target)
@@ -1447,10 +1448,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		return (
 			<div>
 				<div
-					className={cn(
-						"relative flex transition-colors ease-in-out duration-100 px-3.5 py-2.5",
-						batchMode && "hidden",
-					)}
+					className={cn("relative flex transition-colors ease-in-out duration-100 px-3.5 py-2.5")}
 					onDragEnter={handleDragEnter}
 					onDragLeave={handleDragLeave}
 					onDragOver={onDragOver}
@@ -1524,8 +1522,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					<DynamicTextArea
 						autoFocus={true}
 						data-testid="chat-input"
-						maxRows={10}
-						minRows={3}
+						maxRows={batchMode ? 6 : 10}
+						minRows={batchMode ? 2 : 3}
 						onBlur={handleBlur}
 						onChange={(e) => {
 							handleInputChange(e)
@@ -1634,7 +1632,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 						</div>
 					</div>
 				</div>
-				{!batchMode && unsupportedImagesAttached && (
+				{unsupportedImagesAttached && (
 					<div
 						className="flex items-center gap-1.5 px-3.5 pb-1.5 text-xs"
 						data-testid="images-unsupported-notice"
@@ -1661,7 +1659,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					<div className="relative flex-1 min-w-0 h-5">
 						{/* ButtonGroup - always in DOM but visibility controlled */}
 						<ButtonGroup className="absolute top-0 left-0 right-0 ease-in-out w-full h-5 z-10 flex items-center">
-							{!batchMode && (
+							{
 								<>
 									<Tooltip>
 										<TooltipContent>添加上下文</TooltipContent>
@@ -1704,7 +1702,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 
 									<ClineRulesToggleModal />
 								</>
-							)}
+							}
 
 							<ModelContainer>
 								<ModelButtonWrapper>

@@ -42,6 +42,7 @@ import {
 import { StateManager } from "@/core/storage/StateManager"
 import type { VscodeTerminalManager } from "@/hosts/vscode/terminal/VscodeTerminalManager"
 import { getDistinctId } from "@/services/logging/distinctId"
+import type { BatchAgentBridge } from "@/services/loomloom/batch-agent-bridge"
 import type { McpHub } from "@/services/mcp/McpHub"
 import { Logger } from "@/shared/services/Logger"
 import type { SdkForegroundCommandCoordinator } from "./sdk-foreground-command-coordinator"
@@ -50,6 +51,8 @@ import { createVscodeExtraTools } from "./vscode-runtime-builder"
 import { getEffectiveTerminalExecutionMode } from "./vscode-terminal-execution-mode"
 
 export interface VscodeSessionHostOptions {
+	/** Host-scoped factories; tools enforce their session and Batch-mode boundaries at execution. */
+	getBatchAgent?: () => BatchAgentBridge
 	mcpHub: McpHub
 	requestToolApproval?: (request: {
 		agentId: string
@@ -157,6 +160,7 @@ export class VscodeSessionHost implements SdkSessionHost {
 				vscodeTerminalExecutionMode: getEffectiveTerminalExecutionMode(requestedTerminalExecutionMode),
 				foregroundCommands: options.foregroundCommands,
 			})
+			const batchAgent = options.getBatchAgent?.()
 			return {
 				...inputWithRemoteConfig,
 				source: inputWithRemoteConfig.source ?? "vscode",
@@ -173,7 +177,17 @@ export class VscodeSessionHost implements SdkSessionHost {
 				config: {
 					...inputWithRemoteConfig.config,
 					telemetry: inputWithRemoteConfig.config.telemetry ?? options.telemetry,
-					extraTools: [...(inputWithRemoteConfig.config.extraTools ?? []), ...extraTools],
+					systemPrompt: batchAgent
+						? batchAgent.withSystemPrompt(inputWithRemoteConfig.config.systemPrompt)
+						: inputWithRemoteConfig.config.systemPrompt,
+					hooks: batchAgent
+						? batchAgent.withHooks(inputWithRemoteConfig.config.hooks, inputWithRemoteConfig.config.mode ?? "act")
+						: inputWithRemoteConfig.config.hooks,
+					extraTools: [
+						...(inputWithRemoteConfig.config.extraTools ?? []),
+						...extraTools,
+						...(batchAgent?.tools() ?? []),
+					],
 				},
 			}
 		}
