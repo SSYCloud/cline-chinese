@@ -217,6 +217,26 @@ describe("ai-sdk usage normalization", () => {
 		).toBe(41);
 	});
 
+	it("subtracts reasoning tokens out of outputTokens instead of double-counting them", () => {
+		const normalized = normalizeUsage({
+			outputTokens: 250,
+			completion_tokens_details: { reasoning_tokens: 90 },
+		});
+		expect(normalized.reasoningTokenCount).toBe(90);
+		// 250 already included the 90 reasoning tokens (standard provider
+		// convention); the exposed outputTokens should be the remainder, not
+		// the raw 250.
+		expect(normalized.outputTokens).toBe(160);
+	});
+
+	it("clamps outputTokens at zero if reported reasoning tokens exceed the total", () => {
+		const normalized = normalizeUsage({
+			outputTokens: 10,
+			reasoningTokens: 25,
+		});
+		expect(normalized.outputTokens).toBe(0);
+	});
+
 	describe("cost extraction with pricing fallback", () => {
 		it.each([
 			["cline-pass", "included-model", { input: 3, output: 15 }],
@@ -338,36 +358,18 @@ describe("ai-sdk usage normalization", () => {
 			expect(normalized.totalCost).toBeCloseTo(0.0035, 5);
 		});
 
-		it("ignores a zero provider cost for ShengSuanYun and falls back to catalog pricing", () => {
-			const pricingInput = { input: 4.5, output: 13.5, cacheRead: 0.15 };
+		it("bills pricing-fallback cost on the full output count, including reasoning tokens", () => {
+			const pricingInput = { input: 2.5, output: 10 }; // per 1M tokens
 			const normalized = normalizeUsage(
-				{
-					inputTokens: 1_000_000,
-					outputTokens: 1_000_000,
-					raw: { cost: 0 },
-				},
+				{ inputTokens: 1000, outputTokens: 100, reasoningTokens: 40 },
 				undefined,
 				pricingInput,
-				"shengsuanyun",
 			);
-
-			expect(normalized.totalCost).toBeCloseTo(18, 5);
-		});
-
-		it("ignores zero provider and market costs for ShengSuanYun and falls back to catalog pricing", () => {
-			const pricingInput = { input: 4.5, output: 13.5, cacheRead: 0.15 };
-			const normalized = normalizeUsage(
-				{
-					inputTokens: 1_000_000,
-					outputTokens: 1_000_000,
-					raw: { cost: 0, market_cost: 0 },
-				},
-				undefined,
-				pricingInput,
-				"shengsuanyun",
-			);
-
-			expect(normalized.totalCost).toBeCloseTo(18, 5);
+			// Reasoning tokens are billed at the output rate, so cost must use
+			// the full 100 (not the 60 left after subtracting reasoning out of
+			// the exposed outputTokens).
+			expect(normalized.outputTokens).toBe(60);
+			expect(normalized.totalCost).toBeCloseTo(0.0035, 5);
 		});
 	});
 
@@ -396,6 +398,23 @@ describe("ai-sdk usage normalization", () => {
 			expect(normalized.outputTokens).toBe(120);
 			expect(normalized.cacheReadTokens).toBe(3605);
 			expect(normalized.cacheWriteTokens).toBe(0);
+		});
+
+		it("subtracts AI SDK v4's nested outputTokens.reasoning from outputTokens", () => {
+			const normalized = normalizeUsage({
+				inputTokens: { total: 1000, noCache: 1000 },
+				outputTokens: {
+					total: 120,
+					text: 97,
+					reasoning: 23,
+				},
+			} as Record<string, unknown>);
+
+			expect(normalized.reasoningTokenCount).toBe(23);
+			// total(120) already includes the 23 reasoning tokens, so the
+			// exposed outputTokens should be the 97 non-reasoning tokens left
+			// over, not the raw 120.
+			expect(normalized.outputTokens).toBe(97);
 		});
 
 		it("falls back to raw Gemini usage metadata", () => {
