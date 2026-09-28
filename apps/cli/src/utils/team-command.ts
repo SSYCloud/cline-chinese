@@ -1,6 +1,4 @@
-import { createTeamName } from "@cline/core";
 import { formatUserCommandBlock } from "@cline/shared";
-import type { Config } from "./types";
 
 export const TEAM_COMMAND_USAGE =
 	"用法: /team <任务描述>\n为给定任务启动一个代理团队。";
@@ -26,12 +24,4 @@ export function rewriteTeamPrompt(input: string): TeamPromptRewriteResult {
 			"team",
 		),
 	};
-}
-
-export async function enableTeamsForPrompt(config: Config): Promise<void> {
-	if (config.enableAgentTeams) {
-		return;
-	}
-	config.enableAgentTeams = true;
-	config.teamName = config.teamName?.trim() || createTeamName();
 }

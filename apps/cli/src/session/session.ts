@@ -66,12 +66,11 @@ export async function createCliCore(options?: {
 		messagesArtifactUploader: createCliMessagesArtifactUploader(),
 		prepare: prepareCliEnterpriseIntegration,
 	});
-	try {
-		await core.featureFlags.poll();
-	} catch (error) {
-		options?.logger?.error?.("轮询 CLI 功能开关时出错", { error });
-	}
-	options?.logger?.log("CLI 核心运行时路由已选择", {
+	// Refresh cached flags without putting PostHog on the CLI startup path.
+	void core.featureFlags.poll().catch((error) => {
+		options?.logger?.error?.("已在你的浏览器中打开", { error });
+	});
+	options?.logger?.log("CLI core runtime 路由已选择", {
 		backendMode: explicitBackendMode ?? "env-managed",
 		rpcAddress: core.runtimeAddress,
 		forceLocalBackend: options?.forceLocalBackend === true,

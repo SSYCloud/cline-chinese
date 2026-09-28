@@ -213,7 +213,11 @@ async function mergeKnownModels(
 		// Cline recommendations can use Vercel-style ids while the broader
 		// catalog includes OpenRouter aliases for the same models. Image-output
 		// models are temporarily unavailable through Cline's inference backend,
-		// so filter them only at the Cline catalog boundary.
+		// so filter them only at the Cline catalog boundary. buildClineModels
+		// applies the same restriction to the bundled catalog. User overrides are
+		// also subject to this filter — the backend rejects image output
+		// regardless of where the model was configured. Remove both filter call
+		// sites together when the backend gains image-output support.
 		return Llms.sortModelsByReleaseDate(
 			Llms.filterImageOutputModels({
 				...Llms.preferCanonicalModelIds(
@@ -957,9 +961,9 @@ export async function resolveProviderConfig(
 		// Public (keyless) live model sources run whenever `modelsSourceUrl` is
 		// registered for the provider — even if the caller didn't pass a
 		// `config`. Falls back to the spec's default base URL so a fresh install
-		// still hits the default local model endpoint. Failures are swallowed
-		// below, so an unreachable server just leaves the picker on the bundled
-		// catalog.
+		// still hits the default local model endpoint. Unless the caller opted
+		// into `failOnError`, failures are swallowed below so an unreachable
+		// server just leaves the picker on the bundled catalog.
 		const hasPublicModelSource = Boolean(
 			Llms.MODEL_COLLECTIONS_BY_PROVIDER_ID[providerId]?.provider
 				.modelsSourceUrl,
@@ -976,7 +980,10 @@ export async function resolveProviderConfig(
 					providerId,
 					modelCatalog,
 					publicConfig,
-				).catch(() => ({}))
+				).catch((error: unknown) => {
+					if (modelCatalog?.failOnError) throw error;
+					return {};
+				})
 			: {};
 		const knownModels = await mergeKnownModels(
 			providerId,
