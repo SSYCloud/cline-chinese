@@ -34,6 +34,19 @@ describe("Batch supported-model selector", () => {
 		fireEvent.change(screen.getByRole("combobox", { name: "文本模型" }), { target: { value: "" } })
 		expect(change).toHaveBeenLastCalledWith("")
 	})
+	it("loads selectable live models for a public modelChoice label with a default hint", async () => {
+		render(
+			<BatchFieldEditor
+				field={{ key: "modelChoice", label: "文本模型（留空用默认）", value_type: "string" }}
+				onChange={vi.fn()}
+				taskId="same-task"
+				value=""
+			/>,
+		)
+		expect(await screen.findByRole("option", { name: "Fast text — provider/text-fast" })).toBeInTheDocument()
+		expect(screen.getByRole("option", { name: "Pro text — provider/text-pro" })).toBeInTheDocument()
+		expect(rpc.models).toHaveBeenCalledWith({ value: JSON.stringify({ taskId: "same-task", field: "modelChoice" }) })
+	})
 	it("retains the recommended default and prevents refresh while loading", async () => {
 		let resolve!: (v: { value: string }) => void
 		rpc.models.mockImplementation(

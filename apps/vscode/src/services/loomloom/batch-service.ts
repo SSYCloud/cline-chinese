@@ -6,13 +6,20 @@ import {
 	type BatchChatSnapshot,
 	type BatchCommand,
 	type BatchLocalOutput,
+	type BatchOutputDestination,
+	type BatchRow,
 	type BatchSession,
+	type BatchValue,
 	type BatchWorksheetView,
+	batchRowSheetNumber,
 	canonicalRows,
+	effectiveTaskCount,
+	hasBatchInput,
 	toBatchChatSnapshot,
 } from "@shared/loomloom"
 import { getBatchFileInputMode } from "@shared/loomloom-files"
 import { resolveBatchModelField } from "@shared/loomloom-models"
+import { buildSheet, rangeWritePlan } from "@shared/loomloom-sheet"
 import type { BatchApi } from "./client"
 import { LoomLoomRequestNotSubmittedError } from "./errors"
 
@@ -31,6 +38,9 @@ const TERMINAL = new Set([
 	"partial_failure",
 	"partial-failure",
 ])
+/** Earlier no-project SDK sessions used this internal chat workspace as their cwd. It is not a user project. */
+export const isInternalChatWorkspace = (directory: string) =>
+	/[\\/]\.cline[\\/]data[\\/]workspaces[\\/]chat[\\/]?$/.test(path.normalize(directory))
 const hash = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex")
 export interface BatchPresentationIntent {
 	taskId: string
@@ -82,6 +92,12 @@ export class FileBatchStore implements BatchStore {
 export class BatchService {
 	private sessions = new Map<string, BatchSession>()
 	private queues = new Map<string, Promise<unknown>>()
+	/** A picker/upload is preparation, but execute must wait until it finishes or is cancelled. */
+	private attachmentReservations = new Map<string, number>()
+	/** Dirty worksheet drafts are released by an ACK or panel disposal, never by a timer. */
+	private worksheetEditLeases = new Map<string, Map<string, string>>()
+	/** Native worksheet view can answer a paid-action preflight without using this task lock. */
+	private worksheetDraftProbe?: (taskId: string) => Promise<boolean>
 	private timers = new Map<string, ReturnType<typeof setTimeout>>()
 	private disposed = false
 	private observed = new Map<string, NonNullable<BatchSession["agentContext"]>>()
@@ -117,6 +133,78 @@ export class BatchService {
 		const state = this.sessions.get(taskId)
 		return state ? structuredClone({ ...state, agentContext: this.observed.get(state.taskId) }) : undefined
 	}
+	/** Selection/format RPCs should not clone result history and artifacts. */
+	async worksheetMetadata(taskId: string): Promise<
+		| {
+				id: string
+				enabled: boolean
+				worksheet?: BatchWorksheetView
+				historyRunIds: string[]
+		  }
+		| undefined
+	> {
+		await this.ready
+		const state = this.sessions.get(taskId)
+		if (!state) return undefined
+		return {
+			id: state.id,
+			enabled: state.enabled,
+			worksheet: state.worksheet ? structuredClone(state.worksheet) : undefined,
+			historyRunIds: state.pastRuns?.map((run) => run.runId) ?? [],
+		}
+	}
+	private hasWorksheetEditLease(taskId: string): boolean {
+		return (this.worksheetEditLeases.get(taskId)?.size ?? 0) > 0
+	}
+	setWorksheetDraftProbe(probe?: (taskId: string) => Promise<boolean>): void {
+		this.worksheetDraftProbe = probe
+	}
+	private async assertWorksheetClean(taskId: string): Promise<void> {
+		if (this.hasWorksheetEditLease(taskId)) throw new Error("工作表还有未提交的编辑，请先保存或取消，再继续。")
+		if (!this.worksheetDraftProbe) return
+		let dirty: boolean
+		try {
+			dirty = await this.worksheetDraftProbe(taskId)
+		} catch {
+			throw new Error("无法确认 Batch 工作表是否有未保存输入，请重新打开或关闭工作表后再继续。")
+		}
+		if (dirty || this.hasWorksheetEditLease(taskId)) throw new Error("工作表还有未提交的编辑，请先保存或取消，再继续。")
+	}
+	async setWorksheetEditLease(
+		taskId: string,
+		panelId: string,
+		batchId: string,
+		editing: boolean,
+		stillCurrent?: () => boolean,
+	): Promise<void> {
+		await this.exclusive(taskId, async () => {
+			if (editing && stillCurrent && !stillCurrent()) throw new Error("请先打开此表格关联的原任务。")
+			if (!panelId || panelId.length > 100 || !batchId) throw new Error("工作表编辑标识无效。")
+			const session = this.session(taskId)
+			if (session.id !== batchId) throw new Error("工作表会话已变化，请重新打开。")
+			const leases = this.worksheetEditLeases.get(taskId) ?? new Map<string, string>()
+			if (editing) {
+				if (!session.enabled || session.attempt || session.phase === "quoting" || LOCKED.has(session.phase))
+					throw new Error("当前批次不能继续编辑，请先检查运行状态。")
+				if (leases.get(panelId) === batchId) return
+				leases.set(panelId, batchId)
+				this.worksheetEditLeases.set(taskId, leases)
+			} else {
+				if (leases.get(panelId) !== batchId) return
+				leases.delete(panelId)
+				if (!leases.size) this.worksheetEditLeases.delete(taskId)
+			}
+			this.changed()
+		})
+	}
+	async releaseWorksheetEditLease(taskId: string, panelId: string): Promise<void> {
+		await this.exclusive(taskId, async () => {
+			const leases = this.worksheetEditLeases.get(taskId)
+			if (!leases?.delete(panelId)) return
+			if (!leases.size) this.worksheetEditLeases.delete(taskId)
+			this.changed()
+		})
+	}
 	/** The sidebar never needs full results, artifacts or history on every state push. */
 	async chatSnapshot(taskId: string | undefined): Promise<BatchChatSnapshot | undefined> {
 		if (!taskId) return undefined
@@ -125,7 +213,10 @@ export class BatchService {
 		if (!state) return undefined
 		// Project before cloning: large result payloads stay exclusively in the
 		// worksheet channel, while rows remain editable from the chat.
-		return structuredClone(toBatchChatSnapshot({ ...state, agentContext: this.observed.get(taskId) }))
+		return structuredClone({
+			...toBatchChatSnapshot({ ...state, agentContext: this.observed.get(taskId) })!,
+			pendingWorksheetEdit: this.hasWorksheetEditLease(taskId),
+		})
 	}
 	observeAgentContext(taskId: string, revision: number, phase: BatchSession["phase"]) {
 		const previous = this.observed.get(taskId)
@@ -178,9 +269,9 @@ export class BatchService {
 			}
 		}
 	}
-	/** Called with the original task's host-resolved workspace, never a current editor or cloud path. */
+	/** Bind a host-resolved project root for future runs; never rewrite an already frozen run. */
 	async configureOutputDestination(taskId: string, baseDirectory: string, bindUnboundRunId?: string, notifyState = true) {
-		if (!baseDirectory || !path.isAbsolute(baseDirectory)) throw new Error("输出目录必须是原任务的绝对路径。")
+		if (!baseDirectory || !path.isAbsolute(baseDirectory)) throw new Error("项目工作区必须是绝对路径。")
 		return this.exclusive(taskId, async () => {
 			const session = this.session(taskId)
 			const run = !bindUnboundRunId
@@ -191,10 +282,16 @@ export class BatchService {
 			if (bindUnboundRunId && !run) throw new Error("此运行不属于当前任务，不能绑定输出目录。")
 			const previousDestination = session.outputDestination
 			const previousRunDestination = run?.outputDestination
-			session.outputDestination ??= { baseDirectory: path.resolve(baseDirectory) }
+			if (
+				!session.outputDestination ||
+				(isInternalChatWorkspace(session.outputDestination.baseDirectory) &&
+					!session.outputDestination.outputRootDirectory)
+			)
+				session.outputDestination = { baseDirectory: path.resolve(baseDirectory) }
 			// Only an explicit export may bind a legacy run that has never had a destination.
 			if (run && !run.outputDestination) run.outputDestination = structuredClone(session.outputDestination)
-			if (previousDestination && (!run || previousRunDestination)) return structuredClone(session.outputDestination)
+			if (previousDestination === session.outputDestination && (!run || previousRunDestination))
+				return structuredClone(session.outputDestination)
 			try {
 				await this.persist(session, notifyState)
 			} catch (error) {
@@ -205,12 +302,88 @@ export class BatchService {
 			return structuredClone(session.outputDestination)
 		})
 	}
-	/** Host-owned local records are separate from the replaceable cloud result payload. */
-	async recordLocalOutputs(taskId: string, runId: string, records: BatchLocalOutput[]) {
+	/** A native folder picker can choose an exact destination for future runs, without modifying a frozen attempt. */
+	async setOutputRootDirectory(taskId: string, outputRootDirectory: string, notifyState = true) {
+		if (!outputRootDirectory || !path.isAbsolute(outputRootDirectory)) throw new Error("请选择绝对路径的产物保存目录。")
+		const outputRoot = path.resolve(outputRootDirectory)
 		return this.exclusive(taskId, async () => {
 			const session = this.session(taskId)
-			if (session.attempt?.runId !== runId && !session.pastRuns?.some((run) => run.runId === runId))
-				throw new Error("此运行不属于当前任务，不能保存本地产物记录。")
+			const previous = session.outputDestination
+			const baseDirectory =
+				previous && !isInternalChatWorkspace(previous.baseDirectory) && path.isAbsolute(previous.baseDirectory)
+					? previous.baseDirectory
+					: outputRoot
+			if (previous?.baseDirectory === baseDirectory && previous.outputRootDirectory === outputRoot)
+				return structuredClone(previous)
+			session.outputDestination = { baseDirectory, outputRootDirectory: outputRoot }
+			try {
+				await this.persist(session, notifyState)
+			} catch (error) {
+				session.outputDestination = previous
+				throw error
+			}
+			return structuredClone(session.outputDestination)
+		})
+	}
+	/** Explicit "save this run elsewhere" changes only this owned run's delivery path; existing files stay put. */
+	async rebindRunOutputDirectory(taskId: string, runId: string, outputRootDirectory: string, notifyState = true) {
+		if (!outputRootDirectory || !path.isAbsolute(outputRootDirectory)) throw new Error("请选择绝对路径的产物另存目录。")
+		const outputRoot = path.resolve(outputRootDirectory)
+		return this.exclusive(taskId, async () => {
+			const session = this.session(taskId)
+			const run =
+				session.attempt?.runId === runId ? session.attempt : session.pastRuns?.find((past) => past.runId === runId)
+			if (!runId || !run) throw new Error("此运行不属于当前任务，不能另存产物。")
+			const previous = run.outputDestination
+			const previousLocalOutputs = session.localOutputs
+			const base = previous?.baseDirectory ?? session.outputDestination?.baseDirectory
+			const baseDirectory = base && !isInternalChatWorkspace(base) && path.isAbsolute(base) ? base : outputRoot
+			if (previous?.baseDirectory === baseDirectory && previous.outputRootDirectory === outputRoot)
+				return structuredClone(previous)
+			run.outputDestination = { baseDirectory, outputRootDirectory: outputRoot }
+			// These records point at the old location. The old files remain on disk,
+			// but preview/"open" must wait for the explicit re-export into this folder.
+			session.localOutputs = previousLocalOutputs?.filter((record) => record.runId !== runId)
+			try {
+				await this.persist(session, notifyState)
+			} catch (error) {
+				run.outputDestination = previous
+				session.localOutputs = previousLocalOutputs
+				throw error
+			}
+			return structuredClone(run.outputDestination)
+		})
+	}
+	/** Remove only an unsafe legacy chat fallback, never a user-selected path or frozen run. */
+	async clearInternalChatOutputDestination(taskId: string, notifyState = true): Promise<void> {
+		await this.exclusive(taskId, async () => {
+			const session = this.session(taskId)
+			const previous = session.outputDestination
+			if (!previous || previous.outputRootDirectory || !isInternalChatWorkspace(previous.baseDirectory)) return
+			session.outputDestination = undefined
+			try {
+				await this.persist(session, notifyState)
+			} catch (error) {
+				session.outputDestination = previous
+				throw error
+			}
+		})
+	}
+	/** Host-owned local records are separate from the replaceable cloud result payload. */
+	async recordLocalOutputs(
+		taskId: string,
+		runId: string,
+		records: BatchLocalOutput[],
+		expected?: { outputDestination?: BatchOutputDestination },
+	) {
+		return this.exclusive(taskId, async () => {
+			const session = this.session(taskId)
+			const run =
+				session.attempt?.runId === runId ? session.attempt : session.pastRuns?.find((past) => past.runId === runId)
+			if (!run) throw new Error("此运行不属于当前任务，不能保存本地产物记录。")
+			// A user may explicitly re-export while an old background write finishes.
+			// Never resurrect records pointing at that earlier destination.
+			if (expected && JSON.stringify(run.outputDestination) !== JSON.stringify(expected.outputDestination)) return
 			for (const record of records) {
 				if (
 					record.runId !== runId ||
@@ -322,13 +495,272 @@ export class BatchService {
 		session.phase = "collecting"
 		session.error = undefined
 	}
+	private normalizeVisualRows(rows: BatchRow[]): void {
+		for (const [index, row] of rows.entries()) row.sheetRowNumber ??= index + 2
+	}
+	private nextVisualRow(rows: BatchRow[]): number {
+		return Math.max(1, ...rows.map((row, index) => batchRowSheetNumber(row, index))) + 1
+	}
+	private sameInputValue(previous: BatchValue | undefined, next: BatchValue): boolean {
+		const empty = (value: BatchValue | undefined) => value === undefined || value === null || value === ""
+		return (empty(previous) && empty(next)) || JSON.stringify(previous) === JSON.stringify(next)
+	}
+	private async validatePatches(
+		session: BatchSession,
+		patches: { id: string; values: Record<string, BatchValue> }[],
+	): Promise<void> {
+		const fields = new Set(session.listing?.schema?.fields.map((field) => field.key) ?? [])
+		for (const patch of patches) {
+			const row = session.rows.find((candidate) => candidate.id === patch.id)
+			if (!row) throw new Error("找不到对应输入行。")
+			for (const key of Object.keys(patch.values)) if (!fields.has(key)) throw new Error(`未知输入字段：${key}`)
+			// A partial edit can be empty while the whole row still needs required inputs.
+			canonicalRows({
+				listing: {
+					...session.listing!,
+					schema: {
+						...session.listing!.schema!,
+						fields: session
+							.listing!.schema!.fields.filter((field) => Object.hasOwn(patch.values, field.key))
+							.map((field) => ({ ...field, required: false })),
+					},
+				},
+				rows: [{ ...row, origin: "explicit", values: patch.values }],
+			})
+		}
+		for (const field of session.listing?.schema?.fields ?? []) {
+			const model = resolveBatchModelField(field)
+			if (!model.isModel) continue
+			const overrides = patches
+				.map((row) => row.values[field.key])
+				.filter((value) => value !== undefined && value !== null && value !== "")
+			if (!overrides.length) continue
+			if (!model.stepType || !model.allowOverride || !this.api.models)
+				throw new Error("此模型字段未公开可选配置，请使用推荐默认。")
+			const models = await this.api.models(model.stepType)
+			if (overrides.some((value) => !models.some((candidate) => candidate.id === value)))
+				throw new Error(`「${field.label || field.key}」必须使用支持模型列表中的 ID。`)
+		}
+	}
+	private stagedDraft(session: BatchSession): BatchSession {
+		return {
+			...session,
+			rows: session.rows.map((row) => ({ ...row, values: { ...row.values }, attachments: [...row.attachments] })),
+			events: [...session.events],
+			quote: session.quote ? { ...session.quote } : undefined,
+			worksheet: session.worksheet ? { ...session.worksheet } : undefined,
+		}
+	}
+	private async commitDraft(session: BatchSession, actor: "user" | "agent" | undefined, previousEventCount: number) {
+		if (actor) for (const event of session.events.slice(previousEventCount)) event.actor = actor
+		await this.store.save(session)
+		this.sessions.set(session.taskId, session)
+		this.changed()
+		this.notify(session.taskId)
+	}
+	/** A distant file target is reserved without becoming a billable input or invalidating a quote. */
+	async reserveWorksheetAttachmentRow(
+		taskId: string,
+		revision: number,
+		sheetRowNumber: number,
+		fieldKey: string | undefined,
+		stillCurrent: () => boolean,
+	): Promise<{ rowId: string; release: () => Promise<void> }> {
+		const rowId = await this.exclusive(taskId, async () => {
+			if (!stillCurrent()) throw new Error("请先在 Cline 打开此表格关联的原任务。")
+			const source = this.session(taskId)
+			this.editable(source, revision)
+			if (source.attempt) throw new Error("已提交的输入不可修改，请开始新一批任务。")
+			if (!Number.isSafeInteger(sheetRowNumber) || sheetRowNumber < 2 || sheetRowNumber > 1000)
+				throw new Error("请选择第 2～1000 行的输入单元格。")
+			if (!source.listing?.schema) throw new Error("请先选择 SkillBot。")
+			if (fieldKey) {
+				const field = source.listing.schema.fields.find((candidate) => candidate.key === fieldKey)
+				if (!field || !getBatchFileInputMode(field)) throw new Error("此字段不支持文件导入，请选择文本输入或素材单元格。")
+			}
+			const existing = source.rows.filter((row, index) => batchRowSheetNumber(row, index) === sheetRowNumber)
+			if (existing.length > 1) throw new Error("工作表行号重复，请刷新并检查输入。")
+			if (!existing.length && !fieldKey) throw new Error("请选择明确的文本输入或素材单元格。")
+			if (
+				(!existing.length || (existing[0].origin === "implicit" && !hasBatchInput(existing[0]))) &&
+				effectiveTaskCount(source.rows) >= 100
+			)
+				throw new Error("单批最多 100 条任务；请先删除一条任务再添加文件。")
+			let row = existing[0]
+			if (!row) {
+				const staged = this.stagedDraft(source)
+				this.normalizeVisualRows(staged.rows)
+				row = { id: randomUUID(), sheetRowNumber, origin: "implicit", values: {}, attachments: [] }
+				staged.rows.push(row)
+				staged.rows.sort((a, b) => batchRowSheetNumber(a, 0) - batchRowSheetNumber(b, 0))
+				// Cancelled/failed picking can leave this nonbillable placeholder, never a paid task.
+				await this.commitDraft(staged, "user", source.events.length)
+			}
+			this.attachmentReservations.set(taskId, (this.attachmentReservations.get(taskId) ?? 0) + 1)
+			return row.id
+		})
+		let released = false
+		return {
+			rowId,
+			release: async () => {
+				if (released) return
+				released = true
+				await this.exclusive(taskId, async () => {
+					const count = this.attachmentReservations.get(taskId) ?? 0
+					if (count <= 1) this.attachmentReservations.delete(taskId)
+					else this.attachmentReservations.set(taskId, count - 1)
+				})
+			},
+		}
+	}
+	/** Sparse worksheet writes are validated and committed as one draft transaction. */
+	async writeWorksheet(
+		taskId: string,
+		revision: number,
+		sheetId: string | undefined,
+		address: string | undefined,
+		values: BatchValue[][],
+		actor: "user" | "agent" = "user",
+		stillCurrent?: () => boolean,
+	): Promise<{ revision: number; rowsChanged: number; quoteValid: boolean; sheet: string; range: string }> {
+		return this.exclusive(taskId, async () => {
+			if (stillCurrent && !stillCurrent()) throw new Error("请先在 Cline 打开此表格关联的原任务。")
+			const source = this.session(taskId)
+			this.editable(source, revision)
+			if (source.attempt) throw new Error("已提交的输入不可修改，请开始新一批任务。")
+			const sheet = buildSheet(source, sheetId ?? source.worksheet?.sheet ?? "current")
+			const range = address ?? source.worksheet?.range ?? "C2"
+			const plan = rangeWritePlan(sheet, range, values)
+			const rows = source.rows.map((row, index) => ({
+				...row,
+				sheetRowNumber: batchRowSheetNumber(row, index),
+				values: { ...row.values },
+			}))
+			const byVisualRow = new Map(rows.map((row) => [row.sheetRowNumber, row]))
+			const patches: { id: string; values: Record<string, BatchValue> }[] = []
+			let rowsChanged = 0
+			for (const planned of plan) {
+				let row = byVisualRow.get(planned.sheetRowNumber)
+				if (
+					!row &&
+					!Object.values(planned.values).some(
+						(value) => value !== null && value !== undefined && (typeof value !== "string" || value.trim() !== ""),
+					)
+				)
+					continue
+				let added = false
+				if (!row) {
+					row = {
+						id: randomUUID(),
+						sheetRowNumber: planned.sheetRowNumber,
+						origin: "implicit",
+						values: {},
+						attachments: [],
+					}
+					rows.push(row)
+					byVisualRow.set(planned.sheetRowNumber, row)
+					added = true
+				}
+				const changedValues: Record<string, BatchValue> = {}
+				for (const [key, value] of Object.entries(planned.values)) {
+					const previous = row.values[key]
+					if (this.sameInputValue(previous, value)) continue
+					row.values[key] = value
+					changedValues[key] = value
+				}
+				if (added || Object.keys(changedValues).length) {
+					patches.push({ id: row.id, values: changedValues })
+					rowsChanged++
+				}
+			}
+			if (!rowsChanged)
+				return { revision: source.revision, rowsChanged: 0, quoteValid: !!source.quote?.valid, sheet: sheet.id, range }
+			const retained = rows.filter((row) => row.origin !== "implicit" || hasBatchInput(row))
+			if (retained.length > 100) throw new Error("单批最多 100 条任务，请减少输入行。")
+			const staged: BatchSession = {
+				...this.stagedDraft(source),
+				rows: rows.sort((a, b) => a.sheetRowNumber - b.sheetRowNumber),
+				worksheet: { ...source.worksheet, sheet: sheet.id, range },
+			}
+			await this.validatePatches(staged, patches)
+			staged.rows = retained.sort((a, b) => a.sheetRowNumber - b.sheetRowNumber)
+			this.invalidate(staged)
+			this.event(staged, `${actor === "agent" ? "Cline 已整理" : "已修改"} ${rowsChanged} 条输入，检查表已同步。`)
+			if (stillCurrent && !stillCurrent()) throw new Error("请先在 Cline 打开此表格关联的原任务。")
+			// Save before replacing in-memory state; a validation/storage failure leaves no ghost rows.
+			await this.commitDraft(staged, actor, source.events.length)
+			return { revision: staged.revision, rowsChanged, quoteValid: !!staged.quote?.valid, sheet: sheet.id, range }
+		})
+	}
+	/** Excel-style row deletion; unlike Agent removeRows IDs, the visual rows below move up. */
+	async deleteVisualRows(
+		taskId: string,
+		revision: number,
+		firstSheetRow: number,
+		lastSheetRow: number,
+		confirmed: boolean,
+		actor: "user" | "agent",
+		stillCurrent: () => boolean,
+	): Promise<{ revision: number; tasksRemoved: number; rowsShifted: number; quoteValid: boolean }> {
+		return this.exclusive(taskId, async () => {
+			if (!stillCurrent()) throw new Error("请先在 Cline 打开此表格关联的原任务。")
+			const source = this.session(taskId)
+			this.editable(source, revision)
+			if (source.attempt) throw new Error("已提交的输入不可修改，请开始新一批任务。")
+			await this.assertWorksheetClean(taskId)
+			if (!source.listing?.schema) throw new Error("请先选择 SkillBot。")
+			if (
+				!Number.isSafeInteger(firstSheetRow) ||
+				!Number.isSafeInteger(lastSheetRow) ||
+				firstSheetRow < 2 ||
+				lastSheetRow > 1000 ||
+				firstSheetRow > lastSheetRow
+			)
+				throw new Error("请选择第 2～1000 行的有效范围；标题行不能删除。")
+			const selected = source.rows.filter((row, index) => {
+				const number = batchRowSheetNumber(row, index)
+				return number >= firstSheetRow && number <= lastSheetRow
+			})
+			if (selected.some(hasBatchInput)) {
+				if (actor === "agent") throw new Error("有内容的输入行只能由用户确认删除。")
+				if (!confirmed) throw new Error("选区包含已填写内容或附件，请先确认删除整行。")
+			}
+			const rowsShifted = source.rows.filter((row, index) => batchRowSheetNumber(row, index) > lastSheetRow).length
+			if (!selected.length && !rowsShifted)
+				return { revision: source.revision, tasksRemoved: 0, rowsShifted: 0, quoteValid: !!source.quote?.valid }
+			const staged = this.stagedDraft(source)
+			this.normalizeVisualRows(staged.rows)
+			const deletedIds = new Set(selected.map((row) => row.id))
+			const height = lastSheetRow - firstSheetRow + 1
+			staged.rows = staged.rows
+				.filter((row) => !deletedIds.has(row.id))
+				.map((row) => ({
+					...row,
+					sheetRowNumber: row.sheetRowNumber! > lastSheetRow ? row.sheetRowNumber! - height : row.sheetRowNumber,
+				}))
+			const tasksRemoved = effectiveTaskCount(source.rows) - effectiveTaskCount(staged.rows)
+			this.invalidate(staged)
+			this.event(staged, `已删除工作表第 ${firstSheetRow}～${lastSheetRow} 行，移除 ${tasksRemoved} 条任务。`)
+			if (!stillCurrent()) throw new Error("请先在 Cline 打开此表格关联的原任务。")
+			await this.commitDraft(staged, actor, source.events.length)
+			return { revision: staged.revision, tasksRemoved, rowsShifted, quoteValid: !!staged.quote?.valid }
+		})
+	}
 	async setEnabled(taskId: string, enabled: boolean, originalWorkspace?: string, notifyState = true) {
 		if (originalWorkspace && (!enabled || !path.isAbsolute(originalWorkspace)))
 			throw new Error("Batch 原始工作区必须是绝对路径。")
 		const resumed = await this.exclusive(taskId, async () => {
 			let session = this.sessions.get(taskId)
 			const wasEnabled = session?.enabled
-			if (session && wasEnabled === enabled && (!originalWorkspace || session.outputDestination)) return undefined
+			if (
+				session &&
+				wasEnabled === enabled &&
+				(!originalWorkspace ||
+					(session.outputDestination &&
+						(!isInternalChatWorkspace(session.outputDestination.baseDirectory) ||
+							!!session.outputDestination.outputRootDirectory)))
+			)
+				return undefined
 			if (!session && enabled) {
 				session = {
 					version: 1,
@@ -347,7 +779,12 @@ export class BatchService {
 			}
 			if (session) {
 				session.enabled = enabled
-				if (originalWorkspace && !session.outputDestination)
+				if (
+					originalWorkspace &&
+					(!session.outputDestination ||
+						(isInternalChatWorkspace(session.outputDestination.baseDirectory) &&
+							!session.outputDestination.outputRootDirectory))
+				)
 					session.outputDestination = { baseDirectory: path.resolve(originalWorkspace) }
 				await this.persist(session, notifyState)
 				if (enabled && !wasEnabled && session.rows.length) return structuredClone(session)
@@ -359,6 +796,9 @@ export class BatchService {
 	async command(taskId: string, command: Exclude<BatchCommand, { action: "mode" }>, actor: "user" | "agent" = "user") {
 		const result = await this.exclusive(taskId, async () => {
 			const s = this.session(taskId)
+			if (["newBatch", "select", "review", "quote"].includes(command.action)) await this.assertWorksheetClean(taskId)
+			if (this.attachmentReservations.get(taskId) && ["newBatch", "select", "review", "quote"].includes(command.action))
+				throw new Error("正在选择或上传输入文件，请完成或取消后再继续。")
 			if (
 				actor === "agent" &&
 				![
@@ -382,7 +822,7 @@ export class BatchService {
 			if (command.action === "recoverRun") {
 				if (s.phase !== "execution-unknown" || !s.attempt) throw new Error("没有待核对的提交。")
 				const run = await this.api.run(command.runId)
-				if (!run.listingId || run.listingId !== s.listing?.id || run.total !== s.rows.length)
+				if (!run.listingId || run.listingId !== s.listing?.id || run.total !== s.attempt.quote.taskCount)
 					throw new Error("该运行与当前 SkillBot 或任务数量不匹配，请核对。")
 				s.attempt.runId = command.runId
 				s.phase = "running"
@@ -423,7 +863,9 @@ export class BatchService {
 					)
 					s.attempt = undefined
 					s.quote = undefined
-					s.rows = keepListing ? [{ id: randomUUID(), values: {}, attachments: [] }] : []
+					s.rows = keepListing
+						? [{ id: randomUUID(), sheetRowNumber: 2, origin: "implicit", values: {}, attachments: [] }]
+						: []
 					if (!keepListing) s.listing = undefined
 					s.results = []
 					s.artifacts = []
@@ -440,7 +882,7 @@ export class BatchService {
 					if (s.attempt) throw new Error("请先点击开始新一批任务。")
 					this.invalidate(s)
 					s.listing = listing
-					s.rows = [{ id: randomUUID(), values: {}, attachments: [] }]
+					s.rows = [{ id: randomUUID(), sheetRowNumber: 2, origin: "implicit", values: {}, attachments: [] }]
 					s.phase = "collecting"
 					this.event(
 						s,
@@ -451,22 +893,55 @@ export class BatchService {
 				case "quantity": {
 					if (!s.listing?.schema || !Number.isInteger(command.count) || command.count < 1 || command.count > 100)
 						throw new Error("请选择 SkillBot，并输入 1～100 的整数。")
-					if (command.count < s.rows.length) throw new Error("减少任务数量请在工作表中明确删除对应行。")
-					if (command.count === s.rows.length) return structuredClone(s)
-					this.invalidate(s)
-					while (s.rows.length < command.count) s.rows.push({ id: randomUUID(), values: {}, attachments: [] })
-					this.event(s, `本次准备 ${command.count} 条输入。可以直接聊天并引用文件，或逐条填写；完成后检查输入表。`)
-					break
+					const current = effectiveTaskCount(s.rows)
+					if (command.count < current) throw new Error("减少任务数量请在工作表中明确删除对应行。")
+					if (command.count === current) return structuredClone(s)
+					const staged = this.stagedDraft(s)
+					this.normalizeVisualRows(staged.rows)
+					const placeholders =
+						current === 0 ? staged.rows.filter((row) => row.origin === "implicit" && !hasBatchInput(row)) : []
+					const toAppend = Math.max(0, command.count - current - placeholders.length)
+					if (this.nextVisualRow(staged.rows) + toAppend - 1 > 1000)
+						throw new Error("工作表最多支持第 1000 行，请在空白区域填写。")
+					this.invalidate(staged)
+					for (const row of placeholders.slice(0, command.count - current)) row.origin = "explicit"
+					while (effectiveTaskCount(staged.rows) < command.count)
+						staged.rows.push({
+							id: randomUUID(),
+							sheetRowNumber: this.nextVisualRow(staged.rows),
+							origin: "explicit",
+							values: {},
+							attachments: [],
+						})
+					this.event(staged, `本次准备 ${command.count} 条输入。可以直接聊天并引用文件，或逐条填写；完成后检查输入表。`)
+					await this.commitDraft(staged, actor, eventStart)
+					return structuredClone(staged)
 				}
 				case "addRows": {
 					if (!s.listing?.schema) throw new Error("请先选择 SkillBot。")
-					if (!Number.isInteger(command.count) || command.count < 1 || s.rows.length + command.count > 100)
+					const current = effectiveTaskCount(s.rows)
+					if (!Number.isInteger(command.count) || command.count < 1 || current + command.count > 100)
 						throw new Error("单批最多 100 行，请减少新增数量。")
-					this.invalidate(s)
-					for (let index = 0; index < command.count; index++)
-						s.rows.push({ id: randomUUID(), values: {}, attachments: [] })
-					this.event(s, `已新增 ${command.count} 行，共 ${s.rows.length} 行输入。`)
-					break
+					const staged = this.stagedDraft(s)
+					this.normalizeVisualRows(staged.rows)
+					const placeholders =
+						current === 0 ? staged.rows.filter((row) => row.origin === "implicit" && !hasBatchInput(row)) : []
+					const toAppend = Math.max(0, command.count - placeholders.length)
+					if (this.nextVisualRow(staged.rows) + toAppend - 1 > 1000)
+						throw new Error("工作表最多支持第 1000 行，请在空白区域填写。")
+					this.invalidate(staged)
+					for (const row of placeholders.slice(0, command.count)) row.origin = "explicit"
+					while (effectiveTaskCount(staged.rows) < current + command.count)
+						staged.rows.push({
+							id: randomUUID(),
+							sheetRowNumber: this.nextVisualRow(staged.rows),
+							origin: "explicit",
+							values: {},
+							attachments: [],
+						})
+					this.event(staged, `已新增 ${command.count} 行，共 ${effectiveTaskCount(staged.rows)} 行输入。`)
+					await this.commitDraft(staged, actor, eventStart)
+					return structuredClone(staged)
 				}
 				case "removeRows": {
 					if (!s.listing?.schema) throw new Error("请先选择 SkillBot。")
@@ -487,47 +962,33 @@ export class BatchService {
 						)
 					)
 						throw new Error("有内容的输入行只能由用户确认删除。")
-					this.invalidate(s)
-					s.rows = s.rows.filter((row) => !ids.has(row.id))
-					this.event(s, `已删除 ${ids.size} 行，剩余 ${s.rows.length} 行输入。`)
-					break
+					const staged = this.stagedDraft(s)
+					this.normalizeVisualRows(staged.rows)
+					this.invalidate(staged)
+					staged.rows = staged.rows.filter((row) => !ids.has(row.id))
+					this.event(staged, `已删除 ${ids.size} 行，剩余 ${effectiveTaskCount(staged.rows)} 行输入。`)
+					await this.commitDraft(staged, actor, eventStart)
+					return structuredClone(staged)
 				}
 				case "patch": {
-					const fields = new Set(s.listing?.schema?.fields.map((f) => f.key) ?? [])
-					for (const patch of command.rows) {
-						const row = s.rows.find((row) => row.id === patch.id)
-						if (!row) throw new Error("找不到对应输入行。")
-						for (const key of Object.keys(patch.values)) if (!fields.has(key)) throw new Error(`未知输入字段：${key}`)
-						// Validate partial edits at the authority, not only in the spreadsheet UI.
-						canonicalRows({
-							listing: {
-								...s.listing!,
-								schema: {
-									...s.listing!.schema!,
-									fields: s
-										.listing!.schema!.fields.filter((field) => Object.hasOwn(patch.values, field.key))
-										.map((field) => ({ ...field, required: false })),
-								},
-							},
-							rows: [{ ...row, values: patch.values }],
+					await this.validatePatches(s, command.rows)
+					if (
+						command.rows.length > 0 &&
+						command.rows.every((patch) => {
+							const current = s.rows.find((row) => row.id === patch.id)!
+							return Object.entries(patch.values).every(([key, value]) =>
+								this.sameInputValue(current.values[key], value),
+							)
 						})
-					}
-					for (const field of s.listing?.schema?.fields ?? []) {
-						const model = resolveBatchModelField(field)
-						if (!model.isModel) continue
-						const overrides = command.rows
-							.map((row) => row.values[field.key])
-							.filter((value) => value !== undefined && value !== null && value !== "")
-						if (!overrides.length) continue
-						if (!model.stepType || !model.allowOverride || !this.api.models)
-							throw new Error("此模型字段未公开可选配置，请使用推荐默认。")
-						const models = await this.api.models(model.stepType)
-						if (overrides.some((value) => !models.some((model) => model.id === value)))
-							throw new Error(`「${field.label || field.key}」必须使用支持模型列表中的 ID。`)
-					}
+					)
+						return structuredClone(s)
 					this.invalidate(s)
 					for (const patch of command.rows)
 						Object.assign(s.rows.find((row) => row.id === patch.id)!.values, patch.values)
+					if (s.rows.some((row) => row.origin === "implicit" && !hasBatchInput(row))) {
+						this.normalizeVisualRows(s.rows)
+						s.rows = s.rows.filter((row) => row.origin !== "implicit" || hasBatchInput(row))
+					}
 					this.event(
 						s,
 						`${actor === "agent" ? "Cline 已整理" : "已修改"} ${command.rows.length} 条输入，检查表已同步。`,
@@ -549,6 +1010,10 @@ export class BatchService {
 						attachment.importedValueHash === hash(row.values[attachment.field])
 					)
 						delete row.values[attachment.field]
+					if (row.origin === "implicit" && !hasBatchInput(row)) {
+						this.normalizeVisualRows(s.rows)
+						s.rows = s.rows.filter((candidate) => candidate.id !== row.id)
+					}
 					break
 				}
 				case "review":
@@ -578,7 +1043,7 @@ export class BatchService {
 							!payable.currency ||
 							!Number.isFinite(Number(payable.amount)) ||
 							Number(payable.amount) < 0 ||
-							Number(data.taskCount) !== s.rows.length
+							Number(data.taskCount) !== inputRows.length
 						)
 							throw new Error("报价金额、币种或任务数量不完整，不能确认执行。")
 						if (data.listingVersionId && data.listingVersionId !== current.versionId)
@@ -591,7 +1056,7 @@ export class BatchService {
 							versionId: current.versionId,
 							inputRows,
 							payable,
-							taskCount: s.rows.length,
+							taskCount: inputRows.length,
 							at: Date.now(),
 							valid: true,
 						}
@@ -631,6 +1096,8 @@ export class BatchService {
 			if (s.attempt) throw new Error("已提交的输入不可修改。")
 			const row = s.rows.find((r) => r.id === rowId)
 			if (!row) throw new Error("输入行不存在。")
+			if (row.origin === "implicit" && !hasBatchInput(row) && effectiveTaskCount(s.rows) >= 100)
+				throw new Error("单批最多 100 条任务；请先删除一条任务再添加文件。")
 			let importedValue: string | undefined
 			const attached = { ...attachment }
 			// File contents can only enter an explicit compatible public input field.
@@ -662,24 +1129,36 @@ export class BatchService {
 				} else throw new Error("此字段不支持当前文件转换方式，请选择明确的文本或素材字段。")
 			} else if (importedText !== undefined || attached.inputAssetId || (attached.mode && attached.mode !== "reference"))
 				throw new Error("导入文件内容需要选择明确的文本或素材字段。")
-			this.invalidate(s)
-			row.attachments = row.attachments.filter(
+			const staged = this.stagedDraft(s)
+			const stagedRow = staged.rows.find((candidate) => candidate.id === rowId)!
+			this.invalidate(staged)
+			stagedRow.attachments = stagedRow.attachments.filter(
 				(a) => a.id !== attached.id && (!attached.field || a.field !== attached.field),
 			)
-			row.attachments.push(attached)
-			if (attached.field && importedValue !== undefined) row.values[attached.field] = importedValue
+			stagedRow.attachments.push(attached)
+			if (attached.field && importedValue !== undefined) stagedRow.values[attached.field] = importedValue
 			this.event(
-				s,
+				staged,
 				attached.mode === "text"
 					? `已将 ${attached.name} 读取为文本并导入对应输入，工作表已同步。`
 					: `已添加文件 ${attached.name}。`,
 			)
-			await this.persist(s)
+			await this.commitDraft(staged, undefined, s.events.length)
 		})
 	}
 	private async execute(s: BatchSession, command: Extract<BatchCommand, { action: "execute" }>) {
+		await this.assertWorksheetClean(s.taskId)
+		if (this.attachmentReservations.get(s.taskId)) throw new Error("正在选择或上传输入文件，请完成或取消后再确认运行。")
 		// Repeated clicks never create a new paid attempt, even after a lost response.
 		if (s.attempt) throw new Error("本次确认已提交。请查看运行状态或核对结果，不要重复执行。")
+		const destination = s.outputDestination
+		if (
+			!destination ||
+			!path.isAbsolute(destination.baseDirectory) ||
+			(isInternalChatWorkspace(destination.baseDirectory) && !destination.outputRootDirectory) ||
+			(destination.outputRootDirectory && !path.isAbsolute(destination.outputRootDirectory))
+		)
+			throw new Error("尚未确定产物保存目录。请先打开 VS Code 工作区，或在 Batch 工作表中选择保存目录；不会提交收费运行。")
 		const q = s.quote
 		if (
 			!s.enabled ||
@@ -737,7 +1216,7 @@ export class BatchService {
 			s.attempt.runId = result.runId
 			s.phase = "running"
 			s.error = undefined
-			this.event(s, `已创建 ${s.rows.length} 个批量任务，正在执行。`)
+			this.event(s, `已创建 ${q.taskCount} 个批量任务，正在执行。`)
 		} catch (error) {
 			if (error instanceof LoomLoomRequestNotSubmittedError) await notSubmitted(error.message, error)
 			s.phase = "execution-unknown"
@@ -824,6 +1303,9 @@ export class BatchService {
 		this.disposed = true
 		for (const timer of this.timers.values()) clearTimeout(timer)
 		this.timers.clear()
+		this.attachmentReservations.clear()
+		this.worksheetEditLeases.clear()
+		this.worksheetDraftProbe = undefined
 		this.listeners.clear()
 		this.worksheetViewListeners.clear()
 		this.presentationListeners.clear()

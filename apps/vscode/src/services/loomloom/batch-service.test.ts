@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "bun:test"
-import { type BatchSession, canonicalRows, parseBatchSchema, type SkillBot } from "@shared/loomloom"
+import path from "node:path"
+import { type BatchSession, canonicalRows, effectiveTaskCount, parseBatchSchema, type SkillBot } from "@shared/loomloom"
 import { BatchService, type BatchStore } from "./batch-service"
 import { type BatchApi, LoomLoomClient } from "./client"
 import { parseBatchCommand } from "./commands"
@@ -61,7 +62,7 @@ function setup(initial: BatchSession[] = []) {
 	services.push(service)
 	const snapshot = async () => (await service.snapshot("task"))!
 	async function prepared() {
-		await service.setEnabled("task", true)
+		await service.setEnabled("task", true, path.resolve("test-batch-workspace"))
 		await service.command("task", { action: "select", listingId: "listing" })
 		let s = await snapshot()
 		await service.command("task", { action: "quantity", revision: s.revision, count: 3 })
@@ -79,6 +80,200 @@ function setup(initial: BatchSession[] = []) {
 }
 
 describe("Batch authority and paid execution", () => {
+	it("does not start a paid run without a project or an explicitly chosen output folder", async () => {
+		const f = setup()
+		await f.service.setEnabled("task", true)
+		await f.service.command("task", { action: "select", listingId: listing.id })
+		let state = await f.snapshot()
+		state = await f.service.command("task", {
+			action: "patch",
+			revision: state.revision,
+			rows: [{ id: state.rows[0].id, values: { text: "需保存的输入" } }],
+		})
+		state = await f.service.command("task", { action: "review", revision: state.revision })
+		state = await f.service.command("task", { action: "quote", revision: state.revision })
+		const before = await f.snapshot()
+		await expect(
+			f.service.command("task", { action: "execute", revision: state.revision, quoteId: state.quote!.id }),
+		).rejects.toThrow("产物保存目录")
+		const after = await f.snapshot()
+		expect(after.phase).toBe("quoted")
+		expect(after.quote).toEqual(before.quote)
+		expect(after.revision).toBe(before.revision)
+		expect(after.attempt).toBeUndefined()
+		expect(f.executed).toHaveLength(0)
+		const chosenFolder = path.resolve("projectless-user-choice")
+		await f.service.setOutputRootDirectory("task", chosenFolder)
+		await f.service.command("task", { action: "execute", revision: state.revision, quoteId: state.quote!.id })
+		expect((await f.snapshot()).attempt?.outputDestination).toEqual({
+			baseDirectory: chosenFolder,
+			outputRootDirectory: chosenFolder,
+		})
+		expect(f.executed).toHaveLength(1)
+	})
+	it("freezes each run's output destination while allowing a different folder for future runs", async () => {
+		const f = setup()
+		const quoted = await f.prepared()
+		const initialProject = quoted.outputDestination!.baseDirectory
+		const firstRoot = path.resolve("first-user-output")
+		const nextRoot = path.resolve("next-user-output")
+		await f.service.setOutputRootDirectory("task", firstRoot)
+		const afterChoice = await f.snapshot()
+		expect(afterChoice.outputDestination).toEqual({ baseDirectory: initialProject, outputRootDirectory: firstRoot })
+		expect(afterChoice.quote).toEqual(quoted.quote)
+		await f.service.command("task", {
+			action: "execute",
+			revision: quoted.revision,
+			quoteId: quoted.quote!.id,
+		})
+		await f.service.setOutputRootDirectory("task", nextRoot)
+		const running = await f.snapshot()
+		expect(running.outputDestination?.outputRootDirectory).toBe(nextRoot)
+		expect(running.attempt?.outputDestination?.outputRootDirectory).toBe(firstRoot)
+		expect(f.executed).toHaveLength(1)
+	})
+	it("rebinds only an owned run for explicit re-export and keeps earlier files untouched", async () => {
+		const f = setup()
+		const quoted = await f.prepared()
+		await f.service.command("task", {
+			action: "execute",
+			revision: quoted.revision,
+			quoteId: quoted.quote!.id,
+		})
+		await f.service.recordLocalOutputs("task", "run-1", [
+			{
+				runId: "run-1",
+				rowIndex: 0,
+				artifactIndex: 0,
+				contentHash: "original",
+				status: "saved",
+				path: path.resolve("old-folder", "output.html"),
+			},
+		])
+		const beforeReExport = await f.snapshot()
+		const previousFutureRoot = beforeReExport.outputDestination
+		const previousRunDestination = beforeReExport.attempt?.outputDestination
+		const exportRoot = path.resolve("run-export")
+		await f.service.rebindRunOutputDirectory("task", "run-1", exportRoot)
+		await f.service.recordLocalOutputs(
+			"task",
+			"run-1",
+			[
+				{
+					runId: "run-1",
+					rowIndex: 0,
+					artifactIndex: 0,
+					contentHash: "late-old-write",
+					status: "saved",
+					path: path.resolve("old-folder", "output.html"),
+				},
+			],
+			{ outputDestination: previousRunDestination },
+		)
+		const after = await f.snapshot()
+		expect(after.attempt?.outputDestination?.outputRootDirectory).toBe(exportRoot)
+		expect(after.outputDestination).toEqual(previousFutureRoot)
+		await expect(f.service.rebindRunOutputDirectory("task", "foreign-run", exportRoot)).rejects.toThrow("不属于")
+		expect(after.localOutputs).toEqual([])
+	})
+	it("replaces only the unsafe legacy chat fallback for future runs", async () => {
+		const f = setup()
+		const chatFallback = path.resolve("ClineUser", ".cline", "data", "workspaces", "chat")
+		const project = path.resolve("actual-project")
+		await f.service.setEnabled("task", true, chatFallback)
+		await f.service.configureOutputDestination("task", project)
+		expect((await f.snapshot()).outputDestination?.baseDirectory).toBe(project)
+		await f.service.setOutputRootDirectory("task", path.resolve("custom-output"))
+		await f.service.clearInternalChatOutputDestination("task")
+		expect((await f.snapshot()).outputDestination?.outputRootDirectory).toBe(path.resolve("custom-output"))
+	})
+	it("promotes the untouched seed on explicit quantity and keeps blank explicit default tasks", async () => {
+		const { service } = setup()
+		await service.setEnabled("task", true)
+		const selected = await service.command("task", { action: "select", listingId: listing.id })
+		expect(effectiveTaskCount(selected.rows)).toBe(0)
+		const three = await service.command("task", { action: "quantity", revision: selected.revision, count: 3 })
+		expect(three.rows).toHaveLength(3)
+		expect(three.rows.map((row) => row.sheetRowNumber)).toEqual([2, 3, 4])
+		expect(three.rows.every((row) => row.origin === "explicit")).toBe(true)
+		expect(effectiveTaskCount(three.rows)).toBe(3)
+		const optional: SkillBot = {
+			...listing,
+			schema: { schema_version: "loom_market_public_input_schema_v1", fields: [{ key: "memo", value_type: "string" }] },
+		}
+		expect(
+			canonicalRows({
+				listing: optional,
+				rows: [
+					{ id: "auto", origin: "implicit", values: {}, attachments: [] },
+					{ id: "user", origin: "explicit", values: {}, attachments: [] },
+				],
+			}),
+		).toEqual([{}])
+	})
+	it("pins legacy visual row numbers before a structural removal", async () => {
+		const original = setup()
+		const quoted = await original.prepared()
+		const legacy: BatchSession = {
+			...quoted,
+			phase: "collecting",
+			quote: undefined,
+			rows: quoted.rows.map(({ sheetRowNumber: _position, origin: _origin, ...row }) => row),
+		}
+		const resumed = setup([legacy])
+		const next = await resumed.service.command("task", {
+			action: "removeRows",
+			revision: legacy.revision,
+			rowIds: [legacy.rows[0].id],
+		})
+		expect(next.rows.map((row) => row.sheetRowNumber)).toEqual([3, 4])
+	})
+	it("does not promote the seed or create empty rows when a structural save fails", async () => {
+		const f = setup()
+		await f.service.setEnabled("task", true)
+		const selected = await f.service.command("task", { action: "select", listingId: listing.id })
+		const before = await f.snapshot()
+		f.store.save = async () => {
+			throw new Error("disk full")
+		}
+		await expect(
+			f.service.command("task", {
+				action: "addRows",
+				revision: selected.revision,
+				count: 3,
+			}),
+		).rejects.toThrow("disk full")
+		const after = await f.snapshot()
+		expect(after.rows).toEqual(before.rows)
+		expect(after.revision).toBe(before.revision)
+		expect(effectiveTaskCount(after.rows)).toBe(0)
+	})
+	it("appends toolbar rows after a sparse task instead of silently billing an untouched seed", async () => {
+		const f = setup()
+		await f.service.setEnabled("task", true)
+		const selected = await f.service.command("task", { action: "select", listingId: listing.id })
+		const reservation = await f.service.reserveWorksheetAttachmentRow("task", selected.revision, 20, "text", () => true)
+		await f.service.attach(
+			"task",
+			selected.revision,
+			reservation.rowId,
+			{
+				id: "file",
+				name: "note.txt",
+				path: "D:/note.txt",
+				field: "text",
+				mode: "text",
+			},
+			"来自文件的文本",
+		)
+		await reservation.release()
+		const filled = await f.snapshot()
+		expect(effectiveTaskCount(filled.rows)).toBe(1)
+		const next = await f.service.command("task", { action: "addRows", revision: filled.revision, count: 1 })
+		expect(next.rows.find((row) => row.sheetRowNumber === 2)?.origin).toBe("implicit")
+		expect(next.rows.find((row) => row.sheetRowNumber === 21)?.origin).toBe("explicit")
+		expect(effectiveTaskCount(next.rows)).toBe(2)
+	})
 	it("keeps editable rows in the chat snapshot without copying quote rows or result history", async () => {
 		const fixture = setup()
 		await fixture.prepared()

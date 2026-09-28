@@ -130,7 +130,17 @@ describe("getBatchGuidance", () => {
 
 	it("asks to load missing schema and add rows when none exist", () => {
 		expect(getBatchGuidance(snapshot({ listing: undefined }), now).message).toContain("还没有加载")
-		expect(getBatchGuidance(snapshot({ rows: [] }), now).message).toContain("还没有任务行")
+		expect(getBatchGuidance(snapshot({ rows: [] }), now).message).toContain("尚无待提交任务")
+	})
+
+	it("does not count an untouched implicit seed or visual gaps as quoted tasks", () => {
+		const session = quoted()
+		session.rows = [
+			{ ...row(), id: "seed", origin: "implicit", sheetRowNumber: 2 },
+			{ ...row({ source: "第 20 行内容" }), id: "far", origin: "implicit", sheetRowNumber: 20 },
+		]
+		expect(isBatchQuoteCurrent(session, now)).toBe(true)
+		expect(getBatchGuidance({ ...session, phase: "collecting", quote: undefined }, now).message).toContain("1 行输入")
 	})
 
 	it("accepts required false and zero values", () => {

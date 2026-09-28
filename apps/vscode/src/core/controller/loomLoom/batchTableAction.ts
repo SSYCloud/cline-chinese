@@ -6,7 +6,15 @@ export async function batchTableAction(controller: Controller, request: StringRe
 	const input = z
 		.object({
 			taskId: z.string().min(1).max(200),
-			action: z.enum(["focusChat", "openArtifact", "saveOutputs", "cite"]),
+			action: z.enum([
+				"focusChat",
+				"openArtifact",
+				"saveOutputs",
+				"cite",
+				"chooseOutputDirectory",
+				"exportRunToDirectory",
+				"previewArtifact",
+			]),
 			text: z.string().max(15_000).optional(),
 			runId: z.string().max(200).optional(),
 			rowIndex: z.number().int().min(0).optional(),
@@ -16,6 +24,6 @@ export async function batchTableAction(controller: Controller, request: StringRe
 	if (input.action === "cite" && input.taskId !== controller.task?.taskId)
 		throw new Error("请先打开原任务，再将创作草稿交给 Cline。")
 	if (!controller.batchTableHost) throw new Error("此操作需要 VS Code。")
-	await controller.batchTableHost.action(input)
-	return StringResponse.create({ value: "{}" })
+	const result = await controller.batchTableHost.action(input)
+	return StringResponse.create({ value: JSON.stringify(result ?? {}) })
 }

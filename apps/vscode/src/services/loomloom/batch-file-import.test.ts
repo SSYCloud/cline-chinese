@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, mock, spyOn } from "bun:test"
-import { type BatchSession, canonicalRows, type SkillBot } from "@shared/loomloom"
+import { type BatchSession, canonicalRows, effectiveTaskCount, type SkillBot } from "@shared/loomloom"
 import { selectBatchAttachment } from "@/core/controller/loomLoom/selectBatchAttachment"
 import { HostProvider } from "@/hosts/host-provider"
 import { BatchService } from "./batch-service"
@@ -33,6 +33,7 @@ async function setup() {
 		},
 	}
 	const saved: BatchSession[] = []
+	let rejectSave = false
 	const api: BatchApi = {
 		detail: async () => structuredClone(listing),
 		quote: mock(async (_id, _version, rows) => ({
@@ -46,6 +47,7 @@ async function setup() {
 		{
 			loadAll: async () => [],
 			save: async (session) => {
+				if (rejectSave) throw new Error("disk full")
 				saved.push(structuredClone(session))
 			},
 		},
@@ -120,10 +122,84 @@ async function setup() {
 		await batch.command("task", { action: "review", revision: (await snapshot()).revision })
 		return batch.command("task", { action: "quote", revision: (await snapshot()).revision })
 	}
-	return { batch, api, saved, snapshot, windowClient, reader, upload, attach, mutableController, rpc, table, port, quote }
+	return {
+		batch,
+		api,
+		saved,
+		snapshot,
+		windowClient,
+		reader,
+		upload,
+		attach,
+		mutableController,
+		rpc,
+		table,
+		port,
+		quote,
+		setSaveFailure: (value: boolean) => {
+			rejectSave = value
+		},
+	}
 }
 
 describe("Batch selected-file import integration", () => {
+	it("uploads an asset directly into distant D20 without materializing skipped rows", async () => {
+		const f = await setup()
+		const quoted = await f.quote()
+		await f.table.execute("task", { action: "attach", range: "D20", revision: quoted.revision })
+		const after = await f.snapshot()
+		expect(after.rows).toHaveLength(3)
+		expect(after.rows[2]).toMatchObject({
+			sheetRowNumber: 20,
+			origin: "implicit",
+			values: { asset: "ia_uploaded" },
+			attachments: [{ field: "asset", name: "picked.ts", inputAssetId: "ia_uploaded" }],
+		})
+		expect(effectiveTaskCount(after.rows)).toBe(3)
+		expect(after.revision).toBe(quoted.revision + 1)
+		expect(after.quote?.valid).toBe(false)
+		expect(f.upload).toHaveBeenCalledTimes(1)
+	})
+	it("imports text into distant C20 and leaves text_reference unsupported", async () => {
+		const f = await setup()
+		const before = await f.snapshot()
+		await expect(f.table.execute("task", { action: "attach", range: "G20", revision: before.revision })).rejects.toThrow(
+			"不支持文件导入",
+		)
+		expect((await f.snapshot()).rows).toHaveLength(2)
+		await f.table.execute("task", { action: "attach", range: "C20", revision: before.revision })
+		const after = await f.snapshot()
+		expect(after.rows[2]).toMatchObject({ sheetRowNumber: 20, values: { text: "const answer = 42\n" } })
+		expect(f.reader).toHaveBeenCalledWith("D:/selected/picked.ts", "text")
+		expect(f.upload).not.toHaveBeenCalled()
+	})
+	it("picker cancellation leaves only a nonbillable placeholder and keeps the quote valid", async () => {
+		const f = await setup()
+		const quoted = await f.quote()
+		f.windowClient.showOpenDialogue.mockResolvedValueOnce({ paths: [] })
+		await f.table.execute("task", { action: "attach", range: "D20", revision: quoted.revision })
+		const after = await f.snapshot()
+		expect(after.rows[2]).toMatchObject({ sheetRowNumber: 20, origin: "implicit", values: {}, attachments: [] })
+		expect(effectiveTaskCount(after.rows)).toBe(2)
+		expect(after.revision).toBe(quoted.revision)
+		expect(after.quote?.valid).toBe(true)
+		expect(f.upload).not.toHaveBeenCalled()
+	})
+	it("keeps a distant placeholder nonbillable if saving an uploaded asset fails", async () => {
+		const f = await setup()
+		const quoted = await f.quote()
+		f.windowClient.showOpenDialogue.mockResolvedValueOnce({ paths: [] })
+		await f.table.execute("task", { action: "attach", range: "D20", revision: quoted.revision })
+		f.setSaveFailure(true)
+		await expect(f.table.execute("task", { action: "attach", range: "D20", revision: quoted.revision })).rejects.toThrow(
+			"disk full",
+		)
+		const after = await f.snapshot()
+		expect(after.rows.at(-1)).toMatchObject({ sheetRowNumber: 20, origin: "implicit", values: {}, attachments: [] })
+		expect(after.revision).toBe(quoted.revision)
+		expect(after.quote?.valid).toBe(true)
+		expect(f.upload).toHaveBeenCalledTimes(1)
+	})
 	it("imports a same-row reference atomically, reuses its ID, and invalidates the quote without a picker", async () => {
 		const f = await setup()
 		const before = await f.quote()

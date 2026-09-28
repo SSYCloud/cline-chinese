@@ -80,6 +80,7 @@ function setup() {
 	const snapshot = async () => (await batch.snapshot("task"))!
 	async function rows(actor: "user" | "agent" = "user", taskId = "task") {
 		await batch.setEnabled(taskId, true)
+		await batch.configureOutputDestination(taskId, process.cwd())
 		const selected = await batch.command(taskId, { action: "select", listingId: "listing" }, actor)
 		const session = await batch.command(taskId, { action: "quantity", revision: selected.revision, count: 2 }, actor)
 		await presentation.whenIdle()

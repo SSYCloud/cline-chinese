@@ -4,7 +4,13 @@ import path from "node:path"
 import type { BatchArtifact, BatchSession } from "@shared/loomloom"
 import { BatchService, type BatchStore } from "./batch-service"
 import type { BatchApi } from "./client"
-import { BatchOutputCoordinator, type BatchOutputWriter, MAX_LOCAL_OUTPUT_FILES_PER_RUN } from "./output-coordinator"
+import {
+	type BatchMediaWriter,
+	BatchOutputCoordinator,
+	type BatchOutputWriter,
+	MAX_LOCAL_OUTPUT_FILES_PER_RUN,
+	mediaArtifactContentHash,
+} from "./output-coordinator"
 import { MAX_INLINE_ARTIFACT_BYTES } from "./output-file-adapter"
 
 const originalRoot = path.resolve("original-task-workspace")
@@ -60,7 +66,7 @@ function state(): BatchSession {
 		events: [],
 	}
 }
-function setup(initial = state(), providedWriter?: BatchOutputWriter) {
+function setup(initial = state(), providedWriter?: BatchOutputWriter, providedMediaWriter?: BatchMediaWriter) {
 	let persisted = structuredClone(initial)
 	let saves = 0,
 		executes = 0,
@@ -93,6 +99,7 @@ function setup(initial = state(), providedWriter?: BatchOutputWriter) {
 	}
 	const service = new BatchService(store, api, () => {}, 60_000)
 	const writes: Parameters<BatchOutputWriter>[0][] = []
+	const mediaWrites: Parameters<BatchMediaWriter>[0][] = []
 	const savedResult = (args: Parameters<BatchOutputWriter>[0]) => ({
 		path: path.join(args.baseDirectory, `${args.runId}-${args.rowIndex}-${args.artifactIndex}.txt`),
 		relativePath: `${args.runId}-${args.rowIndex}-${args.artifactIndex}.txt`,
@@ -105,7 +112,19 @@ function setup(initial = state(), providedWriter?: BatchOutputWriter) {
 		writes.push(structuredClone(args))
 		return providedWriter ? providedWriter(args) : savedResult(args)
 	}
-	const coordinator = new BatchOutputCoordinator(service, writer)
+	const mediaWriter: BatchMediaWriter = async (args) => {
+		mediaWrites.push(structuredClone(args))
+		if (providedMediaWriter) return providedMediaWriter(args)
+		return {
+			path: path.join(args.outputRootDirectory ?? args.baseDirectory, "image.png"),
+			relativePath: "image.png",
+			sha256: createHash("sha256").update("media bytes").digest("hex"),
+			sizeBytes: 11,
+			extension: "png",
+			mimeType: "image/png",
+		}
+	}
+	const coordinator = new BatchOutputCoordinator(service, writer, mediaWriter)
 	cleanups.push(() => {
 		coordinator.dispose()
 		service.dispose()
@@ -116,6 +135,7 @@ function setup(initial = state(), providedWriter?: BatchOutputWriter) {
 		store,
 		api,
 		writes,
+		mediaWrites,
 		savedResult,
 		persisted: () => persisted,
 		counts: () => ({ saves, executes, reads }),
@@ -192,10 +212,10 @@ describe("task-scoped local output coordination", () => {
 		await f.coordinator.ensure("task", "run")
 		expect(f.writes).toHaveLength(0)
 		expect(f.persisted().localOutputs![0]).toMatchObject({ status: "error" })
-		expect(f.persisted().localOutputs![0].error).toContain("原任务未绑定输出目录")
+		expect(f.persisted().localOutputs![0].error).toContain("本批未绑定产物目录")
 		expect(f.persisted().phase).toBe("completed")
 	})
-	it("ignores empty and binary artifacts before requiring an output destination", async () => {
+	it("reports media without an output destination, but ignores whitespace and unsupported binary", async () => {
 		const initial = state()
 		initial.attempt!.outputDestination = undefined
 		initial.outputDestination = undefined
@@ -207,8 +227,43 @@ describe("task-scoped local output coordination", () => {
 		const f = setup(initial)
 		await f.coordinator.ensure("task", "run")
 		expect(f.writes).toHaveLength(0)
-		expect(f.persisted().localOutputs).toBeUndefined()
-		expect(f.counts().saves).toBe(0)
+		expect(f.mediaWrites).toHaveLength(0)
+		expect(f.persisted().localOutputs).toHaveLength(1)
+		expect(f.persisted().localOutputs![0]).toMatchObject({ artifactIndex: 0, status: "error" })
+		expect(f.persisted().localOutputs![0].error).toContain("本批未绑定产物目录")
+	})
+	it("saves an owned media access URL using the frozen original destination and dedupes signed query rotation", async () => {
+		const initial = state()
+		initial.attempt!.outputDestination = { baseDirectory: originalRoot, outputRootDirectory: otherRoot }
+		initial.results[0].artifacts = [
+			{ artifactId: "image-id", mimeType: "image/png", accessUrl: "https://cdn.example.com/photo.png?token=one" },
+		]
+		const f = setup(initial)
+		await f.coordinator.ensure("task", "run")
+		expect(f.mediaWrites).toHaveLength(1)
+		expect(f.mediaWrites[0]).toMatchObject({ baseDirectory: originalRoot, outputRootDirectory: otherRoot, rowIndex: 0 })
+		expect(f.persisted().localOutputs?.[0]).toMatchObject({ status: "saved", mimeType: "image/png" })
+		const one = initial.results[0].artifacts![0]
+		const two = { ...one, accessUrl: "https://cdn.example.com/photo.png?token=two" }
+		expect(mediaArtifactContentHash(one)).toBe(mediaArtifactContentHash(two))
+		expect(mediaArtifactContentHash({ ...one, artifactId: undefined })).toBe(
+			mediaArtifactContentHash({ ...two, artifactId: undefined }),
+		)
+		await f.coordinator.ensure("task", "run")
+		expect(f.mediaWrites).toHaveLength(1)
+	})
+	it("sanitizes network failures without leaking signed URLs or touching cloud completion", async () => {
+		const initial = state()
+		initial.results[0].artifacts = [
+			{ mimeType: "video/mp4", accessUrl: "https://cdn.example.com/clip.mp4?private-token=secret" },
+		]
+		const f = setup(initial, undefined, async () => {
+			throw new Error("network https://cdn.example.com/clip.mp4?private-token=secret")
+		})
+		await f.coordinator.ensure("task", "run")
+		expect(f.persisted().localOutputs?.[0].status).toBe("error")
+		expect(f.persisted().localOutputs?.[0].error).not.toContain("secret")
+		expect(f.persisted().phase).toBe("completed")
 	})
 	it("local failure keeps cloud success and permits a local retry without executing or re-quoting", async () => {
 		let fail = true
@@ -286,6 +341,34 @@ describe("task-scoped local output coordination", () => {
 		expect(f.writes.every((write) => write.baseDirectory === originalRoot)).toBe(true)
 		expect(f.persisted().localOutputs).toHaveLength(1)
 		expect(f.persisted().localOutputs![0].sha256).toBe(createHash("sha256").update("updated").digest("hex"))
+	})
+	it("does not publish an old-directory record after this run's output location changes", async () => {
+		let release!: () => void
+		let started!: () => void
+		const blocked = new Promise<void>((resolve) => {
+			release = resolve
+		})
+		const writing = new Promise<void>((resolve) => {
+			started = resolve
+		})
+		let first = true
+		const f = setup(state(), async (args) => {
+			if (first) {
+				first = false
+				started()
+				await blocked
+			}
+			return f.savedResult(args)
+		})
+		const oldSave = f.coordinator.ensure("task", "run")
+		await writing
+		await f.service.rebindRunOutputDirectory("task", "run", otherRoot)
+		release()
+		await oldSave
+		expect(f.persisted().localOutputs).toBeUndefined()
+		await f.coordinator.ensure("task", "run", true)
+		expect(f.writes.at(-1)?.outputRootDirectory).toBe(otherRoot)
+		expect(f.persisted().localOutputs?.[0].status).toBe("saved")
 	})
 	it("ignores URL-only artifacts and any cloud-injected local paths", async () => {
 		const initial = state()

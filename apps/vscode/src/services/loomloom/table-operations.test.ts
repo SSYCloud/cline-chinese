@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, mock } from "bun:test"
-import { type BatchSession, type SkillBot, toBatchChatSnapshot } from "@shared/loomloom"
+import { type BatchSession, effectiveTaskCount, type SkillBot, toBatchChatSnapshot } from "@shared/loomloom"
 import { buildSheet, columnLetter, parseRange, parseTsv, rangePatches, readSheetRange, toTsv } from "@shared/loomloom-sheet"
 import { BatchService } from "./batch-service"
 import type { BatchApi } from "./client"
@@ -34,6 +34,7 @@ afterEach(() => {
 })
 async function setup() {
 	let current = "task"
+	let rejectSave = false
 	const persisted: BatchSession[] = []
 	const api: BatchApi = {
 		detail: async () => structuredClone(listing),
@@ -69,6 +70,7 @@ async function setup() {
 		{
 			loadAll: async () => [],
 			save: async (s) => {
+				if (rejectSave) throw new Error("disk full")
 				persisted.push(structuredClone(s))
 			},
 		},
@@ -86,6 +88,7 @@ async function setup() {
 	const table = new BatchTableService(batch, port, () => current)
 	const snapshot = async () => (await batch.snapshot("task"))!
 	await batch.setEnabled("task", true)
+	await batch.configureOutputDestination("task", process.cwd())
 	await batch.command("task", { action: "select", listingId: listing.id })
 	await batch.command("task", { action: "quantity", revision: (await snapshot()).revision, count: 2 })
 	await table.execute("task", {
@@ -116,12 +119,350 @@ async function setup() {
 		api,
 		persisted,
 		changed,
+		setSaveFailure: (value: boolean) => {
+			rejectSave = value
+		},
 		switchTask: () => {
 			current = "other"
 		},
 	}
 }
 describe("Batch worksheet authority / Agent parity", () => {
+	it("rechecks a visible local draft before review or paid execution, even before its lease RPC arrives", async () => {
+		const { batch, snapshot, quote, api } = await setup()
+		const probe = mock(async () => true)
+		batch.setWorksheetDraftProbe(probe)
+		await expect(batch.command("task", { action: "review", revision: (await snapshot()).revision })).rejects.toThrow(
+			"未提交的编辑",
+		)
+		probe.mockResolvedValue(false)
+		const quoted = await quote()
+		probe.mockResolvedValue(true)
+		await expect(
+			batch.command("task", { action: "execute", revision: quoted.revision, quoteId: quoted.quote!.id }),
+		).rejects.toThrow("未提交的编辑")
+		expect(api.execute).not.toHaveBeenCalled()
+		probe.mockRejectedValue(new Error("panel did not answer"))
+		await expect(
+			batch.command("task", { action: "execute", revision: quoted.revision, quoteId: quoted.quote!.id }),
+		).rejects.toThrow("无法确认 Batch 工作表")
+		expect(api.execute).not.toHaveBeenCalled()
+	})
+	it("materializes only C20, quotes one task, and maps run/history output back to visual row 20", async () => {
+		const f = await setup()
+		await f.batch.command("task", { action: "newBatch", revision: (await f.snapshot()).revision })
+		const seed = await f.snapshot()
+		expect(seed.rows).toHaveLength(1)
+		expect(effectiveTaskCount(seed.rows)).toBe(0)
+		const written = await f.table.execute("task", {
+			action: "write",
+			range: "C20",
+			revision: seed.revision,
+			values: [["只运行这一条"]],
+		})
+		expect(written).toMatchObject({ rowsChanged: 1, revision: seed.revision + 1 })
+		const sparse = await f.snapshot()
+		expect(sparse.rows).toHaveLength(1)
+		expect(sparse.rows[0]).toMatchObject({ sheetRowNumber: 20, origin: "implicit", values: { text: "只运行这一条" } })
+		expect(effectiveTaskCount(sparse.rows)).toBe(1)
+		expect(await f.table.execute("task", { action: "read", range: "C2:C20" })).toMatchObject({
+			values: [...Array.from({ length: 18 }, () => [""]), ["只运行这一条"]],
+		})
+		const quoted = await f.quote()
+		expect(quoted.quote?.taskCount).toBe(1)
+		expect(quoted.quote?.inputRows).toEqual([{ text: "只运行这一条" }])
+		f.api.run = mock(async () => ({
+			status: "completed",
+			total: 1,
+			completed: 1,
+			failed: 0,
+			rows: [{ rowIndex: 0, status: "completed", artifacts: [{ inlineText: "结果20", portName: "文本" }] }],
+			artifacts: [],
+			tasks: [{ taskId: "remote-1", sourceRowIndex: 0, status: "completed" }],
+		}))
+		await f.batch.command("task", { action: "execute", revision: quoted.revision, quoteId: quoted.quote!.id })
+		await f.batch.command("task", { action: "refreshRun" })
+		const finished = await f.snapshot()
+		const sheet = buildSheet(finished)
+		const output = sheet.columns.findIndex((column) => column.kind === "output")
+		expect(sheet.rows[18]).toMatchObject({ sheetRowNumber: 20, sourceIndex: 0, status: "completed" })
+		expect(readSheetRange(sheet, `${columnLetter(output)}20`, true)).toEqual([["结果20"]])
+		await f.batch.command("task", { action: "newBatch", revision: finished.revision })
+		const history = buildSheet(await f.snapshot(), "history:run1")
+		expect(history.rows[18]).toMatchObject({ sheetRowNumber: 20, sourceIndex: 0 })
+		expect(readSheetRange(history, `${columnLetter(output)}20`, true)).toEqual([["结果20"]])
+	})
+	it("reports visual capacity separately from tasks and labels an explicit empty row as defaults", async () => {
+		const f = await setup()
+		await f.batch.command("task", { action: "newBatch", revision: (await f.snapshot()).revision })
+		const seed = await f.snapshot()
+		expect(await f.table.execute("task", { action: "layout" })).toMatchObject({
+			visualRowCount: 1000,
+			billableTaskCount: 0,
+		})
+		await f.batch.command("task", { action: "addRows", revision: seed.revision, count: 1 })
+		expect(await f.table.execute("task", { action: "read", range: "B2" })).toMatchObject({
+			billableTaskCount: 1,
+			values: [["使用默认值"]],
+		})
+	})
+	it("deletes a visual gap like Excel and shifts the same task ID upward without changing its API order", async () => {
+		const f = await setup()
+		await f.batch.command("task", { action: "newBatch", revision: (await f.snapshot()).revision })
+		await f.table.execute("task", {
+			action: "write",
+			range: "C20",
+			revision: (await f.snapshot()).revision,
+			values: [["稀疏输入"]],
+		})
+		const quoted = await f.quote()
+		const originalId = quoted.rows[0].id
+		const result = await f.table.execute("task", {
+			action: "delete_visual_rows",
+			sheet: "current",
+			range: "A3:H4",
+			revision: quoted.revision,
+		})
+		expect(result).toMatchObject({ tasksRemoved: 0, rowsShifted: 1, revision: quoted.revision + 1, quoteValid: false })
+		const shifted = await f.snapshot()
+		expect(shifted.rows).toHaveLength(1)
+		expect(shifted.rows[0]).toMatchObject({ id: originalId, sheetRowNumber: 18, values: { text: "稀疏输入" } })
+		expect(readSheetRange(buildSheet(shifted), "C18", true)).toEqual([["稀疏输入"]])
+	})
+	it("does not invalidate a quote when deleting unused rows below all materialized tasks", async () => {
+		const f = await setup()
+		const quoted = await f.quote()
+		const deleted = await f.table.execute("task", {
+			action: "delete_visual_rows",
+			sheet: "current",
+			range: "A20:H21",
+			revision: quoted.revision,
+		})
+		expect(deleted).toMatchObject({ revision: quoted.revision, tasksRemoved: 0, rowsShifted: 0, quoteValid: true })
+		expect((await f.snapshot()).quote?.valid).toBe(true)
+	})
+	it("requires user confirmation for filled visual-row deletion and leaves history read-only", async () => {
+		const f = await setup()
+		const before = await f.snapshot()
+		const operation = {
+			action: "delete_visual_rows",
+			sheet: "current",
+			range: "A2:H2",
+			revision: before.revision,
+		}
+		await expect(f.table.execute("task", operation)).rejects.toThrow("确认删除")
+		await expect(f.table.execute("task", { ...operation, confirmed: true }, "agent")).rejects.toThrow("只能由用户")
+		expect((await f.snapshot()).rows).toEqual(before.rows)
+		const deleted = await f.table.execute("task", { ...operation, confirmed: true })
+		expect(deleted).toMatchObject({ tasksRemoved: 1, rowsShifted: 1 })
+		expect((await f.snapshot()).rows[0]).toMatchObject({ sheetRowNumber: 2, values: { text: "第二条" } })
+		await expect(f.table.execute("task", { ...operation, revision: before.revision, confirmed: true })).rejects.toThrow(
+			"输入已被更新",
+		)
+	})
+	it("holds an acknowledged dirty-editor lease against review, quote, run and workflow reset", async () => {
+		const f = await setup()
+		const quoted = await f.quote()
+		await expect(
+			f.table.execute("task", {
+				action: "edit_state",
+				panelId: "panel-a",
+				batchId: "stale",
+				editing: true,
+			}),
+		).rejects.toThrow("工作表会话已变化")
+		await expect(
+			f.table.execute(
+				"task",
+				{
+					action: "edit_state",
+					panelId: "panel-a",
+					batchId: quoted.id,
+					editing: true,
+				},
+				"agent",
+			),
+		).rejects.toThrow("只有工作表界面")
+		await f.table.execute("task", { action: "edit_state", panelId: "panel-a", batchId: quoted.id, editing: true })
+		expect((await f.batch.chatSnapshot("task"))?.pendingWorksheetEdit).toBe(true)
+		await expect(f.batch.command("task", { action: "review", revision: quoted.revision })).rejects.toThrow("未提交的编辑")
+		await expect(f.batch.command("task", { action: "quote", revision: quoted.revision })).rejects.toThrow("未提交的编辑")
+		await expect(
+			f.batch.command("task", {
+				action: "execute",
+				revision: quoted.revision,
+				quoteId: quoted.quote!.id,
+			}),
+		).rejects.toThrow("未提交的编辑")
+		await expect(f.batch.command("task", { action: "newBatch", revision: quoted.revision })).rejects.toThrow("未提交的编辑")
+		await expect(f.batch.command("task", { action: "select", listingId: listing.id })).rejects.toThrow("未提交的编辑")
+		await expect(
+			f.table.execute("task", {
+				action: "delete_visual_rows",
+				sheet: "current",
+				range: "A2:H2",
+				revision: quoted.revision,
+				confirmed: true,
+			}),
+		).rejects.toThrow("未提交的编辑")
+		expect(f.api.execute).not.toHaveBeenCalled()
+		await f.batch.releaseWorksheetEditLease("task", "panel-a")
+		expect((await f.batch.chatSnapshot("task"))?.pendingWorksheetEdit).toBe(false)
+		expect((await f.snapshot()).quote?.valid).toBe(true)
+	})
+	it("keeps the edit gate until every panel lease is ended or disposed", async () => {
+		const f = await setup()
+		const s = await f.snapshot()
+		await f.table.execute("task", { action: "edit_state", panelId: "a", batchId: s.id, editing: true })
+		await f.table.execute("task", { action: "edit_state", panelId: "b", batchId: s.id, editing: true })
+		await f.table.execute("task", { action: "edit_state", panelId: "a", batchId: s.id, editing: false })
+		expect((await f.batch.chatSnapshot("task"))?.pendingWorksheetEdit).toBe(true)
+		await f.batch.releaseWorksheetEditLease("task", "b")
+		await f.batch.releaseWorksheetEditLease("task", "b")
+		expect((await f.batch.chatSnapshot("task"))?.pendingWorksheetEdit).toBe(false)
+		expect((await f.snapshot()).revision).toBe(s.revision)
+	})
+	it("keeps an untouched image-only seed attachable without treating it as a task first", async () => {
+		const f = await setup()
+		await f.batch.command("task", { action: "newBatch", revision: (await f.snapshot()).revision })
+		const seed = await f.snapshot()
+		expect(buildSheet(seed).rows[0]).toMatchObject({ isBlank: false, sourceIndex: -1, row: { id: seed.rows[0].id } })
+		expect(effectiveTaskCount(seed.rows)).toBe(0)
+		await f.table.execute("task", { action: "attach", range: "E2", revision: seed.revision })
+		expect(f.port.attach).toHaveBeenCalledWith("task", seed.revision, seed.rows[0].id, "file")
+		await f.batch.attach("task", seed.revision, seed.rows[0].id, {
+			id: "asset",
+			name: "主图.png",
+			path: "D:/main.png",
+			field: "file",
+			inputAssetId: "ia_real",
+		})
+		expect(effectiveTaskCount((await f.snapshot()).rows)).toBe(1)
+	})
+	it("blocks paid execution while a distant picker is open, then releases the reservation", async () => {
+		const f = await setup()
+		const quoted = await f.quote()
+		let opened!: () => void
+		let close!: () => void
+		const pickerOpened = new Promise<void>((resolve) => {
+			opened = resolve
+		})
+		const pickerClosed = new Promise<void>((resolve) => {
+			close = resolve
+		})
+		f.port.attach = mock(async () => {
+			opened()
+			await pickerClosed
+		})
+		const attaching = f.table.execute("task", { action: "attach", range: "E20", revision: quoted.revision })
+		await pickerOpened
+		const during = await f.snapshot()
+		expect(during.rows.at(-1)).toMatchObject({ sheetRowNumber: 20, origin: "implicit", values: {}, attachments: [] })
+		expect(during.quote?.valid).toBe(true)
+		await expect(
+			f.batch.command("task", {
+				action: "execute",
+				revision: quoted.revision,
+				quoteId: quoted.quote!.id,
+			}),
+		).rejects.toThrow("正在选择或上传")
+		await expect(f.batch.command("task", { action: "quote", revision: quoted.revision })).rejects.toThrow("正在选择或上传")
+		expect(f.api.execute).not.toHaveBeenCalled()
+		close()
+		await attaching
+		expect((await f.snapshot()).quote?.valid).toBe(true)
+	})
+	it("leaves a failed distant upload nonbillable without consuming the quoted revision", async () => {
+		const f = await setup()
+		const quoted = await f.quote()
+		f.port.attach = mock(async () => {
+			throw new Error("upload failed")
+		})
+		await expect(f.table.execute("task", { action: "attach", range: "E20", revision: quoted.revision })).rejects.toThrow(
+			"upload failed",
+		)
+		const after = await f.snapshot()
+		expect(after.rows.at(-1)).toMatchObject({ sheetRowNumber: 20, origin: "implicit", values: {}, attachments: [] })
+		expect(effectiveTaskCount(after.rows)).toBe(2)
+		expect(after.revision).toBe(quoted.revision)
+		expect(after.quote?.valid).toBe(true)
+	})
+	it("does not create a 101st task through a distant file picker", async () => {
+		const f = await setup()
+		await f.batch.command("task", { action: "newBatch", revision: (await f.snapshot()).revision })
+		const seed = await f.snapshot()
+		await f.batch.command("task", { action: "quantity", revision: seed.revision, count: 100 })
+		const full = await f.snapshot()
+		expect(effectiveTaskCount(full.rows)).toBe(100)
+		await expect(f.table.execute("task", { action: "attach", range: "E200", revision: full.revision })).rejects.toThrow(
+			"最多 100",
+		)
+		expect((await f.snapshot()).rows).toHaveLength(100)
+		expect(f.port.attach).not.toHaveBeenCalled()
+	})
+	it("ignores all-empty sparse paste and preserves a quote on an identical worksheet write", async () => {
+		const f = await setup()
+		const quoted = await f.quote()
+		const saved = f.persisted.length
+		const noChange = await f.table.execute("task", {
+			action: "write",
+			range: "C2",
+			revision: quoted.revision,
+			values: [["第一条"]],
+		})
+		expect(noChange).toMatchObject({ revision: quoted.revision, rowsChanged: 0, quoteValid: true })
+		expect(f.persisted).toHaveLength(saved)
+		const empty = await f.table.execute("task", {
+			action: "write",
+			range: "C20:C21",
+			revision: quoted.revision,
+			values: [[""], [""]],
+		})
+		expect(empty).toMatchObject({ revision: quoted.revision, rowsChanged: 0, quoteValid: true })
+		expect((await f.snapshot()).rows).toHaveLength(2)
+		expect(f.persisted).toHaveLength(saved)
+	})
+	it("validates a distant paste atomically and removes an implicit row when its last value is cleared", async () => {
+		const f = await setup()
+		await f.batch.command("task", { action: "newBatch", revision: (await f.snapshot()).revision })
+		const seed = await f.snapshot()
+		const saves = f.persisted.length
+		await expect(
+			f.table.execute("task", {
+				action: "write",
+				range: "F20:F21",
+				revision: seed.revision,
+				values: [["supported"], ["invented"]],
+			}),
+		).rejects.toThrow("支持模型列表")
+		expect((await f.snapshot()).rows).toEqual(seed.rows)
+		expect(f.persisted).toHaveLength(saves)
+		await f.table.execute("task", { action: "write", range: "C20", revision: seed.revision, values: [["待清除"]] })
+		const filled = await f.snapshot()
+		await f.table.execute("task", { action: "write", range: "C20", revision: filled.revision, values: [[""]] })
+		const cleared = await f.snapshot()
+		expect(cleared.rows).toHaveLength(0)
+		expect(effectiveTaskCount(cleared.rows)).toBe(0)
+	})
+	it("does not expose a sparse row or invalidate a quote if durable save fails", async () => {
+		const f = await setup()
+		const quoted = await f.quote()
+		const saved = f.persisted.length
+		f.setSaveFailure(true)
+		await expect(
+			f.table.execute("task", {
+				action: "write",
+				range: "D20",
+				revision: quoted.revision,
+				values: [["新目标"]],
+			}),
+		).rejects.toThrow("disk full")
+		const after = await f.snapshot()
+		expect(after.rows).toEqual(quoted.rows)
+		expect(after.revision).toBe(quoted.revision)
+		expect(after.quote?.valid).toBe(true)
+		expect(f.persisted).toHaveLength(saved)
+	})
 	it("rejects stale draft reset confirmation rather than clearing newer edits", async () => {
 		const f = await setup(),
 			s = await f.snapshot()

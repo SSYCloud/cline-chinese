@@ -48,7 +48,7 @@ import { ClineError } from "@/services/error/ClineError"
 import { SSY_PROVIDER_ID, SSYError, SSYErrorType } from "@/services/error/SSYError"
 import { BatchAgentBridge } from "@/services/loomloom/batch-agent-bridge"
 import { BatchPresentationCoordinator } from "@/services/loomloom/batch-presentation"
-import { BatchService, FileBatchStore } from "@/services/loomloom/batch-service"
+import { BatchService, FileBatchStore, isInternalChatWorkspace } from "@/services/loomloom/batch-service"
 import { LoomLoomClient } from "@/services/loomloom/client"
 import { CreatorService } from "@/services/loomloom/creator-service"
 import { BatchOutputCoordinator } from "@/services/loomloom/output-coordinator"
@@ -251,7 +251,7 @@ export class Controller {
 	/** Installed by the existing VS Code view. It opens a view over this controller, never another SDK session. */
 	batchTableHost?: {
 		open(taskId: string, preserveFocus?: boolean): Promise<void>
-		action(input: BatchTableHostAction): Promise<void>
+		action(input: BatchTableHostAction): Promise<unknown>
 	}
 
 	// Lazy terminal manager for foreground (VS Code terminal) command execution.
@@ -2100,17 +2100,72 @@ export class Controller {
 		this.batchModeChange = pending
 		await pending
 	}
-	/** Resolve only the task's persisted workspace. Never send an old run to the active editor's folder. */
+	/**
+	 * Batch delivery follows an actual VS Code workspace, not the SDK's synthetic chat cwd.
+	 * The original task project wins when it still exists. For a new task in a
+	 * multi-root window, the active editor must identify its containing root.
+	 */
+	private async getBatchProjectRoot(taskId?: string): Promise<string | undefined> {
+		let roots: string[]
+		try {
+			const { paths } = await HostProvider.workspace.getWorkspacePaths({})
+			roots = paths
+				.filter((directory) => !!directory?.trim() && path.isAbsolute(directory))
+				.map((directory) => path.resolve(directory))
+		} catch (error) {
+			Logger.warn("Unable to inspect VS Code workspaces for Batch output", error)
+			return undefined
+		}
+		if (taskId) {
+			const original = (await this.taskHistory.findHistoryItem(taskId))?.cwdOnTaskInitialization?.trim()
+			if (original && path.isAbsolute(original) && !isInternalChatWorkspace(original)) {
+				try {
+					if ((await fs.stat(original)).isDirectory()) return path.resolve(original)
+				} catch {
+					// A moved project needs an explicit new folder, not the active editor of another task.
+				}
+			}
+		}
+		if (!roots.length) return undefined
+		try {
+			const activePath = (await HostProvider.window.getActiveEditor({})).filePath
+			if (activePath && path.isAbsolute(activePath)) {
+				const containing = roots.filter((root) => {
+					const relative = path.relative(root, activePath)
+					return (
+						relative === "" ||
+						(relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative))
+					)
+				})
+				if (containing.length) return containing.sort((a, b) => b.length - a.length)[0]
+			}
+		} catch (error) {
+			Logger.warn("Unable to inspect active editor for Batch output; using task workspace", error)
+		}
+		return roots.length === 1 ? roots[0] : undefined
+	}
+	/** Resolve only future-run defaults. A frozen historical run requires an explicit "save this run elsewhere" action. */
 	async prepareBatchOutputDestination(taskId: string, runId?: string, notifyState = true): Promise<void> {
 		const batch = await this.batch.chatSnapshot(taskId)
 		if (!batch || (!batch.enabled && !runId)) return
-		if (batch.outputDestination && !runId) return
-		const original = await this.taskHistory.findHistoryItem(taskId)
-		const baseDirectory = batch.outputDestination?.baseDirectory || original?.cwdOnTaskInitialization?.trim()
-		if (!baseDirectory || !path.isAbsolute(baseDirectory))
-			throw new Error("找不到原会话的工作区目录，暂未自动保存文件；不会写入其他会话的目录。")
-		if (notifyState) await this.batch.configureOutputDestination(taskId, baseDirectory, runId)
-		else await this.batch.configureOutputDestination(taskId, baseDirectory, runId, false)
+		if (runId) {
+			const state = await this.batch.snapshot(taskId)
+			const run = state?.attempt?.runId === runId ? state.attempt : state?.pastRuns?.find((past) => past.runId === runId)
+			if (!run) throw new Error("此运行不属于当前任务，不能保存产物。")
+			if (!run.outputDestination) throw new Error("此运行尚未选择产物保存目录。请在 Batch 工作表中点击「另存本批」。")
+			return
+		}
+		if (
+			batch.outputDestination &&
+			(!isInternalChatWorkspace(batch.outputDestination.baseDirectory) || batch.outputDestination.outputRootDirectory)
+		)
+			return
+		const baseDirectory = await this.getBatchProjectRoot(taskId)
+		if (!baseDirectory) {
+			await this.batch.clearInternalChatOutputDestination(taskId, notifyState)
+			return
+		}
+		await this.batch.configureOutputDestination(taskId, baseDirectory, undefined, notifyState)
 	}
 
 	private async performProductAgentModeChange(target: ProductAgentMode): Promise<void> {
@@ -2141,10 +2196,10 @@ export class Controller {
 			if (this.stateManager.getGlobalSettingsKey("mode") !== "act")
 				throw new Error("无法进入 Act 运行模式，请检查模型配置。")
 		}
-		let newTaskCwd: string | undefined
+		let newTaskProjectRoot: string | undefined
 		if (!this.task) {
 			const cwd = await this.getWorkspaceRoot()
-			newTaskCwd = cwd
+			newTaskProjectRoot = await this.getBatchProjectRoot()
 			const config = await this.sessionConfigBuilder.build({ cwd, mode: "act" })
 			const title = "LoomLoom 批量任务"
 			const { startResult } = await this.sessions.startNewSession({
@@ -2167,8 +2222,8 @@ export class Controller {
 		}
 		// Fresh tasks already have their original workspace in hand. Persist
 		// their output destination with the initial Batch state in one disk write.
-		await this.batch.setEnabled(this.task.taskId, true, newTaskCwd, false)
-		if (!newTaskCwd) {
+		await this.batch.setEnabled(this.task.taskId, true, newTaskProjectRoot, false)
+		if (!newTaskProjectRoot) {
 			try {
 				await this.prepareBatchOutputDestination(this.task.taskId, undefined, false)
 			} catch (error) {

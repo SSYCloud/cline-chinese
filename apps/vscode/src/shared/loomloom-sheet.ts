@@ -1,4 +1,14 @@
-import type { BatchArtifact, BatchField, BatchHistoryRun, BatchRow, BatchSession, BatchValue } from "./loomloom"
+import {
+	type BatchArtifact,
+	type BatchField,
+	type BatchHistoryRun,
+	type BatchRow,
+	type BatchSession,
+	type BatchValue,
+	batchRowSheetNumber,
+	billableRows,
+	hasBatchInput,
+} from "./loomloom"
 import { resolveBatchModelField } from "./loomloom-models"
 
 export interface SheetColumn {
@@ -10,6 +20,9 @@ export interface SheetColumn {
 	outputIndex?: number
 }
 export interface SheetRow {
+	/** Empty visual grid row; it is not a billable inputRow or a remote task. */
+	isBlank: boolean
+	sheetRowNumber: number
 	sourceIndex: number
 	row: BatchRow
 	status: string
@@ -91,8 +104,10 @@ export function buildSheet(session: BatchSession, id = "current"): BatchSheet {
 	if (id !== "current" && id !== "progress" && !history) throw new Error("工作表不存在，请重新选择。")
 	const source = history ?? session,
 		rows = source.rows,
+		submittedRows = billableRows(rows),
 		results = source.results,
 		tasks = source.tasks ?? []
+	const submittedIndexById = new Map(submittedRows.map((row, index) => [row.id, index]))
 	// A run can contain hundreds of rows. Index its status data once instead of
 	// searching both arrays for every spreadsheet row on every progress update.
 	const resultsByRow = new Map<number, (typeof results)[number]>()
@@ -108,18 +123,26 @@ export function buildSheet(session: BatchSession, id = "current"): BatchSheet {
 				value_type: "string",
 			})))
 		: (session.listing?.schema?.fields ?? [])
-	const items: SheetRow[] = rows.map((row, index) => {
-		const result = resultsByRow.get(index),
-			task = tasksByRow.get(index)
+	const materialized: SheetRow[] = rows.map((row, index) => {
+		const sourceIndex = submittedIndexById.get(row.id) ?? -1,
+			result = sourceIndex < 0 ? undefined : resultsByRow.get(sourceIndex),
+			task = sourceIndex < 0 ? undefined : tasksByRow.get(sourceIndex),
+			sheetRowNumber = batchRowSheetNumber(row, index)
+		if (!Number.isSafeInteger(sheetRowNumber) || sheetRowNumber < 2 || sheetRowNumber > 1000)
+			throw new Error("工作表行号无效，请检查此批次的输入记录。")
 		return {
+			isBlank: false,
+			sheetRowNumber,
 			row,
-			sourceIndex: index,
+			sourceIndex,
 			status:
-				result?.status ||
-				task?.status ||
-				(["selecting", "quantity", "collecting", "reviewing", "quoting", "quoted"].includes(source.phase)
-					? "draft"
-					: "unknown"),
+				sourceIndex < 0
+					? ""
+					: result?.status ||
+						task?.status ||
+						(["selecting", "quantity", "collecting", "reviewing", "quoting", "quoted"].includes(source.phase)
+							? "draft"
+							: "unknown"),
 			artifacts: result?.artifacts ?? [],
 			error:
 				result?.errorMessage ||
@@ -127,6 +150,27 @@ export function buildSheet(session: BatchSession, id = "current"): BatchSheet {
 				(result?.stepErrors?.length ? JSON.stringify(result.stepErrors) : ""),
 			taskId: task?.taskId || "",
 		}
+	})
+	const byVisualRow = new Map<number, SheetRow>()
+	for (const item of materialized) {
+		if (byVisualRow.has(item.sheetRowNumber)) throw new Error("工作表行号重复，请检查此批次的输入记录。")
+		byVisualRow.set(item.sheetRowNumber, item)
+	}
+	const lastVisualRow = Math.max(1, ...byVisualRow.keys())
+	const items: SheetRow[] = Array.from({ length: lastVisualRow - 1 }, (_, index) => {
+		const sheetRowNumber = index + 2
+		return (
+			byVisualRow.get(sheetRowNumber) ?? {
+				isBlank: true,
+				sheetRowNumber,
+				sourceIndex: -1,
+				row: { id: "", values: {}, attachments: [] },
+				status: "",
+				artifacts: [],
+				error: "",
+				taskId: "",
+			}
+		)
 	})
 	const columns: SheetColumn[] = [
 		{ key: "id", label: "任务 ID", kind: "id", width: 76 },
@@ -170,11 +214,14 @@ export function sheetValue(sheet: BatchSheet, rowIndex: number, colIndex: number
 	if (!col) return ""
 	if (rowIndex === 0) return col.label
 	const item = sheet.rows[rowIndex - 1]
-	if (!item) return ""
+	if (!item || item.isBlank) return ""
+	if (item.sourceIndex < 0) return ""
 	switch (col.kind) {
 		case "id":
-			return String(item.sourceIndex + 1).padStart(3, "0")
+			return item.sourceIndex < 0 ? "" : String(item.sourceIndex + 1).padStart(3, "0")
 		case "status":
+			if (sheet.id === "current" && item.status === "draft" && item.row.origin === "explicit" && !hasBatchInput(item.row))
+				return "使用默认值"
 			return statusLabel(item.status)
 		case "taskId":
 			return item.taskId || "—"
@@ -223,7 +270,7 @@ export function readSheetRange(sheet: BatchSheet, address: string, full = false)
 	}
 	return values
 }
-export function rangePatches(sheet: BatchSheet, address: string, values: BatchValue[][]) {
+export function rangeWritePlan(sheet: BatchSheet, address: string, values: BatchValue[][]) {
 	if (sheet.readOnly) throw new Error("此工作表为只读，已提交的输入不能修改。")
 	const range = parseRange(address)
 	if (!values.length || !values[0]?.length || values.some((row) => row.length !== values[0].length))
@@ -233,13 +280,15 @@ export function rangePatches(sheet: BatchSheet, address: string, values: BatchVa
 		(values.length !== range.bottom - range.top + 1 || values[0].length !== range.right - range.left + 1)
 	)
 		throw new Error("数据行列数与选区不一致。")
-	const patches = new Map<string, Record<string, BatchValue>>()
+	if (range.top + values.length > 1000) throw new Error("工作表最多支持第 1000 行，请缩小粘贴范围。")
+	const patches = new Map<number, { rowId?: string; values: Record<string, BatchValue> }>()
 	for (let y = 0; y < values.length; y++)
 		for (let x = 0; x < values[y].length; x++) {
-			const item = sheet.rows[range.top + y - 1],
+			const sheetRowNumber = range.top + y + 1,
+				item = sheet.rows[sheetRowNumber - 2],
 				column = sheet.columns[range.left + x],
 				field = column?.field
-			if (!item || range.top + y === 0) throw new Error("选区超出本次输入，请先在工作表新增行。")
+			if (sheetRowNumber < 2) throw new Error("标题行不能填写输入。")
 			if (column?.kind !== "input" || !field || field.value_type === "asset_ref")
 				throw new Error("状态、产物和文件标识不能手工填写；文件请使用添加文件入口。")
 			let value = values[y][x]
@@ -254,11 +303,18 @@ export function rangePatches(sheet: BatchSheet, address: string, values: BatchVa
 				else if (["false", "否"].includes(value)) value = false
 				else if (value !== "") throw new Error("布尔字段需要是/否。")
 			}
-			const current = patches.get(item.row.id) ?? {}
-			current[field.key] = value
-			patches.set(item.row.id, current)
+			const current = patches.get(sheetRowNumber) ?? { rowId: item && !item.isBlank ? item.row.id : undefined, values: {} }
+			current.values[field.key] = value
+			patches.set(sheetRowNumber, current)
 		}
-	return [...patches].map(([id, values]) => ({ id, values }))
+	return [...patches].map(([sheetRowNumber, patch]) => ({ sheetRowNumber, ...patch }))
+}
+/** Legacy callers patch only existing rows; sparse writes use rangeWritePlan in the domain lock. */
+export function rangePatches(sheet: BatchSheet, address: string, values: BatchValue[][]) {
+	return rangeWritePlan(sheet, address, values).map(({ rowId, values }) => {
+		if (!rowId) throw new Error("此处尚无输入行，请直接填写单元格。")
+		return { id: rowId, values }
+	})
 }
 export function parseTsv(text: string): string[][] {
 	const rows: string[][] = [[]]

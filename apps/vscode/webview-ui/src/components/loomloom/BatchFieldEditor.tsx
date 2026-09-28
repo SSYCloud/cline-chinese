@@ -1,4 +1,4 @@
-import type { BatchField, BatchInputContext, BatchRow, BatchValue } from "@shared/loomloom"
+import { type BatchField, type BatchInputContext, type BatchRow, type BatchValue, batchRowSheetNumber } from "@shared/loomloom"
 import { getBatchFileInputMode } from "@shared/loomloom-files"
 import { resolveBatchModelField } from "@shared/loomloom-models"
 import { StringRequest } from "@shared/proto/cline/common"
@@ -171,10 +171,8 @@ export function BatchRowEditor({
 		}
 	}
 	return (
-		<div aria-label={`填写第 ${index + 1} 条`} className="batch-editor" role="dialog">
-			<strong>
-				第 {index + 1} / {session.rows.length} 条输入
-			</strong>
+		<div aria-label={`填写工作表第 ${batchRowSheetNumber(row, index)} 行`} className="batch-editor" role="dialog">
+			<strong>工作表第 {batchRowSheetNumber(row, index)} 行</strong>
 			{fields.map((field) => (
 				<BatchFieldEditor
 					field={field}
