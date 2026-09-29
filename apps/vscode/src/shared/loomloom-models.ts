@@ -51,8 +51,12 @@ export function resolveBatchModelField(field: BatchField): {
 			defaultModelId: metadata.default_model_id,
 		}
 	}
+	// Market labels may append a human hint (for example, "文本模型（留空用默认）").
+	// Only strip one terminal parenthetical suffix; the remaining label must still
+	// exactly match a known public model field, and key/label conflicts stay ambiguous.
+	const labelWithoutHint = (field.label ?? "").replace(/\s*(?:（[^（）]+）|\([^()]+\))\s*$/, "")
 	const matches = new Set(
-		[field.key, field.label ?? ""]
+		[field.key, labelWithoutHint]
 			.map((value) => {
 				const key = value.toLowerCase().replace(/[\s_-]/g, "")
 				return Object.hasOwn(PUBLIC_MODEL_FIELDS, key) ? PUBLIC_MODEL_FIELDS[key] : undefined

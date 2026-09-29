@@ -75,6 +75,27 @@ describe("public Batch model fields", () => {
 		expect(publicTextModel).toEqual(original)
 	})
 
+	it("resolves a public modelChoice field from a terminal descriptive label, without guessing from its key", () => {
+		for (const label of ["文本模型（留空用默认）", "文本模型 (留空用默认)"]) {
+			const field = { key: "modelChoice", label, value_type: "string" }
+			expect(resolveBatchModelField(field)).toEqual({ isModel: true, stepType: "text-generate", allowOverride: true })
+		}
+		for (const label of ["选择文本模型（留空用默认）", "文本模型（留空用默认）说明"]) {
+			expect(resolveBatchModelField({ key: "modelChoice", label, value_type: "string" })).toMatchObject({
+				isModel: true,
+				stepType: undefined,
+				allowOverride: false,
+			})
+		}
+		expect(
+			resolveBatchModelField({ key: "image_model", label: "文本模型（留空用默认）", value_type: "string" }),
+		).toMatchObject({
+			isModel: true,
+			stepType: undefined,
+			allowOverride: false,
+		})
+	})
+
 	for (const [key, label, stepType] of [
 		["text_model", "文本模型", "text-generate"],
 		["image_model", "图片模型", "image-generate"],
@@ -141,6 +162,20 @@ describe("public Batch model fields", () => {
 		expect((await f.snapshot()).rows[0].values.text_model).toBe("text-a")
 		expect(f.api.quote).not.toHaveBeenCalled()
 		expect(f.api.execute).not.toHaveBeenCalled()
+	})
+
+	it("RPC and Agent model lookup fetch the live text catalog for the public modelChoice label", async () => {
+		const field = { key: "modelChoice", label: "文本模型（留空用默认）", value_type: "string" } as const
+		const f = await setup(field)
+		const rpc = await batchModels(f.controller, { value: JSON.stringify({ taskId: "task", field: field.key }) })
+		expect(JSON.parse(rpc.value)).toEqual([
+			{ id: "text-a", name: "文本 A" },
+			{ id: "text-b", name: "文本 B" },
+		])
+		expect(await f.table.execute("task", { action: "models", range: "C2" }, "agent")).toMatchObject({
+			items: JSON.parse(rpc.value),
+		})
+		expect(f.models.mock.calls.every(([step]) => step === "text-generate")).toBe(true)
 	})
 
 	it("filters enum constraints from both catalogs and enforces them on every write path", async () => {

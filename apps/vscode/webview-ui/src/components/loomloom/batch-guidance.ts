@@ -1,4 +1,4 @@
-import { type BatchChatSnapshot, type BatchValue, canonicalRows } from "@shared/loomloom"
+import { type BatchChatSnapshot, type BatchValue, billableRows, canonicalRows, effectiveTaskCount } from "@shared/loomloom"
 
 export interface BatchGuidance {
 	title: string
@@ -13,7 +13,7 @@ export function isBatchQuoteCurrent(session: BatchChatSnapshot, now: number): bo
 		quote?.valid &&
 		quote.revision === session.revision &&
 		quote.versionId === session.listing?.versionId &&
-		quote.taskCount === session.rows.length &&
+		quote.taskCount === effectiveTaskCount(session.rows) &&
 		Number.isFinite(quote.at) &&
 		Number.isFinite(now) &&
 		now - quote.at <= 10 * 60_000
@@ -26,6 +26,7 @@ function hasValue(value: BatchValue | undefined): boolean {
 
 function collectingGuidance(session: BatchChatSnapshot): BatchGuidance {
 	const fields = session.listing?.schema?.fields
+	const rows = billableRows(session.rows)
 	if (!fields) {
 		return {
 			title: "准备输入",
@@ -33,29 +34,29 @@ function collectingGuidance(session: BatchChatSnapshot): BatchGuidance {
 			nextStep: "请重新选择工作流，加载输入要求后再整理材料。",
 		}
 	}
-	if (!session.rows.length) {
+	if (!rows.length) {
 		return {
-			title: "新增输入行",
-			message: `「${session.listing?.name ?? "当前工作流"}」已加载，工作表里还没有任务行。`,
-			nextStep: "点击「新增一行」，或告诉 Cline 需要整理几条；可以随时继续增删行。",
+			title: "开始填写",
+			message: `「${session.listing?.name ?? "当前工作流"}」已加载，尚无待提交任务。`,
+			nextStep: "直接在工作表空白输入格键入，或明确新增一行使用工作流默认值；空白网格不会计费。",
 		}
 	}
 	if (!fields.length) {
 		return {
 			title: "核对任务数量",
-			message: `当前有 ${session.rows.length} 行任务，这个工作流没有公开的输入字段。`,
+			message: `当前有 ${rows.length} 行任务，这个工作流没有公开的输入字段。`,
 			nextStep: "可以继续增删行；核对无误后点击「检查输入」。",
 		}
 	}
-	const hasInputs = session.rows.some((row) => fields.some((field) => hasValue(row.values[field.key])))
-	const hasAttachments = session.rows.some((row) => row.attachments.length > 0)
+	const hasInputs = rows.some((row) => fields.some((field) => hasValue(row.values[field.key])))
+	const hasAttachments = rows.some((row) => row.attachments.length > 0)
 	const required = fields.filter((field) => field.required)
 	if (!hasInputs && !required.length) {
 		return {
 			title: "准备输入",
 			message: hasAttachments
 				? "参考文件已添加，输入字段尚未填写。公开输入项均为可选，请确认是否需要把文件内容整理到输入中。"
-				: `当前有 ${session.rows.length} 行任务，尚未填写输入。公开输入项均为可选，可使用工作流默认设置。`,
+				: `当前有 ${rows.length} 行任务，尚未填写输入。公开输入项均为可选，可使用工作流默认设置。`,
 			nextStep: "需要定制就补充要求；确认使用默认设置后，点击「检查输入」。",
 		}
 	}
@@ -67,7 +68,7 @@ function collectingGuidance(session: BatchChatSnapshot): BatchGuidance {
 			title: "补充输入",
 			message:
 				!hasInputs && !hasAttachments
-					? `当前有 ${session.rows.length} 行任务，输入还没有填写。`
+					? `当前有 ${rows.length} 行任务，输入还没有填写。`
 					: !hasInputs && hasAttachments
 						? "参考文件已添加，还需要把材料整理到对应的输入字段。"
 						: "已收到部分输入，还有内容需要补全或调整。",
@@ -77,7 +78,7 @@ function collectingGuidance(session: BatchChatSnapshot): BatchGuidance {
 	return {
 		title: "检查输入",
 		message: required.length
-			? `${session.rows.length} 行输入均通过了必填项和格式检查，接下来请逐行核对内容。`
+			? `${rows.length} 行输入均通过了必填项和格式检查，接下来请逐行核对内容。`
 			: "当前输入已通过格式检查，未填写的可选项将使用工作流默认设置。",
 		nextStep: "点击「检查输入」，核对每条任务的材料与要求；之后再查看预算。",
 	}

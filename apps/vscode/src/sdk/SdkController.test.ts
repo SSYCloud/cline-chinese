@@ -1,4 +1,6 @@
+import path from "node:path"
 import { describe, expect, it, vi } from "vitest"
+import { HostProvider } from "@/hosts/host-provider"
 import { telemetryService } from "@/services/telemetry"
 import { isClineManagedProvider } from "@/shared/utils/cline"
 import { Controller as SdkController } from "./SdkController"
@@ -22,27 +24,86 @@ describe("SDK displayed-task Batch lifecycle", () => {
 		expect(controller.mode.rebuildSessionForMode).not.toHaveBeenCalled()
 		expect(controller.postStateToWebview).toHaveBeenCalledOnce()
 	})
-	it("binds output saving to the original task history rather than the active workspace", async () => {
+	it("binds a future Batch run to the host-resolved project workspace", async () => {
 		const controller = Object.create(SdkController.prototype) as SdkController
 		const configureOutputDestination = vi.fn(async () => {})
-		const findHistoryItem = vi.fn(async () => ({ cwdOnTaskInitialization: "D:/original-task" }))
-		Object.assign(controller, {
-			batch: { chatSnapshot: vi.fn(async () => ({ enabled: false })), configureOutputDestination },
-			taskHistory: { findHistoryItem },
-		})
-		await controller.prepareBatchOutputDestination("old-task", "old-run")
-		expect(findHistoryItem).toHaveBeenCalledWith("old-task")
-		expect(configureOutputDestination).toHaveBeenCalledWith("old-task", "D:/original-task", "old-run")
-	})
-	it("refuses an output fallback into a different workspace when task history lacks its directory", async () => {
-		const controller = Object.create(SdkController.prototype) as SdkController
-		const configureOutputDestination = vi.fn(async () => {})
+		const project = path.resolve("batch-project")
 		Object.assign(controller, {
 			batch: { chatSnapshot: vi.fn(async () => ({ enabled: true })), configureOutputDestination },
-			taskHistory: { findHistoryItem: vi.fn(async () => undefined) },
+			getBatchProjectRoot: vi.fn(async () => project),
 		})
-		await expect(controller.prepareBatchOutputDestination("unknown-task")).rejects.toThrow("原会话")
+		await controller.prepareBatchOutputDestination("old-task")
+		expect(configureOutputDestination).toHaveBeenCalledWith("old-task", project, undefined, true)
+	})
+	it("leaves output unbound when no VS Code project is open", async () => {
+		const controller = Object.create(SdkController.prototype) as SdkController
+		const configureOutputDestination = vi.fn(async () => {})
+		const clearInternalChatOutputDestination = vi.fn(async () => {})
+		Object.assign(controller, {
+			batch: {
+				chatSnapshot: vi.fn(async () => ({ enabled: true })),
+				configureOutputDestination,
+				clearInternalChatOutputDestination,
+			},
+			getBatchProjectRoot: vi.fn(async () => undefined),
+		})
+		await controller.prepareBatchOutputDestination("unknown-task")
 		expect(configureOutputDestination).not.toHaveBeenCalled()
+		expect(clearInternalChatOutputDestination).toHaveBeenCalledWith("unknown-task", true)
+	})
+	it("does not silently rebind a frozen old run to today's active workspace", async () => {
+		const controller = Object.create(SdkController.prototype) as SdkController
+		const configureOutputDestination = vi.fn(async () => {})
+		Object.assign(controller, {
+			batch: {
+				chatSnapshot: vi.fn(async () => ({ enabled: false })),
+				snapshot: vi.fn(async () => ({ attempt: { runId: "old-run" } })),
+				configureOutputDestination,
+			},
+			getBatchProjectRoot: vi.fn(async () => path.resolve("other-project")),
+		})
+		await expect(controller.prepareBatchOutputDestination("old-task", "old-run")).rejects.toThrow("另存本批")
+		expect(configureOutputDestination).not.toHaveBeenCalled()
+	})
+	it("chooses the active editor's containing root in a multi-root VS Code window", async () => {
+		const first = path.resolve("first-project")
+		const second = path.resolve("second-project")
+		const workspace = vi.spyOn(HostProvider, "workspace", "get").mockReturnValue({
+			getWorkspacePaths: vi.fn(async () => ({ paths: [first, second] })),
+		} as never)
+		const window = vi.spyOn(HostProvider, "window", "get").mockReturnValue({
+			getActiveEditor: vi.fn(async () => ({ filePath: path.join(second, "src", "index.ts") })),
+		} as never)
+		try {
+			const controller = Object.create(SdkController.prototype) as SdkController
+			const getBatchProjectRoot = SdkController.prototype as unknown as {
+				getBatchProjectRoot(this: SdkController): Promise<string | undefined>
+			}
+			expect(await getBatchProjectRoot.getBatchProjectRoot.call(controller)).toBe(second)
+		} finally {
+			workspace.mockRestore()
+			window.mockRestore()
+		}
+	})
+	it("asks for a folder instead of guessing the first root when a multi-root task has no matching editor", async () => {
+		const first = path.resolve("first-project")
+		const second = path.resolve("second-project")
+		const workspace = vi.spyOn(HostProvider, "workspace", "get").mockReturnValue({
+			getWorkspacePaths: vi.fn(async () => ({ paths: [first, second] })),
+		} as never)
+		const window = vi.spyOn(HostProvider, "window", "get").mockReturnValue({
+			getActiveEditor: vi.fn(async () => ({ filePath: undefined })),
+		} as never)
+		try {
+			const controller = Object.create(SdkController.prototype) as SdkController
+			const resolver = SdkController.prototype as unknown as {
+				getBatchProjectRoot(this: SdkController): Promise<string | undefined>
+			}
+			expect(await resolver.getBatchProjectRoot.call(controller)).toBeUndefined()
+		} finally {
+			workspace.mockRestore()
+			window.mockRestore()
+		}
 	})
 	it("notifies old and new task-pinned views for switching and clearing without starting inference", () => {
 		const controller = Object.create(SdkController.prototype) as SdkController

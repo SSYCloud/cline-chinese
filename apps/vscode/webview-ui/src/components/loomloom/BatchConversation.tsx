@@ -1,4 +1,4 @@
-import type { BatchChatSnapshot, BatchCommand } from "@shared/loomloom"
+import { type BatchChatSnapshot, type BatchCommand, billableRows, effectiveTaskCount } from "@shared/loomloom"
 import { statusLabel } from "@shared/loomloom-sheet"
 import { StringRequest } from "@shared/proto/cline/common"
 import { memo, useContext, useEffect, useState } from "react"
@@ -9,6 +9,7 @@ import { BatchRowEditor } from "./BatchFieldEditor"
 import { BatchRunControls } from "./BatchRunControls"
 import { sendBatch } from "./batch-api"
 import { getBatchGuidance } from "./batch-guidance"
+import { batchOutputRoot } from "./batch-output-location"
 import { SkillBotMarket } from "./SkillBotMarket"
 import "./batch.css"
 
@@ -49,6 +50,7 @@ export const BatchConversation = memo(function BatchConversation({
 		return () => clearTimeout(timer)
 	}, [session.quote?.id, session.quote?.at, session.quote?.valid])
 	const guidance = getBatchGuidance(session, now)
+	const taskCount = effectiveTaskCount(session.rows)
 	useEffect(() => {
 		if (pendingNext && session.revision >= pendingNext.revision) {
 			setEdit(pendingNext.id)
@@ -70,6 +72,12 @@ export const BatchConversation = memo(function BatchConversation({
 	const openSheet = () =>
 		perform(() =>
 			LoomLoomServiceClient.openBatchTable(StringRequest.create({ value: JSON.stringify({ taskId: session.taskId }) })),
+		)
+	const outputAction = (action: "chooseOutputDirectory" | "exportRunToDirectory", runId?: string) =>
+		perform(() =>
+			LoomLoomServiceClient.batchTableAction(
+				StringRequest.create({ value: JSON.stringify({ taskId: session.taskId, action, ...(runId ? { runId } : {}) }) }),
+			),
 		)
 	const p = session.progress
 	const ended = p ? p.completed + p.failed + (p.cancelled ?? 0) : 0
@@ -117,17 +125,36 @@ export const BatchConversation = memo(function BatchConversation({
 					{session.listing && (
 						<section className="batch-sheet-summary">
 							<p className="batch-current-workflow">
-								当前 SkillBot：<strong>{session.listing.name}</strong> · {session.rows.length} 行输入
+								当前 SkillBot：<strong>{session.listing.name}</strong> · {taskCount} 条待提交任务
 							</p>
-							{session.outputDestination && (
-								<details className="batch-output-location">
-									<summary>文本产物自动保存到工作区</summary>
-									<small>
-										{session.outputDestination.baseDirectory}
-										/.cline/loomloom-outputs/（按批次、任务分目录，不覆盖源码）
-									</small>
-								</details>
-							)}
+							<details className="batch-output-location" open>
+								<summary>产物保存位置</summary>
+								<small>
+									{session.attempt?.runId ? "本批：" : "后续批次："}
+									{batchOutputRoot(session.attempt?.outputDestination ?? session.outputDestination) ??
+										"尚未绑定项目目录，请先选择保存位置。"}
+								</small>
+								{session.attempt?.runId && (
+									<small>后续批次：{batchOutputRoot(session.outputDestination) ?? "尚未选择"}</small>
+								)}
+								<small>更改位置只影响后续批次；已运行批次需明确另存，原文件不会删除。</small>
+								<div className="batch-actions">
+									<button
+										className="batch-link"
+										disabled={busy}
+										onClick={() => void outputAction("chooseOutputDirectory")}>
+										更改后续产物目录
+									</button>
+									{session.attempt?.runId && (
+										<button
+											className="batch-link"
+											disabled={busy}
+											onClick={() => void outputAction("exportRunToDirectory", session.attempt?.runId)}>
+											另存本批产物…
+										</button>
+									)}
+								</div>
+							</details>
 							<button className="batch-link" disabled={busy} onClick={() => void openSheet()}>
 								打开 Batch 工作表
 							</button>
@@ -135,13 +162,13 @@ export const BatchConversation = memo(function BatchConversation({
 								<div className="batch-actions">
 									<button
 										className="batch-link"
-										disabled={busy || session.rows.length >= 100}
+										disabled={busy || taskCount >= 100}
 										onClick={() => void action({ action: "addRows", count: 1, revision: session.revision })}>
 										+ 新增一行
 									</button>
 									<button
 										className="batch-link"
-										disabled={busy || session.rows.length === 0}
+										disabled={busy}
 										onClick={() =>
 											void perform(() =>
 												onChat(
@@ -155,8 +182,8 @@ export const BatchConversation = memo(function BatchConversation({
 									<button
 										className="batch-link"
 										disabled={busy || session.rows.length === 0}
-										onClick={() => setEdit(session.rows[0].id)}>
-										逐条填写 {session.rows.length} 条
+										onClick={() => setEdit(billableRows(session.rows)[0]?.id ?? session.rows[0].id)}>
+										逐条填写
 									</button>
 								</div>
 							)}
@@ -217,7 +244,7 @@ export const BatchConversation = memo(function BatchConversation({
 					{resetRevision !== null && !session.attempt && (
 						<section aria-label="重新选择工作流确认" className="batch-editor" role="dialog">
 							<p>
-								重新选择会清空本次 {session.rows.length}{" "}
+								重新选择会清空本次 {taskCount}{" "}
 								条未提交输入及附件关联。附件原文件和已运行历史不会删除；需要保留的输入可先从工作表复制。
 							</p>
 							{resetRevision !== session.revision && <p role="alert">确认期间输入发生了变化，请取消后重新核对。</p>}
@@ -252,7 +279,7 @@ export const BatchConversation = memo(function BatchConversation({
 			{session.outputSummary && (session.outputSummary.saved > 0 || session.outputSummary.failed > 0) && (
 				<section aria-label="本地文件保存状态">
 					<p>
-						已保存 {session.outputSummary.saved} 个文本文件
+						已保存 {session.outputSummary.saved} 个产物文件
 						{session.outputSummary.failed
 							? `；${session.outputSummary.failed} 个本地保存失败，云端结果仍保留。`
 							: "，可在工作表中打开。"}

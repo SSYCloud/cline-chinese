@@ -170,6 +170,14 @@ describe("saveInlineTextArtifact", () => {
 		expect(await readFile(saved.path, "utf8")).toBe("<html>hello</html>")
 		expect(saved.sha256).toBe(createHash("sha256").update("<html>hello</html>").digest("hex"))
 	})
+	it("uses an exact host-selected output root without adding the default .cline prefix", async () => {
+		const base = await workspace()
+		const selectedRoot = await workspace()
+		const saved = await saveInlineTextArtifact({ ...input(base), outputRootDirectory: selectedRoot })
+		expect(saved.path.startsWith(selectedRoot + path.sep)).toBe(true)
+		expect(saved.relativePath.replaceAll(path.sep, "/")).toMatch(/^task-[a-f0-9]{20}\/run-[a-f0-9]{20}\/row-0001\//)
+		expect(await readFile(saved.path, "utf8")).toBe("你好，结果已生成。")
+	})
 
 	it("saves SVG MIME as source text verbatim without evaluating it", async () => {
 		const content = '\n<svg xmlns="http://www.w3.org/2000/svg"><script>throw new Error("never execute")</script></svg>\n'

@@ -286,6 +286,7 @@ describe("Batch participates in the existing Agent runtime", () => {
 		expect(hostData(requests[0])).toBeUndefined()
 		expect(requests[0].tools.some((t) => t.name.startsWith("loomloom_"))).toBe(false)
 		await f.service.setEnabled("same-session", true)
+		await f.service.configureOutputDestination("same-session", process.cwd())
 		await runtime.run("推荐一个skillbot吧")
 		let data = hostData(requests[1])
 		expect(data).toMatchObject({ productMode: "batch", taskId: "same-session", phase: "selecting", installedCount: 1 })

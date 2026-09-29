@@ -12,11 +12,12 @@ const f = vi.hoisted(() => ({
 	clipboard: vi.fn(),
 	command: vi.fn(),
 	input: vi.fn(),
+	pick: vi.fn(),
 }))
 vi.mock("vscode", () => ({
 	ViewColumn: { Beside: -2, Active: -1 },
 	Uri: { file: (path: string) => path, parse: (url: string) => url },
-	window: { createWebviewPanel: f.create, showTextDocument: f.show },
+	window: { createWebviewPanel: f.create, showTextDocument: f.show, showOpenDialog: f.pick },
 	workspace: { openTextDocument: f.text },
 	env: { openExternal: f.external, clipboard: { writeText: f.clipboard } },
 	commands: { executeCommand: f.command },
@@ -29,7 +30,7 @@ vi.mock("@/core/controller/grpc-handler", () => ({
 vi.mock("@/core/controller/ui/subscribeToAddToInput", () => ({ sendAddToInputEvent: f.input }))
 vi.mock("@/core/webview/getNonce", () => ({ getNonce: () => "test-nonce" }))
 
-import { mkdtemp, realpath, rm } from "node:fs/promises"
+import { mkdir, mkdtemp, realpath, rm, writeFile } from "node:fs/promises"
 import path from "node:path"
 import { batchTableAction } from "@/core/controller/loomLoom/batchTableAction"
 import { BatchTablePanel } from "@/hosts/vscode/BatchTablePanel"
@@ -40,9 +41,11 @@ let panel: {
 	reveal: ReturnType<typeof vi.fn>
 	dispose: ReturnType<typeof vi.fn>
 	viewColumn: number
+	visible?: boolean
 	webview: {
 		html: string
 		cspSource: string
+		options: { localResourceRoots: string[] }
 		asWebviewUri: (x: string) => string
 		postMessage: ReturnType<typeof vi.fn>
 		onDidReceiveMessage: (fn: typeof received) => void
@@ -59,6 +62,7 @@ beforeEach(() => {
 		webview: {
 			html: "",
 			cspSource: "vscode-webview:",
+			options: { localResourceRoots: [] },
 			asWebviewUri: (x) => x,
 			postMessage: vi.fn(async () => true),
 			onDidReceiveMessage: (fn) => {
@@ -72,6 +76,112 @@ beforeEach(() => {
 	f.create.mockReturnValue(panel)
 })
 describe("Batch editor panel lifecycle", () => {
+	it("uses the native folder picker for a future-run destination instead of trusting a Webview path", async () => {
+		const base = await mkdtemp(path.join(process.cwd(), ".batch-destination-"))
+		try {
+			f.pick.mockResolvedValue([{ scheme: "file", fsPath: base }])
+			const setOutputRootDirectory = vi.fn(async (_taskId: string, directory: string) => ({
+				baseDirectory: directory,
+				outputRootDirectory: directory,
+			}))
+			const controller = {
+				task: { taskId: "task" },
+				batch: { setOutputRootDirectory },
+			} as unknown as Controller
+			const host = new BatchTablePanel(controller, "D:/extension")
+			expect(await host.action({ taskId: "task", action: "chooseOutputDirectory" })).toEqual({ directory: base })
+			expect(setOutputRootDirectory).toHaveBeenCalledWith("task", await realpath(base))
+			expect(f.pick).toHaveBeenCalledWith(
+				expect.objectContaining({ canSelectFiles: false, canSelectFolders: true, canSelectMany: false }),
+			)
+		} finally {
+			await rm(base, { recursive: true, force: true })
+		}
+	})
+	it("returns only the native preview descriptor through the worksheet action RPC", async () => {
+		const action = vi.fn(async () => ({ uri: "vscode-resource:/owned/image.jpg", mimeType: "image/jpeg" }))
+		const controller = { batchTableHost: { action } } as unknown as Controller
+		const response = await batchTableAction(controller, {
+			value: JSON.stringify({ taskId: "task", action: "previewArtifact", runId: "run", rowIndex: 0, artifactIndex: 0 }),
+		})
+		expect(JSON.parse(response.value)).toEqual({ uri: "vscode-resource:/owned/image.jpg", mimeType: "image/jpeg" })
+		expect(action).toHaveBeenCalledWith({
+			taskId: "task",
+			action: "previewArtifact",
+			runId: "run",
+			rowIndex: 0,
+			artifactIndex: 0,
+		})
+	})
+	it("returns only a verified local media URI for an owned run and never the signed URL", async () => {
+		const base = await mkdtemp(path.join(process.cwd(), ".batch-media-preview-"))
+		try {
+			const rowDirectory = path.join(base, "task-owned", "run-owned", "row-0001")
+			await mkdir(rowDirectory, { recursive: true })
+			const file = path.join(rowDirectory, "image.jpg")
+			await writeFile(file, Buffer.from([255, 216, 255, 217]))
+			const session = {
+				attempt: { runId: "run-owned", outputDestination: { baseDirectory: base, outputRootDirectory: base } },
+				results: [
+					{
+						rowIndex: 0,
+						artifacts: [
+							{ accessUrl: "https://media.example.invalid/signed-secret", mimeType: "application/octet-stream" },
+						],
+					},
+				],
+				localOutputs: [
+					{
+						runId: "run-owned",
+						rowIndex: 0,
+						artifactIndex: 0,
+						contentHash: "hash",
+						status: "saved",
+						path: file,
+						mimeType: "image/jpeg",
+					},
+				],
+			}
+			const controller = {
+				batch: { snapshot: vi.fn(async () => session), releaseWorksheetEditLease: vi.fn(async () => {}) },
+				batchOutputs: { ensure: vi.fn(async () => {}) },
+			} as unknown as Controller
+			const host = new BatchTablePanel(controller, "D:/extension")
+			await host.open("task")
+			const result = await host.action({
+				taskId: "task",
+				action: "previewArtifact",
+				runId: "run-owned",
+				rowIndex: 0,
+				artifactIndex: 0,
+			})
+			expect(result).toMatchObject({ mimeType: "image/jpeg", uri: file })
+			expect(JSON.stringify(result)).not.toContain("signed-secret")
+			expect(panel.webview.options.localResourceRoots).toContain(rowDirectory)
+			expect(panel.webview.html).toContain("media-src vscode-webview:")
+			expect(panel.webview.html).not.toContain("img-src vscode-webview: https:")
+			await expect(
+				host.action({ taskId: "task", action: "previewArtifact", runId: "other-run", rowIndex: 0, artifactIndex: 0 }),
+			).rejects.toThrow("保存目录")
+		} finally {
+			await rm(base, { recursive: true, force: true })
+		}
+	})
+	it("refuses to open an internal network artifact URL even as an external fallback", async () => {
+		const controller = {
+			batch: {
+				snapshot: vi.fn(async () => ({
+					attempt: { runId: "run" },
+					results: [{ rowIndex: 0, artifacts: [{ accessUrl: "https://127.0.0.1/private", mimeType: "image/jpeg" }] }],
+				})),
+			},
+		} as unknown as Controller
+		const host = new BatchTablePanel(controller, "D:/extension")
+		await expect(
+			host.action({ taskId: "task", action: "openArtifact", runId: "run", rowIndex: 0, artifactIndex: 0 }),
+		).rejects.toThrow("公网 HTTPS")
+		expect(f.external).not.toHaveBeenCalled()
+	})
 	it("sends a bounded creator draft to the original Cline composer", async () => {
 		const action = vi.fn(async () => {})
 		const controller = { task: { taskId: "task" }, batchTableHost: { action } } as unknown as Controller
@@ -210,13 +320,18 @@ describe("Batch editor panel lifecycle", () => {
 
 	it("reuses one editor over the original controller and never tears down its Agent", async () => {
 		const dispose = vi.fn(),
-			controller = { task: { taskId: "task" }, dispose, batch: { dispose } } as unknown as Controller
+			releaseWorksheetEditLease = vi.fn().mockResolvedValue(undefined),
+			controller = {
+				task: { taskId: "task" },
+				dispose,
+				batch: { dispose, releaseWorksheetEditLease },
+			} as unknown as Controller
 		const host = new BatchTablePanel(controller, "D:/extension")
 		await host.open("task", true)
 		await host.open("task", true)
 		expect(f.create).toHaveBeenCalledTimes(1)
 		expect(panel.reveal).toHaveBeenCalledWith(undefined, true)
-		expect(panel.webview.html).toContain('__CLINE_BATCH_PANEL__={"taskId":"task"}')
+		expect(panel.webview.html).toMatch(/__CLINE_BATCH_PANEL__=\{"taskId":"task","panelId":"[0-9a-f-]+"\}/)
 		expect(panel.webview.html).toContain("nonce-test-nonce")
 		await received({
 			type: "grpc_request",
@@ -231,6 +346,34 @@ describe("Batch editor panel lifecycle", () => {
 		expect(f.handle.mock.calls[0][0]).toBe(controller)
 		host.dispose()
 		expect(dispose).not.toHaveBeenCalled()
+		expect(releaseWorksheetEditLease).toHaveBeenCalledWith("task", expect.any(String))
+	})
+	it("probes a visible worksheet directly before a paid action can use its old input", async () => {
+		const setWorksheetDraftProbe = vi.fn()
+		const controller = {
+			batch: { setWorksheetDraftProbe, releaseWorksheetEditLease: vi.fn().mockResolvedValue(undefined) },
+		} as unknown as Controller
+		const host = new BatchTablePanel(controller, "D:/extension")
+		panel.visible = true
+		await host.open("task")
+		const probe = setWorksheetDraftProbe.mock.calls[0][0] as (taskId: string) => Promise<boolean>
+		const pending = probe("task")
+		const request = panel.webview.postMessage.mock.calls.at(-1)?.[0] as {
+			type: string
+			panelId: string
+			requestId: string
+		}
+		expect(request.type).toBe("batch_table_draft_probe")
+		await received({
+			type: "batch_table_draft_probe_response",
+			panelId: request.panelId,
+			requestId: request.requestId,
+			dirty: true,
+		})
+		expect(await pending).toBe(true)
+		panel.visible = false
+		await expect(probe("task")).rejects.toThrow("已隐藏")
+		host.dispose()
 	})
 	it("cancels a stream even when the editor closes before async registration finishes", async () => {
 		let release!: () => void

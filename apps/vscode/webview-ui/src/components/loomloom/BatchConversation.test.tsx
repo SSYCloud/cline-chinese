@@ -2,7 +2,7 @@ import type { BatchSession } from "@shared/loomloom"
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { ExtensionStateContext, type ExtensionStateContextType } from "@/context/ExtensionStateContext"
-import { AccountServiceClient } from "@/services/grpc-client"
+import { AccountServiceClient, LoomLoomServiceClient } from "@/services/grpc-client"
 import { BatchConversation } from "./BatchConversation"
 import { fetchSkillBots, sendBatch } from "./batch-api"
 
@@ -68,9 +68,38 @@ describe("Batch conversation controls", () => {
 			attempt: { requestId: "r", runId: "run", quote: {} as NonNullable<BatchSession["quote"]> },
 		}
 		render(<BatchConversation onChat={vi.fn()} onMarket={vi.fn()} session={s} />)
-		expect(screen.getByText(/已保存 2 个文本文件；1 个本地保存失败，云端结果仍保留/)).toBeInTheDocument()
+		expect(screen.getByText(/已保存 2 个产物文件；1 个本地保存失败，云端结果仍保留/)).toBeInTheDocument()
 		expect(screen.getByText("重试保存文件")).toBeInTheDocument()
 		expect(screen.getByText(/这批任务已完成/)).toBeInTheDocument()
+	})
+	it("shows frozen and future output folders separately and asks the native host to change them", async () => {
+		const s = fixture()
+		s.phase = "completed"
+		s.outputDestination = { baseDirectory: "D:/project", outputRootDirectory: "E:/future" }
+		s.attempt = {
+			requestId: "req",
+			runId: "run",
+			quote: {} as NonNullable<BatchSession["quote"]>,
+			outputDestination: { baseDirectory: "D:/project" },
+		}
+		render(<BatchConversation onChat={vi.fn()} onMarket={vi.fn()} session={s} />)
+		expect(screen.getByText(/本批：D:\/project\/\.cline\/loomloom-outputs/)).toBeInTheDocument()
+		expect(screen.getByText(/后续批次：E:\/future/)).toBeInTheDocument()
+		fireEvent.click(screen.getByRole("button", { name: "更改后续产物目录" }))
+		await waitFor(() =>
+			expect(JSON.parse(vi.mocked(LoomLoomServiceClient.batchTableAction).mock.calls.at(-1)![0].value)).toEqual({
+				taskId: s.taskId,
+				action: "chooseOutputDirectory",
+			}),
+		)
+		fireEvent.click(screen.getByRole("button", { name: "另存本批产物…" }))
+		await waitFor(() =>
+			expect(JSON.parse(vi.mocked(LoomLoomServiceClient.batchTableAction).mock.calls.at(-1)![0].value)).toEqual({
+				taskId: s.taskId,
+				action: "exportRunToDirectory",
+				runId: "run",
+			}),
+		)
 	})
 	it("offers the previous SkillBot as the primary next-batch path and a separate switch", async () => {
 		const s = fixture()
@@ -141,6 +170,27 @@ describe("Batch conversation controls", () => {
 		expect(screen.queryByText("确认并运行")).not.toBeInTheDocument()
 		expect(screen.getByText("返回修改")).toBeInTheDocument()
 		expect(screen.getByText("旧预算已失效")).toBeInTheDocument()
+		expect(sendBatch).not.toHaveBeenCalled()
+	})
+	it("blocks paid chat controls while the worksheet has an unsaved edit", () => {
+		const s = fixture()
+		s.phase = "quoted"
+		s.pendingWorksheetEdit = true
+		s.quote = {
+			id: "existing-quote",
+			revision: s.revision,
+			hash: "h",
+			inputRows: [],
+			versionId: "v1",
+			payable: { amount: "1", currency: "CNY" },
+			taskCount: 2,
+			at: Date.now(),
+			valid: true,
+		}
+		render(<BatchConversation onChat={vi.fn()} onMarket={vi.fn()} session={s} />)
+		expect(screen.getByRole("button", { name: "确认并运行" })).toBeDisabled()
+		expect(screen.getByText(/工作表中有尚未保存的编辑/)).toBeInTheDocument()
+		fireEvent.click(screen.getByRole("button", { name: "确认并运行" }))
 		expect(sendBatch).not.toHaveBeenCalled()
 	})
 	it("formats marketplace fees without changing the raw price", async () => {
@@ -252,7 +302,7 @@ describe("Batch conversation controls", () => {
 		render(<BatchConversation onChat={vi.fn()} onMarket={vi.fn()} session={fixture()} />)
 		expect(screen.queryByRole("table")).not.toBeInTheDocument()
 		expect(screen.getByText("打开 Batch 工作表")).toBeInTheDocument()
-		fireEvent.click(screen.getByText("逐条填写 2 条"))
+		fireEvent.click(screen.getByText("逐条填写"))
 		expect(screen.getByText(/商品说明.md/)).toBeInTheDocument()
 		fireEvent.change(screen.getByLabelText("扩写原文 *"), { target: { value: "修改第一条" } })
 		fireEvent.click(screen.getByText("保存本条"))
@@ -263,10 +313,20 @@ describe("Batch conversation controls", () => {
 			),
 		)
 	})
+	it("shows the billable count, not untouched visual gaps or the initial seed", () => {
+		const s = fixture()
+		s.rows = [
+			{ id: "seed", sheetRowNumber: 2, origin: "implicit", values: {}, attachments: [] },
+			{ id: "far", sheetRowNumber: 20, origin: "implicit", values: { text: "视觉第 20 行" }, attachments: [] },
+		]
+		render(<BatchConversation onChat={vi.fn()} onMarket={vi.fn()} session={s} />)
+		expect(screen.getByText(/1 条待提交任务/)).toBeInTheDocument()
+		expect(screen.getByRole("button", { name: "检查输入" })).toBeInTheDocument()
+	})
 	it("keeps default model as a selector and routes chat/files to the current Cline handler", async () => {
 		const chat = vi.fn().mockResolvedValue(undefined)
 		render(<BatchConversation onChat={chat} onMarket={vi.fn()} session={fixture()} />)
-		fireEvent.click(screen.getByText("逐条填写 2 条"))
+		fireEvent.click(screen.getByText("逐条填写"))
 		expect(screen.getByRole("combobox", { name: "模型" })).toHaveValue("")
 		fireEvent.click(screen.getByText("在聊天中整理"))
 		expect(chat).toHaveBeenCalledWith(expect.stringContaining("当前 SkillBot"), ["/workspace/商品说明.md"])

@@ -129,7 +129,7 @@ function hasCode(error: unknown, code: string): boolean {
 	return typeof error === "object" && error !== null && "code" in error && error.code === code
 }
 
-function assertContained(base: string, target: string): void {
+export function assertContained(base: string, target: string): void {
 	const relative = path.relative(base, target)
 	if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
 		throw new Error("批量产物路径超出任务工作目录。")
@@ -137,7 +137,10 @@ function assertContained(base: string, target: string): void {
 }
 
 /** Never follow a symlink/junction in an output directory, even when it points within the workspace. */
-async function checkDirectories(base: string, segments: string[], create: boolean): Promise<string> {
+export async function checkDirectories(base: string, segments: string[], create: boolean): Promise<string> {
+	const baseInfo = await lstat(base)
+	if (baseInfo.isSymbolicLink() || !baseInfo.isDirectory() || (await realpath(base)) !== base)
+		throw new Error("批量产物根目录在保存时发生变化。")
 	let current = base
 	for (const segment of segments) {
 		current = path.join(current, segment)
@@ -156,6 +159,33 @@ async function checkDirectories(base: string, segments: string[], create: boolea
 		if (path.relative(current, canonical) !== "") throw new Error("批量产物目录的实际路径发生变化。")
 	}
 	return current
+}
+
+/** A selected output root is trusted host input, but generated descendants must remain below its canonical directory. */
+export async function outputDirectory(options: {
+	baseDirectory: string
+	outputRootDirectory?: string
+	taskId: string
+	runId: string
+	rowIndex: number
+}): Promise<{ base: string; directory: string; segments: string[] }> {
+	const { baseDirectory, outputRootDirectory, taskId, runId, rowIndex } = options
+	if (!path.isAbsolute(baseDirectory)) throw new Error("批量产物需要明确的任务工作目录。")
+	if (outputRootDirectory !== undefined && !path.isAbsolute(outputRootDirectory))
+		throw new Error("批量产物需要明确的绝对输出目录。")
+	if (!taskId || !runId || !Number.isSafeInteger(rowIndex) || rowIndex < 0)
+		throw new Error("批量产物缺少有效的任务、运行或结果位置。")
+	const root = outputRootDirectory ?? baseDirectory
+	const rootInfo = await lstat(root)
+	if (rootInfo.isSymbolicLink() || !rootInfo.isDirectory()) throw new Error("批量产物根目录不能是符号链接或普通文件。")
+	const base = await realpath(root)
+	const segments = [
+		...(outputRootDirectory ? [] : [".cline", "loomloom-outputs"]),
+		`task-${sha256(taskId).slice(0, 20)}`,
+		`run-${sha256(runId).slice(0, 20)}`,
+		`row-${String(rowIndex + 1).padStart(4, "0")}`,
+	]
+	return { base, segments, directory: await checkDirectories(base, segments, true) }
 }
 
 function sameFile(left: Stats, right: Stats): boolean {
@@ -195,6 +225,8 @@ async function sameExistingContent(base: string, candidate: string, bytes: Buffe
 
 export async function saveInlineTextArtifact(options: {
 	baseDirectory: string
+	/** Optional host-selected output root; omitted means the original workspace's .cline/loomloom-outputs. */
+	outputRootDirectory?: string
 	taskId: string
 	runId: string
 	/** Zero-based row and artifact indices. */
@@ -202,8 +234,7 @@ export async function saveInlineTextArtifact(options: {
 	artifactIndex: number
 	artifact: BatchArtifact
 }): Promise<{ path: string; relativePath: string; sha256: string; sizeBytes: number; extension: string; mimeType: string }> {
-	const { baseDirectory, taskId, runId, rowIndex, artifactIndex, artifact } = options
-	if (!path.isAbsolute(baseDirectory)) throw new Error("批量产物需要明确的任务工作目录。")
+	const { baseDirectory, outputRootDirectory, taskId, runId, rowIndex, artifactIndex, artifact } = options
 	if (
 		!Number.isSafeInteger(rowIndex) ||
 		rowIndex < 0 ||
@@ -221,16 +252,13 @@ export async function saveInlineTextArtifact(options: {
 	if (!classified) throw new Error("产物没有可保存的文本内容。")
 	const bytes = Buffer.from(classified.content, "utf8")
 	const digest = sha256(bytes)
-	const base = await realpath(baseDirectory)
-	if (!(await lstat(base)).isDirectory()) throw new Error("任务工作目录不存在。")
-	const segments = [
-		".cline",
-		"loomloom-outputs",
-		`task-${sha256(taskId).slice(0, 20)}`,
-		`run-${sha256(runId).slice(0, 20)}`,
-		`row-${String(rowIndex + 1).padStart(4, "0")}`,
-	]
-	const directory = await checkDirectories(base, segments, true)
+	const { base, directory, segments } = await outputDirectory({
+		baseDirectory,
+		outputRootDirectory,
+		taskId,
+		runId,
+		rowIndex,
+	})
 	const stem = `output-${String(artifactIndex + 1).padStart(2, "0")}-${digest.slice(0, 20)}`
 	let temporary: { path: string; info: Stats } | undefined
 	try {

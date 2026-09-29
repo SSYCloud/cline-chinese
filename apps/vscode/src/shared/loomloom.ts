@@ -46,8 +46,35 @@ export interface BatchAttachment {
 }
 export interface BatchRow {
 	id: string
+	/** One-based worksheet row, including the header (first input is row 2). Missing on legacy rows. */
+	sheetRowNumber?: number
+	/** Sparse grid typing creates implicit rows; explicit/legacy empty rows are intentional tasks. */
+	origin?: "explicit" | "implicit"
 	values: Record<string, BatchValue>
 	attachments: BatchAttachment[]
+}
+/** Legacy batches were dense. Resolve their visual row without rewriting saved history. */
+export function batchRowSheetNumber(row: BatchRow, sourceIndex: number): number {
+	return row.sheetRowNumber ?? sourceIndex + 2
+}
+export function hasBatchInput(row: BatchRow): boolean {
+	return (
+		row.attachments.length > 0 ||
+		Object.values(row.values).some(
+			(value) => value !== undefined && value !== null && (typeof value !== "string" || value.trim() !== ""),
+		)
+	)
+}
+/** Only materialized, intentional tasks are submitted. Empty auto-seeds stay visual placeholders. */
+export function billableRows(rows: BatchRow[]): BatchRow[] {
+	return rows
+		.map((row, sourceIndex) => ({ row, sheetRowNumber: batchRowSheetNumber(row, sourceIndex) }))
+		.filter(({ row }) => row.origin !== "implicit" || hasBatchInput(row))
+		.sort((a, b) => a.sheetRowNumber - b.sheetRowNumber)
+		.map(({ row }) => row)
+}
+export function effectiveTaskCount(rows: BatchRow[]): number {
+	return billableRows(rows).length
 }
 export interface BatchQuote {
 	id: string
@@ -76,8 +103,18 @@ export interface BatchArtifact {
 	mimeType?: string
 }
 export interface BatchOutputDestination {
-	/** Captured from the original task, never from cloud artifacts or the active editor. */
+	/** Project root captured from a VS Code workspace (or the explicitly chosen folder for a projectless task). */
 	baseDirectory: string
+	/** Exact folder explicitly selected in the native host; omitted for the project's .cline/loomloom-outputs default. */
+	outputRootDirectory?: string
+}
+/** Display-only default path; native filesystem writes still resolve this with node:path. */
+export function batchOutputRootDirectory(destination: BatchOutputDestination | undefined): string | undefined {
+	if (!destination) return undefined
+	if (destination.outputRootDirectory) return destination.outputRootDirectory
+	const base = destination.baseDirectory
+	const separator = base.includes("\\") ? "\\" : "/"
+	return `${base}${base.endsWith("/") || base.endsWith("\\") ? "" : separator}.cline${separator}loomloom-outputs`
 }
 export interface BatchLocalOutput {
 	runId: string
@@ -180,7 +217,15 @@ export interface BatchWorksheetView {
 }
 export interface BatchTableHostAction {
 	taskId: string
-	action: "focusChat" | "openArtifact" | "copyText" | "cite" | "saveOutputs"
+	action:
+		| "focusChat"
+		| "openArtifact"
+		| "previewArtifact"
+		| "copyText"
+		| "cite"
+		| "saveOutputs"
+		| "chooseOutputDirectory"
+		| "exportRunToDirectory"
 	text?: string
 	runId?: string
 	rowIndex?: number
@@ -191,6 +236,8 @@ export type BatchChatSnapshot = Omit<
 	BatchSession,
 	"results" | "artifacts" | "pastRuns" | "tasks" | "quote" | "attempt" | "localOutputs"
 > & {
+	/** A worksheet editor has uncommitted input; review/quote/run are blocked by the host. */
+	pendingWorksheetEdit?: boolean
 	quote?: Omit<BatchQuote, "inputRows">
 	attempt?: Omit<NonNullable<BatchSession["attempt"]>, "quote">
 	pastRunCount?: number
@@ -223,7 +270,7 @@ export function toBatchChatSnapshot(session: BatchSession | undefined): BatchCha
 			? {
 					saved: localOutputs?.filter((file) => file.runId === attempt.runId && file.status === "saved").length ?? 0,
 					failed: localOutputs?.filter((file) => file.runId === attempt.runId && file.status === "error").length ?? 0,
-					directory: attempt.outputDestination?.baseDirectory ?? session.outputDestination?.baseDirectory,
+					directory: batchOutputRootDirectory(attempt.outputDestination),
 				}
 			: undefined,
 	}
@@ -273,8 +320,9 @@ export function parseBatchSchema(snapshot: unknown): BatchSchema {
 /** Empty optional values are omitted so the SkillBot owns its recommended defaults. */
 export function canonicalRows(session: Pick<BatchSession, "listing" | "rows">): Record<string, BatchValue>[] {
 	const fields = session.listing?.schema?.fields
-	if (!fields || !session.rows.length) throw new Error("请先选择 SkillBot 并添加至少一行输入。")
-	return session.rows.map((row, index) => {
+	const rows = billableRows(session.rows)
+	if (!fields || !rows.length) throw new Error("请先选择 SkillBot 并添加至少一行输入。")
+	return rows.map((row, index) => {
 		const result: Record<string, BatchValue> = {}
 		for (const field of [...fields].sort((a, b) => a.key.localeCompare(b.key))) {
 			let value = row.values[field.key]
