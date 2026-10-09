@@ -50,6 +50,10 @@ function getClineHomePath(): string {
 	return path.join(os.homedir(), ".cline")
 }
 
+export function getClineHomeHooksDir(): string {
+	return path.join(getClineHomePath(), "hooks")
+}
+
 export async function ensureTaskDirectoryExists(taskId: string): Promise<string> {
 	return getGlobalStorageDir("tasks", taskId)
 }
@@ -311,6 +315,12 @@ export async function getAllHooksDirs(workspaceRootPaths?: string[]): Promise<st
 	const globalHooksDir = await getGlobalHooksDir()
 	if (globalHooksDir) {
 		hooksDirs.push(globalHooksDir)
+	}
+
+	// Add ~/.cline/hooks, the location shared with the Cline SDK/CLI (if it exists)
+	const clineHomeHooksDir = getClineHomeHooksDir()
+	if (clineHomeHooksDir !== globalHooksDir && (await isDirectory(clineHomeHooksDir))) {
+		hooksDirs.push(clineHomeHooksDir)
 	}
 
 	// Add workspace hooks directories

@@ -1,6 +1,7 @@
 import { ChildProcess, spawn } from "child_process"
 import { EventEmitter } from "events"
 import { existsSync } from "fs"
+import { extname } from "path"
 import { Logger } from "@/shared/services/Logger"
 import { resolveWindowsPowerShellExecutable } from "@/utils/powershell"
 import { HookProcessRegistry } from "./HookProcessRegistry"
@@ -14,6 +15,27 @@ interface HookLaunchConfig {
 	args: string[]
 	shell: boolean
 	detached: boolean
+}
+
+// Extension-suffixed hook files (e.g. PreToolUse.mjs) are not required to be
+// executable, so they are launched through an interpreter chosen by extension.
+const UNIX_HOOK_INTERPRETERS: Record<string, { command: string; args: string[] }> = {
+	".sh": { command: "bash", args: [] },
+	".bash": { command: "bash", args: [] },
+	".zsh": { command: "zsh", args: [] },
+	".js": { command: "node", args: [] },
+	".mjs": { command: "node", args: [] },
+	".cjs": { command: "node", args: [] },
+	".ts": { command: "bun", args: ["run"] },
+	".mts": { command: "bun", args: ["run"] },
+	".cts": { command: "bun", args: ["run"] },
+	".py": { command: "python3", args: [] },
+}
+
+export const UNIX_HOOK_FILE_EXTENSIONS = Object.keys(UNIX_HOOK_INTERPRETERS)
+
+function getUnixHookInterpreter(scriptPath: string): { command: string; args: string[] } | undefined {
+	return UNIX_HOOK_INTERPRETERS[extname(scriptPath).toLowerCase()]
 }
 
 const WINDOWS_HOOK_LAUNCHER_CACHE_TTL_MS = 5 * 60 * 1000
@@ -64,6 +86,16 @@ export async function getHookLaunchConfig(
 			args: ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", scriptPath],
 			shell: false,
 			detached: false,
+		}
+	}
+
+	const interpreter = getUnixHookInterpreter(scriptPath)
+	if (interpreter) {
+		return {
+			command: interpreter.command,
+			args: [...interpreter.args, scriptPath],
+			shell: false,
+			detached: true,
 		}
 	}
 

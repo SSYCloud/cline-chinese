@@ -371,6 +371,59 @@ console.log(JSON.stringify({
 			found.should.equal(ps1Path)
 		})
 
+		it("should find non-executable extension-suffixed hook on unix-like platforms", async () => {
+			const hooksDir = path.join(tempDir, ".clinerules", "hooks")
+			const mjsPath = path.join(hooksDir, "PreToolUse.mjs")
+			await fs.writeFile(mjsPath, "console.log('{}')")
+
+			const found = await withPlatform("linux", async () => {
+				return await HookFactory.findHookInHooksDir("PreToolUse", hooksDir)
+			})
+
+			should.exist(found)
+			found?.should.equal(mjsPath)
+		})
+
+		it("should execute a .mjs hook through node and honor its output", async () => {
+			if (process.platform === "win32") {
+				return
+			}
+			const hookPath = path.join(tempDir, ".clinerules", "hooks", "PreToolUse.mjs")
+			await fs.writeFile(
+				hookPath,
+				`import { readFileSync } from "node:fs"
+const input = JSON.parse(readFileSync(0, "utf-8"))
+console.log(JSON.stringify({ cancel: false, contextModification: "tool=" + input.preToolUse.toolName }))`,
+			)
+
+			const runner = await new HookFactory().create("PreToolUse")
+			runner.isNoOp.should.be.false()
+			const result = await runner.run({
+				taskId: "test-task",
+				preToolUse: { toolName: "write_to_file", parameters: {} },
+			})
+			result.contextModification?.should.equal("tool=write_to_file")
+		})
+
+		it("should report hook-named files that discovery will not run", async () => {
+			if (process.platform === "win32") {
+				return
+			}
+			const hooksDir = path.join(tempDir, ".clinerules", "hooks")
+			await fs.writeFile(path.join(hooksDir, "PreToolUse.mjs"), "console.log('{}')")
+			await fs.writeFile(path.join(hooksDir, "PostToolUse.exe"), "")
+			await fs.writeFile(path.join(hooksDir, "TaskStart"), "#!/bin/sh\necho '{}'")
+			await fs.chmod(path.join(hooksDir, "TaskStart"), 0o644)
+			await fs.writeFile(path.join(hooksDir, "notes.txt"), "")
+
+			const unmatched = await new HookFactory().findUnmatchedHookFiles()
+			const byName = Object.fromEntries(unmatched.map((u) => [path.basename(u.file), u.reason]))
+
+			Object.keys(byName).sort().should.eql(["PostToolUse.exe", "TaskStart"])
+			byName["PostToolUse.exe"].should.match(/unsupported extension/)
+			byName.TaskStart.should.match(/not executable/)
+		})
+
 		it("should ignore .ps1 hook on unix-like platforms", async () => {
 			const hooksDir = path.join(tempDir, ".clinerules", "hooks")
 			const ps1Path = path.join(hooksDir, "PreToolUse.ps1")

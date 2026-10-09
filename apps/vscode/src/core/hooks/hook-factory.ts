@@ -18,9 +18,9 @@ import {
 	TaskStartData,
 	UserPromptSubmitData,
 } from "../../shared/proto/cline/hooks"
-import { getAllHooksDirs, getWindowWorkspaceRoots } from "../storage/disk"
+import { getAllHooksDirs, getClineHomeHooksDir, getWindowWorkspaceRoots } from "../storage/disk"
 import { HookExecutionError } from "./HookError"
-import { HookProcess } from "./HookProcess"
+import { HookProcess, UNIX_HOOK_FILE_EXTENSIONS } from "./HookProcess"
 
 // Hook execution timeout (30 seconds)
 const HOOK_EXECUTION_TIMEOUT_MS = 30000
@@ -132,6 +132,18 @@ interface HookModelInputContext {
 	provider?: string
 	slug?: string
 }
+
+const KNOWN_HOOK_NAMES: HookName[] = [
+	"PreToolUse",
+	"PostToolUse",
+	"UserPromptSubmit",
+	"TaskStart",
+	"TaskResume",
+	"TaskCancel",
+	"TaskComplete",
+	"Notification",
+	"PreCompact",
+]
 
 // The names of all supported hooks. Hooks[N] is the type of data the hook takes as input.
 type HookName = keyof Hooks
@@ -777,6 +789,56 @@ export class HookFactory {
 	}
 
 	/**
+	 * Lists files in the hooks directories whose names look like hooks (e.g. PreToolUse.mjs,
+	 * or a non-executable PreToolUse) but that discovery will not run, so callers can tell
+	 * the user why a hook they wrote is inactive.
+	 */
+	async findUnmatchedHookFiles(): Promise<Array<{ file: string; reason: string }>> {
+		const hooksDirs = await getAllHooksDirs(await getWindowWorkspaceRoots())
+		const sessionDir = this.sessionHooksDir()
+		if (sessionDir && !hooksDirs.includes(sessionDir)) {
+			hooksDirs.push(sessionDir)
+		}
+		const knownNames = new Map(KNOWN_HOOK_NAMES.map((name) => [name.toLowerCase(), name]))
+		const unmatched: Array<{ file: string; reason: string }> = []
+		for (const dir of hooksDirs) {
+			let entries: string[]
+			try {
+				entries = await fs.readdir(dir)
+			} catch {
+				continue
+			}
+			for (const entry of entries) {
+				const extension = path.extname(entry)
+				const hookName = knownNames.get(path.basename(entry, extension).toLowerCase())
+				if (!hookName) {
+					continue
+				}
+				const file = path.join(dir, entry)
+				if (!(await HookFactory.isHookFile(file, hookName).catch(() => false))) {
+					continue
+				}
+				const discovered = await HookFactory.findHookInHooksDir(hookName, dir).catch(() => undefined)
+				if (discovered === file) {
+					continue
+				}
+				let reason: string
+				if (extension && process.platform === "win32") {
+					reason = "only PowerShell (.ps1) hooks run on Windows"
+				} else if (extension && !UNIX_HOOK_FILE_EXTENSIONS.includes(extension.toLowerCase())) {
+					reason = `unsupported extension '${extension}' (supported: ${UNIX_HOOK_FILE_EXTENSIONS.join(", ")})`
+				} else if (entry !== hookName) {
+					reason = `hook names are case-sensitive; expected '${hookName}'`
+				} else {
+					reason = "file is not executable (chmod +x)"
+				}
+				unmatched.push({ file, reason })
+			}
+		}
+		return unmatched
+	}
+
+	/**
 	 * Create a hook runner without streaming support (backwards compatible).
 	 * Check the returned runner's isNoOp to learn whether any hook scripts
 	 * exist — creation is the single point where workspace roots and hook
@@ -879,7 +941,7 @@ export class HookFactory {
 	 * Global hooks are located in paths containing "Cline/Hooks" or "cline/hooks".
 	 */
 	private static isGlobalHooksDir(dir: string): boolean {
-		return /[/\\][Cc]line[/\\][Hh]ooks/i.test(dir)
+		return /[/\\][Cc]line[/\\][Hh]ooks/i.test(dir) || path.resolve(dir) === path.resolve(getClineHomeHooksDir())
 	}
 
 	/**
@@ -1024,12 +1086,22 @@ export class HookFactory {
 
 		try {
 			const [stat, _] = await Promise.all([fs.stat(candidate), fs.access(candidate, fs.constants.X_OK)])
-			return stat.isFile() ? candidate : undefined
+			if (stat.isFile()) {
+				return candidate
+			}
 		} catch (error) {
 			HookFactory.handleHookDiscoveryError(error, hookName, candidate)
-			// Expected errors (missing/non-executable hook) return no match.
-			return undefined
 		}
+
+		// Extension-suffixed hooks (PreToolUse.mjs, PreToolUse.sh, ...) are launched through an
+		// interpreter chosen by extension, so they don't need the executable bit.
+		for (const extension of UNIX_HOOK_FILE_EXTENSIONS) {
+			const suffixed = path.join(hooksDir, `${hookName}${extension}`)
+			if (await HookFactory.isHookFile(suffixed, hookName)) {
+				return suffixed
+			}
+		}
+		return undefined
 	}
 
 	/**

@@ -117,6 +117,26 @@ function buildHookStatusMessage(opts: {
 	}
 }
 
+async function warnAboutUnmatchedHookFiles(factory: HookFactory, emitHookMessage?: HookMessageEmitter): Promise<void> {
+	try {
+		const unmatched = await factory.findUnmatchedHookFiles()
+		if (unmatched.length === 0) {
+			return
+		}
+		const details = unmatched.map(({ file, reason }) => `${file} (${reason})`).join("; ")
+		Logger.warn(`[HooksAdapter] Hooks are enabled but these hook files will not run: ${details}`)
+		emitHookMessage?.({
+			ts: Date.now(),
+			type: "say",
+			say: "info",
+			text: `Hooks are enabled, but these hook files will not run: ${details}`,
+			partial: false,
+		})
+	} catch (error) {
+		Logger.error("[HooksAdapter] Failed to check for unmatched hook files:", error)
+	}
+}
+
 export function buildAgentHooks(
 	stateManager: StateManager,
 	emitHookMessage?: HookMessageEmitter,
@@ -127,9 +147,14 @@ export function buildAgentHooks(
 	// window's workspace folders (e.g. the chat-workspace fallback when no
 	// folder is open), so the factory also scans this session's own workspace.
 	const createFactory = () => new HookFactory({ sessionWorkspaceRoot })
+	let warnedAboutUnmatchedHooks = false
 
 	return {
 		async beforeRun(ctx: AgentRunLifecycleContext): Promise<AgentRunStartResult | undefined> {
+			if (!warnedAboutUnmatchedHooks && hooksEnabled()) {
+				warnedAboutUnmatchedHooks = true
+				await warnAboutUnmatchedHookFiles(createFactory(), emitHookMessage)
+			}
 			const taskStart = await runTaskStart(ctx, hooksEnabled, createFactory, emitHookMessage)
 			if (taskStart?.stop) {
 				return taskStart
