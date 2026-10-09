@@ -118,27 +118,29 @@ const AppContent = () => {
 
 	return (
 		<div className="flex h-screen w-full flex-col">
-			{showSettings && <SettingsView navigationRequest={settingsNavigationRequest} onDone={hideSettings} />}
-			{showHistory && <HistoryView onDone={hideHistory} />}
-			{showMarketplace && (
-				<MarketplaceView
-					initialType={skillBotMarket ? "skillbot" : mcpTab ? "mcp" : undefined}
-					onDone={() => {
-						setSkillBotMarket(false)
-						closeMarketplaceView()
-					}}
-				/>
-			)}
-			{showMcp && <McpView initialTab={mcpTab} onDone={closeMcpView} />}
-			{showAccount && (
-				<AccountView
-					activeOrganization={activeOrganization}
-					clineUser={clineUser}
-					onDone={hideAccount}
-					organizations={organizations}
-				/>
-			)}
-			{showWorktrees && <WorktreesView onDone={hideWorktrees} />}
+			<Suspense fallback={<LoadingView />}>
+				{showSettings && <SettingsView navigationRequest={settingsNavigationRequest} onDone={hideSettings} />}
+				{showHistory && <HistoryView onDone={hideHistory} />}
+				{showMarketplace && (
+					<MarketplaceView
+						initialType={skillBotMarket ? "skillbot" : mcpTab ? "mcp" : undefined}
+						onDone={() => {
+							setSkillBotMarket(false)
+							closeMarketplaceView()
+						}}
+					/>
+				)}
+				{showMcp && <McpView initialTab={mcpTab} onDone={closeMcpView} />}
+				{showAccount && (
+					<AccountView
+						activeOrganization={activeOrganization}
+						clineUser={clineUser}
+						onDone={hideAccount}
+						organizations={organizations}
+					/>
+				)}
+				{showWorktrees && <WorktreesView onDone={hideWorktrees} />}
+			</Suspense>
 			{/* Do not conditionally load ChatView, it's expensive and there's state we don't want to lose (user input, disableInput, askResponse promise, etc.) */}
 			<ChatView
 				hideAnnouncement={hideAnnouncement}
