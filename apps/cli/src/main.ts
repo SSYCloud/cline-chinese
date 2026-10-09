@@ -5,6 +5,7 @@ import type { ToolPolicy } from "@cline/core";
 
 import { registerDisposable } from "@cline/shared";
 import type { Command } from "commander";
+import { createDashboardCommand } from "./commands/dashboard-command";
 import { registerHistoryCommand } from "./commands/history-command";
 import {
 	CommanderError,
@@ -15,7 +16,10 @@ import {
 	autoUpdateOnStartup,
 	getPreferredKanbanInstaller,
 } from "./commands/update";
-import { CLI_DEFAULT_CHECKPOINT_CONFIG } from "./runtime/defaults";
+import {
+	CLI_DEFAULT_CHECKPOINT_CONFIG,
+	CLI_DEFAULT_MAX_CONSECUTIVE_MISTAKES,
+} from "./runtime/defaults";
 import type { TuiStartupTarget } from "./tui/types";
 import { filterChatModels } from "./utils/chat-models";
 import { registerClineClientIdentity } from "./utils/cline-client-identity";
@@ -277,6 +281,7 @@ export async function runCli(): Promise<void> {
 		.passThroughOptions()
 		.action(async (_opts: unknown, cmd: Command) => {
 			const realCmd = await createConfigRuntimeCommand();
+			realCmd.setOptionValue("json", cmd.opts().json);
 			await realCmd.parseAsync(cmd.args, { from: "user" });
 		});
 
@@ -606,47 +611,21 @@ export async function runCli(): Promise<void> {
 		.passThroughOptions()
 		.action(async (_opts: unknown, cmd: Command) => {
 			const hubCmd = await createHubRuntimeCommand();
+			if (cmd.args.length === 0) {
+				hubCmd.outputHelp();
+				ctx.exitCode = 0;
+				return;
+			}
 			await hubCmd.parseAsync(cmd.args, { from: "user" });
 		});
 
-	const dashboardCmd = program
-		.command("dashboard")
-		.description("启动 Cline Hub 仪表板并在浏览器中打开")
-		.option("--config <dir>", "配置目录")
-		.option("-c, --cwd <path>", "工作区根目录", process.cwd())
-		.option(
-			"--data-dir <dir>",
-			"使用 <dir> 中的隔离本地状态，而不是 ~/.cline（启用沙盒模式）",
-		)
-		.option("--host <host>", "仪表板绑定主机")
-		.option("--port <port>", "仪表板 HTTP/WebSocket 端口")
-		.option("--public-url <url>", "公共仪表板 URL")
-		.option("--room-secret <secret>", "浏览器访问的邀请密钥")
-		.option("--no-open", "启动仪表板但不打开浏览器")
-		.action(async () => {
-			const opts = dashboardCmd.opts<{
-				config?: string;
-				cwd?: string;
-				dataDir?: string;
-				host?: string;
-				port?: string;
-				publicUrl?: string;
-				roomSecret?: string;
-				open?: boolean;
-			}>();
-			const { runDashboardCommand } = await import("./commands/dashboard");
-			ctx.exitCode = await runDashboardCommand({
-				configDir: opts.config,
-				cwd: opts.cwd,
-				dataDir: opts.dataDir,
-				host: opts.host,
-				port: opts.port,
-				publicUrl: opts.publicUrl,
-				roomSecret: opts.roomSecret,
-				openBrowser: opts.open !== false,
-				io,
-			});
-		});
+	// Keep the old invocation working without advertising it in root help.
+	program.addCommand(
+		createDashboardCommand(io, (code) => {
+			ctx.exitCode = code;
+		}),
+		{ hidden: true },
+	);
 
 	const updateCmd = program
 		.command("update")
@@ -1069,7 +1048,8 @@ export async function runCli(): Promise<void> {
 				mode: effectiveMode,
 			}),
 			execution: {
-				maxConsecutiveMistakes: args.retries ?? 3,
+				maxConsecutiveMistakes:
+					args.retries ?? CLI_DEFAULT_MAX_CONSECUTIVE_MISTAKES,
 			},
 			checkpoint: CLI_DEFAULT_CHECKPOINT_CONFIG,
 			compaction: buildCliCompactionConfig(effectiveCompactionMode),

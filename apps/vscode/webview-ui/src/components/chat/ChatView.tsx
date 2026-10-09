@@ -419,12 +419,12 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 	return (
 		<ChatLayout isHidden={isHidden}>
 			<div className="flex flex-col flex-1 overflow-hidden">
-				{showNavbar && <Navbar />}
 				{batchError && (
 					<p className="px-3 text-error" role="alert">
 						{batchError}
 					</p>
 				)}
+				{showNavbar && <Navbar startNewTask={messageHandlers.startNewTask} />}
 				{savedResult && (
 					<details className="p-3">
 						<summary>{savedResult.title}（旧版批量结果）</summary>

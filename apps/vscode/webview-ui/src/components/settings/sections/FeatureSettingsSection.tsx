@@ -1,16 +1,17 @@
 import { UpdateSettingsRequest } from "@shared/proto/cline/state"
-import { memo, type ReactNode, useCallback } from "react"
+import { memo, type ReactNode } from "react"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import Section from "../Section"
-import SettingsSlider from "../SettingsSlider"
+import { featureSettingControlId, featureSettingElementId } from "../settingsTargets"
 import { updateSetting } from "../utils/settingsHandlers"
 
 // Reusable checkbox component for feature settings
 interface FeatureCheckboxProps {
+	id?: string
 	checked: boolean | undefined
 	onChange: (checked: boolean) => void
 	label: string
@@ -90,6 +91,7 @@ const advancedFeatures: FeatureToggle[] = [
 
 const FeatureRow = memo(
 	({
+		id,
 		checked = false,
 		onChange,
 		label,
@@ -102,16 +104,17 @@ const FeatureRow = memo(
 		if (!isVisible) {
 			return null
 		}
+		const switchId = id ? featureSettingControlId(id) : label
 
 		const checkbox = (
 			<div className="flex items-center justify-between w-full">
-				<div>{label}</div>
+				<label htmlFor={switchId}>{label}</label>
 				<div>
 					<Switch
 						checked={checked}
 						className="shrink-0"
 						disabled={disabled || isRemoteLocked}
-						id={label}
+						id={switchId}
 						onCheckedChange={onChange}
 						size="lg"
 					/>
@@ -121,7 +124,9 @@ const FeatureRow = memo(
 		)
 
 		return (
-			<div className="flex flex-col items-start justify-between gap-4 py-3 w-full">
+			<div
+				className="flex flex-col items-start justify-between gap-4 py-3 px-1 w-full rounded-xs border border-transparent"
+				id={id ? featureSettingElementId(id) : undefined}>
 				<div className="space-y-0.5 flex-1 w-full">
 					{isRemoteLocked ? (
 						<Tooltip>
@@ -156,22 +161,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 		worktreesEnabled,
 		backgroundEditEnabled,
 		showFeatureTips,
-		focusChainSettings,
 	} = useExtensionState()
-
-	const handleFocusChainEnabledChange = useCallback(
-		(checked: boolean) => {
-			updateSetting("focusChainSettings", { ...focusChainSettings, enabled: checked })
-		},
-		[focusChainSettings],
-	)
-
-	const handleFocusChainIntervalChange = useCallback(
-		(value: number) => {
-			updateSetting("focusChainSettings", { ...focusChainSettings, remindClineInterval: value })
-		},
-		[focusChainSettings],
-	)
 
 	// State lookup for mapped features
 	const featureState: Record<string, boolean | undefined> = {
@@ -204,6 +194,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 								<FeatureRow
 									checked={featureState[feature.stateKey]}
 									description={feature.description}
+									id={feature.id}
 									isVisible={featureVisibility[feature.stateKey] ?? true}
 									key={feature.id}
 									label={feature.label}
@@ -226,25 +217,6 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 									</SelectContent>
 								</Select>
 							</div>
-							<div className="space-y-2 py-3">
-								<FeatureRow
-									checked={focusChainSettings?.enabled}
-									description="让 Cline Chinese 在长任务中定期回顾待办清单，保持专注。"
-									label="任务焦点提醒"
-									onChange={handleFocusChainEnabledChange}
-								/>
-								{focusChainSettings?.enabled && (
-									<SettingsSlider
-										label="提醒间隔（1-10）"
-										max={10}
-										min={1}
-										onChange={handleFocusChainIntervalChange}
-										step={1}
-										value={focusChainSettings?.remindClineInterval || 6}
-										valueWidth="w-6"
-									/>
-								)}
-							</div>
 							<FeatureRow
 								checked={webSearchEnabled}
 								description="Let the model search the web when the selected provider and model support it. Applies to new tasks."
@@ -264,6 +236,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 								<FeatureRow
 									checked={featureState[feature.stateKey]}
 									description={feature.description}
+									id={feature.id}
 									isVisible={featureVisibility[feature.stateKey] ?? true}
 									key={feature.id}
 									label={feature.label}
@@ -283,6 +256,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 								<FeatureRow
 									checked={featureState[feature.stateKey]}
 									description={feature.description}
+									id={feature.id}
 									isVisible={featureVisibility[feature.stateKey] ?? true}
 									key={feature.id}
 									label={feature.label}

@@ -692,7 +692,7 @@ function resolvePublicCacheKey(
 	providerId: string,
 	config: ProviderConfig,
 ): string {
-	return `${providerId}:${normalizeBaseUrl(config.baseUrl)}`;
+	return `${resolvePrivateCacheKey(providerId, config)}:${fingerprint(JSON.stringify(config.headers ?? {}))}`;
 }
 
 async function getPublicProviderModels(
@@ -711,7 +711,7 @@ async function getPublicProviderModels(
 	}
 	const cacheTtlMs =
 		modelCatalog?.cacheTtlMs ?? DEFAULT_PRIVATE_MODELS_CACHE_TTL_MS;
-	const cacheKey = resolvePublicCacheKey(providerId, config);
+	const cacheKey = `${resolvePublicCacheKey(providerId, config)}:${sourceUrl}`;
 	const now = Date.now();
 
 	const cached = PUBLIC_MODELS_CACHE.get(cacheKey);
@@ -724,7 +724,11 @@ async function getPublicProviderModels(
 		return inFlight;
 	}
 
-	const request = fetchModelsFromSource(sourceUrl, providerId)
+	const request = fetchModelsFromSource(sourceUrl, providerId, {
+		baseUrl: config.baseUrl ?? collection?.provider.baseUrl,
+		apiKey: resolveAuthToken(config),
+		headers: config.headers,
+	})
 		.then((models) => {
 			const data = Object.fromEntries(
 				Object.entries(models).map(([id, maybeModelInfo]) => [
@@ -958,7 +962,7 @@ export async function resolveProviderConfig(
 			config && shouldLoadPrivateModels(providerId, modelCatalog, config)
 				? await getPrivateProviderModels(providerId, modelCatalog, config)
 				: {};
-		// Public (keyless) live model sources run whenever `modelsSourceUrl` is
+		// Live model sources (optionally authenticated) run whenever `modelsSourceUrl` is
 		// registered for the provider — even if the caller didn't pass a
 		// `config`. Falls back to the spec's default base URL so a fresh install
 		// still hits the default local model endpoint. Unless the caller opted

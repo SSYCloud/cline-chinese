@@ -1,5 +1,6 @@
 import { Command, CommanderError, Option } from "commander";
 import { version } from "../../package.json";
+import { CLI_DEFAULT_MAX_CONSECUTIVE_MISTAKES } from "../runtime/defaults";
 import {
 	CLI_COMPACTION_MODE_OPTION_DESCRIPTION,
 	parseCliCompactionMode,
@@ -23,8 +24,12 @@ function normalizeAutoApproveValue(
 export function addRootOptions(cmd: Command): Command {
 	return (
 		cmd
-			.option("-p, --plan", "以规划模式运行")
-			.option("--json", "以 JSON 格式输出消息而不是带样式的文本")
+			.option("-p, --plan", "Run in plan mode")
+			.option(
+				"-y, --yolo",
+				"Auto-approve a limited tool set for unsupervised runs (benchmarks, CI). DANGEROUS: use only in sandboxed environments.",
+			)
+			.option("--json", "Output messages as JSON instead of styled text")
 			.option(
 				"--auto-approve <boolean>",
 				"为所有工具设置工具自动批准（默认：true）",
@@ -33,16 +38,19 @@ export function addRootOptions(cmd: Command): Command {
 			.option("-c, --cwd <path>", "工作目录")
 			.option(
 				"--thinking <level>",
-				"设置思考强度：none|low|medium|high|xhigh。仅使用 --thinking 时采用 medium；省略则使用提供方默认值。",
+				"Set reasoning effort: none|low|medium|high|xhigh. Bare --thinking uses medium; omitted uses the level last chosen with /model, or the provider default.",
 			)
 			.option("--compaction <mode>", CLI_COMPACTION_MODE_OPTION_DESCRIPTION)
 			.option(
 				"-i, --tui",
 				"为交互式会话打开终端用户界面（TUI）",
 			)
-			.option("--id <session-id>", "通过 ID 恢复现有会话")
-			.option("-P, --provider <id>", "提供方 ID（默认：cline）")
-			.option("-k, --key <api-key>", "本次运行的 API 密钥覆盖")
+			.option("--id <session-id>", "Resume an existing session by ID")
+			.option("-P, --provider <id>", "Provider id (default: cline)")
+			.option(
+				"-k, --key <api-key>",
+				"API key for this run, also saved as the provider's key",
+			)
 			.option(
 				"-m, --model <model-id>",
 				"用于所选提供方会话的模型",
@@ -53,8 +61,8 @@ export function addRootOptions(cmd: Command): Command {
 			)
 			.option("-z, --zen", "在后台 hub 中启动一个会话")
 			.option(
-				"--retries [value]",
-				"退出前允许的最大连续错误次数（重试）（默认：6）",
+				"--retries <count>",
+				`Number of maximum consecutive mistakes (retries) before exiting (default: ${CLI_DEFAULT_MAX_CONSECUTIVE_MISTAKES})`,
 			)
 			.option(
 				"-t, --timeout <seconds>",
@@ -85,14 +93,6 @@ export function addRootOptions(cmd: Command): Command {
 				// Act mode is the default. Keep the legacy flags accepted for users who
 				// still pass them, but do not advertise them in help output.
 				new Option("-a, --act", "以执行模式运行").hideHelp(),
-			)
-			.addOption(
-				// `-y, --yolo` is still accepted (and behaves the same as before) but
-				// hidden from `--help` output.
-				new Option(
-					"-y, --yolo",
-					"启用 yolo 模式，agent 可以在无需批准的情况下使用工具，仅提供少量工具。",
-				).hideHelp(),
 			)
 			.addOption(
 				// TODO: Refactor teams to resume session without team name

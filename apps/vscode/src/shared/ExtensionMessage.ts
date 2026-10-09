@@ -10,7 +10,6 @@ import { BrowserSettings } from "./BrowserSettings"
 import { ClineFeatureSetting } from "./ClineFeatureSetting"
 import { BannerCardData } from "./cline/banner"
 import { ClineRulesToggles } from "./cline-rules"
-import { FocusChainSettings } from "./FocusChainSettings"
 import { HistoryItem } from "./HistoryItem"
 import { McpDisplayMode } from "./McpDisplayMode"
 import { ClineMessageModelInfo } from "./messages"
@@ -37,6 +36,7 @@ export type Platform = "aix" | "darwin" | "freebsd" | "linux" | "openbsd" | "sun
 export const DEFAULT_PLATFORM = "unknown"
 
 export const COMMAND_CANCEL_TOKEN = "__cline_command_cancel__"
+
 export interface ExtensionState {
 	loomLoomBatch?: import("./loomloom").BatchChatSnapshot
 	isNewUser: boolean
@@ -128,7 +128,6 @@ export interface ExtensionState {
 	webSearchEnabled?: boolean
 	subagentsEnabled?: boolean
 	worktreesEnabled?: ClineFeatureSetting
-	focusChainSettings?: FocusChainSettings
 	favoritedModelIds: string[]
 	// NEW: Add workspace information
 	workspaceRoots: WorkspaceRoot[]
@@ -263,7 +262,6 @@ export type ClineSay =
 	| "checkpoint_created"
 	| "load_mcp_documentation"
 	| "info" // Added for general informational messages like retry status
-	| "task_progress"
 	| "hook_status"
 	| "hook_output_stream"
 	| "subagent"

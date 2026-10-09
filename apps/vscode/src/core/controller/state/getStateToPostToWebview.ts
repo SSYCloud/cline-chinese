@@ -47,7 +47,6 @@ export async function getStateToPostToWebview(controller: {
 	const compactionStrategy = readCompactionStrategyGlobally()
 	const webSearchEnabled = isModelToolEnabledGlobally("web_search")
 	const subagentsEnabled = stateManager.getGlobalSettingsKey("subagentsEnabled")
-	const focusChainSettings = stateManager.getGlobalSettingsKey("focusChainSettings")
 	const userInfo = stateManager.getGlobalStateKey("userInfo")
 	const loomLoomCredentialAvailable = !!stateManager.getSecretKey("shengSuanYunApiKey")
 	const loomLoomSignedIn = !!stateManager.getSecretKey("shengSuanYunToken")
@@ -128,7 +127,6 @@ export async function getStateToPostToWebview(controller: {
 		compactionStrategy,
 		webSearchEnabled,
 		subagentsEnabled,
-		focusChainSettings,
 		userInfo,
 		loomLoomCredentialAvailable,
 		loomLoomSignedIn,

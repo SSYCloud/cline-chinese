@@ -79,7 +79,9 @@ vi.mock("../../../../src/services/error/ClineError", () => ({
 		ClineFreeModelLimit: "clineFreeModelLimit",
 		ClineFreePromotionEnded: "clineFreePromotionEnded",
 		QuotaExceeded: "quotaExceeded",
+		NotFound: "notFound",
 	},
+	MODEL_NOT_FOUND_GUIDANCE: "Check the model ID and base URL in API Configuration settings.",
 }))
 
 describe("ErrorRow", () => {
@@ -389,24 +391,62 @@ describe("ErrorRow", () => {
 			expect(screen.getByText("Sign in to Cline")).toBeInTheDocument()
 		})
 
-		it("renders ShengSuanYun sign in button when its auth error is detected", async () => {
+		it("renders a 404 as the real message plus model/endpoint guidance, never the sign-in prompt", async () => {
+			const rawMessage = 'model "qwen3-coder" not found'
 			const mockClineError = {
-				message: "胜算云登录已过期，请重新登录后重试。",
-				isErrorType: vi.fn((type) => type === "auth"),
-				providerId: "shengsuanyun",
-				_error: {
-					code: "ERR_BAD_REQUEST",
-				},
+				message: rawMessage,
+				isErrorType: vi.fn((type) => type === "notFound"),
+				providerId: "openai-compatible",
+				_error: { message: rawMessage, status: 404 },
 			}
 
 			const { ClineError } = await import("../../../../src/services/error/ClineError")
 			vi.mocked(ClineError.parse).mockReturnValue(mockClineError as any)
 
-			render(<ErrorRow apiRequestFailedMessage="login expired" errorType="error" message={mockMessage} />)
+			render(<ErrorRow apiRequestFailedMessage={rawMessage} errorType="error" message={mockMessage} />)
 
-			expect(screen.getByText("胜算云登录状态无效或已过期")).toBeInTheDocument()
-			fireEvent.click(screen.getByText("登录胜算云"))
-			expect(mockShengSuanYunSignIn).toHaveBeenCalled()
+			expect(screen.getByText(rawMessage)).toBeInTheDocument()
+			expect(screen.getByText(/The model or endpoint was not found/)).toBeInTheDocument()
+			expect(screen.getByText(/Check the model ID and base URL/)).toBeInTheDocument()
+			expect(screen.queryByText(/logged out/)).not.toBeInTheDocument()
+			expect(screen.queryByText("Sign in to Cline")).not.toBeInTheDocument()
+		})
+
+		it("does not repeat guidance the host already appended to a not-found message", async () => {
+			const rawMessage = "Model not found Check the model ID and base URL in API Configuration settings."
+			const mockClineError = {
+				message: rawMessage,
+				isErrorType: vi.fn((type) => type === "notFound"),
+				providerId: "cline",
+				_error: { message: rawMessage, status: 404 },
+			}
+
+			const { ClineError } = await import("../../../../src/services/error/ClineError")
+			vi.mocked(ClineError.parse).mockReturnValue(mockClineError as any)
+
+			render(<ErrorRow apiRequestFailedMessage={rawMessage} errorType="error" message={mockMessage} />)
+
+			expect(screen.getAllByText(/Check the model ID and base URL/)).toHaveLength(1)
+			expect(screen.queryByText(/The model or endpoint was not found/)).not.toBeInTheDocument()
+		})
+
+		it("renders a 404 from the cline provider as the real message, not the logged-out card", async () => {
+			const rawMessage = "Error 404: Model not found"
+			const mockClineError = {
+				message: rawMessage,
+				isErrorType: vi.fn((type) => type === "notFound"),
+				providerId: "cline",
+				_error: { message: rawMessage, status: 404 },
+			}
+
+			const { ClineError } = await import("../../../../src/services/error/ClineError")
+			vi.mocked(ClineError.parse).mockReturnValue(mockClineError as any)
+
+			render(<ErrorRow apiRequestFailedMessage={rawMessage} errorType="error" message={mockMessage} />)
+
+			expect(screen.getByText(rawMessage)).toBeInTheDocument()
+			expect(screen.queryByText(/logged out/)).not.toBeInTheDocument()
+			expect(screen.queryByText("Sign in to Cline")).not.toBeInTheDocument()
 		})
 
 		it("renders PowerShell troubleshooting link when error mentions PowerShell", async () => {

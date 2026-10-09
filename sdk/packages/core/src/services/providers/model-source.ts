@@ -54,12 +54,42 @@ export function extractModelIdsFromPayload(
 	return [];
 }
 
-export async function fetchModelIdsFromSource(
+export interface ModelSourceAuth {
+	baseUrl?: string;
+	apiKey?: string;
+	headers?: Record<string, string>;
+}
+
+async function fetchSourcePayload(
 	url: string,
-	providerId: string,
-): Promise<string[]> {
+	auth: ModelSourceAuth,
+): Promise<unknown> {
+	// A model source may be a third-party public catalog. Only send provider
+	// credentials to its own origin, and do not follow authenticated redirects.
+	const headers = new Headers();
+	let sameOrigin = false;
+	try {
+		sameOrigin =
+			!!auth.baseUrl && new URL(url).origin === new URL(auth.baseUrl).origin;
+	} catch {
+		// An invalid API endpoint cannot establish trust, but should not prevent
+		// an independent public catalog from loading without credentials.
+	}
+	if (sameOrigin) {
+		if (auth.apiKey?.trim()) {
+			headers.set("Authorization", `Bearer ${auth.apiKey.trim()}`);
+		}
+		for (const [name, value] of Object.entries(auth.headers ?? {})) {
+			headers.set(name, value);
+		}
+	}
+	let hasHeaders = false;
+	headers.forEach(() => {
+		hasHeaders = true;
+	});
 	const response = await fetch(url, {
 		method: "GET",
+		...(hasHeaders ? { headers, redirect: "error" as const } : {}),
 		signal: AbortSignal.timeout(5_000),
 	});
 	if (!response.ok) {
@@ -67,8 +97,16 @@ export async function fetchModelIdsFromSource(
 			`failed to fetch models from ${url}: HTTP ${response.status}`,
 		);
 	}
+	return (await response.json()) as unknown;
+}
+
+export async function fetchModelIdsFromSource(
+	url: string,
+	providerId: string,
+	auth: ModelSourceAuth = {},
+): Promise<string[]> {
 	return extractModelIdsFromPayload(
-		(await response.json()) as unknown,
+		await fetchSourcePayload(url, auth),
 		providerId,
 	);
 }
@@ -206,14 +244,9 @@ export function extractShengSuanYunModelsFromPayload(
 export async function fetchModelsFromSource(
 	url: string,
 	providerId: string,
+	auth: ModelSourceAuth = {},
 ): Promise<Record<string, ModelInfo>> {
-	const response = await fetch(url, { method: "GET" });
-	if (!response.ok) {
-		throw new Error(
-			`failed to fetch models from ${url}: HTTP ${response.status}`,
-		);
-	}
-	const payload = (await response.json()) as unknown;
+	const payload = await fetchSourcePayload(url, auth);
 	if (providerId === "shengsuanyun") {
 		return extractShengSuanYunModelsFromPayload(payload);
 	}

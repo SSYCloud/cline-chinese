@@ -27,6 +27,8 @@ interface TaskHeaderProps {
 	cacheReads?: number
 	totalCost: number
 	lastApiReqTotalTokens?: number
+	compactDisabled: boolean
+	compactTask: () => Promise<boolean>
 	onClose: () => void
 	onSendMessage?: (command: string, files: string[], images: string[]) => void
 }
@@ -41,6 +43,8 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 	cacheReads,
 	totalCost,
 	lastApiReqTotalTokens,
+	compactDisabled,
+	compactTask,
 	onClose,
 	onSendMessage,
 }) => {
@@ -221,6 +225,8 @@ const TaskHeader: React.FC<TaskHeaderProps> = ({
 						<ContextWindow
 							cacheReads={cacheReads}
 							cacheWrites={cacheWrites}
+							compactDisabled={compactDisabled}
+							compactTask={compactTask}
 							contextWindow={selectedModelInfo?.contextWindow}
 							lastApiReqTotalTokens={lastApiReqTotalTokens}
 							onSendMessage={onSendMessage}
