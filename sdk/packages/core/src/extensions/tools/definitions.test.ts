@@ -1693,7 +1693,7 @@ describe("default read_files tool", () => {
 						end_line: null,
 					},
 				],
-			},
+			} as never,
 			{
 				agentId: "agent-1",
 				conversationId: "conv-1",
@@ -1711,8 +1711,6 @@ describe("default read_files tool", () => {
 		expect(execute).toHaveBeenCalledWith(
 			{
 				path: "/tmp/example.ts",
-				start_line: null,
-				end_line: null,
 			},
 			expect.objectContaining({
 				agentId: "agent-1",
@@ -1833,14 +1831,14 @@ describe("zod schema conversion", () => {
 							"The absolute path of a text file to read content from",
 					},
 					start_line: {
-						anyOf: [{ type: "integer" }, { type: "null" }],
+						type: "integer",
 						description:
-							"Optional one-based starting line number to read from; use null or omit for the start of the file",
+							"Optional one-based starting line number to read from; omit for the start of the file",
 					},
 					end_line: {
-						anyOf: [{ type: "integer" }, { type: "null" }],
+						type: "integer",
 						description:
-							"Optional one-based ending line number to read through; use null or omit to read to the end of the file or the read cap, whichever comes first",
+							"Optional one-based ending line number to read through; omit to read to the end of the file or the read cap, whichever comes first",
 					},
 				},
 				required: ["path"],
@@ -1851,7 +1849,7 @@ describe("zod schema conversion", () => {
 		expect(inputSchema.required).toEqual(["files"]);
 	});
 
-	it("exposes skills args as optional nullable in tool schemas", () => {
+	it("exposes skills args as an optional string in tool schemas", () => {
 		const tools = createDefaultTools({
 			executors: {
 				skills: createMockSkillsExecutor(),
@@ -1875,7 +1873,7 @@ describe("zod schema conversion", () => {
 			properties?: Record<string, unknown>;
 		};
 		expect(schema.required).toEqual(["skill"]);
-		expect(schema.properties).toHaveProperty("args");
+		expect(schema.properties?.args).toMatchObject({ type: "string" });
 	});
 });
 

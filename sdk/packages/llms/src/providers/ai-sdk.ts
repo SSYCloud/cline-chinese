@@ -1409,6 +1409,25 @@ function suppressDanglingStreamPromises(
 	}
 }
 
+// Anthropic-protocol streams (including gateways that translate Gemini
+// thought signatures) deliver the thinking signature in an empty-text delta.
+function extractReasoningSignatureMetadata(
+	part: AiSdkStreamPart,
+): Record<string, unknown> | undefined {
+	const metadata = extractGoogleThoughtMetadata(part);
+	const providerMetadata =
+		part.providerMetadata && typeof part.providerMetadata === "object"
+			? (part.providerMetadata as Record<string, unknown>)
+			: undefined;
+	const anthropicSignature = (
+		providerMetadata?.anthropic as Record<string, unknown> | undefined
+	)?.signature;
+	if (typeof anthropicSignature !== "string" || anthropicSignature === "") {
+		return metadata;
+	}
+	return { ...metadata, signature: anthropicSignature };
+}
+
 function extractGoogleThoughtMetadata(
 	part: AiSdkStreamPart,
 ): Record<string, unknown> | undefined {
@@ -1550,12 +1569,13 @@ async function* emitAiSdkEvents(
 						(part.textDelta as string | undefined) ??
 						(part.text as string | undefined) ??
 						(part.reasoning as string | undefined);
-					if (text) {
+					const reasoningMetadata = extractReasoningSignatureMetadata(part);
+					if (text || reasoningMetadata) {
 						sawVisibleContent = true;
 						yield {
 							type: "reasoning-delta",
-							text,
-							metadata: extractGoogleThoughtMetadata(part),
+							text: text ?? "",
+							metadata: reasoningMetadata,
 						};
 					}
 					continue;

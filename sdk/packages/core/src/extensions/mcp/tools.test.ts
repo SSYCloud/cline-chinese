@@ -20,3 +20,55 @@ describe("MCP result policy", () => {
 		);
 	});
 });
+
+describe("MCP input schema normalization", () => {
+	it("collapses nullable anyOf so every property keeps a type", async () => {
+		const tools = await createMcpTools({
+			serverName: "artemis",
+			provider: {
+				listTools: async () => [
+					{
+						name: "mobile_get_device_state",
+						inputSchema: {
+							type: "object",
+							properties: {
+								view_type: { type: "string", title: "View Type" },
+								device_serial: {
+									anyOf: [{ type: "string" }, { type: "null" }],
+									default: null,
+									title: "Device Serial",
+								},
+								steps: {
+									anyOf: [
+										{ type: "array", items: { type: "integer" } },
+										{ type: "null" },
+									],
+								},
+								either: { anyOf: [{ type: "string" }, { type: "integer" }] },
+							},
+							required: ["view_type"],
+						},
+					},
+				],
+				callTool: async () => ({}),
+			},
+		});
+		const properties = (
+			tools[0].inputSchema as { properties: Record<string, unknown> }
+		).properties;
+		expect(properties.device_serial).toEqual({
+			type: "string",
+			title: "Device Serial",
+		});
+		expect(properties.steps).toEqual({
+			type: "array",
+			items: { type: "integer" },
+		});
+		expect(properties.either).toEqual({
+			anyOf: [{ type: "string" }, { type: "integer" }],
+		});
+		expect((tools[0].inputSchema as { required: string[] }).required).toEqual([
+			"view_type",
+		]);
+	});
+});

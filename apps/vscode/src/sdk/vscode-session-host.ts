@@ -193,7 +193,7 @@ export class VscodeSessionHost implements SdkSessionHost {
 					extraTools: [
 						...(inputWithRemoteConfig.config.extraTools ?? []),
 						...extraTools,
-						...(batchAgent?.tools() ?? []),
+						// ...(batchAgent?.tools() ?? []),
 					],
 				},
 			}

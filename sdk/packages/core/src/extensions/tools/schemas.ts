@@ -16,28 +16,25 @@ const AbsolutePath = z
 	.string()
 	.describe("The absolute path of a text file to read content from");
 
+// Models sometimes emit line numbers as strings or null; coerce/drop those so
+// they do not reject the whole tool call. `.nullable()` is deliberately not
+// used: it emits `anyOf: [integer, null]` without a `type`, which Vertex/Gemini
+// rejects. The advertised JSON Schema is a plain optional integer.
+const OptionalLineNumber = z
+	.preprocess(
+		(value) => (value === null ? undefined : value),
+		z.coerce.number().int().positive().optional(),
+	)
+	.optional();
+
 export const ReadFileLineRangeSchema = z
 	.object({
-		// Models sometimes emit line numbers as strings; coerce so a `"3"` does not
-		// reject the whole tool call. The advertised JSON Schema is unaffected.
-		start_line: z.coerce
-			.number()
-			.int()
-			.positive()
-			.nullable()
-			.optional()
-			.describe(
-				"Optional one-based starting line number to read from; use null or omit for the start of the file",
-			),
-		end_line: z.coerce
-			.number()
-			.int()
-			.positive()
-			.nullable()
-			.optional()
-			.describe(
-				"Optional one-based ending line number to read through; use null or omit to read to the end of the file or the read cap, whichever comes first",
-			),
+		start_line: OptionalLineNumber.describe(
+			"Optional one-based starting line number to read from; omit for the start of the file",
+		),
+		end_line: OptionalLineNumber.describe(
+			"Optional one-based ending line number to read through; omit to read to the end of the file or the read cap, whichever comes first",
+		),
 	})
 	.describe("Optional inclusive one-based file line range");
 
@@ -198,8 +195,7 @@ export const EditFileInputSchema = z
 			.min(1)
 			.describe("The absolute path for the action to be performed on"),
 		old_text: z
-			.string()
-			.nullable()
+			.preprocess((value) => (value === null ? undefined : value), z.string().optional())
 			.optional()
 			.describe(
 				`Exact text to replace (must match exactly once). Omit this when creating a missing file or inserting via insert_line. Keep this at or below ${INPUT_ARG_CHAR_LIMIT} characters when possible; larger payloads should be split across multiple tool calls to avoid timeouts.`,
@@ -209,11 +205,12 @@ export const EditFileInputSchema = z
 			.describe(
 				`The new content to write when creating a missing file, the replacement text for edits, or the inserted text when insert_line is provided. Keep this at or below ${INPUT_ARG_CHAR_LIMIT} characters when possible; for large edits, use multiple calls with small chunks of old_text and new_text to iteratively edit the file.`,
 			),
-		// See start_line above: coerced so a stringified line number still applies.
-		insert_line: z.coerce
-			.number()
-			.int()
-			.nullable()
+		// See OptionalLineNumber above: null is dropped and a stringified line number still applies.
+		insert_line: z
+			.preprocess(
+				(value) => (value === null ? undefined : value),
+				z.coerce.number().int().optional(),
+			)
 			.optional()
 			.describe(
 				"Optional positive one-based boundary line. When provided, the tool inserts new_text before that line instead of performing a replacement edit; use line_count + 1 to append at EOF.",
@@ -249,10 +246,9 @@ export const ApplyPatchInputUnionSchema = z.union([
 export const SkillsInputSchema = z.object({
 	skill: z.string().min(1).describe("Name of the skill to execute."),
 	args: z
-		.string()
-		.nullable()
+		.preprocess((value) => (value === null ? undefined : value), z.string().optional())
 		.optional()
-		.describe("Arguments for the skill; use null when omitted"),
+		.describe("Optional arguments for the skill; omit when not needed"),
 });
 
 /**

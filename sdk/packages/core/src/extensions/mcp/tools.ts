@@ -13,6 +13,48 @@ function defaultMcpDescription(
 	return `Execute MCP tool "${tool.name}" from server "${serverName}".`;
 }
 
+function isNullSchema(node: unknown): boolean {
+	return (
+		!!node &&
+		typeof node === "object" &&
+		(node as Record<string, unknown>).type === "null"
+	);
+}
+
+/**
+ * MCP servers (e.g. Python/pydantic) emit `Optional[T]` as
+ * `anyOf: [T, {type: "null"}]` with no `type` on the property itself, which
+ * Vertex/Gemini rejects. Collapse that shape to `T`; the property stays
+ * optional because `required` is untouched.
+ */
+export function collapseNullableAnyOf(node: unknown): unknown {
+	if (Array.isArray(node)) {
+		return node.map(collapseNullableAnyOf);
+	}
+	if (!node || typeof node !== "object") {
+		return node;
+	}
+	const result: Record<string, unknown> = {};
+	for (const [key, value] of Object.entries(node)) {
+		result[key] = collapseNullableAnyOf(value);
+	}
+	for (const key of ["anyOf", "oneOf"]) {
+		const variants = result[key];
+		if (!Array.isArray(variants) || !variants.some(isNullSchema)) {
+			continue;
+		}
+		const nonNull = variants.filter((variant) => !isNullSchema(variant));
+		if (nonNull.length === 1 && nonNull[0] && typeof nonNull[0] === "object") {
+			const { [key]: _removed, ...rest } = result;
+			if (rest.default === null) {
+				delete rest.default;
+			}
+			return { ...(nonNull[0] as Record<string, unknown>), ...rest };
+		}
+	}
+	return result;
+}
+
 export async function createMcpTools(
 	options: CreateMcpToolsOptions,
 ): Promise<AgentTool[]> {
@@ -29,7 +71,10 @@ export async function createMcpTools(
 			name: agentToolName,
 			resultPolicy: "cache-oversized",
 			description: defaultMcpDescription(options.serverName, descriptor),
-			inputSchema: descriptor.inputSchema,
+			inputSchema: collapseNullableAnyOf(descriptor.inputSchema) as Record<
+				string,
+				unknown
+			>,
 			timeoutMs: options.timeoutMs,
 			retryable: options.retryable,
 			maxRetries: options.maxRetries,
