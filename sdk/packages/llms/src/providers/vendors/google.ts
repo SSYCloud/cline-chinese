@@ -26,6 +26,20 @@ export function normalizeGeminiBaseUrl(
 	return API_VERSION_SEGMENT.test(lastSegment) ? trimmed : `${trimmed}/v1beta`;
 }
 
+function toGatewayModelPath(
+	modelId: string,
+	context: GatewayProviderContext,
+): string {
+	if (
+		!context.provider.metadata?.routing?.modelApiProtocol ||
+		!modelId.includes("/") ||
+		modelId.startsWith("models/")
+	) {
+		return modelId;
+	}
+	return `models/${modelId}`;
+}
+
 export async function createGoogleProviderModule(
 	config: GatewayResolvedProviderConfig,
 	context: GatewayProviderContext,
@@ -51,7 +65,7 @@ export async function createGoogleProviderModule(
 			return result;
 		},
 		operations: {
-			language: (modelId) => provider(modelId),
+			language: (modelId) => provider(toGatewayModelPath(modelId, context)),
 			imageGeneration: (modelId) => provider.image(modelId),
 		},
 	};

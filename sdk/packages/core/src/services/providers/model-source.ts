@@ -137,6 +137,31 @@ function toPositiveInteger(value: unknown): number | undefined {
 	return Math.floor(parsed);
 }
 
+const SHENGSUANYUN_NATIVE_PROTOCOLS: ReadonlyArray<{
+	prefix: string;
+	endpoint: string;
+	apiProtocol: "openai-responses" | "anthropic" | "gemini";
+}> = [
+	{
+		prefix: "openai/",
+		endpoint: "/v1/responses",
+		apiProtocol: "openai-responses",
+	},
+	{ prefix: "anthropic/", endpoint: "/v1/messages", apiProtocol: "anthropic" },
+	{ prefix: "google/", endpoint: "/v1beta/models/*", apiProtocol: "gemini" },
+];
+
+function resolveShengSuanYunApiProtocol(
+	apiName: string,
+	supportApis: unknown[],
+): "openai-responses" | "anthropic" | "gemini" | undefined {
+	const match = SHENGSUANYUN_NATIVE_PROTOCOLS.find(
+		({ prefix, endpoint }) =>
+			apiName.startsWith(prefix) && supportApis.includes(endpoint),
+	);
+	return match?.apiProtocol;
+}
+
 /**
  * Parse ShengSuanYun's `/api/v1/models` payload. The provider reports full
  * model metadata (context window, max output tokens, pricing in RMB per
@@ -169,7 +194,8 @@ export function extractShengSuanYunModelsFromPayload(
 		const supportApis = Array.isArray(model.support_apis)
 			? model.support_apis
 			: [];
-		if (!supportApis.includes("/v1/messages")) {
+		const apiProtocol = resolveShengSuanYunApiProtocol(apiName, supportApis);
+		if (!apiProtocol && !supportApis.includes("/v1/messages")) {
 			continue;
 		}
 
@@ -227,6 +253,9 @@ export function extractShengSuanYunModelsFromPayload(
 		}
 		if (typeof model.description === "string") {
 			result.description = model.description;
+		}
+		if (apiProtocol) {
+			result.metadata = { apiProtocol };
 		}
 
 		models[result.id] = result;

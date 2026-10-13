@@ -1354,7 +1354,13 @@ const BUILTIN_SPEC_OVERRIDES: BuiltinSpecOverride[] = [
 		defaults: {
 			baseUrl: "https://router.shengsuanyun.com/api/v1",
 		},
-		metadata: ANTHROPIC_AND_QWEN_CACHE_ROUTING_METADATA,
+		metadata: {
+			...ANTHROPIC_AND_QWEN_CACHE_ROUTING_METADATA,
+			routing: {
+				...ANTHROPIC_AND_QWEN_CACHE_ROUTING_METADATA.routing,
+				modelApiProtocol: true,
+			},
+		},
 	},
 	...OPENAI_COMPATIBLE_SPEC_OVERRIDES,
 ];

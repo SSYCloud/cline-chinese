@@ -2485,11 +2485,7 @@ function resolveModelProviderKind(
 	defaultKind: ProviderModuleKind,
 	context: GatewayProviderContext,
 ): ProviderModuleKind {
-	if (
-		defaultKind !== "openai-compatible" ||
-		!context.provider.metadata?.routing?.modelApiProtocol
-	)
-		return defaultKind;
+	if (!context.provider.metadata?.routing?.modelApiProtocol) return defaultKind;
 	switch (context.model.metadata?.apiProtocol) {
 		case "openai-responses":
 			return "openai";
