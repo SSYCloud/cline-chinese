@@ -153,7 +153,6 @@ export interface ExtensionStateContextType extends ExtensionState {
 	closeMcpView: () => void
 
 	// Event callbacks
-	onRelinquishControl: (callback: () => void) => () => void
 }
 
 export const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
@@ -450,18 +449,6 @@ export const ExtensionStateContextProvider: React.FC<{
 	const openRouterModelsUnsubscribeRef = useRef<(() => void) | null>(null)
 	const liteLlmModelsUnsubscribeRef = useRef<(() => void) | null>(null)
 	const workspaceUpdatesUnsubscribeRef = useRef<(() => void) | null>(null)
-	const relinquishControlUnsubscribeRef = useRef<(() => void) | null>(null)
-
-	// Add ref for callbacks
-	const relinquishControlCallbacks = useRef<Set<() => void>>(new Set())
-
-	// Create hook function
-	const onRelinquishControl = useCallback((callback: () => void) => {
-		relinquishControlCallbacks.current.add(callback)
-		return () => {
-			relinquishControlCallbacks.current.delete(callback)
-		}
-	}, [])
 	const mcpServersSubscriptionRef = useRef<(() => void) | null>(null)
 	// Convergent-replica state for clineMessages. The partial-message stream and the full state
 	// snapshots both feed this reducer so the transcript converges correctly regardless of
@@ -746,20 +733,6 @@ export const ExtensionStateContextProvider: React.FC<{
 				console.error("Failed to fetch available terminal profiles:", error)
 			})
 
-		// Subscribe to relinquish control events
-		relinquishControlUnsubscribeRef.current = UiServiceClient.subscribeToRelinquishControl(EmptyRequest.create({}), {
-			onResponse: () => {
-				// Call all registered callbacks
-				relinquishControlCallbacks.current.forEach((callback) => {
-					callback()
-				})
-			},
-			onError: (error: any) => {
-				console.error("Error in relinquishControl subscription:", error)
-			},
-			onComplete: () => {},
-		})
-
 		// Clean up subscriptions when component unmounts
 		return () => {
 			if (stateSubscriptionRef.current) {
@@ -809,10 +782,6 @@ export const ExtensionStateContextProvider: React.FC<{
 			if (workspaceUpdatesUnsubscribeRef.current) {
 				workspaceUpdatesUnsubscribeRef.current()
 				workspaceUpdatesUnsubscribeRef.current = null
-			}
-			if (relinquishControlUnsubscribeRef.current) {
-				relinquishControlUnsubscribeRef.current()
-				relinquishControlUnsubscribeRef.current = null
 			}
 			if (mcpServersSubscriptionRef.current) {
 				mcpServersSubscriptionRef.current()
@@ -1051,7 +1020,6 @@ export const ExtensionStateContextProvider: React.FC<{
 		refreshHicapModels,
 		refreshShengSuanYunModels,
 		refreshLiteLlmModels,
-		onRelinquishControl,
 		setUserInfo: (userInfo?: UserInfo) => setState((prevState) => ({ ...prevState, userInfo })),
 		expandTaskHeader,
 		setExpandTaskHeader,
