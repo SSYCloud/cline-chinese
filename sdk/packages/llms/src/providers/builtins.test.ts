@@ -588,4 +588,16 @@ describe("regional API line base URLs", () => {
 			);
 		}
 	});
+
+	it("defaults deepseek to a catalog model and aliases the deprecated deepseek-v4-flash", () => {
+		const spec = BUILTIN_SPECS.find((s) => s.id === "deepseek");
+		const models = spec?.modelsFactory?.() ?? {};
+		const current = models["deepseek-flash"];
+		expect(spec?.defaultModelId).toBe("deepseek-flash");
+		expect(current?.contextWindow).toBe(1_000_000);
+		expect(models["deepseek-v4-flash"]).toEqual({
+			...current,
+			id: "deepseek-v4-flash",
+		});
+	});
 });

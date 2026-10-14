@@ -524,6 +524,20 @@ function buildClineModels(): Record<string, ModelInfo> {
 	return filterImageOutputModels(models);
 }
 
+function buildDeepSeekModels(): Record<string, ModelInfo> {
+	const models = generatedModels("deepseek");
+	// models.dev deprecated `deepseek-v4-flash` in favor of `deepseek-flash`, but
+	// saved configs still reference it. Alias it so lookups keep real limits.
+	const current = models["deepseek-flash"];
+	if (models["deepseek-v4-flash"] || !current) {
+		return models;
+	}
+	return {
+		...models,
+		"deepseek-v4-flash": { ...current, id: "deepseek-v4-flash" },
+	};
+}
+
 function buildVertexModels(): Record<string, ModelInfo> {
 	const vertexModels = generatedModels("vertex");
 
@@ -807,7 +821,8 @@ const OPENAI_COMPATIBLE_SPEC_OVERRIDES: BuiltinSpecOverride[] = [
 		family: "openai-compatible",
 		popular: 10,
 		capabilities: ["reasoning", "prompt-cache"],
-		defaultModelId: "deepseek-v4-flash",
+		modelsFactory: buildDeepSeekModels,
+		defaultModelId: "deepseek-flash",
 		apiKeyEnv: ["DEEPSEEK_API_KEY"],
 		defaults: { baseUrl: "https://api.deepseek.com/v1" },
 	},
