@@ -20,7 +20,7 @@ export async function refreshShengSuanYunModels(
 			throw new Error("Invalid response format from ShengSuanYun API")
 		}
 		for (const model of rawModels) {
-			if (!Array.isArray(model.support_apis) || !model.support_apis.includes("/v1/messages")) {
+			if (!Array.isArray(model.support_apis)) {
 				continue
 			}
 			const inputArch = model.architecture?.input

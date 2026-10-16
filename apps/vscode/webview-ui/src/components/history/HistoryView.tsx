@@ -191,13 +191,6 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 		[loadTaskHistory],
 	)
 
-	// Use the onRelinquishControl hook instead of message event
-	useEffect(() => {
-		return onRelinquishControl(() => {
-			setDeleteAllDisabled(false)
-		})
-	}, [onRelinquishControl])
-
 	const { totalTasksSize, setTotalTasksSize } = extensionStateContext
 
 	const fetchTotalTasksSize = useCallback(async () => {

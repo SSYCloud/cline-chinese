@@ -53,6 +53,21 @@ export function QueuedPrompts({ items = [] }: QueuedPromptsProps) {
 			})
 	}
 
+	const steerQueuedPrompt = (promptId: string) => {
+		setCancellingIds((current) => new Set(current).add(promptId))
+		TaskServiceClient.steerQueuedPrompt(StringRequest.create({ value: promptId }))
+			.catch((error) => {
+				console.error("Failed to steer queued prompt:", error)
+			})
+			.finally(() => {
+				setCancellingIds((current) => {
+					const next = new Set(current)
+					next.delete(promptId)
+					return next
+				})
+			})
+	}
+
 	return (
 		<div className="mx-3 mt-2.5 mb-2.5 rounded-xs border border-editor-group-border bg-code/70 px-2.5 py-2 shadow-xs">
 			<div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-description">
@@ -84,6 +99,17 @@ export function QueuedPrompts({ items = [] }: QueuedPromptsProps) {
 								<span className="flex h-5 shrink-0 items-center rounded-[3px] border border-editor-group-border px-1.5 text-[10px] leading-none text-description">
 									{attachments}
 								</span>
+							)}
+							{!isSteer && (
+								<button
+									aria-label="立即引导"
+									className="flex h-5 shrink-0 items-center rounded-[3px] border border-editor-group-border px-1.5 text-[10px] leading-none text-description hover:bg-toolbar-hover-background hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+									disabled={isCancelling}
+									onClick={() => steerQueuedPrompt(item.id)}
+									title="立即引导：当前工具执行完后，在下一次模型请求前插入这条消息"
+									type="button">
+									立即引导
+								</button>
 							)}
 							<button
 								aria-label="取消排队消息"

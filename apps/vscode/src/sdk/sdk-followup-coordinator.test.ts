@@ -88,7 +88,7 @@ describe("SdkFollowupCoordinator", () => {
 			"resolved: queued",
 			undefined,
 			undefined,
-			"queue",
+			"steer",
 		)
 	})
 
@@ -108,7 +108,7 @@ describe("SdkFollowupCoordinator", () => {
 			"resolved: queued while streaming",
 			undefined,
 			undefined,
-			"queue",
+			"steer",
 		)
 	})
 
@@ -140,7 +140,7 @@ describe("SdkFollowupCoordinator", () => {
 			"resolved: do the next thing after this",
 			undefined,
 			undefined,
-			"queue",
+			"steer",
 		)
 	})
 
@@ -196,7 +196,7 @@ describe("SdkFollowupCoordinator", () => {
 			"resolved: sent during rebuild",
 			undefined,
 			undefined,
-			"queue",
+			"steer",
 		)
 	})
 
@@ -261,7 +261,7 @@ describe("SdkFollowupCoordinator", () => {
 			"resolved: just give me an answer",
 			undefined,
 			undefined,
-			"queue",
+			"steer",
 		)
 	})
 

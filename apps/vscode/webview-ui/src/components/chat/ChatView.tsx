@@ -23,7 +23,7 @@ import {
 	groupMessages,
 	InputSection,
 	MessagesArea,
-	QueuedPrompts,
+	// QueuedPrompts,  // 已绕过：后续消息现在直接以"引导"方式投递，不再展示排队横幅（组件代码保留）
 	TaskSection,
 	useChatState,
 	useMessageHandlers,
@@ -492,7 +492,7 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 						task={task}
 					/>
 				}
-				<QueuedPrompts items={queuedPrompts} />
+				{/* <QueuedPrompts items={queuedPrompts} /> */}
 				<InputSection
 					batchMode={batchMode}
 					chatState={chatState}

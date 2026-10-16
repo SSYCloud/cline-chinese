@@ -125,7 +125,11 @@ export class SdkFollowupCoordinator {
 		})
 	}
 
-	/** Queue a follow-up onto a session whose turn is still running. */
+	/**
+	 * Deliver a follow-up to a session whose turn is still running as a steer:
+	 * the in-flight model request is interrupted, running tools finish, and the
+	 * message is injected before the next model request.
+	 */
 	private async queueToActiveSession(
 		activeSession: NonNullable<ReturnType<SdkSessionLifecycle["getActiveSession"]>>,
 		displayedTaskId: string | undefined,
@@ -158,7 +162,7 @@ export class SdkFollowupCoordinator {
 			resolvedPrompt,
 			images,
 			files,
-			"queue",
+			"steer",
 		)
 	}
 

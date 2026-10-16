@@ -1713,6 +1713,30 @@ export class Controller {
 		await this.postStateToWebview()
 	}
 
+	async steerQueuedPrompt(promptId: string): Promise<void> {
+		const trimmedPromptId = promptId.trim()
+		if (!trimmedPromptId) {
+			Logger.warn("[SdkController] steerQueuedPrompt: Missing prompt id")
+			return
+		}
+
+		const activeSession = this.sessions.getActiveSession()
+		if (!activeSession) {
+			Logger.warn("[SdkController] steerQueuedPrompt: No active session")
+			return
+		}
+
+		const result = await activeSession.sdkHost.pendingPrompts("update", {
+			sessionId: activeSession.sessionId,
+			promptId: trimmedPromptId,
+			delivery: "steer",
+		})
+		if (!result.updated) {
+			Logger.warn(`[SdkController] steerQueuedPrompt: Prompt not found: ${trimmedPromptId}`)
+		}
+		await this.postStateToWebview()
+	}
+
 	/**
 	 * Manually compact (condense) the active task's conversation. Triggered by
 	 * the compact button and the `/compact` (alias `/smol`) slash command.

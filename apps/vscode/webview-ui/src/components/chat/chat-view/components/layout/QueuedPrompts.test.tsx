@@ -4,10 +4,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { QueuedPrompts } from "./QueuedPrompts"
 
 const cancelQueuedPromptMock = vi.hoisted(() => vi.fn())
+const steerQueuedPromptMock = vi.hoisted(() => vi.fn())
 
 vi.mock("@/services/grpc-client", () => ({
 	TaskServiceClient: {
 		cancelQueuedPrompt: (request: unknown) => cancelQueuedPromptMock(request),
+		steerQueuedPrompt: (request: unknown) => steerQueuedPromptMock(request),
 	},
 }))
 
@@ -36,12 +38,25 @@ describe("QueuedPrompts", () => {
 	beforeEach(() => {
 		cancelQueuedPromptMock.mockReset()
 		cancelQueuedPromptMock.mockResolvedValue({})
+		steerQueuedPromptMock.mockReset()
+		steerQueuedPromptMock.mockResolvedValue({})
+	})
+
+	it("steers only queued (non-steer) prompts from the row action", async () => {
+		render(<QueuedPrompts items={queuedPrompts} />)
+
+		const steerButtons = screen.getAllByRole("button", { name: "立即引导" })
+		expect(steerButtons).toHaveLength(1)
+		fireEvent.click(steerButtons[0])
+
+		expect(steerQueuedPromptMock).toHaveBeenCalledWith({ value: "prompt-1" })
+		await waitFor(() => expect(steerButtons[0]).not.toBeDisabled())
 	})
 
 	it("cancels a queued prompt from the row action", async () => {
 		render(<QueuedPrompts items={queuedPrompts} />)
 
-		const cancelButtons = screen.getAllByRole("button", { name: "Cancel queued message" })
+		const cancelButtons = screen.getAllByRole("button", { name: "取消排队消息" })
 		fireEvent.click(cancelButtons[0])
 
 		expect(cancelQueuedPromptMock).toHaveBeenCalledTimes(1)
