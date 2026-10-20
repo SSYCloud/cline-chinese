@@ -1,13 +1,11 @@
-// Independent SDK-backed account service for ShengSuanYun (胜算云).
-// Handles fetching account credit/usage/payment data by making authenticated
-// requests to the ShengSuanYun API using the "x-token" credential stored in
-// StateManager secrets.
-
 import {
+	EAccount,
+	EAccountList,
 	EnterpriseBillRequest,
 	EnterpriseBillResponse,
+	EnterpriseBudget,
+	EnterpriseBudgetRequest,
 	EPAPIKey,
-	EProjectList,
 	PaymentTransaction,
 	UsageTransaction,
 	UserCreditsBalance,
@@ -18,10 +16,26 @@ import axios, { type AxiosRequestConfig } from "axios"
 import { StateManager } from "@/core/storage/StateManager"
 import { getAxiosSettings } from "@/shared/net"
 import { Logger } from "@/shared/services/Logger"
+import { isJwtExpired } from "@/shared/utils/jwt"
+
+const SSY_AUTH_ERROR_CODES = new Set([20001, 20003])
+
+export class ShengSuanYunAuthError extends Error {
+	constructor(
+		message: string,
+		public readonly code: number,
+		public readonly scope: "session" | "enterprise" = "session",
+	) {
+		super(message)
+		this.name = "ShengSuanYunAuthError"
+	}
+}
 
 export class ShengSuanYunAccountService {
 	private static instance: ShengSuanYunAccountService
 	private readonly baseUrl = "https://api.shengsuanyun.com"
+	private readonly enterpriseTokens = new Map<string, { token: string; expiresAt: number; sessionToken: string }>()
+	private readonly enterpriseTokenRequests = new Map<string, { sessionToken: string; promise: Promise<string> }>()
 
 	/**
 	 * Returns the singleton instance of ShengSuanYunAccountService
@@ -36,9 +50,17 @@ export class ShengSuanYunAccountService {
 	/**
 	 * Helper function to make authenticated requests to the ShengSuanYun API.
 	 * Uses the "x-token" credential stored in StateManager secrets.
+	 *
+	 * @param overrideToken - Credential to send instead of the stored session
+	 *   token (e.g. the enterprise-scoped token returned by `enterEnterprise`).
 	 */
-	private async authenticatedRequest<T>(endpoint: string, config: AxiosRequestConfig = {}): Promise<T> {
-		const token = StateManager.get().getSecretKey("shengSuanYunToken")
+	private async authenticatedRequest<T>(
+		endpoint: string,
+		config: AxiosRequestConfig = {},
+		allowNullData = false,
+		overrideToken?: string,
+	): Promise<T> {
+		const token = overrideToken ?? StateManager.get().getSecretKey("shengSuanYunToken")
 		if (!token) {
 			throw new Error("ShengSuanYunAccountService.authenticatedRequest() 未找到胜算云 Auth Token")
 		}
@@ -58,16 +80,80 @@ export class ShengSuanYunAccountService {
 			},
 			...getAxiosSettings(),
 		}
-		const response = await axios.request<{ data?: T; code?: number }>(requestConfig)
-		if (!response.data || !response.data.data || response.data.code === 103) {
+		const response = await axios.request<{ data?: T; code?: number; msg?: string }>(requestConfig)
+		const body = response.data
+		if (!body) {
 			throw new Error(`Invalid response from ${endpoint} API`)
 		}
-		return response.data.data
+		if (typeof body.code === "number" && body.code !== 0) {
+			const message = `${body.msg || "Unknown error"} (${endpoint}, code ${body.code})`
+			if (SSY_AUTH_ERROR_CODES.has(body.code)) {
+				throw new ShengSuanYunAuthError(message, body.code, overrideToken ? "enterprise" : "session")
+			}
+			throw new Error(`ShengSuanYun API error: ${message}`)
+		}
+		if (!allowNullData && body.data == null) {
+			throw new Error(`Invalid response from ${endpoint} API`)
+		}
+		return body.data as T
 	}
 
 	private withCacheBust(endpoint: string): string {
 		const separator = endpoint.includes("?") ? "&" : "?"
 		return `${endpoint}${separator}_t=${Date.now()}`
+	}
+
+	private async enterEnterprise(enterpriseId: number, ramUserId?: number): Promise<string> {
+		const sessionToken = StateManager.get().getSecretKey("shengSuanYunToken")
+		if (!sessionToken) {
+			throw new Error("ShengSuanYunAccountService.enterEnterprise() 未找到胜算云 Auth Token")
+		}
+		const cacheKey = `${enterpriseId}:${ramUserId ?? 0}`
+		const cached = this.enterpriseTokens.get(cacheKey)
+		if (cached && cached.sessionToken === sessionToken && !isJwtExpired(cached.token, 60)) {
+			return cached.token
+		}
+		const inFlight = this.enterpriseTokenRequests.get(cacheKey)
+		if (inFlight && inFlight.sessionToken === sessionToken) {
+			return inFlight.promise
+		}
+		const promise = this.enterEnterpriseRequested(cacheKey, enterpriseId, sessionToken).finally(() => {
+			if (this.enterpriseTokenRequests.get(cacheKey)?.promise === promise) {
+				this.enterpriseTokenRequests.delete(cacheKey)
+			}
+		})
+		this.enterpriseTokenRequests.set(cacheKey, { sessionToken, promise })
+		return promise
+	}
+
+	private async enterEnterpriseRequested(cacheKey: string, enterpriseId: number, sessionToken: string): Promise<string> {
+		const d = await this.authenticatedRequest<{ token?: string; account_type?: string; expires_at?: number }>(
+			"/enterprise_gateway/enterprise/enter",
+			{ method: "POST", data: { enterprise_id: enterpriseId } },
+		)
+		const token = d?.token
+		if (!token) {
+			if (d?.account_type === "main") {
+				this.enterpriseTokens.set(cacheKey, {
+					token: "",
+					expiresAt: Number.POSITIVE_INFINITY,
+					sessionToken,
+				})
+				return ""
+			}
+			throw new Error(`Invalid response from API: enterprise/enter ${JSON.stringify(d)}`)
+		}
+		const expiresAt = typeof d.expires_at === "number" ? d.expires_at : Number.POSITIVE_INFINITY
+		this.enterpriseTokens.set(cacheKey, { token, expiresAt, sessionToken })
+		return token
+	}
+
+	private async enterpriseTokenOrSession(enterpriseId: number | undefined, ramUserId?: number): Promise<string | undefined> {
+		if (!enterpriseId) {
+			return undefined
+		}
+		const token = await this.enterEnterprise(enterpriseId, ramUserId)
+		return token || undefined
 	}
 
 	private dateQueryString(): string {
@@ -83,17 +169,14 @@ export class ShengSuanYunAccountService {
 		return `startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}`
 	}
 
-	/**
-	 * Fetches the ShengSuanYun user's profile (identity + wallet balance).
-	 */
 	async getUserInfo(): Promise<UserInfo> {
 		try {
 			const res = await this.authenticatedRequest<any>("/user/info")
-			if (!res) {
-				throw new Error("Invalid response from API: /user/info")
+			if (!res || (res.ID === undefined && !res.Username && !res.Email)) {
+				throw new ShengSuanYunAuthError("Invalid response from API: /user/info (no account identity)", 20003)
 			}
 			return UserInfo.create({
-				uid: res.ID || "",
+				uid: String(res.ID ?? ""),
 				displayName: res.Nickname || res.Username || undefined,
 				email: res.Email ?? undefined,
 				photoUrl: res.HeadImg ?? undefined,
@@ -105,53 +188,46 @@ export class ShengSuanYunAccountService {
 		}
 	}
 
-	/**
-	 * RPC variant that fetches the user's credit balance, usage transactions,
-	 * and payment transactions in a single UserCreditsData payload.
-	 */
 	async fetchUserDataRPC(): Promise<UserCreditsData> {
 		try {
 			const dqs = this.dateQueryString()
-			const [rate, usage, payment, user] = await Promise.all([
-				this.authenticatedRequest<number>("/base/rate"),
+			const [usage, payment, user] = await Promise.all([
 				this.authenticatedRequest<any>(`/modelrouter/userlog?page=1&pageSize=1000&${dqs}`),
 				this.authenticatedRequest<any>("/modelrouter/listrecharge?page=1&pageSize=10000"),
 				this.getUserInfo(),
 			])
-			if (!rate) {
-				throw new Error("ShengSuanYunAccountService.fetchUserDataRPC() 获取胜算云账户信息失败！")
+			if (!usage || typeof usage !== "object" || !Array.isArray(usage.logs)) {
+				throw new Error("ShengSuanYunAccountService.fetchUserDataRPC() 无效的使用记录数据")
+			}
+			if (!payment || typeof payment !== "object" || !Array.isArray(payment.records)) {
+				throw new Error("ShengSuanYunAccountService.fetchUserDataRPC() 无效的充值记录数据")
 			}
 
-			const usageTransactions: UsageTransaction[] = Array.isArray(usage?.logs)
-				? usage.logs.map((it: any) =>
-						UsageTransaction.create({
-							createdAt: it.request_time,
-							aiModelName: `${it.model?.company}/${it.model?.name}`,
-							creditsUsed: it.total_amount,
-							totalTokens: it.total_amount,
-							promptTokens: it.input_tokens,
-							completionTokens: it.output_tokens,
-						}),
-					)
-				: []
+			const usageTransactions: UsageTransaction[] = usage.logs.map((it: any) =>
+				UsageTransaction.create({
+					createdAt: it.request_time,
+					aiModelName: `${it.model?.company}/${it.model?.name}`,
+					creditsUsed: it.total_amount,
+					totalTokens: it.total_amount,
+					promptTokens: it.input_tokens,
+					completionTokens: it.output_tokens,
+				}),
+			)
 
-			const paymentTransactions: PaymentTransaction[] = Array.isArray(payment?.records)
-				? payment.records.map((it: any) =>
-						PaymentTransaction.create({
-							paidAt: it.create_at,
-							creatorId: "",
-							amountCents: Math.round(it.price),
-							credits: 0,
-						}),
-					)
-				: []
+			const paymentTransactions: PaymentTransaction[] = payment.records.map((it: any) =>
+				PaymentTransaction.create({
+					paidAt: it.create_at,
+					creatorId: "",
+					amountCents: Math.round(it.price),
+					credits: 0,
+				}),
+			)
 
 			return UserCreditsData.create({
 				balance: UserCreditsBalance.create({ currentBalance: user.balance ?? 0 }),
 				usageTransactions,
 				paymentTransactions,
 				user,
-				rate,
 			})
 		} catch (error) {
 			Logger.error("ShengSuanYunAccountService.fetchUserDataRPC():", error)
@@ -159,145 +235,171 @@ export class ShengSuanYunAccountService {
 		}
 	}
 
-	/**
-	 * Fetches the list of enterprise projects, including their models, routers,
-	 * and API keys.
-	 */
-	async getEnterpriseProjectList(): Promise<EProjectList> {
+	async getEnterpriseAccounts(): Promise<EAccountList> {
 		try {
-			const prjs = await this.authenticatedRequest<any[]>("/project/list")
-			if (!Array.isArray(prjs)) {
-				Logger.log("getEnterpriseProjectList response:", prjs)
-				throw new Error("Invalid response from API: /project/list")
+			const res = await this.authenticatedRequest<{ accounts?: any[] }>("/enterprise_gateway/account/associated_api_keys")
+			if (!Array.isArray(res.accounts)) {
+				throw new Error(`Invalid response from API: associated_api_keys ${JSON.stringify(res)}`)
 			}
-			const apikeys = prjs.map((it: any) =>
-				this.authenticatedRequest<any[]>("/project/apikey/list", { method: "POST", data: { project_id: it.id } }),
-			)
-			const results = await Promise.all(apikeys)
-
-			return EProjectList.create({
-				projects: prjs.map((it: any, idx: number) => ({
-					id: it.id,
-					name: it.projectName,
-					models: (it.selectedModels ?? []).map((m: any) => ({
-						id: m.id,
-						name: m.name,
-						type: m.type,
-						inputPrice: m.inputPrice,
-						outputPrice: m.outputPrice,
-						inputPriceUnit: m.inputPriceUnit,
-						outputPriceUnit: m.outputPriceUnit,
-						otherPrice: m.otherPrice,
-						provider: m.provider,
-						supportModelId: m.supportModelId,
-						currency: m.currency,
-						contextLength: m.contextLength,
-						isByok: m.isBYOK ?? m.isByok ?? false,
-					})),
-					routers: (it.routerConfigs ?? []).map((r: any) => ({
-						id: r.id,
-						name: r.name,
-						mode: r.mode,
-						models: (r.models ?? []).map((rm: any) => ({
-							id: rm.id,
-							model: rm.model,
-							modelInfoId: rm.modelInfoId,
-							weight: rm.weight,
-						})),
-						isConfirmed: r.isConfirmed,
-						routeId: r.routeId,
-						scope: r.scope,
-						createdByRamUserId: r.createdByRamUserId,
-						creatorName: r.creatorName,
-						creatorType: r.creatorType,
-						createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : (r.createdAt ?? ""),
-						updatedAt: r.updatedAt instanceof Date ? r.updatedAt.toISOString() : (r.updatedAt ?? ""),
-						updatedByRamUserId: r.updatedByRamUserId,
-						updaterName: r.updaterName,
-						updaterType: r.updaterType,
-						canEdit: r.canEdit,
-						canDelete: r.canDelete,
-					})),
-					apiKeys: (results[idx] ?? []).map(
-						(k: any): EPAPIKey => ({
-							id: k.ID ?? k.id,
-							createdAt:
-								k.CreatedAt instanceof Date ? k.CreatedAt.toISOString() : (k.CreatedAt ?? k.createdAt ?? ""),
-							updatedAt:
-								k.UpdatedAt instanceof Date ? k.UpdatedAt.toISOString() : (k.UpdatedAt ?? k.updatedAt ?? ""),
-							userId: k.UserID ?? k.userId,
-							isBanned: k.IsBanned ?? k.isBanned,
-							isExpired: k.IsExpired ?? k.isExpired,
-							name: k.Name ?? k.name,
-							desc: k.Desc ?? k.desc,
-							key: k.Key ?? k.key,
-							token: k.Token ?? k.token,
-							tpm: k.Tpm ?? k.tpm,
-							rpm: k.Rpm ?? k.rpm,
-							maxQuota: k.MaxQuota ?? k.maxQuota,
-							consumedAmount: k.ConsumedAmount ?? k.consumedAmount,
-							supportedModels: k.SupportedModels ?? k.supportedModels,
-							isDefault: k.IsDefault ?? k.isDefault,
-							ramUserId: k.RamUserId ?? k.ramUserId,
-							enterpriseGatewayProjectId: k.EnterpriseGatewayProjectID ?? k.enterpriseGatewayProjectId,
+			return EAccountList.create({
+				accounts: res.accounts.map(
+					(a: any): EAccount =>
+						EAccount.create({
+							accountType: a.account_type ?? "",
+							userId: a.user_id ?? 0,
+							ramUserId: a.ram_user_id ?? 0,
+							accountId: a.account_id ?? 0,
+							name: a.name ?? "",
+							status: a.status ?? 0,
+							authority: a.authority ?? "",
+							maskedPhone: a.masked_phone ?? "",
+							enterpriseId: a.enterprise_id ?? 0,
+							enterpriseName: a.enterprise_name ?? "",
+							apiKeyCount: a.api_key_count ?? 0,
+							projects: (a.projects ?? []).map((p: any) => ({
+								id: p.project_id ?? 0,
+								name: p.project_name ?? "",
+								models: [],
+								routers: [],
+								apiKeys: (p.api_keys ?? []).map(
+									(k: any): EPAPIKey => ({
+										id: k.id ?? 0,
+										createdAt: k.created_at ?? "",
+										updatedAt: "",
+										userId: a.user_id ?? 0,
+										isBanned: false,
+										isExpired: !!k.expires_at && new Date(k.expires_at).getTime() < Date.now(),
+										name: k.name ?? "",
+										desc: k.desc ?? "",
+										key: k.key ?? "",
+										token: k.token ?? "",
+										tpm: k.tpm ?? 0,
+										rpm: k.rpm ?? 0,
+										maxQuota: k.max_quota ?? 0,
+										consumedAmount: k.consumed_amount ?? 0,
+										supportedModels: "",
+										isDefault: k.is_default ?? false,
+										ramUserId: a.ram_user_id ?? 0,
+										enterpriseGatewayProjectId: p.project_id ?? 0,
+									}),
+								),
+							})),
 						}),
-					),
+				),
+			})
+		} catch (error) {
+			Logger.error("getEnterpriseAccounts():", error)
+			throw error
+		}
+	}
+
+	private async withEnterpriseScope<T>(
+		enterpriseId: number | undefined,
+		ramUserId: number | undefined,
+		request: (token: string | undefined) => Promise<T>,
+	): Promise<T> {
+		const token = await this.enterpriseTokenOrSession(enterpriseId, ramUserId)
+		try {
+			return await request(token)
+		} catch (error) {
+			if (!(error instanceof ShengSuanYunAuthError) || error.scope !== "enterprise" || !enterpriseId) {
+				throw error
+			}
+			this.enterpriseTokens.delete(`${enterpriseId}:${ramUserId ?? 0}`)
+			const freshToken = await this.enterpriseTokenOrSession(enterpriseId, ramUserId)
+			return request(freshToken)
+		}
+	}
+
+	async getEnterpriseBill(qs: EnterpriseBillRequest): Promise<EnterpriseBillResponse> {
+		if (!qs.tokenName) {
+			return EnterpriseBillResponse.create({ bills: [] })
+		}
+		const endTime = qs.endTime ?? new Date().toISOString()
+		const startTime = qs.startTime ?? new Date(Date.now() - 29 * 24 * 60 * 60 * 1000).toISOString()
+		const params = new URLSearchParams({
+			project_id: String(qs.projectId ?? 0),
+			token_name: qs.tokenName,
+			start_time: startTime,
+			end_time: endTime,
+			page: String(qs.page ?? 1),
+			page_size: String(Math.min(qs.pageSize ?? 100, 100)),
+		})
+		try {
+			// Usage records are readable only from the enterprise the project
+			// belongs to; the personal login token answers "api token not found".
+			const res = await this.withEnterpriseScope(qs.enterpriseId, qs.ramUserId, (enterpriseToken) =>
+				this.authenticatedRequest<{ llm_records?: any[] }>(
+					`/project/apikey/usage/recent?${params.toString()}`,
+					{},
+					false,
+					enterpriseToken,
+				),
+			)
+			return EnterpriseBillResponse.create({
+				bills: (res.llm_records ?? []).map((r: any) => ({
+					hourTime: r.end_at ?? "",
+					userName: "",
+					modelName: r.model_name ?? "",
+					userId: 0,
+					ramUserId: 0,
+					requestCount: 1,
+					providerName: "",
+					totalDeductionAmount: r.total_amount ?? 0,
+					cachedAmount: 0,
+					totalPromptTokens: 0,
+					totalCompletionTokens: 0,
+					totalTokens: r.total_tokens ?? 0,
+					tokenName: qs.tokenName,
+					requestIp: r.request_ip ?? "",
+					requestId: r.request_id ?? "",
 				})),
 			})
 		} catch (error) {
-			Logger.error("getEnterpriseProjectList():", error)
+			Logger.error("getEnterpriseBill():", error)
 			throw error
 		}
 	}
 
 	/**
-	 * Fetches the enterprise billing records for a given project.
+	 * Fetches the current account's personal budget for a project. Returns
+	 * hasBudget=false when the API reports null (main account, no limit, etc.).
 	 */
-	async getEnterpriseBill(qs: EnterpriseBillRequest): Promise<EnterpriseBillResponse> {
-		if (!qs.projectId) {
-			throw new Error("Project ID is missing for fetching bills")
-		}
-		const endTime = qs.endTime ?? new Date().toISOString()
-		const startTime = qs.startTime ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-		const data: Record<string, unknown> = {
-			project_id: qs.projectId,
-			page: qs.page ?? 1,
-			page_size: qs.pageSize ?? 20,
-			start_time: startTime,
-			end_time: endTime,
-		}
-		if (qs.modelName) {
-			data.model_name = qs.modelName
-		}
-		if (qs.ramUserId) {
-			data.raw_user_id = qs.ramUserId
-		}
+	async getEnterpriseBudget(qs: EnterpriseBudgetRequest): Promise<EnterpriseBudget> {
 		try {
-			const res = await this.authenticatedRequest<{ bills: any[] }>("/statistics/enterprise/gatewaybill", {
-				method: "POST",
-				data,
-			})
-			if (!res || !Array.isArray(res.bills)) {
-				throw new Error(`Invalid response from API: /statistics/enterprise/gatewaybill${JSON.stringify(res)}`)
+			// Budget is per enterprise member; the personal token returns `null`
+			// (indistinguishable from "no limit"), so resolve the scoped token.
+			const d = await this.withEnterpriseScope(qs.enterpriseId, qs.ramUserId, (enterpriseToken) =>
+				this.authenticatedRequest<any | null>(
+					`/enterprise_gateway/budget/detail?project_id=${qs.projectId || 0}`,
+					{},
+					true,
+					enterpriseToken,
+				),
+			)
+			if (d == null) {
+				return EnterpriseBudget.create({ hasBudget: false })
 			}
-			return EnterpriseBillResponse.create({
-				bills: res.bills.map((b: any) => ({
-					hourTime: b.hour_time,
-					userName: b.user_name,
-					modelName: b.model_name,
-					userId: b.user_id,
-					ramUserId: b.ram_user_id,
-					requestCount: b.request_count,
-					providerName: b.provider_name,
-					totalDeductionAmount: b.total_deduction_amount,
-					cachedAmount: b.cached_amount,
-					totalPromptTokens: b.total_prompt_tokens,
-					totalCompletionTokens: b.total_completion_tokens,
-					totalTokens: b.total_tokens,
-				})),
+			if (typeof d !== "object") {
+				throw new Error(`Invalid response from API: budget/detail ${JSON.stringify(d)}`)
+			}
+			return EnterpriseBudget.create({
+				hasBudget: true,
+				accountId: String(d.account_id ?? ""),
+				accountName: d.account_name ?? "",
+				budgetKind: d.budget_kind ?? "",
+				periodStart: d.period_start ?? "",
+				periodEnd: d.period_end ?? "",
+				projectId: d.project_id ?? 0,
+				projectName: d.project_name ?? "",
+				ramUserId: d.ram_user_id ?? 0,
+				remainingCny: d.remaining_cny ?? 0,
+				remainingPercentage: d.remaining_percentage ?? 0,
+				totalCny: d.total_cny ?? 0,
+				usedCny: d.used_cny ?? 0,
 			})
 		} catch (error) {
-			Logger.error("getEnterpriseBill():", error)
+			Logger.error("getEnterpriseBudget():", error)
 			throw error
 		}
 	}

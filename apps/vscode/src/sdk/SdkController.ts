@@ -2406,10 +2406,59 @@ export class Controller {
 		await this.postStateToWebview()
 	}
 
+	/**
+	 * Switches the active ShengSuanYun API key between the personal key and an
+	 * enterprise key. An empty value restores the personal key.
+	 *
+	 * The personal key is remembered the first time an enterprise key is
+	 * selected, so "switch back to personal" always has a key to restore even
+	 * after the enterprise selection overwrote the active secret.
+	 */
+	async switchShengSuanYunApiKey(apiKey: string): Promise<void> {
+		const personalKey = this.stateManager.getSecretKey("shengSuanYunPersonalApiKey")
+		const currentKey = this.stateManager.getSecretKey("shengSuanYunApiKey")
+		let nextKey: string | undefined
+		if (apiKey) {
+			// Remember the key that was active before the first enterprise switch.
+			// Never overwrite an already remembered personal key with an
+			// enterprise key (switching enterprise key → enterprise key again).
+			if (!personalKey && currentKey && currentKey !== apiKey) {
+				this.stateManager.setSecret("shengSuanYunPersonalApiKey", currentKey)
+			}
+			nextKey = apiKey
+		} else {
+			nextKey = personalKey || currentKey
+			this.stateManager.setSecret("shengSuanYunPersonalApiKey", undefined)
+		}
+		if (!nextKey) {
+			throw new Error("未找到可用的胜算云 API Key")
+		}
+		this.stateManager.setSecret("shengSuanYunApiKey", nextKey)
+		this.providerConfigStore.write(parseProviderId("shengsuanyun"), { apiKey: nextKey })
+		await this.postStateToWebview()
+	}
+
 	async handleShengSuanYunSignOut(): Promise<void> {
+		const personalKey = this.stateManager.getSecretKey("shengSuanYunPersonalApiKey")
+		if (personalKey) {
+			this.stateManager.setSecret("shengSuanYunApiKey", personalKey)
+			this.stateManager.setSecret("shengSuanYunPersonalApiKey", undefined)
+			this.providerConfigStore.write(parseProviderId("shengsuanyun"), { apiKey: personalKey })
+		}
 		this.stateManager.setSecret("shengSuanYunToken", undefined)
 		this.stateManager.setGlobalState("userInfo", undefined)
 		await this.postStateToWebview()
+	}
+
+	/**
+	 * Clears a ShengSuanYun session the server no longer accepts (expired or
+	 * revoked JWT). The token is removed together with `userInfo` so every
+	 * sign-in indicator derived from it (including `loomLoomSignedIn`) drops
+	 * back to the logged-out state instead of showing an empty dashboard.
+	 */
+	clearShengSuanYunAuthState(): void {
+		this.stateManager.setSecret("shengSuanYunToken", undefined)
+		this.stateManager.setGlobalState("userInfo", undefined)
 	}
 
 	async handleAuthCallback(customToken: string, provider: string | null = null): Promise<void> {
@@ -2446,6 +2495,7 @@ export class Controller {
 	}
 
 	async handleShengSuanYunCallback(code: string): Promise<void> {
+		this.stateManager.setSecret("shengSuanYunPersonalApiKey", undefined)
 		await this.authService.handleShengSuanYunCallback(code)
 		this.persistProviderApiKeyFromState("shengsuanyun")
 		try {

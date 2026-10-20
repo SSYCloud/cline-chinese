@@ -48,9 +48,10 @@ const ClineEnvOptions = ["Production", "Staging", "Local"] as const
 
 const AccountView = ({ onDone, clineUser, organizations, activeOrganization }: AccountViewProps) => {
 	const { environment, userInfo } = useExtensionState()
-	const [accountTab, setAccountTab] = useState<"personal" | "enterprise">("personal")
 
-	const isShengSuanYunUser = Boolean(userInfo)
+	// `userInfo` can outlive the session it was fetched with; only a real account
+	// identity (uid) means the user is signed in to ShengSuanYun.
+	const isShengSuanYunUser = Boolean(userInfo?.uid)
 
 	return (
 		<div className="fixed inset-0 flex flex-col overflow-hidden">
@@ -59,8 +60,8 @@ const AccountView = ({ onDone, clineUser, organizations, activeOrganization }: A
 			) : (
 				<div className="flex items-center justify-between px-5 py-2.5 mb-[17px]">
 					<div className="flex border-b border-(--vscode-panel-border) px-5">
-						<TabButton isActive={accountTab === "personal"} onClick={() => setAccountTab("personal")}>
-							个人账户
+						<TabButton isActive onClick={() => {}}>
+							账户
 						</TabButton>
 					</div>
 					<Button onClick={onDone} size="header">
@@ -78,7 +79,7 @@ const AccountView = ({ onDone, clineUser, organizations, activeOrganization }: A
 						userOrganizations={organizations}
 					/>
 				) : isShengSuanYunUser ? (
-					<SSYAccountView mode={accountTab} />
+					<SSYAccountView />
 				) : (
 					<AccountWelcomeView />
 				)}

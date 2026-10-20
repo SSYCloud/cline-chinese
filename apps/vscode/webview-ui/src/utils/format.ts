@@ -51,7 +51,6 @@ export function formatTimestamp(timestamp?: string, tz = "en-US"): string {
 		year: "2-digit",
 		hour: "numeric",
 		minute: "2-digit",
-		hour12: true,
 	})
 	return dateFormatter.format(date)
 }

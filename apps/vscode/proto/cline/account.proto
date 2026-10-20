@@ -45,8 +45,11 @@ service AccountService {
   rpc shengSuanYunLogoutClicked(EmptyRequest) returns (Empty);
   rpc shengSuanYunUserData(EmptyRequest) returns (UserCreditsData);
   rpc subscribeSsyAuthCallback(EmptyRequest) returns (stream String);
-  rpc getEnterpriseProjectList(EmptyRequest) returns (EProjectList);
+  rpc getEnterpriseAccounts(EmptyRequest) returns (EAccountList);
+  // Switches the active ShengSuanYun API key. An empty value restores the personal key.
+  rpc switchShengSuanYunApiKey(StringRequest) returns (Empty);
   rpc getEnterpriseBill(EnterpriseBillRequest) returns (EnterpriseBillResponse);
+  rpc getEnterpriseBudget(EnterpriseBudgetRequest) returns (EnterpriseBudget);
 
   rpc hicapAuthClicked(EmptyRequest) returns (Empty);
 
@@ -247,6 +250,25 @@ message EProjectList {
   repeated EProject projects = 1;
 }
 
+message EAccount {
+  string account_type = 1;
+  int32 user_id = 2;
+  int32 ram_user_id = 3;
+  int32 account_id = 4;
+  string name = 5;
+  int32 status = 6;
+  string authority = 7;
+  string masked_phone = 8;
+  int32 enterprise_id = 9;
+  string enterprise_name = 10;
+  int32 api_key_count = 11;
+  repeated EProject projects = 12;
+}
+
+message EAccountList {
+  repeated EAccount accounts = 1;
+}
+
 message EnterpriseBillRequest {
   int32 project_id = 1;
   optional int32 page = 2;
@@ -255,6 +277,10 @@ message EnterpriseBillRequest {
   optional string end_time = 5;
   optional string model_name = 6;
   optional int32 ram_user_id = 7;
+  string token_name = 8;
+  // Enterprise the project belongs to. The usage endpoints must be called with
+  // an enterprise-scoped token obtained by entering this enterprise.
+  int32 enterprise_id = 9;
 }
 
 message EnterpriseBillItem {
@@ -270,6 +296,36 @@ message EnterpriseBillItem {
   int32 total_prompt_tokens = 10;
   int32 total_completion_tokens = 11;
   int32 total_tokens = 12;
+  string token_name = 13;
+  string request_ip = 14;
+  string request_id = 15;
+}
+
+message EnterpriseBudgetRequest {
+  int32 project_id = 1;
+  // Enterprise the project belongs to. The budget endpoint must be called with
+  // an enterprise-scoped token obtained by entering this enterprise.
+  int32 enterprise_id = 2;
+  // RAM member whose budget is requested; 0 means the login's own membership.
+  int32 ram_user_id = 3;
+}
+
+// Personal budget of the current enterprise account within a project (CNY).
+// has_budget is false when the API returns null (main account, no project, or no limit).
+message EnterpriseBudget {
+  bool has_budget = 1;
+  string account_id = 2;
+  string account_name = 3;
+  string budget_kind = 4; // daily | monthly
+  string period_start = 5;
+  string period_end = 6;
+  int32 project_id = 7;
+  string project_name = 8;
+  int32 ram_user_id = 9;
+  double remaining_cny = 10;
+  double remaining_percentage = 11;
+  double total_cny = 12;
+  double used_cny = 13;
 }
 
 message EnterpriseBillResponse {

@@ -31,13 +31,10 @@ const EnterpriseBillTable = memo(({ bills, isLoading }: EnterpriseBillTableProps
 								模型
 							</VSCodeDataGridCell>
 							<VSCodeDataGridCell cell-type="columnheader" grid-column="3">
-								输入 Tokens
+								API Key
 							</VSCodeDataGridCell>
 							<VSCodeDataGridCell cell-type="columnheader" grid-column="4">
-								输出 Tokens
-							</VSCodeDataGridCell>
-							<VSCodeDataGridCell cell-type="columnheader" grid-column="5">
-								总 Tokens
+								Tokens
 							</VSCodeDataGridCell>
 						</VSCodeDataGridRow>
 						{bills.map((bill, index) => (
@@ -45,9 +42,8 @@ const EnterpriseBillTable = memo(({ bills, isLoading }: EnterpriseBillTableProps
 							<VSCodeDataGridRow key={index}>
 								<VSCodeDataGridCell grid-column="1">{formatTimestamp(bill.hourTime, "zh-CN")}</VSCodeDataGridCell>
 								<VSCodeDataGridCell grid-column="2">{bill.modelName}</VSCodeDataGridCell>
-								<VSCodeDataGridCell grid-column="3">{bill.totalPromptTokens}</VSCodeDataGridCell>
-								<VSCodeDataGridCell grid-column="4">{bill.totalCompletionTokens}</VSCodeDataGridCell>
-								<VSCodeDataGridCell grid-column="5">{bill.totalTokens}</VSCodeDataGridCell>
+								<VSCodeDataGridCell grid-column="3">{bill.tokenName}</VSCodeDataGridCell>
+								<VSCodeDataGridCell grid-column="4">{bill.totalTokens}</VSCodeDataGridCell>
 							</VSCodeDataGridRow>
 						))}
 					</VSCodeDataGrid>

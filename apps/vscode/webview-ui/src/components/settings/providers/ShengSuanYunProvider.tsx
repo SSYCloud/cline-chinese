@@ -39,7 +39,7 @@ export const ShengSuanYunProvider = ({ showModelOptions, isPopup, currentMode, i
 		<div>
 			<ApiKeyField
 				initialValue={apiConfiguration?.shengSuanYunApiKey || ""}
-				loginBtn={userInfo ? undefined : <LoginBtn />}
+				loginBtn={userInfo?.uid ? undefined : <LoginBtn />}
 				onChange={(value) => handleFieldChange("shengSuanYunApiKey", value)}
 				providerName="胜算云"
 				signupUrl="https://console.shengsuanyun.com/user/keys/?from=cline-chinese"

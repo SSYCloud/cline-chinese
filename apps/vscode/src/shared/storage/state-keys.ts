@@ -362,6 +362,7 @@ const SECRETS_KEYS = [
 	"wandbApiKey",
 	"shengSuanYunApiKey",
 	"shengSuanYunToken",
+	"shengSuanYunPersonalApiKey",
 ] as const
 
 // WARNING, these are not ALL of the local state keys in practice. For example, FileContextTracker
