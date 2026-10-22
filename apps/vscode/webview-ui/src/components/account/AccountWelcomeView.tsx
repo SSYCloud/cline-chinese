@@ -37,8 +37,8 @@ export const AccountWelcomeView = () => {
 			<ClineAuthStatus message={authStatusMessage} />
 
 			<p className="text-(--vscode-descriptionForeground) text-xs text-center m-0">
-				继续操作即表示您同意 <VSCodeLink href="https://cline.bot/tos">服务条款</VSCodeLink> 和{" "}
-				<VSCodeLink href="https://cline.bot/privacy">隐私政策.</VSCodeLink>
+				继续操作即表示您同意 <VSCodeLink href="https://www.shengsuanyun.com/tos">服务条款</VSCodeLink> 和{" "}
+				<VSCodeLink href="https://www.shengsuanyun.com/privacy">隐私政策.</VSCodeLink>
 			</p>
 		</div>
 	)

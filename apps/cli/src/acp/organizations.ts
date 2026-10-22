@@ -94,7 +94,7 @@ export function buildOrganizationConfigOption(
 		name: "账户",
 		description:
 			"Cline 账户使用量计费对象 — 你的个人账户或组织",
-		category: "account",
+		category: "_account",
 		currentValue: state.activeOrganizationId ?? PERSONAL_ACCOUNT_VALUE,
 		options: [
 			{ value: PERSONAL_ACCOUNT_VALUE, name: "个人" },

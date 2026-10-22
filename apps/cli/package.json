@@ -1,7 +1,7 @@
 {
 	"name": "@cline/cli",
 	"displayName": "cline",
-	"version": "3.0.71",
+	"version": "3.0.73",
 	"description": "Autonomous coding agent CLI - capable of creating/editing files, running commands, using the browser, and more",
 	"type": "module",
 	"publishConfig": {
@@ -9,7 +9,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/cline/cline.git",
+		"url": "git+https://github.com/SSYCloud/cline-chinese.git",
 		"directory": "apps/cli"
 	},
 	"keywords": [
@@ -28,12 +28,12 @@
 		"cli"
 	],
 	"author": {
-		"name": "Cline Bot Inc."
+		"name": "ShengSuanYun"
 	},
 	"license": "Apache-2.0",
-	"homepage": "https://cline.bot",
+	"homepage": "https://www.shengsuanyun.com",
 	"bugs": {
-		"url": "https://github.com/cline/cline/issues"
+		"url": "https://github.com/SSYCloud/cline-chinese/issues"
 	},
 	"bin": {
 		"cline": "src/index.ts"

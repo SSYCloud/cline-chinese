@@ -296,6 +296,7 @@ message Settings {
   optional string act_mode_sheng_suan_yun_model_id = 189;
   optional OpenRouterModelInfo act_mode_sheng_suan_yun_model_info = 190;
   optional string open_telemetry_traces_exporter = 191;
+  optional bool cloud_sessions_enabled = 192;
 }
 
 message State {
@@ -440,6 +441,7 @@ message UpdateSettingsRequest {
   optional bool show_feature_tips = 42;
   optional string compaction_strategy = 44;
   optional bool web_search_enabled = 45;
+  optional bool cloud_sessions_enabled = 46;
 }
 
 message UpdateTerminalConnectionTimeoutRequest {

@@ -11,7 +11,7 @@
  *                            telemetry service
  *
  * CLI usage:
- *   cline plugin install https://github.com/cline/cline/blob/main/sdk/examples/plugins/weather-metrics.ts --cwd .
+ *   cline plugin install https://github.com/SSYCloud/cline-chinese/blob/main/sdk/examples/plugins/weather-metrics.ts --cwd .
  *   cline -i "What's the weather like in Tokyo and Paris?"
  *
  * Direct demo usage:

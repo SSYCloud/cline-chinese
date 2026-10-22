@@ -52,7 +52,7 @@ const GeneralSettingsSection = ({ renderSectionHeader }: GeneralSettingsSectionP
 						和{" "} */}
 						<VSCodeLink
 							className="text-inherit"
-							href="https://cline.bot/privacy"
+							href="https://www.shengsuanyun.com/privacy"
 							style={{ fontSize: "inherit", textDecoration: "underline" }}>
 							隐私政策
 						</VSCodeLink>

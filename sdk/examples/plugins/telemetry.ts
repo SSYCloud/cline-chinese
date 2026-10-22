@@ -41,7 +41,7 @@
  *      logger instead (which stays on the user's machine).
  *
  * CLI usage:
- *   cline plugin install https://github.com/cline/cline/blob/main/sdk/examples/plugins/telemetry.ts --cwd .
+ *   cline plugin install https://github.com/SSYCloud/cline-chinese/blob/main/sdk/examples/plugins/telemetry.ts --cwd .
  *   cline -i "Roll a die a few times and tell me your best roll."
  */
 

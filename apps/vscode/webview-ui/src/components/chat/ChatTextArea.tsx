@@ -220,7 +220,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		ref,
 	) => {
 		const {
-			mode,
+			mode: selectedMode,
 			apiConfiguration,
 			openRouterModels,
 			platform,
@@ -230,7 +230,18 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			remoteConfigSettings,
 			navigateToSettingsModelPicker,
 			mcpServers,
+			clineMessages = [],
+			cloudSessionsEnabled,
+			cloudTaskTarget,
+			currentCloudTask,
+			cloudModelId,
 		} = useExtensionState()
+		// Cloud sessions are Act-only (like the desktop app and the cloud dashboard).
+		// While a cloud task is shown, or a new task is about to run in the cloud,
+		// the toggle is pinned to Act and disabled; the stored mode is untouched.
+		const cloudActOnly =
+			!!currentCloudTask || (clineMessages.length === 0 && !!cloudSessionsEnabled && cloudTaskTarget?.target === "cloud")
+		const mode = cloudActOnly ? "act" : selectedMode
 		const [isTextAreaFocused, setIsTextAreaFocused] = useState(false)
 		const [isDraggingOver, setIsDraggingOver] = useState(false)
 		const [gitCommits, setGitCommits] = useState<GitCommit[]>([])
@@ -1034,6 +1045,10 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 
 		const switchMode = useCallback(
 			(targetMode: "plan" | "act") => {
+				// Cloud sessions are Act-only; never switch away from Act while one is shown.
+				if (cloudActOnly) {
+					return
+				}
 				void (async () => {
 					const convertedProtoMode = targetMode === "plan" ? PlanActMode.PLAN : PlanActMode.ACT
 					const submittedText = inputValue
@@ -1087,7 +1102,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					}, 100)
 				})()
 			},
-			[mode, inputValue, selectedImages, selectedFiles, setInputValue, setSelectedImages, setSelectedFiles],
+			[cloudActOnly, mode, inputValue, selectedImages, selectedFiles, setInputValue, setSelectedImages, setSelectedFiles],
 		)
 
 		const onModeToggle = useCallback(() => {
@@ -1177,6 +1192,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			} = getModeSpecificFields(apiConfiguration, mode)
 			const unknownModel = "unknown"
 
+			// A cloud task runs on a Cline model in the sandbox, whatever the
+			// local provider is; the extension reports which one.
+			if (cloudActOnly) {
+				return `cline:${cloudModelId || unknownModel}`
+			}
 			if (!apiConfiguration) {
 				return unknownModel
 			}
@@ -1210,7 +1230,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				default:
 					return `${selectedProvider}:${selectedModelId}`
 			}
-		}, [apiConfiguration, mode, selectedProvider, selectedModelId])
+		}, [apiConfiguration, mode, selectedProvider, selectedModelId, cloudActOnly, cloudModelId])
 
 		// Function to show error message for unsupported files for drag and drop
 		const showUnsupportedFileErrorMessage = () => {

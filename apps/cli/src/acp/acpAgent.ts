@@ -14,6 +14,7 @@ import type {
 	PromptRequest,
 	PromptResponse,
 	SessionConfigOption,
+	SessionConfigSelectOption,
 	SetSessionConfigOptionRequest,
 	SetSessionConfigOptionResponse,
 	SetSessionModelRequest,
@@ -47,11 +48,8 @@ import {
 	authenticateAcpProvider,
 	isAcpAuthMethodId,
 } from "./auth";
-import {
-	AUTO_APPROVE_CONFIG_ID,
-	buildAutoApproveConfigOption,
-	parseAutoApproveValue,
-} from "./auto-approve";
+import { AUTO_APPROVE_CONFIG_ID, parseAutoApproveValue } from "./auto-approve";
+import { buildConfigOptions } from "./config-options";
 import {
 	buildOrganizationConfigOption,
 	fetchClineOrganizations,
@@ -236,13 +234,15 @@ export class AcpAgent implements Agent {
 				availableModels,
 				currentModelId: defaultModelId,
 			},
-			configOptions: [
-				await buildProviderConfigOption(providerId),
-				buildModelConfigOption(defaultModelId, providerModels),
-				buildModeConfigOption(defaultMode),
-				buildAutoApproveConfigOption(this.defaultAutoApproveTools),
-				...(organizationOption ? [organizationOption] : []),
-			],
+			configOptions: buildConfigOptions({
+				currentProviderId: providerId,
+				providerOptions: await getProviderOptions(),
+				currentModelId: defaultModelId,
+				providerModels,
+				currentMode: defaultMode,
+				autoApproveTools: this.defaultAutoApproveTools,
+				organizationOption,
+			}),
 		};
 	}
 
@@ -562,13 +562,13 @@ export class AcpAgent implements Agent {
 				);
 		}
 
-		const configOptions = await buildAllConfigOptions(session);
 		const organizationOption = await this.getOrganizationConfigOption(
 			session.currentProviderId,
 		);
-		if (organizationOption) {
-			configOptions.push(organizationOption);
-		}
+		const configOptions = await buildAllConfigOptions(
+			session,
+			organizationOption,
+		);
 		sendConfigOptionUpdate(this.conn, params.sessionId, configOptions);
 		return { configOptions };
 	}
@@ -857,10 +857,8 @@ function toAcpPromptError(error: Error): RequestError {
 		: RequestError.internalError({ message }, message);
 }
 
-async function buildProviderConfigOption(
-	currentProviderId: string,
-): Promise<SessionConfigOption> {
-	const options = await Promise.all(
+async function getProviderOptions(): Promise<SessionConfigSelectOption[]> {
+	return Promise.all(
 		ACP_AUTH_METHODS.map(async (m) => {
 			const provider = await Llms.getProvider(m.id);
 			return {
@@ -869,75 +867,28 @@ async function buildProviderConfigOption(
 			};
 		}),
 	);
-	return {
-		type: "select",
-		id: "provider",
-		name: "提供商",
-		description: "要使用的认证提供商",
-		category: "model",
-		currentValue: currentProviderId,
-		options,
-	};
-}
-
-function buildModelConfigOption(
-	currentModelId: string,
-	providerModels: Record<string, { name?: string; description?: string }>,
-): SessionConfigOption {
-	return {
-		type: "select",
-		id: "model",
-		name: "模型",
-		category: "model",
-		currentValue: currentModelId,
-		options: Object.entries(providerModels).map(([modelId, info]) => ({
-			value: modelId,
-			name: info.name ?? modelId,
-			description: info.description,
-		})),
-	};
-}
-
-function buildModeConfigOption(currentMode: string): SessionConfigOption {
-	return {
-		type: "select",
-		id: "mode",
-		name: "会话模式",
-		description: "控制代理是否可以修改文件",
-		category: "mode",
-		currentValue: currentMode,
-		options: [
-			{
-				value: "plan",
-				name: "规划",
-				description:
-					"探索代码库并规划更改，而不修改文件",
-			},
-			{
-				value: "act",
-				name: "执行",
-				description: "对代码库进行更改",
-			},
-		],
-	};
 }
 
 async function buildAllConfigOptions(
 	session: SessionState,
+	organizationOption?: SessionConfigOption,
 ): Promise<SessionConfigOption[]> {
-	const [providerOption, providerModels] = await Promise.all([
-		buildProviderConfigOption(session.currentProviderId),
+	const [providerOptions, providerModels] = await Promise.all([
+		getProviderOptions(),
 		Llms.getModelsForProvider(
 			session.currentProviderId,
 			CHAT_MODEL_QUERY_OPTIONS,
 		),
 	]);
-	return [
-		providerOption,
-		buildModelConfigOption(session.currentModelId, providerModels),
-		buildModeConfigOption(session.currentMode),
-		buildAutoApproveConfigOption(session.autoApproveTools),
-	];
+	return buildConfigOptions({
+		currentProviderId: session.currentProviderId,
+		providerOptions,
+		currentModelId: session.currentModelId,
+		providerModels,
+		currentMode: session.currentMode,
+		autoApproveTools: session.autoApproveTools,
+		organizationOption,
+	});
 }
 
 function extractTextFromContentBlocks(blocks: ContentBlock[]): string {

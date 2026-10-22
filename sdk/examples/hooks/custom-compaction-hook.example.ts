@@ -7,7 +7,7 @@
  * summary message before the provider request.
  *
  * Installation:
- *   cline plugin install https://github.com/cline/cline/blob/main/sdk/examples/hooks/custom-compaction-hook.example.ts --cwd .
+ *   cline plugin install https://github.com/SSYCloud/cline-chinese/blob/main/sdk/examples/hooks/custom-compaction-hook.example.ts --cwd .
  *
  * Usage:
  *   cline -i "Search the codebase for dispatcher usage, then summarize it"

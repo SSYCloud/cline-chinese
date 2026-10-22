@@ -1,10 +1,10 @@
 {
 	"$schema": "https://schema.tauri.app/config/2",
 	"productName": "Cline",
-	"version": "0.0.46",
+	"version": "0.0.48",
 	"identifier": "bot.cline.app",
 	"build": {
-		"beforeDevCommand": "bun run build:sidecar:bin && bun run dev:web",
+		"beforeDevCommand": "bun run build:runtime && bun run dev:web",
 		"devUrl": "http://localhost:3125",
 		"beforeBuildCommand": "bun run dmg:background && bun run build",
 		"frontendDist": "../webview/out"
@@ -13,7 +13,7 @@
 		"updater": {
 			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENEMTJDNzk2RUExQUY3RDEKUldUUjl4cnFsc2NTelYxNzlFR1NkWnI0VTM1V0hvQXRyOW0xV2c0bFhkL3dhdkdpNGhNRW1MQXEK",
 			"endpoints": [
-				"https://github.com/cline/cline/releases/download/desktop-latest/latest.json"
+				"https://github.com/SSYCloud/cline-chinese/releases/download/desktop-latest/latest.json"
 			]
 		}
 	},
@@ -40,13 +40,13 @@
 		"category": "DeveloperTool",
 		"shortDescription": "Cline AI coding agent",
 		"longDescription": "Cline is an AI coding agent. It reads your code, edits files, runs commands, and works through tasks with you in any project on your machine.",
-		"homepage": "https://cline.bot",
-		"externalBin": ["bin/code-sidecar"],
+		"homepage": "https://www.shengsuanyun.com",
+		"externalBin": ["bin/cline-cli"],
 		"resources": [
 			"icons/app/*.png",
 			"icons/app/macos/*.png",
 			"bin/remote-helpers/*",
-			"bin/extensions/**/*"
+			"bin/desktop-backend/**/*"
 		],
 		"icon": [
 			"icons/32x32.png",

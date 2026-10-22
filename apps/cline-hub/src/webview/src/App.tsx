@@ -454,7 +454,7 @@ function Shell({
 						<span className="shrink-0 text-border">|</span>
 						<a
 							className="truncate underline-offset-2 transition-colors hover:text-foreground hover:underline"
-							href="https://github.com/cline/cline/issues/new"
+							href="https://github.com/SSYCloud/cline-chinese/issues/new"
 							rel="noopener noreferrer"
 							target="_blank"
 						>

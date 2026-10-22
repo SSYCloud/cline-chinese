@@ -81,7 +81,7 @@ const WhatsNewModal: React.FC<WhatsNewModalProps> = ({ open, onClose, version, w
 							<a
 								aria-label="在 GitHub 上为我们加星"
 								className="text-[var(--vscode-foreground)] hover:text-[var(--vscode-textLink-activeForeground)] transition-colors"
-								href="https://github.com/cline/cline"
+								href="https://github.com/SSYCloud/cline-chinese"
 								rel="noopener noreferrer"
 								target="_blank">
 								<GitHubIcon />

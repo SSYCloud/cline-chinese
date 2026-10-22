@@ -19,6 +19,7 @@ import {
 	parseMcpInstallArgs,
 	readGlobalSettings,
 	resolvePluginConfigSearchPaths,
+	SKILLS_CLI_PACKAGE,
 	setDisabledPlugin,
 	syncPluginMcpServersToSettings,
 	uninstallMarketplaceEntry as uninstallCoreMarketplaceEntry,
@@ -416,7 +417,7 @@ async function installSkillMarketplaceEntry(entry: MarketplaceEntry, args: strin
 		return await downloadAndExtractSkillZeroDep(entry)
 	}
 	const command = "npx"
-	const commandArgs = ["-y", "skills@latest", "add", ...args, "-g", "-a", "cline", "-y"]
+	const commandArgs = ["-y", SKILLS_CLI_PACKAGE, "add", ...args, "-g", "-a", "cline", "-y"]
 	const displayCommand = formatCommand(command, commandArgs)
 	let result: SpawnResult
 	try {

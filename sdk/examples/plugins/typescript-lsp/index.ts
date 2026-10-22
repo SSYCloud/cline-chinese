@@ -9,7 +9,7 @@
  * at runtime, so it has zero dependencies beyond Node builtins.
  *
  * CLI usage:
- *   cline plugin install https://github.com/cline/cline/blob/main/sdk/examples/plugins/typescript-lsp/index.ts
+ *   cline plugin install https://github.com/SSYCloud/cline-chinese/blob/main/sdk/examples/plugins/typescript-lsp/index.ts
  *   cline -i "Find where createTool is defined"
  *
  * Direct demo usage:

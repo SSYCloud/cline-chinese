@@ -11,7 +11,7 @@
 	"logo": {
 		"light": "/assets/cline-wordmark-black.svg",
 		"dark": "/assets/cline-wordmark-white.svg",
-		"href": "https://cline.bot/"
+		"href": "https://www.shengsuanyun.com/"
 	},
 	"favicon": {
 		"light": "/assets/cline-icon-dark.svg",
@@ -40,7 +40,7 @@
 			{
 				"label": "GitHub",
 				"icon": "github",
-				"href": "https://github.com/cline/cline"
+				"href": "https://github.com/SSYCloud/cline-chinese"
 			},
 			{
 				"label": "Discord",
@@ -51,7 +51,7 @@
 		"primary": {
 			"type": "button",
 			"label": "Install Cline",
-			"href": "https://cline.bot/install?utm_source=website&utm_medium=header"
+			"href": "https://www.shengsuanyun.com/install?utm_source=website&utm_medium=header"
 		}
 	},
 	"navigation": {
@@ -369,7 +369,7 @@
 	"footer": {
 		"socials": {
 			"x": "https://x.com/cline",
-			"github": "https://github.com/cline/cline",
+			"github": "https://github.com/SSYCloud/cline-chinese",
 			"discord": "https://discord.gg/cline"
 		}
 	},

@@ -8,7 +8,7 @@ const DESKTOP_NOTICE_ID = "cline-cli-desktop-launch";
 const FORCE_NOTICE_ENV = "CLINE_FORCE_CLINE_PASS_NOTICE";
 // Historically named for the ClinePass promo; disables every startup notice.
 const DISABLE_NOTICE_ENV = "CLINE_DISABLE_CLINE_PASS_NOTICE";
-const DESKTOP_APP_URL = "https://cline.bot/desktop";
+const DESKTOP_APP_URL = "https://www.shengsuanyun.com/desktop";
 
 export interface CliMigrationNotice {
 	id: string;

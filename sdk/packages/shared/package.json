@@ -1,10 +1,10 @@
 {
 	"name": "@cline/shared",
-	"version": "0.0.93",
+	"version": "0.0.95",
 	"description": "Shared utilities, types, and schemas for Cline packages",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/cline/cline",
+		"url": "https://github.com/SSYCloud/cline-chinese",
 		"directory": "sdk/packages/shared"
 	},
 	"type": "module",

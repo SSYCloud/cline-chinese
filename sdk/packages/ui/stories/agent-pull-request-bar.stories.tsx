@@ -9,12 +9,12 @@ const readyPullRequest: AgentPullRequestData = {
 	repository: "cline/cline",
 	branch: "refactor/shared-agent-review-ui",
 	branchUrl:
-		"https://github.com/cline/cline/tree/refactor/shared-agent-review-ui",
+		"https://github.com/SSYCloud/cline-chinese/tree/refactor/shared-agent-review-ui",
 	published: true,
 	pullRequest: {
 		number: 14408,
 		title: "Share desktop Changes and PR presentation",
-		url: "https://github.com/cline/cline/pull/14408",
+		url: "https://github.com/SSYCloud/cline-chinese/pull/14408",
 		state: "OPEN",
 		isDraft: false,
 		mergeable: "MERGEABLE",

@@ -24,11 +24,11 @@ import { useExtensionState } from "@/context/ExtensionStateContext"
 import { MarketplaceServiceClient, McpServiceClient } from "@/services/grpc-client"
 import { Tab, TabContent, TabList, TabTrigger } from "../common/Tab"
 import ViewHeader from "../common/ViewHeader"
+import { sendBatch } from "../loomloom/batch-api"
+import { SkillBotMarket } from "../loomloom/SkillBotMarket"
 import AddRemoteServerForm from "../mcp/configuration/tabs/add-server/AddRemoteServerForm"
 import ServersToggleList, { type MarketplaceMcpMetadata } from "../mcp/configuration/tabs/installed/ServersToggleList"
 import { entryMatchesLocalEntry, localEntryKey } from "./marketplaceMatch"
-import { SkillBotMarket } from "../loomloom/SkillBotMarket"
-import { sendBatch } from "../loomloom/batch-api"
 
 type PrimitiveType = "mcp" | "skill" | "plugin"
 type MarketplaceSectionType = "installed" | "marketplace"
@@ -94,7 +94,7 @@ const PRIMITIVES: PrimitiveConfig[] = [
 ]
 
 // Plugins are hidden in the extension until the hub can manage the plugin process
-// (see https://github.com/cline/cline/pull/12522). MCP servers and skills are unaffected.
+// (see https://github.com/SSYCloud/cline-chinese/pull/12522). MCP servers and skills are unaffected.
 const HIDDEN_PRIMITIVE_TYPES: ReadonlySet<PrimitiveType> = new Set(["plugin"])
 
 const VISIBLE_PRIMITIVES = PRIMITIVES.filter((primitive) => !HIDDEN_PRIMITIVE_TYPES.has(primitive.type))

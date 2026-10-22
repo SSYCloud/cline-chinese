@@ -92,7 +92,7 @@ function run(target) {
 					target +
 					'"\n\n' +
 					"If it was blocked by policy, allow the file or ask your administrator\n" +
-					"to trust it. See https://github.com/cline/cline/issues for known issues.",
+					"to trust it. See https://github.com/SSYCloud/cline-chinese/issues for known issues.",
 			);
 		}
 		process.exit(1);

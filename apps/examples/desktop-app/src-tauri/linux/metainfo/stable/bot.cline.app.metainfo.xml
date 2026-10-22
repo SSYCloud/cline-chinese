@@ -15,16 +15,16 @@
 	<name>Cline</name>
 	<summary>AI coding agent</summary>
 	<developer id="bot.cline">
-		<name>Cline Bot Inc.</name>
+		<name>ShengSuanYun</name>
 	</developer>
 	<metadata_license>CC0-1.0</metadata_license>
 	<project_license>Apache-2.0</project_license>
 	<description>
 		<p>Cline is an AI coding agent. It reads your code, edits files, runs commands, and works through tasks with you in any project on your machine.</p>
 	</description>
-	<url type="homepage">https://cline.bot</url>
+	<url type="homepage">https://www.shengsuanyun.com</url>
 	<url type="help">https://docs.cline.bot/usage/cline-desktop</url>
-	<url type="bugtracker">https://github.com/cline/cline/issues</url>
+	<url type="bugtracker">https://github.com/SSYCloud/cline-chinese/issues</url>
 	<content_rating type="oars-1.1" />
 	<screenshots>
 		<screenshot type="default">

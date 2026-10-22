@@ -191,7 +191,7 @@ const ErrorRow = memo((props: ErrorRowProps) => {
 									你似乎遇到了 Windows PowerShell 问题，请参阅此{" "}
 									<a
 										className="underline text-inherit"
-										href="https://github.com/cline/cline/wiki/TroubleShooting-%E2%80%90-%22PowerShell-is-not-recognized-as-an-internal-or-external-command%22">
+										href="https://github.com/SSYCloud/cline-chinese/wiki/TroubleShooting-%E2%80%90-%22PowerShell-is-not-recognized-as-an-internal-or-external-command%22">
 										故障排查指南
 									</a>
 									。

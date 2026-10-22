@@ -5,7 +5,7 @@ import type { CliAgentMode, CliCompactionMode, ParsedArgs } from "./types";
  * Resolves general settings at CLI startup with the precedence
  * explicit CLI flag -> persisted global setting -> built-in default,
  * so choices made in the TUI /settings panel survive restarts (see
- * https://github.com/cline/cline/issues/12158).
+ * https://github.com/SSYCloud/cline-chinese/issues/12158).
  */
 
 export function resolveStartupMode(

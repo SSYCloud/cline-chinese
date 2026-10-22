@@ -152,14 +152,19 @@ export const ChatRowContent = memo(
 		retryFailedRequest,
 	}: ChatRowContentProps) => {
 		const {
-			backgroundEditEnabled,
+			backgroundEditEnabled: backgroundEditSetting,
 			mcpServers,
 			vscodeTerminalExecutionMode,
 			clineMessages,
 			showFeatureTips,
-			enableCheckpointsSetting,
+			enableCheckpointsSetting: checkpointsSetting,
 			turnState,
+			currentCloudTask,
 		} = useExtensionState()
+		// Cloud tasks edit files inside the sandbox: there is no local editor to
+		// preview in, so diffs render inline, and no local workspace to checkpoint.
+		const backgroundEditEnabled = backgroundEditSetting || !!currentCloudTask
+		const enableCheckpointsSetting = checkpointsSetting && !currentCloudTask
 		const [quoteButtonState, setQuoteButtonState] = useState<QuoteButtonState>({
 			visible: false,
 			top: 0,
@@ -419,6 +424,7 @@ export const ChatRowContent = memo(
 							</div>
 							{backgroundEditEnabled && tool.path && (tool.diff || tool.content) ? (
 								<DiffEditRow
+									canOpenFile={!currentCloudTask}
 									isLoading={message.partial}
 									patch={tool.diff || tool.content!}
 									path={tool.path}
@@ -463,7 +469,12 @@ export const ChatRowContent = memo(
 								<span className="font-bold">Cline Chinese 想要创建新文件：</span>
 							</div>
 							{backgroundEditEnabled && tool.path && tool.content ? (
-								<DiffEditRow patch={tool.content} path={tool.path} startLineNumbers={tool.startLineNumbers} />
+								<DiffEditRow
+									canOpenFile={!currentCloudTask}
+									patch={tool.content}
+									path={tool.path}
+									startLineNumbers={tool.startLineNumbers}
+								/>
 							) : (
 								<CodeAccordian
 									code={tool.content!}
@@ -910,10 +921,14 @@ export const ChatRowContent = memo(
 					case "user_feedback":
 						return (
 							<UserMessage
-								canRestoreWorkspace={canRestoreWorkspaceFromMessage(clineMessages, message.ts)}
+								canRestoreWorkspace={
+									!currentCloudTask && canRestoreWorkspaceFromMessage(clineMessages, message.ts)
+								}
 								files={message.files}
+								// Edit-and-regenerate rebuilds the conversation as a local session, which
+								// a cloud task cannot use; without a timestamp the row is read-only.
 								images={message.images}
-								messageTs={message.ts}
+								messageTs={currentCloudTask ? undefined : message.ts}
 								sendMessageFromChatRow={sendMessageFromChatRow}
 								text={message.text}
 							/>
@@ -976,7 +991,7 @@ export const ChatRowContent = memo(
 									或 PowerShell（<code>CMD/CTRL + Shift + P</code> → “终端：选择默认配置文件”）。
 									<a
 										className="px-1"
-										href="https://github.com/cline/cline/wiki/Troubleshooting-%E2%80%90-Shell-Integration-Unavailable">
+										href="https://github.com/SSYCloud/cline-chinese/wiki/Troubleshooting-%E2%80%90-Shell-Integration-Unavailable">
 										仍然有问题？
 									</a>
 								</div>

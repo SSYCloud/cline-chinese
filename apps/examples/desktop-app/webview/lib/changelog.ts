@@ -15,7 +15,7 @@ export type ChangelogResponse = {
 };
 
 const CHANGELOG_URL = "/api/changelog";
-const REPO_URL = "https://github.com/cline/cline";
+const REPO_URL = "https://github.com/SSYCloud/cline-chinese";
 
 /** Desktop releases are tagged `desktop-vX.Y.Z` (see publish-desktop). */
 export function releaseUrl(version: string): string {

@@ -42,11 +42,11 @@ const AboutSection = ({ version, extensionVariant, renderSectionHeader }: AboutS
 
 					<h3 className="text-md font-semibold">开发</h3>
 					<p>
-						<VSCodeLink href="https://github.com/cline/cline">GitHub</VSCodeLink>
+						<VSCodeLink href="https://github.com/SSYCloud/cline-chinese">GitHub</VSCodeLink>
 						{" • "}
-						<VSCodeLink href="https://github.com/cline/cline/issues"> Issues</VSCodeLink>
+						<VSCodeLink href="https://github.com/SSYCloud/cline-chinese/issues"> Issues</VSCodeLink>
 						{" • "}
-						<VSCodeLink href="https://github.com/cline/cline/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop">
+						<VSCodeLink href="https://github.com/SSYCloud/cline-chinese/discussions/categories/feature-requests?discussions_q=is%3Aopen+category%3A%22Feature+Requests%22+sort%3Atop">
 							{" "}
 							功能请求
 						</VSCodeLink>
@@ -56,7 +56,7 @@ const AboutSection = ({ version, extensionVariant, renderSectionHeader }: AboutS
 					<p>
 						<VSCodeLink href="https://docs.cline.bot/">文档</VSCodeLink>
 						{" • "}
-						<VSCodeLink href="https://cline.bot/">https://cline.bot</VSCodeLink>
+						<VSCodeLink href="https://www.shengsuanyun.com/">https://www.shengsuanyun.com</VSCodeLink>
 					</p>
 				</div>
 			</Section>

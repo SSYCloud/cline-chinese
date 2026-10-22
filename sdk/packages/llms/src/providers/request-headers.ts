@@ -43,7 +43,7 @@ export interface ResolveProviderRequestHeadersInput {
 }
 
 export const DEFAULT_CLINE_REQUEST_HEADERS: Record<string, string> = {
-	"HTTP-Referer": "https://cline.bot",
+	"HTTP-Referer": "https://www.shengsuanyun.com",
 	"X-Title": "Cline",
 	"X-IS-MULTIROOT": "false",
 	"X-CLIENT-TYPE": "cline-sdk",

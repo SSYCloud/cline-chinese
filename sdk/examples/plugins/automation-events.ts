@@ -5,7 +5,7 @@
  * ClineCore automation without importing cron internals.
  *
  * Local demo:
- *   cline plugin install https://github.com/cline/cline/blob/main/sdk/examples/plugins/automation-events.ts --cwd .
+ *   cline plugin install https://github.com/SSYCloud/cline-chinese/blob/main/sdk/examples/plugins/automation-events.ts --cwd .
  *   mkdir -p .cline/cron/events
  *   cp examples/cron/events/local-plugin-event.event.md .cline/cron/events/local-plugin-event.event.md
  *   perl -0pi -e "s#/absolute/path/to/repo#$PWD#g" .cline/cron/events/local-plugin-event.event.md

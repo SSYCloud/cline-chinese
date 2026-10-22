@@ -1,5 +1,7 @@
+import { formatRepoLabel } from "@shared/cloud/cloud-sessions"
 import { HistoryItem } from "@shared/HistoryItem"
 import { StringRequest } from "@shared/proto/cline/common"
+import type { TaskItem } from "@shared/proto/cline/task"
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import {
 	ArrowDownIcon,
@@ -14,6 +16,7 @@ import {
 	TrashIcon,
 } from "lucide-react"
 import { memo, useCallback, useMemo, useState } from "react"
+import { CloudStatusPill } from "@/components/cloud/CloudStatusPill"
 import { RenameItem } from "@/components/history/RenameItem"
 import { Button } from "@/components/ui/button"
 import { useExtensionState } from "@/context/ExtensionStateContext"
@@ -23,7 +26,7 @@ import { TaskServiceClient } from "@/services/grpc-client"
 import { formatLargeNumber, formatSize } from "@/utils/format"
 
 type HistoryViewItemProps = {
-	item: HistoryItem
+	item: HistoryItem | TaskItem
 	index: number
 	selectedItems: string[]
 	pendingFavoriteToggles: Record<string, boolean>
@@ -50,9 +53,11 @@ const HistoryViewItem = ({
 		() => pendingFavoriteToggles[item.id] ?? item.isFavorited,
 		[item.id, item.isFavorited, pendingFavoriteToggles],
 	)
+	// Cloud sessions are owned by Cline Cloud; favorites are a local-history concept.
+	const isCloud = "executionTarget" in item && item.executionTarget === "cloud"
 
 	const handleShowTaskWithId = useCallback(
-		(item: HistoryItem) => {
+		(item: HistoryItem | TaskItem) => {
 			// Batch (LoomLoom) results open on the Batch result page rather than
 			// being loaded into Plan/Act chat. The saved title and content are
 			// stored back-to-back in `item.task`, separated by a blank line.
@@ -131,9 +136,10 @@ const HistoryViewItem = ({
 								旧版
 							</span>
 						)}
+						{isCloud && <CloudStatusPill status={item.cloudStatus} />}
 						<div className="flex gap-2 flex-shrink-0">
 							<RenameItem
-								item={item}
+								item={item as HistoryItem}
 								onRename={handleRenameTask}
 								renderTrigger={(openRenameDialog) => (
 									<Button
@@ -165,8 +171,8 @@ const HistoryViewItem = ({
 							</Button>
 							<Button
 								aria-label={isFavoritedItem ? "取消收藏" : "添加收藏"}
-								className="p-0"
-								disabled={pendingFavoriteToggles[item.id] !== undefined}
+								className={cn("p-0", { invisible: isCloud })}
+								disabled={isCloud || pendingFavoriteToggles[item.id] !== undefined}
 								onClick={(e) => {
 									e.stopPropagation()
 									toggleFavorite(item.id, isFavoritedItem)
@@ -191,7 +197,7 @@ const HistoryViewItem = ({
 						<div className="flex items-center justify-between w-full">
 							<div className="text-description text-xs uppercase">{formatDate(item.ts)}</div>
 							<div className="self-end flex items-center text-xs">
-								{isCostVisible(item.apiProvider) && (
+								{!isCloud && isCostVisible(item.apiProvider) && (
 									<span className="text-description">${item.totalCost?.toFixed(4) ?? 0}</span>
 								)}
 								{expanded ? (
@@ -215,32 +221,36 @@ const HistoryViewItem = ({
 									<div className="flex items-center gap-1 flex-wrap w-full">
 										<div className="flex justify-between items-center w-full gap-1 text-xs">
 											<span className="font-medium text-description">Token：</span>
-											<div className="flex items-center gap-1 text-description text-xs">
-												<span className="flex items-center gap-1 text-description">
-													<ArrowUpIcon className="text-description !size-1" />
-													{formatLargeNumber(item.tokensIn || 0)}
-												</span>
-												<span className="flex items-center gap-1 text-description">
-													<ArrowDownIcon className="text-description !size-1" />
-													{formatLargeNumber(item.tokensOut || 0)}
-												</span>
-												{item.cacheWrites
-													? item.cacheWrites > 0 && (
-															<span className="flex items-center gap-1 text-description">
-																<ArrowRightIcon className="text-description !size-1" />
-																{formatLargeNumber(item.cacheWrites)}
-															</span>
-														)
-													: null}
-												{item.cacheReads
-													? item.cacheReads > 0 && (
-															<span className="flex items-center gap-1 text-description">
-																<ArrowLeftIcon className="text-description !size-1" />
-																{formatLargeNumber(item.cacheReads)}
-															</span>
-														)
-													: null}
-											</div>
+											{isCloud && !item.cloudUsageAvailable ? (
+												<span className="text-description">不可用</span>
+											) : (
+												<div className="flex items-center gap-1 text-description text-xs">
+													<span className="flex items-center gap-1 text-description">
+														<ArrowUpIcon className="text-description !size-1" />
+														{formatLargeNumber(item.tokensIn || 0)}
+													</span>
+													<span className="flex items-center gap-1 text-description">
+														<ArrowDownIcon className="text-description !size-1" />
+														{formatLargeNumber(item.tokensOut || 0)}
+													</span>
+													{item.cacheWrites
+														? item.cacheWrites > 0 && (
+																<span className="flex items-center gap-1 text-description">
+																	<ArrowRightIcon className="text-description !size-1" />
+																	{formatLargeNumber(item.cacheWrites)}
+																</span>
+															)
+														: null}
+													{item.cacheReads
+														? item.cacheReads > 0 && (
+																<span className="flex items-center gap-1 text-description">
+																	<ArrowLeftIcon className="text-description !size-1" />
+																	{formatLargeNumber(item.cacheReads)}
+																</span>
+															)
+														: null}
+												</div>
+											)}
 										</div>
 
 										{item.modelId && (
@@ -250,24 +260,36 @@ const HistoryViewItem = ({
 											</div>
 										)}
 
-										<div className="flex justify-between items-center w-full gap-1 text-xs">
-											<span className="font-medium text-description">大小：</span>
-											<span className="items-center gap-2 flex text-description">
-												{formatSize(item.size)}
-												<Button
-													aria-label="导出"
-													className="m-0 p-0"
-													onClick={(e) => {
-														e.stopPropagation()
-														TaskServiceClient.exportTaskWithId(
-															StringRequest.create({ value: item.id }),
-														).catch((err) => console.error("Failed to export task:", err))
-													}}
-													variant="ghost">
-													<DownloadIcon />
-												</Button>
-											</span>
-										</div>
+										{isCloud && item.cloudRepoUrl && (
+											<div className="flex justify-between items-center w-full gap-1 text-xs">
+												<span className="font-medium text-description">仓库：</span>
+												<span className="text-description truncate">
+													{formatRepoLabel(item.cloudRepoUrl)}
+													{item.cloudBranch ? ` @ ${item.cloudBranch}` : ""}
+												</span>
+											</div>
+										)}
+
+										{!isCloud && (
+											<div className="flex justify-between items-center w-full gap-1 text-xs">
+												<span className="font-medium text-description">大小：</span>
+												<span className="items-center gap-2 flex text-description">
+													{formatSize(item.size)}
+													<Button
+														aria-label="导出"
+														className="m-0 p-0"
+														onClick={(e) => {
+															e.stopPropagation()
+															TaskServiceClient.exportTaskWithId(
+																StringRequest.create({ value: item.id }),
+															).catch((err) => console.error("Failed to export task:", err))
+														}}
+														variant="ghost">
+														<DownloadIcon />
+													</Button>
+												</span>
+											</div>
+										)}
 									</div>
 								</div>
 							</div>
