@@ -80,6 +80,13 @@ const GLOBAL_STATE_FIELDS = {
 	},
 	isNewUser: { default: true as boolean },
 	welcomeViewCompleted: { default: undefined as boolean | undefined },
+	// Cline Chinese onboarding/daily promo popups. These are install-local UI state
+	// (not user settings), so they live in global state and survive restarts and
+	// workspace switches without leaking into settings sync.
+	chineseNewUserPopupEligible: { default: false as boolean },
+	chineseNewUserPopupShown: { default: false as boolean },
+	chineseDailyPopupEnabled: { default: true as boolean },
+	chineseDailyPopupLastShownDate: { default: undefined as string | undefined },
 	mcpDisplayMode: { default: DEFAULT_MCP_DISPLAY_MODE as McpDisplayMode },
 	multiRootEnabled: { default: true as boolean },
 	lastDismissedInfoBannerVersion: { default: 0 as number },

@@ -349,7 +349,7 @@ export class ShengSuanYunAccountService {
 					cachedAmount: 0,
 					totalPromptTokens: 0,
 					totalCompletionTokens: 0,
-					totalTokens: r.total_tokens ?? 0,
+					totalAmount: r.total_amount ?? 0,
 					tokenName: qs.tokenName,
 					requestIp: r.request_ip ?? "",
 					requestId: r.request_id ?? "",

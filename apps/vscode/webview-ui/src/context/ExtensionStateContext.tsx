@@ -81,6 +81,8 @@ export interface ExtensionStateContextType extends ExtensionState {
 	showAccount: boolean
 	showWorktrees: boolean
 	showAnnouncement: boolean
+	/** The version "What's New" modal is actually open (not merely pending). */
+	showWhatsNewModal: boolean
 	expandTaskHeader: boolean
 	// Batch-mode result pending to open (set from the history list). When
 	// non-null, ChatView switches into batch mode and opens the result tab.
@@ -89,6 +91,7 @@ export interface ExtensionStateContextType extends ExtensionState {
 	// Setters
 	setShengSuanYunModels: (value: Record<string, ShengSuanYunModelInfo>) => void
 	setShowAnnouncement: (value: boolean) => void
+	setShowWhatsNewModal: (value: boolean) => void
 	setShouldShowAnnouncement: (value: boolean) => void
 	setMcpServers: (value: McpServer[]) => void
 	setRequestyModels: (value: Record<string, ModelInfo>) => void
@@ -171,6 +174,7 @@ export const ExtensionStateContextProvider: React.FC<{
 	const [showAccount, setShowAccount] = useState(false)
 	const [showWorktrees, setShowWorktrees] = useState(false)
 	const [showAnnouncement, setShowAnnouncement] = useState(false)
+	const [showWhatsNewModal, setShowWhatsNewModal] = useState(false)
 	const [batchResultToOpen, setBatchResultToOpen] = useState<{ title: string; content: string } | null>(null)
 
 	// Helper for MCP view
@@ -320,6 +324,10 @@ export const ExtensionStateContextProvider: React.FC<{
 		defaultTerminalProfile: "default",
 		isNewUser: false,
 		welcomeViewCompleted: false,
+		chineseNewUserPopupEligible: false,
+		chineseNewUserPopupShown: false,
+		chineseDailyPopupEnabled: true,
+		chineseDailyPopupLastShownDate: undefined,
 		onboardingModels: undefined,
 		mcpResponsesCollapsed: false, // Default value (expanded), will be overwritten by extension state
 		useAutoCondense: true,
@@ -906,6 +914,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		showAccount,
 		showWorktrees,
 		showAnnouncement,
+		showWhatsNewModal,
 		batchResultToOpen,
 		globalClineRulesToggles: state.globalClineRulesToggles || {},
 		localClineRulesToggles: state.localClineRulesToggles || {},
@@ -940,6 +949,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		hideAnnouncement,
 		closeMarketplaceView,
 		setShowAnnouncement,
+		setShowWhatsNewModal,
 		setShowWelcome,
 		setOnboardingModels,
 		startProviderModelsRequest,

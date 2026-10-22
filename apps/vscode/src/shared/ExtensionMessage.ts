@@ -41,6 +41,14 @@ export interface ExtensionState {
 	loomLoomBatch?: import("./loomloom").BatchChatSnapshot
 	isNewUser: boolean
 	welcomeViewCompleted: boolean
+	/** True once this install has finished onboarding and has not yet consumed the new-user promo popup. */
+	chineseNewUserPopupEligible?: boolean
+	/** The new-user promo popup has been presented (and will never auto-show again). */
+	chineseNewUserPopupShown?: boolean
+	/** Whether the daily promo popup may auto-show. Toggled from settings and the popup's opt-out checkbox. */
+	chineseDailyPopupEnabled?: boolean
+	/** Local calendar date (YYYY-MM-DD) on which the daily promo popup was last presented. */
+	chineseDailyPopupLastShownDate?: string
 	onboardingModels: OnboardingModelGroup | undefined
 	apiConfiguration?: ApiConfiguration
 	autoApprovalSettings: AutoApprovalSettings

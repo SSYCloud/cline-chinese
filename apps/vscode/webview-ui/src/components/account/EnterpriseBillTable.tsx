@@ -34,7 +34,7 @@ const EnterpriseBillTable = memo(({ bills, isLoading }: EnterpriseBillTableProps
 								API Key
 							</VSCodeDataGridCell>
 							<VSCodeDataGridCell cell-type="columnheader" grid-column="4">
-								Tokens
+								费用(¥)
 							</VSCodeDataGridCell>
 						</VSCodeDataGridRow>
 						{bills.map((bill, index) => (
@@ -43,7 +43,9 @@ const EnterpriseBillTable = memo(({ bills, isLoading }: EnterpriseBillTableProps
 								<VSCodeDataGridCell grid-column="1">{formatTimestamp(bill.hourTime, "zh-CN")}</VSCodeDataGridCell>
 								<VSCodeDataGridCell grid-column="2">{bill.modelName}</VSCodeDataGridCell>
 								<VSCodeDataGridCell grid-column="3">{bill.tokenName}</VSCodeDataGridCell>
-								<VSCodeDataGridCell grid-column="4">{bill.totalTokens}</VSCodeDataGridCell>
+								<VSCodeDataGridCell grid-column="4">
+									{Number(bill.totalAmount / 10000000).toFixed(4)}
+								</VSCodeDataGridCell>
 							</VSCodeDataGridRow>
 						))}
 					</VSCodeDataGrid>

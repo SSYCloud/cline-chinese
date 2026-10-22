@@ -2,6 +2,7 @@ import type { Boolean, EmptyRequest } from "@shared/proto/cline/common"
 import { lazy, Suspense, useCallback, useEffect, useState } from "react"
 import ChatView from "./components/chat/ChatView"
 import { openClinePassSubscriptionIfPending } from "./components/onboarding/clinePassSubscribe"
+import ChinesePromoPopup from "./components/promo/ChinesePromoPopup"
 import { useClineAuth } from "./context/ClineAuthContext"
 import { useExtensionState } from "./context/ExtensionStateContext"
 import { Providers } from "./Providers"
@@ -148,6 +149,7 @@ const AppContent = () => {
 				showAnnouncement={showAnnouncement}
 				showHistoryView={navigateToHistory}
 			/>
+			<ChinesePromoPopup />
 		</div>
 	)
 }

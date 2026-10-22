@@ -26,6 +26,16 @@ vi.mock("@/components/settings/utils/settingsHandlers", () => ({
 	updateSetting: (...args: unknown[]) => mockUpdateSetting(...args),
 }))
 
+const mockUpdateChinesePromoState = vi.fn()
+vi.mock("@/services/grpc-client", () => ({
+	StateServiceClient: {
+		updateChinesePromoState: (...args: unknown[]) => {
+			mockUpdateChinesePromoState(...args)
+			return Promise.resolve({})
+		},
+	},
+}))
+
 describe("FeatureSettingsSection", () => {
 	beforeEach(() => {
 		mockUpdateSetting.mockClear()
@@ -39,7 +49,7 @@ describe("FeatureSettingsSection", () => {
 	it("renders Hooks feature toggle", () => {
 		const { container } = render(<FeatureSettingsSection renderSectionHeader={() => null} />)
 
-		expect(screen.getByText("Hooks")).toBeTruthy()
+		expect(screen.getByText("钩子")).toBeTruthy()
 
 		const advancedSection = container.querySelector("#advanced-features")
 		const agentSection = container.querySelector("#agent-features")
@@ -51,7 +61,7 @@ describe("FeatureSettingsSection", () => {
 	it("renders Feature Tips toggle in the Editor section", () => {
 		const { container } = render(<FeatureSettingsSection renderSectionHeader={() => null} />)
 
-		expect(screen.getByText("Feature Tips")).toBeTruthy()
+		expect(screen.getByText("功能提示")).toBeTruthy()
 
 		const editorSection = container.querySelector("#optional-features")
 		const agentSection = container.querySelector("#agent-features")
@@ -63,10 +73,10 @@ describe("FeatureSettingsSection", () => {
 	it("renders the Auto Compact Strategy setting in the Agent section", () => {
 		const { container } = render(<FeatureSettingsSection renderSectionHeader={() => null} />)
 
-		expect(screen.getByText("Auto Compact Strategy")).toBeTruthy()
+		expect(screen.getByText("自动压缩策略")).toBeTruthy()
 
 		const agentSection = container.querySelector("#agent-features")
-		expect(agentSection?.textContent).toContain("Basic")
+		expect(agentSection?.textContent).toContain("基础")
 	})
 
 	it("disables Auto Compact Strategy when Auto Compact is off", () => {
@@ -79,7 +89,7 @@ describe("FeatureSettingsSection", () => {
 	it("calls updateSetting with hooksEnabled when toggled", () => {
 		render(<FeatureSettingsSection renderSectionHeader={() => null} />)
 
-		fireEvent.click(screen.getByRole("switch", { name: "Hooks" }))
+		fireEvent.click(screen.getByRole("switch", { name: "钩子" }))
 
 		expect(mockUpdateSetting).toHaveBeenCalledWith("hooksEnabled", true)
 	})
@@ -87,8 +97,19 @@ describe("FeatureSettingsSection", () => {
 	it("calls updateSetting with showFeatureTips when toggled", () => {
 		render(<FeatureSettingsSection renderSectionHeader={() => null} />)
 
-		fireEvent.click(screen.getByRole("switch", { name: "Feature Tips" }))
+		fireEvent.click(screen.getByRole("switch", { name: "功能提示" }))
 
 		expect(mockUpdateSetting).toHaveBeenCalledWith("showFeatureTips", true)
+	})
+
+	it("toggles the daily popup setting from the Notifications section", () => {
+		const { container } = render(<FeatureSettingsSection renderSectionHeader={() => null} />)
+
+		const notificationSection = container.querySelector("#notification-features")
+		expect(notificationSection).toBeTruthy()
+
+		fireEvent.click(screen.getByRole("switch", { name: "每日弹窗" }))
+
+		expect(mockUpdateChinesePromoState).toHaveBeenCalledWith({ dailyPopupEnabled: false })
 	})
 })

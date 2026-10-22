@@ -539,7 +539,15 @@ export class AuthService {
 	 */
 	private markWelcomeViewCompleted(): void {
 		try {
-			StateManager.get().setGlobalState("welcomeViewCompleted", true)
+			const stateManager = StateManager.get()
+			const wasCompleted = !!stateManager.getGlobalStateKey("welcomeViewCompleted")
+			stateManager.setGlobalState("welcomeViewCompleted", true)
+			// OAuth sign-ups finish onboarding through this host-side path (the
+			// webview passes markCompleted=false), so opt them into the one-time
+			// new-user promo popup here as well.
+			if (!wasCompleted) {
+				stateManager.setGlobalState("chineseNewUserPopupEligible", true)
+			}
 		} catch (error) {
 			Logger.error("[SdkAuthService] Failed to mark welcome view completed:", error)
 		}

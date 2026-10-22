@@ -240,7 +240,7 @@ export class SSYAccountService {
 					cachedAmount: b.cached_amount,
 					totalPromptTokens: b.total_prompt_tokens,
 					totalCompletionTokens: b.total_completion_tokens,
-					totalTokens: b.total_tokens,
+					totalAmount: b.total_amount,
 				})),
 			})
 		} catch (error) {

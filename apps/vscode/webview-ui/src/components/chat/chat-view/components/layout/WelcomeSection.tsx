@@ -38,12 +38,17 @@ export const WelcomeSection: React.FC<WelcomeSectionProps> = ({
 	taskHistory,
 	shouldShowQuickWins,
 }) => {
-	const { lastDismissedInfoBannerVersion, lastDismissedCliBannerVersion, lastDismissedModelBannerVersion, dismissedBanners } =
-		useExtensionState()
+	const {
+		lastDismissedInfoBannerVersion,
+		lastDismissedCliBannerVersion,
+		lastDismissedModelBannerVersion,
+		dismissedBanners,
+		showWhatsNewModal,
+		setShowWhatsNewModal,
+	} = useExtensionState()
 
 	// Track if we've shown the "What's New" modal this session
 	const [hasShownWhatsNewModal, setHasShownWhatsNewModal] = useState(false)
-	const [showWhatsNewModal, setShowWhatsNewModal] = useState(false)
 
 	// Quick launch worktree modal
 	const [showCreateWorktreeModal, setShowCreateWorktreeModal] = useState(false)

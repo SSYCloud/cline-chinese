@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { useExtensionState } from "@/context/ExtensionStateContext"
+import { StateServiceClient } from "@/services/grpc-client"
 import Section from "../Section"
 import { featureSettingControlId, featureSettingElementId } from "../settingsTargets"
 import { updateSetting } from "../utils/settingsHandlers"
@@ -161,6 +162,7 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 		worktreesEnabled,
 		backgroundEditEnabled,
 		showFeatureTips,
+		chineseDailyPopupEnabled,
 	} = useExtensionState()
 
 	// State lookup for mapped features
@@ -244,6 +246,26 @@ const FeatureSettingsSection = ({ renderSectionHeader }: FeatureSettingsSectionP
 								/>
 							))}
 						</div>
+					</div>
+				</div>
+
+				{/* Notifications */}
+				<div>
+					<div className="text-xs font-medium text-foreground/80 uppercase tracking-wider mb-3">通知</div>
+					<div
+						className="relative p-3 my-3 rounded-md border border-editor-widget-border/50"
+						id="notification-features">
+						<FeatureRow
+							checked={chineseDailyPopupEnabled !== false}
+							description="每天首次打开 Cline Chinese 时展示每日推荐弹窗。关闭后不再自动显示，可随时在这里重新开启；不影响新用户弹窗和版本更新通知。"
+							id="daily-popup"
+							label="每日弹窗"
+							onChange={(checked) => {
+								StateServiceClient.updateChinesePromoState({ dailyPopupEnabled: checked }).catch((error) =>
+									console.error("Failed to update daily popup setting:", error),
+								)
+							}}
+						/>
 					</div>
 				</div>
 

@@ -9,7 +9,7 @@ export async function shengSuanYunLoginClicked(_controller: Controller, request:
 	const baseUrl = await HostProvider.get().getCallbackUrl("/ssy")
 	const callbackUrl = `${baseUrl}`
 	const from = request.from || "cline-chinese"
-	const authUrl = new URL(`https://router.shengsuanyun.com/auth?from=${from}`)
+	const authUrl = new URL(`https://www.shengsuanyun.com/auth?from=${from}`)
 	authUrl.searchParams.set("callback_url", decodeURIComponent(callbackUrl))
 	const authUrlString = authUrl.toString()
 	Logger.error("ShengSuanYun login clicked, opening auth URL:", authUrlString)

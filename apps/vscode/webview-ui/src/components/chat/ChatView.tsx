@@ -11,6 +11,7 @@ import { useNormalizedApiConfiguration } from "@/hooks/useNormalizedApiConfigura
 import { FileServiceClient, UiServiceClient } from "@/services/grpc-client"
 import { sendBatch } from "../loomloom/batch-api"
 import { Navbar } from "../menu/Navbar"
+import { OPEN_BATCH_MODE_EVENT } from "../promo/promoContent"
 import AutoApproveBar from "./auto-approve-menu/AutoApproveBar"
 // Import utilities and hooks from the new structure
 import {
@@ -93,6 +94,14 @@ const ChatView = ({ isHidden, showAnnouncement, hideAnnouncement, showHistoryVie
 		},
 		[loomLoomBatch?.taskId],
 	)
+
+	// The new-user / daily promo popup's "试用 Batch 模式" action switches the
+	// already-mounted main UI into Batch mode instead of reloading the panel.
+	useEffect(() => {
+		const openBatchMode = () => handleBatchModeChange(true)
+		window.addEventListener(OPEN_BATCH_MODE_EVENT, openBatchMode)
+		return () => window.removeEventListener(OPEN_BATCH_MODE_EVENT, openBatchMode)
+	}, [handleBatchModeChange])
 
 	// Use custom hooks for state management
 	const chatState = useChatState(messages)

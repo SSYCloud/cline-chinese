@@ -25,6 +25,7 @@ service StateService {
   rpc updateTelemetrySetting(TelemetrySettingRequest) returns (Empty);
   rpc captureOnboardingProgress(OnboardingProgressRequest) returns (Empty);
   rpc setWelcomeViewCompleted(BooleanRequest) returns (Empty);
+  rpc updateChinesePromoState(UpdateChinesePromoStateRequest) returns (Empty);
   rpc updateInfoBannerVersion(Int64Request) returns (Empty);
   rpc updateModelBannerVersion(Int64Request) returns (Empty);
   rpc updateCliBannerVersion(Int64Request) returns (Empty);
@@ -453,6 +454,15 @@ message ProcessInfo {
   int32 process_id = 1;
   optional string version = 2;
   optional int64 uptime_ms = 3;
+}
+
+// Cline Chinese new-user / daily promo popup bookkeeping. Every field is
+// optional so the webview can update exactly one piece of state at a time.
+message UpdateChinesePromoStateRequest {
+  optional bool new_user_popup_eligible = 1;
+  optional bool new_user_popup_shown = 2;
+  optional bool daily_popup_enabled = 3;
+  optional string daily_popup_last_shown_date = 4;
 }
 
 message OnboardingProgressRequest {

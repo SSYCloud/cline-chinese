@@ -69,6 +69,10 @@ export async function getStateToPostToWebview(controller: {
 	const defaultTerminalProfile = stateManager.getGlobalSettingsKey("defaultTerminalProfile")
 	const isNewUser = stateManager.getGlobalStateKey("isNewUser")
 	const welcomeViewCompleted = !!stateManager.getGlobalStateKey("welcomeViewCompleted")
+	const chineseNewUserPopupEligible = !!stateManager.getGlobalStateKey("chineseNewUserPopupEligible")
+	const chineseNewUserPopupShown = !!stateManager.getGlobalStateKey("chineseNewUserPopupShown")
+	const chineseDailyPopupEnabled = stateManager.getGlobalStateKey("chineseDailyPopupEnabled") ?? true
+	const chineseDailyPopupLastShownDate = stateManager.getGlobalStateKey("chineseDailyPopupLastShownDate")
 
 	const mcpResponsesCollapsed = stateManager.getGlobalStateKey("mcpResponsesCollapsed")
 	const favoritedModelIds = stateManager.getGlobalStateKey("favoritedModelIds")
@@ -157,6 +161,10 @@ export async function getStateToPostToWebview(controller: {
 		defaultTerminalProfile,
 		isNewUser,
 		welcomeViewCompleted,
+		chineseNewUserPopupEligible,
+		chineseNewUserPopupShown,
+		chineseDailyPopupEnabled,
+		chineseDailyPopupLastShownDate,
 		onboardingModels,
 		mcpResponsesCollapsed,
 		taskHistory: processedTaskHistory,

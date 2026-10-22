@@ -295,7 +295,7 @@ message EnterpriseBillItem {
   int32 cached_amount = 9;
   int32 total_prompt_tokens = 10;
   int32 total_completion_tokens = 11;
-  int32 total_tokens = 12;
+  int32 total_amount = 12;
   string token_name = 13;
   string request_ip = 14;
   string request_id = 15;
