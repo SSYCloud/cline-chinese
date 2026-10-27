@@ -50,6 +50,8 @@ service AccountService {
   rpc switchShengSuanYunApiKey(StringRequest) returns (Empty);
   rpc getEnterpriseBill(EnterpriseBillRequest) returns (EnterpriseBillResponse);
   rpc getEnterpriseBudget(EnterpriseBudgetRequest) returns (EnterpriseBudget);
+  // Lists the personal account's projects, each with its API keys.
+  rpc getPersonalProjects(EmptyRequest) returns (EProjectList);
 
   rpc hicapAuthClicked(EmptyRequest) returns (Empty);
 

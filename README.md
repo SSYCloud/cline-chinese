@@ -15,7 +15,9 @@
 
 > **首次注册胜算云即送 10 元模力 + 首充 10% 加赠** —— [点这里领取](https://www.shengsuanyun.com/?from=cline-chinese)
 
-10 元模力可跑约 **200-400 万 tokens**（按 DeepSeek-V4-Flash 计价），足够一个完整项目的代码生成与调试。注册后即可在胜算云控制台一键拿到 API Key，免去逐家注册与充值 DeepSeek / Kimi / Qwen / GLM  等账号的麻烦。
+[填写**胜算云 API**问卷即有机会获得**最高¥100体验券**](https://tcnqigfvmci2.feishu.cn/share/base/form/shrcnPIFa1DGJBdt0c2ypmwoPkf)
+
+[填写batch模式loomloom问卷同样可重复获**最高¥100体验券**](https://tcnqigfvmci2.feishu.cn/share/base/form/shrcnwpBHyLm8qC30LGqoDNfXbh)
 
 ---
 

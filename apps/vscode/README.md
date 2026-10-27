@@ -25,7 +25,10 @@
 | `minimax/minimax-m2.5` |
 | `bigmodel/glm-4.6` |
 
-首次使用选择 **“免费开始” → “新用户注册并获取免费体验key”**，在浏览器中完成注册后返回插件。胜算云账户页的充值入口提供 **“首充送10%”** 活动提示。
+
+[填写**胜算云 API**问卷即有机会获得**最高¥100体验券**](https://tcnqigfvmci2.feishu.cn/share/base/form/shrcnPIFa1DGJBdt0c2ypmwoPkf)
+
+[填写batch模式loomloom问卷同样可重复获**最高¥100体验券**](https://tcnqigfvmci2.feishu.cn/share/base/form/shrcnwpBHyLm8qC30LGqoDNfXbh)
 
 ---
 

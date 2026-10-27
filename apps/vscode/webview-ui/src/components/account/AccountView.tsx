@@ -13,9 +13,7 @@ import { useExtensionState } from "@/context/ExtensionStateContext"
 import { AccountServiceClient } from "@/services/grpc-client"
 import ViewHeader from "../common/ViewHeader"
 import VSCodeButtonLink from "../common/VSCodeButtonLink"
-import { TabButton } from "../mcp/configuration/McpConfigurationView"
 import { updateSetting } from "../settings/utils/settingsHandlers"
-import { Button } from "../ui/button"
 import { AccountWelcomeView } from "./AccountWelcomeView"
 import { ClinePassCard } from "./ClinePassCard"
 import { CreditBalance } from "./CreditBalance"
@@ -46,30 +44,13 @@ type CachedData = {
 }
 
 const ClineEnvOptions = ["Production", "Staging", "Local"] as const
-
 const AccountView = ({ onDone, clineUser, organizations, activeOrganization }: AccountViewProps) => {
 	const { environment, userInfo } = useExtensionState()
-
-	// `userInfo` can outlive the session it was fetched with; only a real account
-	// identity (uid) means the user is signed in to ShengSuanYun.
 	const isShengSuanYunUser = Boolean(userInfo?.uid)
 
 	return (
 		<div className="fixed inset-0 flex flex-col overflow-hidden">
-			{clineUser?.uid ? (
-				<ViewHeader environment={environment} onDone={onDone} showEnvironmentSuffix title="账户" />
-			) : (
-				<div className="flex items-center justify-between px-5 py-2.5 mb-[17px]">
-					<div className="flex border-b border-(--vscode-panel-border) px-5">
-						<TabButton isActive onClick={() => {}}>
-							账户
-						</TabButton>
-					</div>
-					<Button onClick={onDone} size="header">
-						确定
-					</Button>
-				</div>
-			)}
+			<ViewHeader environment={environment} onDone={onDone} title="账户" />
 			<div className="grow flex flex-col px-5 overflow-y-auto">
 				{clineUser?.uid ? (
 					<ClineAccountView

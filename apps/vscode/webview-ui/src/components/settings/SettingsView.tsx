@@ -251,7 +251,6 @@ const SettingsView = ({ navigationRequest, onDone }: SettingsViewProps) => {
 	return (
 		<Tab>
 			<ViewHeader environment={environment} onDone={onDone} title="设置" />
-
 			<div className="flex flex-1 overflow-hidden">
 				<TabList
 					className="shrink-0 flex flex-col overflow-y-auto border-r border-sidebar-background"

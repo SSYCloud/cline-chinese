@@ -6,6 +6,8 @@ import {
 	EnterpriseBudget,
 	EnterpriseBudgetRequest,
 	EPAPIKey,
+	EProject,
+	EProjectList,
 	PaymentTransaction,
 	UsageTransaction,
 	UserCreditsBalance,
@@ -289,6 +291,66 @@ export class ShengSuanYunAccountService {
 			})
 		} catch (error) {
 			Logger.error("getEnterpriseAccounts():", error)
+			throw error
+		}
+	}
+
+	/**
+	 * Lists the personal account's projects with their API keys, using the
+	 * session token (not an enterprise-scoped one).
+	 */
+	async getPersonalProjects(): Promise<EProjectList> {
+		try {
+			const prjs = await this.authenticatedRequest<any[]>("/project/list")
+			if (!Array.isArray(prjs)) {
+				throw new Error(`Invalid response from API: /project/list`)
+			}
+			const keyLists = await Promise.all(
+				prjs.map((p: any) =>
+					this.authenticatedRequest<any[]>("/project/apikey/list", {
+						method: "POST",
+						data: { project_id: p.id },
+					}).catch((error) => {
+						Logger.error(`getPersonalProjects(): failed to load API keys for project ${p.id}:`, error)
+						return [] as any[]
+					}),
+				),
+			)
+			return EProjectList.create({
+				projects: prjs.map(
+					(p: any, idx: number): EProject =>
+						EProject.create({
+							id: p.id ?? 0,
+							name: p.projectName ?? p.name ?? "",
+							models: [],
+							routers: [],
+							apiKeys: (keyLists[idx] ?? []).map(
+								(k: any): EPAPIKey => ({
+									id: k.ID ?? k.id ?? 0,
+									createdAt: k.CreatedAt ?? k.createdAt ?? "",
+									updatedAt: k.UpdatedAt ?? k.updatedAt ?? "",
+									userId: k.UserID ?? k.userId ?? 0,
+									isBanned: k.IsBanned ?? k.isBanned ?? false,
+									isExpired: k.IsExpired ?? k.isExpired ?? false,
+									name: k.Name ?? k.name ?? "",
+									desc: k.Desc ?? k.desc ?? "",
+									key: k.Key ?? k.key ?? "",
+									token: k.Token ?? k.token ?? "",
+									tpm: k.Tpm ?? k.tpm ?? 0,
+									rpm: k.Rpm ?? k.rpm ?? 0,
+									maxQuota: k.MaxQuota ?? k.maxQuota ?? 0,
+									consumedAmount: k.ConsumedAmount ?? k.consumedAmount ?? 0,
+									supportedModels: k.SupportedModels ?? k.supportedModels ?? "",
+									isDefault: k.IsDefault ?? k.isDefault ?? false,
+									ramUserId: 0,
+									enterpriseGatewayProjectId: 0,
+								}),
+							),
+						}),
+				),
+			})
+		} catch (error) {
+			Logger.error("getPersonalProjects():", error)
 			throw error
 		}
 	}
