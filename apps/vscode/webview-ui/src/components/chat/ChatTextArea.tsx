@@ -99,15 +99,14 @@ const PLAN_MODE_COLOR = "var(--vscode-activityWarningBadge-background)"
 const ACT_MODE_COLOR = "var(--vscode-focusBorder)"
 const BATCH_MODE_COLOR = "var(--vscode-activityBarBadge-background)"
 
-const SwitchContainer = styled.div<{ disabled: boolean }>`
+const SwitchContainer = styled.div`
 	display: flex;
 	align-items: center;
 	background-color: transparent;
 	border: 1px solid var(--vscode-input-border);
 	border-radius: 12px;
 	overflow: hidden;
-	cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
-	opacity: ${(props) => (props.disabled ? 0.5 : 1)};
+	cursor: pointer;
 	transform: scale(1);
 	transform-origin: right center;
 	margin-left: 0;
@@ -238,7 +237,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		} = useExtensionState()
 		// Cloud sessions are Act-only (like the desktop app and the cloud dashboard).
 		// While a cloud task is shown, or a new task is about to run in the cloud,
-		// the toggle is pinned to Act and disabled; the stored mode is untouched.
+		// the mode is pinned to Act and the toggle is hidden; the stored mode is untouched.
 		const cloudActOnly =
 			!!currentCloudTask || (clineMessages.length === 0 && !!cloudSessionsEnabled && cloudTaskTarget?.target === "cloud")
 		const mode = cloudActOnly ? "act" : selectedMode
@@ -746,7 +745,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 				const newCursorPosition = e.target.selectionStart
 				setInputValue(newValue)
 				setCursorPosition(newCursorPosition)
-				let showMenu = shouldShowContextMenu(newValue, newCursorPosition)
+				// The context menu searches the local workspace, which a cloud sandbox cannot see.
+				let showMenu = !cloudActOnly && shouldShowContextMenu(newValue, newCursorPosition)
 				const showSlashCommandsMenu = shouldShowSlashCommandsMenu(newValue, newCursorPosition)
 
 				// we do not allow both menus to be shown at the same time
@@ -838,7 +838,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					setFileSearchResults([])
 				}
 			},
-			[setInputValue, setFileSearchResults, selectedType],
+			[setInputValue, setFileSearchResults, selectedType, cloudActOnly],
 		)
 
 		useEffect(() => {
@@ -1195,7 +1195,10 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			// A cloud task runs on a Cline model in the sandbox, whatever the
 			// local provider is; the extension reports which one.
 			if (cloudActOnly) {
-				return `cline:${cloudModelId || unknownModel}`
+				const cloudModel = cloudModelId || unknownModel
+				return cloudModel.startsWith("cline-pass/")
+					? `cline-pass:${cloudModel.replace(/^cline-pass\//, "")}`
+					: `cline:${cloudModel}`
 			}
 			if (!apiConfiguration) {
 				return unknownModel
@@ -1615,7 +1618,9 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					/>
 					{!inputValue && selectedImages.length === 0 && selectedFiles.length === 0 && (
 						<div className="text-xs absolute bottom-5 left-6.5 right-16 text-(--vscode-input-placeholderForeground)/50 whitespace-nowrap overflow-hidden text-ellipsis pointer-events-none z-1">
-							输入 @ 添加上下文，/ 使用斜杠命令和工作流，按住 shift 可拖入文件/图片
+							{cloudActOnly
+								? "输入“/”以使用斜杠命令和工作流程；按住 Shift 键即可拖入图片。"
+								: "输入 @ 以获取上下文，输入 / 以使用斜杠命令及工作流；按住 Shift 键即可拖入文件或图片。"}
 						</div>
 					)}
 					{(selectedImages.length > 0 || selectedFiles.length > 0) && (
@@ -1679,50 +1684,52 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					<div className="relative flex-1 min-w-0 h-5">
 						{/* ButtonGroup - always in DOM but visibility controlled */}
 						<ButtonGroup className="absolute top-0 left-0 right-0 ease-in-out w-full h-5 z-10 flex items-center">
-							{
+							{!cloudActOnly && (
+								<Tooltip>
+									<TooltipContent>添加上下文</TooltipContent>
+									<TooltipTrigger>
+										<VSCodeButton
+											appearance="icon"
+											aria-label="添加上下文"
+											className="p-0 m-0 flex items-center"
+											data-testid="context-button"
+											onClick={handleContextButtonClick}>
+											<ButtonContainer>
+												<AtSignIcon size={12} />
+											</ButtonContainer>
+										</VSCodeButton>
+									</TooltipTrigger>
+								</Tooltip>
+							)}
+
+							<Tooltip>
+								<TooltipContent>添加文件与图片</TooltipContent>
+								<TooltipTrigger>
+									<VSCodeButton
+										appearance="icon"
+										aria-label="添加文件与图片"
+										className="p-0 m-0 flex items-center"
+										data-testid="files-button"
+										disabled={shouldDisableFilesAndImages}
+										onClick={() => {
+											if (!shouldDisableFilesAndImages) {
+												onSelectFilesAndImages()
+											}
+										}}>
+										<ButtonContainer>
+											<PlusIcon size={13} />
+										</ButtonContainer>
+									</VSCodeButton>
+								</TooltipTrigger>
+							</Tooltip>
+
+							{/* MCP servers and rules/workflows/hooks/skills configure this machine, not the cloud sandbox. */}
+							{!cloudActOnly && (
 								<>
-									<Tooltip>
-										<TooltipContent>添加上下文</TooltipContent>
-										<TooltipTrigger>
-											<VSCodeButton
-												appearance="icon"
-												aria-label="添加上下文"
-												className="p-0 m-0 flex items-center"
-												data-testid="context-button"
-												onClick={handleContextButtonClick}>
-												<ButtonContainer>
-													<AtSignIcon size={12} />
-												</ButtonContainer>
-											</VSCodeButton>
-										</TooltipTrigger>
-									</Tooltip>
-
-									<Tooltip>
-										<TooltipContent>添加文件与图片</TooltipContent>
-										<TooltipTrigger>
-											<VSCodeButton
-												appearance="icon"
-												aria-label="添加文件与图片"
-												className="p-0 m-0 flex items-center"
-												data-testid="files-button"
-												disabled={shouldDisableFilesAndImages}
-												onClick={() => {
-													if (!shouldDisableFilesAndImages) {
-														onSelectFilesAndImages()
-													}
-												}}>
-												<ButtonContainer>
-													<PlusIcon size={13} />
-												</ButtonContainer>
-											</VSCodeButton>
-										</TooltipTrigger>
-									</Tooltip>
-
 									<ServersToggleModal />
-
 									<ClineRulesToggleModal />
 								</>
-							}
+							)}
 
 							<ModelContainer>
 								<ModelButtonWrapper>
@@ -1738,44 +1745,48 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							</ModelContainer>
 						</ButtonGroup>
 					</div>
-					{/* Tooltip for Plan/Act toggle remains outside the conditional rendering */}
-					<Tooltip>
-						<TooltipContent
-							className="text-xs px-2 flex flex-col gap-1"
-							hidden={shownTooltipMode === null}
-							side="top">
-							{`在${shownTooltipMode === "act" ? "执行" : "计划"}模式下，Cline 将${shownTooltipMode === "act" ? "立即完成任务" : "收集信息以制定计划"}`}
-							<p className="text-description/80 text-xs mb-0">
-								使用 <kbd className="text-muted-foreground mx-1">{togglePlanActKeys}</kbd> 切换
-							</p>
-						</TooltipContent>
-						<TooltipTrigger>
-							<SwitchContainer data-testid="mode-switch" disabled={false}>
-								<Slider position={batchMode ? 2 : mode === "act" ? 1 : 0} />
-								{["Plan", "Act", "Batch"].map((m) => {
-									const lower = m.toLowerCase()
-									const isSelected = lower === "batch" ? batchMode : !batchMode && mode === lower
-									return (
-										<div
-											aria-checked={isSelected}
-											className={cn(
-												"pt-0.5 pb-px px-4 z-10 text-xs w-1/3 text-center bg-transparent",
-												isSelected ? "text-white" : "text-input-foreground",
-											)}
-											key={m}
-											onClick={() => handleModeSegmentClick(m)}
-											onMouseLeave={() => setShownTooltipMode(null)}
-											onMouseOver={() =>
-												setShownTooltipMode(lower === "plan" ? "plan" : lower === "act" ? "act" : null)
-											}
-											role="switch">
-											{m}
-										</div>
-									)
-								})}
-							</SwitchContainer>
-						</TooltipTrigger>
-					</Tooltip>
+					{/* The Plan/Act/Batch toggle is hidden for cloud act-only sessions. */}
+					{!cloudActOnly && (
+						<Tooltip>
+							<TooltipContent
+								className="text-xs px-2 flex flex-col gap-1"
+								hidden={shownTooltipMode === null}
+								side="top">
+								{`在${shownTooltipMode === "act" ? "执行" : "计划"}模式下，Cline 将${shownTooltipMode === "act" ? "立即完成任务" : "收集信息以制定计划"}`}
+								<p className="text-description/80 text-xs mb-0">
+									使用 <kbd className="text-muted-foreground mx-1">{togglePlanActKeys}</kbd> 切换
+								</p>
+							</TooltipContent>
+							<TooltipTrigger>
+								<SwitchContainer data-testid="mode-switch">
+									<Slider position={batchMode ? 2 : mode === "act" ? 1 : 0} />
+									{["Plan", "Act", "Batch"].map((m) => {
+										const lower = m.toLowerCase()
+										const isSelected = lower === "batch" ? batchMode : !batchMode && mode === lower
+										return (
+											<div
+												aria-checked={isSelected}
+												className={cn(
+													"pt-0.5 pb-px px-4 z-10 text-xs w-1/3 text-center bg-transparent",
+													isSelected ? "text-white" : "text-input-foreground",
+												)}
+												key={m}
+												onClick={() => handleModeSegmentClick(m)}
+												onMouseLeave={() => setShownTooltipMode(null)}
+												onMouseOver={() =>
+													setShownTooltipMode(
+														lower === "plan" ? "plan" : lower === "act" ? "act" : null,
+													)
+												}
+												role="switch">
+												{m}
+											</div>
+										)
+									})}
+								</SwitchContainer>
+							</TooltipTrigger>
+						</Tooltip>
+					)}
 				</div>
 			</div>
 		)

@@ -92,6 +92,14 @@ host presentation.
 
 `createForkSessionMetadata` from `@cline/core` copies metadata, replaces fork ancestry, and removes inherited handoff markers. Callers supply the source ID, timestamp, source, and optional `beforeRunCount`; titles and session creation remain caller-owned.
 
+## Starting a runtime from saved Hub history
+
+`session.resume` starts a runtime for a saved `sessionConfig.sessionId`. It accepts the execution configuration used by `session.create`, but reads conversation history on the Hub instead of requiring `initialMessages`. It prefers the live conversation when available and otherwise reads persisted history. Startup, replies, and session events use the existing `session.create` path.
+
+A missing ID returns `invalid_resume`, a missing session returns `session_not_found`, and empty history returns `session_messages_not_found`. These errors do not start a runtime. `session.create` remains unchanged, including empty context when `initialMessages` is omitted.
+
+Only `unsupported_command` permits falling back to `session.messages` followed by `session.create` with explicit history.
+
 ## Cloud sessions (experimental)
 
 `summarizeConversation({ messages, config, signal? })` from `@cline/core` returns
@@ -121,6 +129,23 @@ The optional sixth argument to `send` accepts a `beforeDispatch` callback.
 The callback runs before submission and can throw to prevent it. A successful
 return without `recoveredAfterDisconnect` confirms acknowledgement.
 The callback does not confirm acceptance.
+`create({ ...input, initialMessage: { text, images } })` creates the task and sends
+the first message, returning the session attachment and `initialSend`. Without
+`initialMessage`, creation does not send; `initialPrompt` is metadata only.
+Retry a failed initial send on the created target only when `dispatched` is `false`.
+The Hub continues after viewer disconnects. A lost reply raises `request_failed`;
+check cloud tasks before retrying.
+Hub clients can publish an approved snapshot before creation with `localGit`.
+Pass the `organizationId` returned by `prepareHandoffRepository`, or `null` for Personal.
+Omit the preview-only `sourceBranch`, `files`, and `commits` fields from the plan.
+This requires token-authenticated workspace access.
+Attachments must be image data URLs within the shared media-size limits.
+New checkpoint commits are unsigned and skip commit hooks, including pre-commit secret scans.
+Pre-push hooks run in the live source checkout and can modify it.
+Git supplies the captured commit SHA to those hooks on stdin.
+The sensitive-path checks inspect filenames, not file contents.
+Publication creates no local branch or tracking configuration.
+Remote branches remain if verification or cloud creation fails.
 Viewers hydrating active runs with `readMessages` reconcile canonical history at
 completion even when they missed the run-start event and earlier content deltas.
 
@@ -134,6 +159,65 @@ through `restoreCreationOptions`, until the inner task is found or created (or
 the outer session is deleted). `dispose` preserves an injected map; without one,
 the controller owns and clears its pending state. Restoring options alone never
 authorizes recreation of a missing established task.
+
+### Hub-owned cloud viewers
+
+`HubCloudSessionClient` from `@cline/core/cloud` uses an authenticated,
+registered `NodeHubClient` from `@cline/core/hub`. Reuse the host's existing
+Hub connection, or create and connect a `NodeHubClient` with the Hub URL,
+auth token, client ID, and workspace root. The cloud client accepts an async
+connection factory and connects lazily; `connect()` explicitly hydrates it.
+
+```ts
+import { HubCloudSessionClient } from "@cline/core/cloud";
+import type { NodeHubClient } from "@cline/core/hub";
+
+async function openCloudSession(hub: NodeHubClient, sessionId: string) {
+  const viewer = new HubCloudSessionClient(async () => {
+    await hub.connect();
+    return hub;
+  });
+  const unsubscribe = viewer.subscribe((event) => console.log(event));
+  try {
+    await viewer.attach(sessionId);
+    return await viewer.readMessages(sessionId);
+  } finally {
+    unsubscribe();
+    await viewer.dispose();
+  }
+}
+```
+
+The Hub owns the account-scoped controller, credentials, organization lookup,
+provisioning, and sandbox connections. Disposing a viewer releases its subscription
+and projected state; admitted cloud work and sandbox connections continue. The
+host retains ownership of its shared `NodeHubClient`. Account changes retire the
+old controller; Hub shutdown disposes it. Direct controller hosts instead own
+and dispose their controller and its connections.
+
+The viewer supports the serializable operations in `CLOUD_HUB_OPERATIONS`,
+with arguments/results described by `CloudHubArgs` and `CloudHubResult`.
+`CloudHubScope` binds commands to the observed Hub instance and account generation;
+callers use the viewer methods rather than constructing RPC envelopes. Snapshot
+recovery includes empty sets, removes deleted sessions, and rejects stale revisions.
+Dispatched actions are not automatically resent after an uncertain reply.
+Handoff callbacks and the sixth `send` lifecycle argument are direct-controller
+features and cannot cross this RPC boundary. Hub-backed creation defaults to
+`"resumable"` sandboxes.
+
+Discovery caches, pending listing requests, and newly created fallback rows are
+scoped to their organization; switching the sidebar preserves other organizations’
+task state without displaying their rows. Discovery’s `timeoutMs` covers both
+organization resolution and listing. If the organization is still unknown at
+the deadline, discovery returns no cloud rows; cached rows are used only after
+establishing their matching organization.
+
+After a successful organization switch, `refreshOrganization()` invalidates the
+Hub's cached organization before fetching the current one. A fetch failure leaves
+the old cache invalidated. Account-switch success and desktop cleanup must not
+depend on this optional refresh; cloud-disabled hosts skip it. A new viewer's
+watch also invalidates the cache, covering switches made while the Hub was
+unreachable without interrupting existing cloud work.
 
 ## Experimental cloud handoff
 
@@ -422,6 +506,12 @@ standalone adapters do this in the `errorCode` dimension, and use the bounded
 labels `signal` and `no_exit_code` for `CommandTerminationError`. Only an actual
 numeric exit is reported as `exitCode`.
 
+## Tool success context
+
+`AgentTool` and `createTool` accept optional `successContext` text. The agent runtime appends it after the iteration’s tool results, once after-tool hooks have run, without changing the tool output. It reaches the model as a user-role context message with `displayRole: "system"`, hidden from client transcripts. Errors, skipped calls, and hooks that stop execution do not add it. It is retained as conversation history and remains subject to context compaction.
+
+`createAskQuestionTool` and the question tool from `createDefaultTools` use this field to remind the model to continue after an answer, in both direct `Agent` and `ClineCore` sessions.
+
 ## Symlinked instruction files
 
 Rules and workflows can be symbolic links to regular files. Source paths and
@@ -471,3 +561,60 @@ malformed replies throw. It is optional on `McpManager` and
 tool calls on an already connected server. A read that starts while the server
 is being disconnected or re-registered can fail with a disconnect error; retry
 it.
+
+For sessions, set `mcpApps: true` in the session config (`CoreRuntimeFeatures`).
+The runtime builder then advertises the extension to every settings and Agent
+Plugin MCP server it connects, and the session gains an MCP Apps runtime that
+uses those same connections. Hosts reach it through `ClineCore`:
+
+- `resolveMcpAppTool(sessionId, toolName)` maps an agent tool name (as it
+  appears in tool events, for example `weather__show_weather`) to
+  `{ serverName, toolName, resourceUri }`. It returns `undefined` for tools with
+  no `ui://` resource, for sessions without MCP Apps, and for runtimes or hub
+  daemons that do not support MCP Apps.
+- `readMcpAppResource(sessionId, { serverName, uri })` reads a `ui://` resource
+  from one of the session's MCP servers. Other URI schemes are rejected.
+- `callMcpAppTool(sessionId, { serverName, toolName, arguments })` calls a tool
+  on the app's behalf. It rejects tools whose visibility lacks `"app"`, tools
+  the server does not list, servers outside the session, and tools the session
+  disables through `toolPolicies` or the global `disabledTools` setting (matched
+  by agent tool name, such as `weather__refresh_view`). App calls are recorded
+  as tool usage telemetry, but do not request tool approval and do not run tool
+  hooks; a host that wants consent must ask before calling.
+
+Reads and calls reach every enabled settings and Agent Plugin server, including
+ones that failed to list tools at startup; the manager reconnects on demand.
+`resolveMcpAppTool` only searches servers that loaded tools at startup, since
+the agent can only call tools from those. Neither method checks which server an
+app came from, so a host bridging app requests must pass the `serverName` from
+the app's `resolveMcpAppTool` binding rather than one the app supplies.
+
+`readMcpAppResource` and `callMcpAppTool` throw when the session was started
+without `mcpApps` or has no MCP servers. Hub-backed hosts send these as the
+`session.mcp_apps.*` commands, so the hub daemon serves them from the session's
+own MCP manager.
+
+## Run stall telemetry
+
+`@cline/core` measures stalls with a `RunHealthObserver`
+(`packages/core/src/services/telemetry/run-health.ts`). `SessionRuntime`
+creates one per run, for root agents and subagents, when telemetry is
+configured. It watches only the run's runtime events and is disposed when the
+run returns.
+
+- `task.run_idle` fires at most once per run, while it is still running and has
+  emitted no runtime event for 60s.
+- When the run ends, `AgentRuntime` calls the optional
+  `AgentRuntimeConfig.runEndTelemetryProperties()` once, while capturing
+  `agent.run-finished` or `agent.run-failed`, and merges the result into that
+  event. Core uses it to add `maxIdleMs`, `maxIdleAfter`, `msSinceLastEvent`,
+  `lastEventType`, `finishReason`, `idleReported`, `endedOn` and
+  `textSignature`. The observer stops its idle check at that point.
+- `tool-call-delta` is a runtime event emitted for each streamed tool-call
+  argument chunk. It carries no arguments and exists so that a slow tool-call
+  stream is not mistaken for a silent one. It is not mirrored to telemetry and
+  is not forwarded as hub hook traffic.
+
+No message text leaves the client: `textSignature` and `session.input_sent`'s
+`bumpKind` are enums computed locally
+(`packages/core/src/services/telemetry/stall-signals.ts`).
