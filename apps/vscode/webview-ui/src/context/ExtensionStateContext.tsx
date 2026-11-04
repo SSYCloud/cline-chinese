@@ -9,6 +9,7 @@ import { OnboardingModelGroup, type TerminalProfile } from "@shared/proto/cline/
 import { convertProtoToClineMessage } from "@shared/proto-conversions/cline-message"
 import { convertProtoMcpServersToMcpServers } from "@shared/proto-conversions/mcp/mcp-server-conversion"
 import { fromProtobufModels } from "@shared/proto-conversions/models/typeConversion"
+import { DEFAULT_TYPESAFE_MODEL } from "@shared/typesafe-models"
 import type React from "react"
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
 import {
@@ -332,6 +333,8 @@ export const ExtensionStateContextProvider: React.FC<{
 		mcpResponsesCollapsed: false, // Default value (expanded), will be overwritten by extension state
 		useAutoCondense: true,
 		compactionStrategy: "basic",
+		typesafeModel: DEFAULT_TYPESAFE_MODEL,
+		typesafeTestDeleteThreshold: 0.1,
 		webSearchEnabled: false,
 		subagentsEnabled: false,
 		worktreesEnabled: { user: true, featureFlag: false },

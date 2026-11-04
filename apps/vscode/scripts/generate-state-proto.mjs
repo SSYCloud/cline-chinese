@@ -30,7 +30,7 @@ function toProtoFieldName(str) {
 const INT64_FIELDS = new Set(["planModeThinkingBudgetTokens", "actModeThinkingBudgetTokens"])
 
 // Fields that should use double instead of int32
-const DOUBLE_FIELDS = new Set()
+const DOUBLE_FIELDS = new Set(["typesafeTestDeleteThreshold"])
 
 /**
  * Infer proto type from TypeScript type expression

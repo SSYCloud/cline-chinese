@@ -16,6 +16,7 @@ import { toLegacyApiProvider } from "@shared/model-catalog/provider-helpers"
 import { GlobalInstructionsFile } from "@shared/remote-config/schema"
 import { Mode } from "@shared/storage/types"
 import { TelemetrySetting } from "@shared/TelemetrySetting"
+import { DEFAULT_TYPESAFE_MODEL } from "@shared/typesafe-models"
 import { UserInfo } from "@shared/UserInfo"
 import { LanguageModelChatSelector } from "vscode"
 import { type BlobStoreSettings } from "./types"
@@ -292,6 +293,8 @@ const USER_SETTINGS_FIELDS = {
 	defaultTerminalProfile: { default: "default" as string },
 	hooksEnabled: { default: true as boolean },
 	useAutoCondense: { default: true as boolean },
+	typesafeModel: { default: DEFAULT_TYPESAFE_MODEL as string | undefined },
+	typesafeTestDeleteThreshold: { default: 0.1 as number },
 	subagentsEnabled: { default: false as boolean },
 	worktreesEnabled: { default: false as boolean },
 	cloudSessionsEnabled: { default: false as boolean },

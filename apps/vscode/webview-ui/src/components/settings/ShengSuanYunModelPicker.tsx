@@ -1,4 +1,4 @@
-import { shengSuanYunDefaultModelId, shengSuanYunDefaultModelInfo } from "@shared/api"
+import { type ModelInfo, shengSuanYunDefaultModelId, shengSuanYunDefaultModelInfo } from "@shared/api"
 import { EmptyRequest } from "@shared/proto/cline/common"
 import { Mode } from "@shared/storage/types"
 import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
@@ -17,6 +17,11 @@ export interface ShengSuanYunModelPickerProps {
 	isPopup?: boolean
 	currentMode: Mode
 	initialModelTab?: "recommended" | "free"
+	models?: Record<string, ModelInfo>
+	modelId?: string
+	onModelChange?: (modelId: string) => void
+	label?: string
+	inputId?: string
 }
 // Star icon for favorites
 const StarIcon = ({ isFavorite, onClick }: { isFavorite: boolean; onClick: (e: React.MouseEvent) => void }) => {
@@ -155,11 +160,25 @@ export const commonModels = [
 		label: "NEW",
 	},
 ]
-const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPopup, currentMode, initialModelTab }) => {
+const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({
+	isPopup,
+	currentMode,
+	initialModelTab,
+	models,
+	modelId,
+	onModelChange,
+	label = "模型",
+	inputId = "model-search",
+}) => {
 	const { apiConfiguration, shengSuanYunModels, setShengSuanYunModels } = useExtensionState()
 	const { handleModeFieldsChange } = useApiConfigurationHandlers()
 	const modeFields = getModeSpecificFields(apiConfiguration, currentMode)
-	const [searchTerm, setSearchTerm] = useState(modeFields.shengSuanYunModelId || shengSuanYunDefaultModelId)
+	const fallbackModelId = models
+		? modelId && models[modelId]
+			? modelId
+			: Object.keys(models)[0]
+		: modeFields.shengSuanYunModelId || shengSuanYunDefaultModelId
+	const [searchTerm, setSearchTerm] = useState(fallbackModelId)
 	const [isDropdownVisible, setIsDropdownVisible] = useState(false)
 	const [selectedIndex, setSelectedIndex] = useState(-1)
 	const dropdownRef = useRef<HTMLDivElement>(null)
@@ -167,7 +186,20 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 	const dropdownListRef = useRef<HTMLDivElement>(null)
 	const [activeTab, setActiveTab] = useState<"recommended" | "common" | "free">("recommended")
 
+	const { selectedModelId: providerModelId, selectedModelInfo: providerModelInfo } = useDynamicProviderSelection(
+		"shengsuanyun",
+		apiConfiguration,
+		currentMode,
+	)
+	const selectedModelId = models ? fallbackModelId : providerModelId
+	const selectedModelInfo = models ? models[selectedModelId] : providerModelInfo
+
 	const handleModelChange = (newModelId: string) => {
+		if (models) {
+			onModelChange?.(newModelId)
+			setSearchTerm(newModelId)
+			return
+		}
 		// could be setting invalid model id/undefined info but validation will catch it
 		handleModeFieldsChange(
 			{
@@ -182,9 +214,25 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 		)
 		setSearchTerm(newModelId)
 	}
-	const { selectedModelId, selectedModelInfo } = useDynamicProviderSelection("shengsuanyun", apiConfiguration, currentMode)
+
+	const handleSearchInput = (value: string) => {
+		setSearchTerm(value)
+		setIsDropdownVisible(true)
+		if (!models) {
+			handleModelChange(value.toLowerCase())
+		}
+	}
+
+	useEffect(() => {
+		if (models) {
+			setSearchTerm(fallbackModelId)
+		}
+	}, [models, fallbackModelId])
 
 	useMount(() => {
+		if (models) {
+			return
+		}
 		ModelsServiceClient.refreshShengSuanYunModels(EmptyRequest.create({}))
 			.then((res) => {
 				console.log("refreshShengSuanYunModels():", res.models)
@@ -210,22 +258,23 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 	}, [])
 
 	const modelIds = useMemo(() => {
-		return Object.keys(shengSuanYunModels).sort((a, b) => a.localeCompare(b))
-	}, [shengSuanYunModels])
+		return Object.keys(models ?? shengSuanYunModels).sort((a, b) => a.localeCompare(b))
+	}, [models, shengSuanYunModels])
 
 	const searchableItems = useMemo(() => {
 		return modelIds.map((id) => ({ id, html: id }))
 	}, [modelIds])
 
 	const modelSearchResults = useMemo(() => {
-		if (!searchTerm) {
+		const term = models && searchTerm === fallbackModelId ? "" : searchTerm
+		if (!term) {
 			return searchableItems
 		}
-		const lowerSearchTerm = searchTerm.toLowerCase()
+		const lowerSearchTerm = term.toLowerCase()
 		return searchableItems
 			.filter((item) => item.id.toLowerCase().includes(lowerSearchTerm))
 			.map((item) => {
-				const escapedSearchTerm = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+				const escapedSearchTerm = term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 				const regex = new RegExp(`(${escapedSearchTerm})`, "gi")
 				const highlightedHtml = item.id.replace(regex, '<span class="model-item-highlight">$1</span>')
 				return {
@@ -233,7 +282,7 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 					html: highlightedHtml,
 				}
 			})
-	}, [searchableItems, searchTerm])
+	}, [models, fallbackModelId, searchableItems, searchTerm])
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
 		if (!isDropdownVisible) {
@@ -264,12 +313,15 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 	}
 
 	const hasInfo = useMemo(() => {
+		if (models) {
+			return !!models[selectedModelId]
+		}
 		try {
 			return modelIds.some((id) => id.toLowerCase() === searchTerm.toLowerCase())
 		} catch {
 			return false
 		}
-	}, [modelIds, searchTerm])
+	}, [models, selectedModelId, modelIds, searchTerm])
 
 	useEffect(() => {
 		setSelectedIndex(-1)
@@ -298,27 +350,46 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 				`}
 			</style>
 			<div style={{ display: "flex", flexDirection: "column" }}>
-				<label htmlFor="model-search">
-					<span style={{ fontWeight: 500 }}>模型</span>
+				<label htmlFor={inputId}>
+					<span style={{ fontWeight: 500 }}>{label}</span>
 				</label>
-				<TabsContainer style={{ marginTop: 4 }}>
-					<Tab active={activeTab === "recommended"} onClick={() => setActiveTab("recommended")}>
-						体验模型
-					</Tab>
-					<Tab active={activeTab === "free"} onClick={() => setActiveTab("free")}>
-						免费模型
-					</Tab>
-					<Tab active={activeTab === "common"} onClick={() => setActiveTab("common")}>
-						前沿模型
-					</Tab>
-				</TabsContainer>
+				{!models && (
+					<TabsContainer style={{ marginTop: 4 }}>
+						<Tab active={activeTab === "recommended"} onClick={() => setActiveTab("recommended")}>
+							体验模型
+						</Tab>
+						<Tab active={activeTab === "free"} onClick={() => setActiveTab("free")}>
+							免费模型
+						</Tab>
+						<Tab active={activeTab === "common"} onClick={() => setActiveTab("common")}>
+							前沿模型
+						</Tab>
+					</TabsContainer>
+				)}
 
 				{/* Model Cards */}
-				<div style={{ marginBottom: "6px" }}>
-					{activeTab === "recommended" && (
-						<>
-							<Lure from="CH_MC7LPRV0" />
-							{recommendedModels.map((model) => (
+				{!models && (
+					<div style={{ marginBottom: "6px" }}>
+						{activeTab === "recommended" && (
+							<>
+								<Lure from="CH_MC7LPRV0" />
+								{recommendedModels.map((model) => (
+									<FeaturedModelCard
+										description={model.description}
+										displayName={model.name || model.id}
+										isSelected={selectedModelId === model.id}
+										key={model.id}
+										label={model.label}
+										onClick={() => {
+											handleModelChange(model.id)
+											setIsDropdownVisible(false)
+										}}
+									/>
+								))}
+							</>
+						)}
+						{activeTab === "free" &&
+							freeModels.map((model) => (
 								<FeaturedModelCard
 									description={model.description}
 									displayName={model.name || model.id}
@@ -331,45 +402,32 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 									}}
 								/>
 							))}
-						</>
-					)}
-					{activeTab === "free" &&
-						freeModels.map((model) => (
-							<FeaturedModelCard
-								description={model.description}
-								displayName={model.name || model.id}
-								isSelected={selectedModelId === model.id}
-								key={model.id}
-								label={model.label}
-								onClick={() => {
-									handleModelChange(model.id)
-									setIsDropdownVisible(false)
-								}}
-							/>
-						))}
-					{activeTab === "common" &&
-						commonModels.map((model) => (
-							<FeaturedModelCard
-								description={model.description}
-								displayName={model.name || model.id}
-								isSelected={selectedModelId === model.id}
-								key={model.id}
-								label={model.label}
-								onClick={() => {
-									handleModelChange(model.id)
-									setIsDropdownVisible(false)
-								}}
-							/>
-						))}
-				</div>
+						{activeTab === "common" &&
+							commonModels.map((model) => (
+								<FeaturedModelCard
+									description={model.description}
+									displayName={model.name || model.id}
+									isSelected={selectedModelId === model.id}
+									key={model.id}
+									label={model.label}
+									onClick={() => {
+										handleModelChange(model.id)
+										setIsDropdownVisible(false)
+									}}
+								/>
+							))}
+					</div>
+				)}
 				<DropdownWrapper ref={dropdownRef}>
 					<VSCodeTextField
-						id="model-search"
-						onFocus={() => setIsDropdownVisible(true)}
-						onInput={(e) => {
-							handleModelChange((e.target as HTMLInputElement)?.value?.toLowerCase())
-							setIsDropdownVisible(true)
+						id={inputId}
+						onBlur={() => {
+							if (models && !models[searchTerm]) {
+								setSearchTerm(fallbackModelId)
+							}
 						}}
+						onFocus={() => setIsDropdownVisible(true)}
+						onInput={(e) => handleSearchInput((e.target as HTMLInputElement)?.value ?? "")}
 						onKeyDown={handleKeyDown}
 						placeholder="搜索模型..."
 						style={{
@@ -382,10 +440,7 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({ isPop
 							<div
 								aria-label="清除"
 								className="input-icon-button codicon codicon-close"
-								onClick={() => {
-									handleModelChange("")
-									setIsDropdownVisible(true)
-								}}
+								onClick={() => handleSearchInput("")}
 								slot="end"
 								style={{
 									display: "flex",

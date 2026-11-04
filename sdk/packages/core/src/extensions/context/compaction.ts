@@ -470,8 +470,43 @@ export function createContextCompactionPrepareTurn(
 		const beforeMessageCount = context.messages.length;
 		const startedAt = Date.now();
 
+		let preCompaction: CoreCompactionResult | undefined;
+		if (effectiveMode !== "overflow_recovery" && userCompaction.preCompact) {
+			try {
+				preCompaction = await userCompaction.preCompact(compactionContext);
+			} catch (error) {
+				if (isCompactionCancellation(error, context.abortSignal)) {
+					throw error;
+				}
+				config.logger?.log(
+					"Pre-compaction hook failed; continuing with the original transcript",
+					{
+						severity: "warn",
+						...describeCompactionError(error),
+					},
+				);
+				preCompaction = undefined;
+			}
+		}
+		const strategyContext: CoreCompactionContext = preCompaction?.messages
+			? {
+					...compactionContext,
+					messages: preCompaction.messages,
+					budget: {
+						...compactionContext.budget,
+						messages: {
+							...compactionContext.budget.messages,
+							inputTokens: preCompaction.messages.reduce(
+								(total, message) => total + estimateMessageTokens(message),
+								0,
+							),
+						},
+					},
+				}
+			: compactionContext;
+
 		const builtinOptions = {
-			context: compactionContext,
+			context: strategyContext,
 			// Resolved per turn from the live session config, with the same
 			// precedence as the main request, so the summarizer never sends
 			// credentials the host has since refreshed or replaced.
@@ -485,91 +520,102 @@ export function createContextCompactionPrepareTurn(
 		};
 		let executedStrategy = telemetryStrategy;
 		let result: CoreCompactionResult | undefined;
-		if (effectiveMode === "overflow_recovery") {
-			// The provider already rejected the request, so recovery must end
-			// deterministically: the agentic strategy's own summarizer call could
-			// overflow the same window (its input budgeting trusts the same
-			// estimator that just undercounted). A custom compactor gets first
-			// shot — it sees mode "overflow_recovery" and owns its transcript
-			// invariants — but its result is held to the same bar basic
-			// compaction aims for: strictly smaller than the input (the runtime
-			// refuses to retry with a request that is not smaller) AND within
-			// the recovery token target. A marginal shrink would spend the
-			// run's single retry on a request that still cannot fit. On throw,
-			// decline, or an insufficient result, basic compaction runs so
-			// recovery never depends on another successful LLM request.
-			if (userCompaction?.compact) {
+		if (
+			preCompaction?.messages &&
+			preCompaction.messages.length > 0 &&
+			strategyContext.budget.messages.inputTokens <= messageTargetTokens
+		) {
+			result = { messages: preCompaction.messages };
+			executedStrategy = "custom";
+		}
+		if (!result) {
+			if (effectiveMode === "overflow_recovery") {
+				// The provider already rejected the request, so recovery must end
+				// deterministically: the agentic strategy's own summarizer call could
+				// overflow the same window (its input budgeting trusts the same
+				// estimator that just undercounted). A custom compactor gets first
+				// shot — it sees mode "overflow_recovery" and owns its transcript
+				// invariants — but its result is held to the same bar basic
+				// compaction aims for: strictly smaller than the input (the runtime
+				// refuses to retry with a request that is not smaller) AND within
+				// the recovery token target. A marginal shrink would spend the
+				// run's single retry on a request that still cannot fit. On throw,
+				// decline, or an insufficient result, basic compaction runs so
+				// recovery never depends on another successful LLM request.
+				if (userCompaction?.compact) {
+					try {
+						result = await userCompaction.compact(compactionContext);
+					} catch (error) {
+						if (isCompactionCancellation(error, context.abortSignal)) {
+							throw error;
+						}
+						config.logger?.log(
+							"Custom compaction failed during overflow recovery; falling back to basic compaction",
+							{
+								severity: "warn",
+								...describeCompactionError(error),
+							},
+						);
+						result = undefined;
+					}
+					if (result?.messages) {
+						const customMessageTokens = result.messages.reduce(
+							(total: number, message) =>
+								total + estimateMessageTokens(message),
+							0,
+						);
+						// The full acceptance bar, covering every degenerate size: a
+						// non-empty transcript (an empty one erases the request being
+						// retried), strictly smaller than the input (the runtime
+						// refuses a retry that is not smaller), and within the
+						// recovery token target (a marginal shrink spends the run's
+						// single retry on a request that still cannot fit). Both size
+						// comparisons use the token estimator rather than serialized
+						// length so they are expressed in the same unit as the target.
+						const acceptable =
+							result.messages.length > 0 &&
+							customMessageTokens < messageInputTokens &&
+							customMessageTokens <= messageTargetTokens;
+						if (!acceptable) {
+							config.logger?.log(
+								"Custom compaction did not produce an acceptable overflow-recovery transcript; falling back to basic compaction",
+								{
+									severity: "warn",
+									customMessageCount: result.messages.length,
+									customMessageTokens,
+									messageTargetTokens,
+								},
+							);
+							result = undefined;
+						}
+					}
+				}
+				if (!result?.messages) {
+					executedStrategy = "basic";
+					result = await BUILTIN_COMPACTION_STRATEGIES.basic(builtinOptions);
+				}
+			} else if (userCompaction?.compact) {
+				result = await userCompaction.compact(strategyContext);
+			} else {
 				try {
-					result = await userCompaction.compact(compactionContext);
+					result = await runBuiltinStrategy(builtinOptions);
 				} catch (error) {
-					if (isCompactionCancellation(error, context.abortSignal)) {
+					if (
+						strategy !== "agentic" ||
+						isCompactionCancellation(error, context.abortSignal)
+					) {
 						throw error;
 					}
 					config.logger?.log(
-						"Custom compaction failed during overflow recovery; falling back to basic compaction",
+						"Agentic compaction failed; falling back to basic compaction",
 						{
 							severity: "warn",
 							...describeCompactionError(error),
 						},
 					);
-					result = undefined;
+					executedStrategy = "basic";
+					result = await BUILTIN_COMPACTION_STRATEGIES.basic(builtinOptions);
 				}
-				if (result?.messages) {
-					const customMessageTokens = result.messages.reduce(
-						(total: number, message) => total + estimateMessageTokens(message),
-						0,
-					);
-					// The full acceptance bar, covering every degenerate size: a
-					// non-empty transcript (an empty one erases the request being
-					// retried), strictly smaller than the input (the runtime
-					// refuses a retry that is not smaller), and within the
-					// recovery token target (a marginal shrink spends the run's
-					// single retry on a request that still cannot fit). Both size
-					// comparisons use the token estimator rather than serialized
-					// length so they are expressed in the same unit as the target.
-					const acceptable =
-						result.messages.length > 0 &&
-						customMessageTokens < messageInputTokens &&
-						customMessageTokens <= messageTargetTokens;
-					if (!acceptable) {
-						config.logger?.log(
-							"Custom compaction did not produce an acceptable overflow-recovery transcript; falling back to basic compaction",
-							{
-								severity: "warn",
-								customMessageCount: result.messages.length,
-								customMessageTokens,
-								messageTargetTokens,
-							},
-						);
-						result = undefined;
-					}
-				}
-			}
-			if (!result?.messages) {
-				executedStrategy = "basic";
-				result = await BUILTIN_COMPACTION_STRATEGIES.basic(builtinOptions);
-			}
-		} else if (userCompaction?.compact) {
-			result = await userCompaction.compact(compactionContext);
-		} else {
-			try {
-				result = await runBuiltinStrategy(builtinOptions);
-			} catch (error) {
-				if (
-					strategy !== "agentic" ||
-					isCompactionCancellation(error, context.abortSignal)
-				) {
-					throw error;
-				}
-				config.logger?.log(
-					"Agentic compaction failed; falling back to basic compaction",
-					{
-						severity: "warn",
-						...describeCompactionError(error),
-					},
-				);
-				executedStrategy = "basic";
-				result = await BUILTIN_COMPACTION_STRATEGIES.basic(builtinOptions);
 			}
 		}
 

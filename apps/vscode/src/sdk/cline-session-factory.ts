@@ -44,6 +44,7 @@ import { StateManager } from "@/core/storage/StateManager"
 import { HostProvider } from "@/hosts/host-provider"
 import { ExtensionRegistryInfo } from "@/registry"
 import { getDistinctId } from "@/services/logging/distinctId"
+import { createTypesafePreCompact } from "@/services/typesafe-compaction/precompact"
 import { fetch, fetchWithoutIdleTimeouts } from "@/shared/net"
 import { type BedrockProviderConfig, buildBedrockProviderConfig } from "./bedrock-config"
 import { buildAgentHooks } from "./hooks-adapter"
@@ -1197,6 +1198,18 @@ export async function buildSessionConfig(input: SessionConfigInput): Promise<Cor
 		fetch: resolveProviderFetch(sdkProviderId, baseUrl),
 	}
 
+	const typesafePreCompact =
+		sdkProviderId === "shengsuanyun" && apiKey
+			? createTypesafePreCompact({
+					apiKey,
+					model: stateManager.getGlobalSettingsKey("typesafeModel"),
+					testDeleteThreshold: stateManager.getGlobalSettingsKey("typesafeTestDeleteThreshold"),
+					workspaceRoot,
+					fetch: providerConfig.fetch,
+					log: (message) => Logger.log(`[Typesafe] ${message}`),
+				})
+			: undefined
+
 	const config: CoreSessionConfig = {
 		providerId: sdkProviderId,
 		modelId,
@@ -1216,11 +1229,12 @@ export async function buildSessionConfig(input: SessionConfigInput): Promise<Cor
 		},
 		enableSpawnAgent: false,
 		enableAgentTeams: false,
-		...(useAutoCondense
+		...(useAutoCondense || typesafePreCompact
 			? {
 					compaction: {
-						enabled: true,
+						enabled: useAutoCondense,
 						strategy: compactionStrategy,
+						...(typesafePreCompact ? { preCompact: typesafePreCompact } : {}),
 					},
 				}
 			: {}),

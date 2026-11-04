@@ -161,6 +161,12 @@ export interface CoreCompactionConfig {
 	strategy?: CoreCompactionStrategy;
 	preserveRecentTokens?: number;
 	summarizer?: CoreCompactionSummarizerConfig;
+	preCompact?: (
+		context: CoreCompactionContext,
+	) =>
+		| Promise<CoreCompactionResult | undefined>
+		| CoreCompactionResult
+		| undefined;
 	compact?: (
 		context: CoreCompactionContext,
 	) =>

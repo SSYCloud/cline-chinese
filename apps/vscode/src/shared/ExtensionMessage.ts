@@ -136,6 +136,8 @@ export interface ExtensionState {
 	mcpResponsesCollapsed?: boolean
 	useAutoCondense?: boolean
 	compactionStrategy?: string
+	typesafeModel?: string
+	typesafeTestDeleteThreshold?: number
 	webSearchEnabled?: boolean
 	subagentsEnabled?: boolean
 	worktreesEnabled?: ClineFeatureSetting

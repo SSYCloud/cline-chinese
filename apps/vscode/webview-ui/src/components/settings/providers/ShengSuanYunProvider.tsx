@@ -1,13 +1,15 @@
 import type { EAccount } from "@shared/proto/cline/account"
 import { EmptyRequest, StringRequest } from "@shared/proto/cline/common"
 import { Mode } from "@shared/storage/types"
-import { VSCodeButton } from "@vscode/webview-ui-toolkit/react"
+import { DEFAULT_TYPESAFE_MODEL, TYPESAFE_MODELS } from "@shared/typesafe-models"
+import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import { useEffect, useMemo, useState } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { useSignIn as useShengSuanYunSignIn } from "@/context/ShengSuanYunAuthContext"
 import { AccountServiceClient } from "@/services/grpc-client"
 import { ApiKeyField, type ApiKeyFieldOption } from "../common/ApiKeyField"
 import ShengSuanYunModelPicker from "../ShengSuanYunModelPicker"
+import { updateSetting } from "../utils/settingsHandlers"
 import { useApiConfigurationHandlers } from "../utils/useApiConfigurationHandlers"
 
 interface ShengSuanYunProviderProps {
@@ -65,16 +67,29 @@ const toEnterpriseApiKeyOptions = (accounts: EAccount[]): ApiKeyFieldOption[] =>
 }
 
 export const ShengSuanYunProvider = ({ showModelOptions, isPopup, currentMode, initialModelTab }: ShengSuanYunProviderProps) => {
-	const { apiConfiguration, userInfo } = useExtensionState()
+	const { apiConfiguration, userInfo, typesafeModel, typesafeTestDeleteThreshold } = useExtensionState()
 	const { handleFieldChange } = useApiConfigurationHandlers()
 
 	const [enterpriseAccounts, setEnterpriseAccounts] = useState<EAccount[]>([])
 	const [isLoadingKeys, setIsLoadingKeys] = useState(false)
 	const [isSwitchingKey, setIsSwitchingKey] = useState(false)
 	const [keysError, setKeysError] = useState<string | null>(null)
+	const [typesafeThresholdInput, setTypesafeThresholdInput] = useState(String(typesafeTestDeleteThreshold ?? 0.1))
 
 	const currentApiKey = apiConfiguration?.shengSuanYunApiKey || ""
 	const isLoggedIn = !!userInfo?.uid
+	const selectedTypesafeModel = typesafeModel && TYPESAFE_MODELS[typesafeModel] ? typesafeModel : DEFAULT_TYPESAFE_MODEL
+
+	useEffect(() => {
+		setTypesafeThresholdInput(String(typesafeTestDeleteThreshold ?? 0.1))
+	}, [typesafeTestDeleteThreshold])
+
+	const commitTypesafeThreshold = () => {
+		const parsed = Number.parseFloat(typesafeThresholdInput)
+		const value = Number.isFinite(parsed) ? Math.min(1, Math.max(0, parsed)) : 0.1
+		setTypesafeThresholdInput(String(value))
+		updateSetting("typesafeTestDeleteThreshold", value)
+	}
 
 	useEffect(() => {
 		if (!isLoggedIn) {
@@ -166,7 +181,37 @@ export const ShengSuanYunProvider = ({ showModelOptions, isPopup, currentMode, i
 				signupUrl="https://console.shengsuanyun.com/user/keys/?from=cline-chinese"
 			/>
 			{showModelOptions && (
-				<ShengSuanYunModelPicker currentMode={currentMode} initialModelTab={initialModelTab} isPopup={isPopup} />
+				<>
+					<ShengSuanYunModelPicker currentMode={currentMode} initialModelTab={initialModelTab} isPopup={isPopup} />
+					<div className="mt-4">
+						<ShengSuanYunModelPicker
+							currentMode={currentMode}
+							inputId="typesafe-model"
+							isPopup={isPopup}
+							label="决策模型"
+							modelId={selectedTypesafeModel}
+							models={TYPESAFE_MODELS}
+							onModelChange={(value) => updateSetting("typesafeModel", value)}
+						/>
+						<p className="mt-1 text-sm text-(--vscode-descriptionForeground)">使用决策模型筛选上下文。</p>
+					</div>
+					<div className="mt-4 space-y-1">
+						<label htmlFor="typesafe-test-delete-threshold" style={{ fontWeight: 500 }}>
+							单元测试删除阀值
+						</label>
+						<VSCodeTextField
+							id="typesafe-test-delete-threshold"
+							onBlur={commitTypesafeThreshold}
+							onInput={(e) => setTypesafeThresholdInput((e.target as HTMLInputElement)?.value ?? "")}
+							placeholder="0.1"
+							style={{ width: "100%" }}
+							value={typesafeThresholdInput}
+						/>
+						<p className="text-sm text-(--vscode-descriptionForeground)">
+							评分低于该值的单元测试会被删除，取值范围 0-1，设为 0 关闭测试整理。
+						</p>
+					</div>
+				</>
 			)}
 		</div>
 	)

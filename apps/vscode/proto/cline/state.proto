@@ -297,6 +297,8 @@ message Settings {
   optional OpenRouterModelInfo act_mode_sheng_suan_yun_model_info = 190;
   optional string open_telemetry_traces_exporter = 191;
   optional bool cloud_sessions_enabled = 192;
+  optional string typesafe_model = 193;
+  optional double typesafe_test_delete_threshold = 194;
 }
 
 message State {
@@ -442,6 +444,8 @@ message UpdateSettingsRequest {
   optional string compaction_strategy = 44;
   optional bool web_search_enabled = 45;
   optional bool cloud_sessions_enabled = 46;
+  optional string typesafe_model = 47;
+  optional double typesafe_test_delete_threshold = 48;
 }
 
 message UpdateTerminalConnectionTimeoutRequest {

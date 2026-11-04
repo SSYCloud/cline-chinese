@@ -183,6 +183,15 @@ export async function updateSettings(controller: Controller, request: UpdateSett
 			setModelToolEnabledGlobally("web_search", !!request.webSearchEnabled)
 		}
 
+		if (request.typesafeModel !== undefined) {
+			const model = request.typesafeModel.trim()
+			controller.stateManager.setGlobalState("typesafeModel", model.length > 0 ? model : undefined)
+		}
+
+		if (request.typesafeTestDeleteThreshold !== undefined) {
+			controller.stateManager.setGlobalState("typesafeTestDeleteThreshold", request.typesafeTestDeleteThreshold)
+		}
+
 		if (request.compactionStrategy !== undefined) {
 			const strategy = request.compactionStrategy
 			if (strategy !== "basic" && strategy !== "agentic") {

@@ -4894,3 +4894,114 @@ describe("createContextCompactionPrepareTurn", () => {
 		).toBeDefined();
 	});
 });
+
+describe("createContextCompactionPrepareTurn preCompact", () => {
+	const messages: MessageWithMetadata[] = [
+		{ role: "user", content: "x".repeat(3_000) },
+	];
+	const baseInput = (extra: Record<string, unknown> = {}) => ({
+		agentId: "agent-1",
+		conversationId: "conv-1",
+		parentAgentId: null,
+		iteration: 1,
+		abortSignal: new AbortController().signal,
+		systemPrompt: "",
+		tools: [],
+		messages,
+		apiMessages: messages,
+		model: { id: "custom-model", provider: "openai-compatible" },
+		...extra,
+	});
+
+	it("runs before the configured strategy", async () => {
+		const pruned: MessageWithMetadata[] = [
+			{ role: "user", content: "y".repeat(3_000) },
+		];
+		const preCompact = vi.fn(() => ({ messages: pruned }));
+		const compact = vi.fn((_context: CoreCompactionContext) => ({
+			messages: [{ role: "user" as const, content: "final" }],
+		}));
+		const prepareTurn = createContextCompactionPrepareTurn(
+			{
+				providerId: "openai-compatible",
+				modelId: "custom-model",
+				compaction: { enabled: true, compact, preCompact },
+			},
+			{ mode: "manual" },
+		);
+		const result = await prepareTurn?.(baseInput());
+
+		expect(preCompact).toHaveBeenCalledTimes(1);
+		expect(compact).toHaveBeenCalledTimes(1);
+		expect(compact.mock.calls[0]?.[0].messages).toEqual(pruned);
+		expect(result?.messages).toEqual([{ role: "user", content: "final" }]);
+	});
+
+	it("skips the strategy when the pre-compacted transcript fits the target", async () => {
+		const pruned: MessageWithMetadata[] = [{ role: "user", content: "hi" }];
+		const preCompact = vi.fn(() => ({ messages: pruned }));
+		const prepareTurn = createContextCompactionPrepareTurn(
+			{
+				providerId: "openai-compatible",
+				modelId: "custom-model",
+				compaction: { enabled: true, strategy: "agentic", preCompact },
+			},
+			{ mode: "manual" },
+		);
+		const result = await prepareTurn?.(baseInput());
+
+		expect(preCompact).toHaveBeenCalledTimes(1);
+		expect(createHandlerMock).not.toHaveBeenCalled();
+		expect(result?.messages).toEqual(pruned);
+	});
+
+	it("does not run during overflow recovery", async () => {
+		const preCompact = vi.fn(() => ({
+			messages: [{ role: "user" as const, content: "pruned" }],
+		}));
+		const compact = vi.fn((_context: CoreCompactionContext) => ({
+			messages: [{ role: "user" as const, content: "final" }],
+		}));
+		const prepareTurn = createContextCompactionPrepareTurn({
+			providerId: "openai-compatible",
+			modelId: "custom-model",
+			compaction: { enabled: true, compact, preCompact },
+		});
+		const result = await prepareTurn?.(
+			baseInput({
+				overflowRecovery: true,
+				model: {
+					id: "custom-model",
+					provider: "openai-compatible",
+					info: { id: "custom-model", maxInputTokens: 1_000 },
+				},
+			}),
+		);
+
+		expect(preCompact).not.toHaveBeenCalled();
+		expect(compact).toHaveBeenCalledTimes(1);
+		expect(result?.messages).toEqual([{ role: "user", content: "final" }]);
+	});
+
+	it("falls back to the original transcript when the hook throws", async () => {
+		const preCompact = vi.fn(() => {
+			throw new Error("boom");
+		});
+		const compact = vi.fn((_context: CoreCompactionContext) => ({
+			messages: [{ role: "user" as const, content: "final" }],
+		}));
+		const prepareTurn = createContextCompactionPrepareTurn(
+			{
+				providerId: "openai-compatible",
+				modelId: "custom-model",
+				compaction: { enabled: true, compact, preCompact },
+			},
+			{ mode: "manual" },
+		);
+		const result = await prepareTurn?.(baseInput());
+
+		expect(preCompact).toHaveBeenCalledTimes(1);
+		expect(compact.mock.calls[0]?.[0].messages).toEqual(messages);
+		expect(result?.messages).toEqual([{ role: "user", content: "final" }]);
+	});
+});
