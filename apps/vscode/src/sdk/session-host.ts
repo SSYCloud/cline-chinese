@@ -60,6 +60,13 @@ export interface SdkSessionHost {
 	pendingPrompts(action: "delete", input: PendingPromptsDeleteInput): Promise<PendingPromptMutationResult>
 	subscribe(listener: (event: CoreSessionEvent) => void): () => void
 	updateSessionModel?(sessionId: string, modelId: string): Promise<void>
+	/**
+	 * Replaces the API key a live session uses for subsequent turns. Session
+	 * configs snapshot their credentials at start, so a key switch that only
+	 * updates stored settings would keep billing the previous key until the
+	 * task is restarted.
+	 */
+	updateSessionApiKey?(sessionId: string, apiKey: string): Promise<void>
 }
 
 export type SdkInitialMessages = NonNullable<StartSessionInput["initialMessages"]>

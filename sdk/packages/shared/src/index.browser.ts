@@ -407,6 +407,7 @@ export type {
 	ProviderOAuthLoginResponse,
 	ProviderProtocol,
 	ProviderSettingsActionRequest,
+	ProviderSettingsObjectPatch,
 	RuntimeLoggerConfig,
 	SaveProviderSettingsActionRequest,
 	VoiceInputSelection,
@@ -448,6 +449,7 @@ export {
 	CLINE_ENVIRONMENTS,
 	DEFAULT_CLINE_ENVIRONMENT,
 	getClineEnvironmentConfig,
+	resolveClineAppUrl,
 	resolveClineEnvironment,
 } from "./runtime/cline-environment";
 export type {
@@ -534,3 +536,5 @@ export { createTool } from "./tools/create";
 export { AUTH_ERROR_PATTERNS, isLikelyAuthError } from "./types/auth";
 // VCR is Node-only (uses node:fs, node:path), excluded from browser build
 export type { VcrRecording } from "./types/vcr";
+
+export * from "./ux-verifier";

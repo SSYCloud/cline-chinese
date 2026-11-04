@@ -115,6 +115,10 @@ export class VscodeSessionHost implements SdkSessionHost {
 		return this.inner.updateSessionModel(sessionId, modelId)
 	}
 
+	updateSessionApiKey?(sessionId: string, apiKey: string): Promise<void> {
+		return this.inner.updateSessionConnection(sessionId, { apiKey })
+	}
+
 	static async create(options: VscodeSessionHostOptions): Promise<VscodeSessionHost> {
 		// Build tool executor capabilities from options — only include keys that are provided.
 		// When a terminal manager is available, suppress the SDK's built-in run_commands

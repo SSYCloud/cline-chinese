@@ -216,6 +216,16 @@ export class SdkSessionLifecycle {
 		return true
 	}
 
+	async updateActiveSessionApiKey(apiKey: string): Promise<boolean> {
+		const activeSession = this.activeSession
+		if (!activeSession?.sdkHost.updateSessionApiKey) {
+			return false
+		}
+
+		await activeSession.sdkHost.updateSessionApiKey(activeSession.sessionId, apiKey)
+		return true
+	}
+
 	async startNewSession(
 		startInput: Parameters<VscodeSessionHost["start"]>[0],
 		/**

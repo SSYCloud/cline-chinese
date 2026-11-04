@@ -91,6 +91,7 @@ message UserInfo {
   optional string photo_url = 4;
   optional string app_base_url = 5; // Cline app base URL
   optional double balance = 6;
+  optional string data_privacy_path = 7; // Cline app path for data use preferences
 }
 message UserOrganization {
   bool active = 1;

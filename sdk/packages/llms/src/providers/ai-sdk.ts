@@ -48,6 +48,7 @@ import {
 	createStreamErrorTelemetry,
 	isTimeoutReason,
 } from "../services/stream-error-telemetry";
+import { wrapFetchForAimlapiAttribution } from "./aimlapi/attribution";
 import {
 	classifyProviderError,
 	isRetryableBeyondSdkRetries,
@@ -60,10 +61,6 @@ import {
 	modelSupportsImageInput,
 	resolveModelFamily,
 } from "./model-facts";
-import {
-	recordProviderRequestCapture,
-	wrapFetchForProviderRequestCapture,
-} from "./provider-request-capture";
 import {
 	appendRequestId,
 	extractResponseRequestId,
@@ -2281,10 +2278,9 @@ function createAiSdkProvider(
 					kind,
 					{
 						...config,
-						fetch: wrapFetchForStickySession(
-							wrapFetchForProviderRequestCapture(config.fetch, request),
-							request,
-							context,
+						fetch: wrapFetchForAimlapiAttribution(
+							wrapFetchForStickySession(config.fetch, request, context),
+							request.providerId,
 						),
 					},
 					context,
@@ -2345,21 +2341,6 @@ function createAiSdkProvider(
 						);
 					}
 					const prompt = resolveImageGenerationPrompt(request, context);
-					recordProviderRequestCapture({
-						stage: "ai_sdk_prompt",
-						request,
-						payload: {
-							operation: "generate_image",
-							prompt:
-								typeof prompt === "string"
-									? prompt
-									: {
-											text: prompt.text,
-											imageCount: prompt.images.length,
-										},
-							providerOptions,
-						},
-					});
 					const result = await generateImage({
 						model: provider.operations.imageGeneration(
 							context.model.id,
@@ -2451,18 +2432,6 @@ function createAiSdkProvider(
 					provider.buildStreamConfig
 						? provider.buildStreamConfig(request, context)
 						: buildAiSdkStreamConfig(request, context);
-				recordProviderRequestCapture({
-					stage: "ai_sdk_prompt",
-					request,
-					payload: {
-						messages,
-						...(useSystemOption ? { system: systemPrompt } : {}),
-						tools,
-						providerOptions,
-						...requestConfig,
-						...(portableReasoning ? { reasoning: portableReasoning } : {}),
-					},
-				});
 				stream = await withAiSdkLangfuseTraceContext(
 					aiSdkTelemetry.isEnabled,
 					request,

@@ -956,6 +956,13 @@ export class Controller {
 
 	handleApiConfigurationChanged(previous: ApiConfiguration, next: ApiConfiguration): void {
 		this.providerChanges.handleApiConfigurationChanged(previous, next)
+		// A session snapshots its credentials at start; push a key edited in
+		// Settings into the running session so the next turn uses it. Auth
+		// callbacks and the account-page switch write secrets directly, so they
+		// apply the key themselves.
+		if (previous.shengSuanYunApiKey !== next.shengSuanYunApiKey) {
+			void this.applyActiveShengSuanYunApiKey(next.shengSuanYunApiKey)
+		}
 	}
 
 	handleTerminalExecutionModeChanged(previous: VscodeTerminalExecutionMode, next: VscodeTerminalExecutionMode): void {
@@ -2660,7 +2667,32 @@ export class Controller {
 		}
 		this.stateManager.setSecret("shengSuanYunApiKey", nextKey)
 		this.providerConfigStore.write(parseProviderId("shengsuanyun"), { apiKey: nextKey })
+		await this.applyActiveShengSuanYunApiKey(nextKey)
 		await this.postStateToWebview()
+	}
+
+	/**
+	 * Pushes a ShengSuanYun key change into the active session.
+	 *
+	 * A session resolves its API key once, when it starts, and keeps using that
+	 * snapshot for every turn. Updating only the stored secret (as the
+	 * account-page switch and sign-in/sign-out do) leaves the UI showing the
+	 * new key — the account page marks the stored key "使用中" — while requests
+	 * keep using the previous one until a new task is started.
+	 */
+	private async applyActiveShengSuanYunApiKey(apiKey: string | undefined): Promise<void> {
+		if (!apiKey) {
+			return
+		}
+		const providerId = this.getSessionProviderId() ?? this.getActiveProviderId()
+		if (providerId !== SSY_PROVIDER_ID) {
+			return
+		}
+		try {
+			await this.sessions.updateActiveSessionApiKey(apiKey)
+		} catch (error) {
+			Logger.error("[SdkController] Failed to apply the ShengSuanYun API key to the active session:", error)
+		}
 	}
 
 	async handleShengSuanYunSignOut(): Promise<void> {
@@ -2669,6 +2701,7 @@ export class Controller {
 			this.stateManager.setSecret("shengSuanYunApiKey", personalKey)
 			this.stateManager.setSecret("shengSuanYunPersonalApiKey", undefined)
 			this.providerConfigStore.write(parseProviderId("shengsuanyun"), { apiKey: personalKey })
+			await this.applyActiveShengSuanYunApiKey(personalKey)
 		}
 		this.stateManager.setSecret("shengSuanYunToken", undefined)
 		this.stateManager.setGlobalState("userInfo", undefined)
@@ -2723,6 +2756,7 @@ export class Controller {
 		this.stateManager.setSecret("shengSuanYunPersonalApiKey", undefined)
 		await this.authService.handleShengSuanYunCallback(code)
 		this.persistProviderApiKeyFromState("shengsuanyun")
+		await this.applyActiveShengSuanYunApiKey(this.stateManager.getSecretKey("shengSuanYunApiKey"))
 		try {
 			const userData = await this.accountServiceSSY.fetchUserDataRPC()
 			if (userData.user) {

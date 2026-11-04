@@ -68,7 +68,7 @@ const AutoApproveModal: React.FC<AutoApproveModalProps> = ({ isVisible, setIsVis
 					maxHeight: "60vh",
 				}}>
 				<div className="mb-2.5 text-muted-foreground text-xs cursor-pointer" onClick={() => setIsVisible(false)}>
-					Let Cline take these actions without asking for approval.{" "}
+					让 Cline 采取这些行动，无需事先征求批准。{" "}
 					<a
 						className="text-link hover:text-link-hover"
 						href="https://docs.cline.bot/features/auto-approve#auto-approve"

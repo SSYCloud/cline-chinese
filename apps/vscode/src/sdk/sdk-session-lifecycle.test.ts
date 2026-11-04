@@ -728,6 +728,32 @@ describe("SdkSessionLifecycle", () => {
 		expect(didUpdate).toBe(false)
 	})
 
+	it("updates the active session API key for the next turn when supported", async () => {
+		const updateSessionApiKey = vi.fn().mockResolvedValue(undefined)
+		const sdkHost = makeSdkHost({ startResult: { sessionId: "session-123" }, updateSessionApiKey })
+		mockCreateSessionHost.mockResolvedValueOnce(sdkHost)
+		const lifecycle = makeLifecycle()
+		// biome-ignore lint/suspicious/noExplicitAny: focused fake for lifecycle unit test
+		await lifecycle.startNewSession({} as any)
+
+		const didUpdate = await lifecycle.updateActiveSessionApiKey("sk-enterprise")
+
+		expect(didUpdate).toBe(true)
+		expect(updateSessionApiKey).toHaveBeenCalledWith("session-123", "sk-enterprise")
+	})
+
+	it("does not update active session API key when no host capability is available", async () => {
+		const sdkHost = makeSdkHost({ startResult: { sessionId: "session-123" } })
+		mockCreateSessionHost.mockResolvedValueOnce(sdkHost)
+		const lifecycle = makeLifecycle()
+		// biome-ignore lint/suspicious/noExplicitAny: focused fake for lifecycle unit test
+		await lifecycle.startNewSession({} as any)
+
+		const didUpdate = await lifecycle.updateActiveSessionApiKey("sk-enterprise")
+
+		expect(didUpdate).toBe(false)
+	})
+
 	it("detects abort errors", () => {
 		const error = new Error("aborted by user")
 		expect(isAbortError(error)).toBe(true)
