@@ -1,6 +1,6 @@
 import type { ModelInfo } from "@shared/api"
 import type { Mode } from "@shared/storage/types"
-import { isClaudeOpusAdaptiveThinkingModel, resolveClaudeOpusAdaptiveThinking } from "@shared/utils/reasoning-support"
+import { isClaudeOpusAdaptiveThinkingModel } from "@shared/utils/reasoning-support"
 import { VSCodeLink, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 import Fuse from "fuse.js"
 import type React from "react"
@@ -13,6 +13,7 @@ import { highlight } from "../history/HistoryView"
 import { ModelInfoView } from "./common/ModelInfoView"
 import ReasoningEffortSelector from "./ReasoningEffortSelector"
 import { getModeSpecificFields } from "./utils/providerUtils"
+import { type ReasoningEffortSelection, reasoningEffortPatch } from "./utils/reasoningEffort"
 import { useApiConfigurationHandlers } from "./utils/useApiConfigurationHandlers"
 
 interface VercelModelPickerProps {
@@ -22,7 +23,7 @@ interface VercelModelPickerProps {
 
 const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentMode }) => {
 	const { handleModeFieldsChange } = useApiConfigurationHandlers()
-	const { write } = useProviderConfig("vercel-ai-gateway")
+	const { write, reasoningEffort } = useProviderConfig("vercel-ai-gateway")
 	const { apiConfiguration, vercelAiGatewayModels, refreshVercelAiGatewayModels } = useExtensionState()
 	const modeFields = getModeSpecificFields(apiConfiguration, currentMode)
 	// Vercel AI Gateway uses its own model fields
@@ -163,20 +164,16 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 	}, [selectedIndex])
 
 	const showAdaptiveThinkingEffort = useMemo(() => isClaudeOpusAdaptiveThinkingModel(selectedModelId), [selectedModelId])
-	const adaptiveThinkingDefaultEffort = useMemo(
-		() => resolveClaudeOpusAdaptiveThinking(modeFields.reasoningEffort, modeFields.thinkingBudgetTokens).effort ?? "none",
-		[modeFields.reasoningEffort, modeFields.thinkingBudgetTokens],
-	)
 	// Reasoning support comes from the SDK catalog (models.dev), not model-id
 	// heuristics: any reasoning-capable model gets the effort selector. Prefer
 	// the live catalog entry over the committed legacy snapshot — the snapshot
 	// can be cleared by provider-config writes (fallback-source resolutions).
 	const showReasoningEffort =
 		showAdaptiveThinkingEffort || (vercelAiGatewayModels[selectedModelId] ?? selectedModelInfo)?.supportsReasoning === true
-	const handleReasoningEffortChange = (effort: string) => {
-		void write({
-			reasoning: { enabled: effort !== "none", effort: effort !== "none" ? effort : undefined },
-		}).catch((err) => console.error("Failed to update Vercel AI Gateway reasoning effort:", err))
+	const handleReasoningEffortChange = (effort: ReasoningEffortSelection) => {
+		void write(reasoningEffortPatch(effort)).catch((err) =>
+			console.error("Failed to update Vercel AI Gateway reasoning effort:", err),
+		)
 	}
 
 	return (
@@ -268,7 +265,6 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 					{showReasoningEffort && (
 						<ReasoningEffortSelector
 							currentMode={currentMode}
-							defaultEffort={showAdaptiveThinkingEffort ? adaptiveThinkingDefaultEffort : "none"}
 							description={
 								showAdaptiveThinkingEffort
 									? "选择“无”可禁用自适应思考。更高的努力程度会增加响应细节和 token 消耗。"
@@ -276,6 +272,7 @@ const VercelModelPicker: React.FC<VercelModelPickerProps> = ({ isPopup, currentM
 							}
 							label={showAdaptiveThinkingEffort ? "自适应思考" : undefined}
 							onEffortChange={handleReasoningEffortChange}
+							value={reasoningEffort}
 						/>
 					)}
 

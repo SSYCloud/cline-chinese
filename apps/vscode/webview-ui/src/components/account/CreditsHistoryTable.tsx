@@ -50,7 +50,7 @@ const CreditsHistoryTable = memo(({ isLoading, usageData, paymentsData, showPaym
 												Tokens Used
 											</VSCodeDataGridCell> */}
 										<VSCodeDataGridCell cell-type="columnheader" grid-column="3">
-											费用
+											费用(¥)
 										</VSCodeDataGridCell>
 									</VSCodeDataGridRow>
 
@@ -58,7 +58,7 @@ const CreditsHistoryTable = memo(({ isLoading, usageData, paymentsData, showPaym
 										// biome-ignore lint/suspicious/noArrayIndexKey: use index as key
 										<VSCodeDataGridRow key={index}>
 											<VSCodeDataGridCell grid-column="1">
-												{formatTimestamp(row.createdAt)}
+												{formatTimestamp(row.createdAt, "zh-CN")}
 											</VSCodeDataGridCell>
 											<VSCodeDataGridCell grid-column="2">
 												{row.operation === "web_search"
@@ -70,7 +70,7 @@ const CreditsHistoryTable = memo(({ isLoading, usageData, paymentsData, showPaym
 															: row.aiModelName}
 											</VSCodeDataGridCell>
 											{/* <VSCodeDataGridCell grid-column="3">{`${row.promptTokens} → ${row.completionTokens}`}</VSCodeDataGridCell> */}
-											<VSCodeDataGridCell grid-column="3">{`¥${Number(row.creditsUsed / 10000000).toFixed(4)}`}</VSCodeDataGridCell>
+											<VSCodeDataGridCell grid-column="3">{`${Number(row.creditsUsed / 10000000).toFixed(4)}`}</VSCodeDataGridCell>
 										</VSCodeDataGridRow>
 									))}
 								</VSCodeDataGrid>
@@ -99,7 +99,9 @@ const CreditsHistoryTable = memo(({ isLoading, usageData, paymentsData, showPaym
 									{paymentsData.map((row, index) => (
 										// biome-ignore lint/suspicious/noArrayIndexKey: use index as key
 										<VSCodeDataGridRow key={index}>
-											<VSCodeDataGridCell grid-column="1">{formatTimestamp(row.paidAt)}</VSCodeDataGridCell>
+											<VSCodeDataGridCell grid-column="1">
+												{formatTimestamp(row.paidAt, "zh-CN")}
+											</VSCodeDataGridCell>
 											<VSCodeDataGridCell grid-column="2">{`$${formatDollars(row.amountCents)}`}</VSCodeDataGridCell>
 											<VSCodeDataGridCell grid-column="3">{`${row.credits}`}</VSCodeDataGridCell>
 										</VSCodeDataGridRow>

@@ -9,6 +9,7 @@ import { ApiKeyField } from "../common/ApiKeyField"
 import { ModelInfoView } from "../common/ModelInfoView"
 import { DropdownContainer, ModelSelector } from "../common/ModelSelector"
 import ReasoningEffortSelector from "../ReasoningEffortSelector"
+import { reasoningEffortPatch } from "../utils/reasoningEffort"
 import { useApiConfigurationHandlers } from "../utils/useApiConfigurationHandlers"
 
 /**
@@ -39,7 +40,7 @@ export const QwenProvider = ({ showModelOptions, isPopup, currentMode }: QwenPro
 		apiConfiguration,
 		currentMode,
 	)
-	const { config, write } = useProviderConfig("qwen")
+	const { config, write, reasoningEffort } = useProviderConfig("qwen")
 	// The SDK provider config (providers.json) is the source of truth shared
 	// with other hosts (CLI, desktop app); the legacy state field keeps the
 	// dropdown accurate before the async config read completes.
@@ -107,13 +108,13 @@ export const QwenProvider = ({ showModelOptions, isPopup, currentMode }: QwenPro
 					{selectedModelInfo.supportsReasoning === true && (
 						<ReasoningEffortSelector
 							currentMode={currentMode}
-							defaultEffort="none"
-							description="选择“无”可禁用扩展思考。更高的努力程度会提升思考深度，但会消耗更多 tokens。"
+							description="Use None to disable extended thinking. Higher effort improves depth, but uses more tokens."
 							onEffortChange={(effort) => {
-								void write({
-									reasoning: { enabled: effort !== "none", effort: effort !== "none" ? effort : undefined },
-								}).catch((err) => console.error("Failed to update Qwen reasoning effort:", err))
+								void write(reasoningEffortPatch(effort)).catch((err) =>
+									console.error("Failed to update Qwen reasoning effort:", err),
+								)
 							}}
+							value={reasoningEffort}
 						/>
 					)}
 

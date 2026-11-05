@@ -509,6 +509,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								remoteWorkflowToggles,
 								remoteConfigSettings?.remoteGlobalWorkflows,
 								mcpServers,
+								selectedProvider,
 							)
 
 							if (allCommands.length === 0) {
@@ -534,6 +535,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							remoteWorkflowToggles,
 							remoteConfigSettings?.remoteGlobalWorkflows,
 							mcpServers,
+							selectedProvider,
 						)
 						if (commands.length > 0) {
 							handleSlashCommandsSelect(commands[selectedSlashCommandsIndex])
@@ -1009,6 +1011,8 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					globalWorkflowToggles,
 					remoteWorkflowToggles,
 					remoteConfigSettings?.remoteGlobalWorkflows,
+					mcpServers,
+					selectedProvider,
 				)
 
 				if (isValidCommand) {
@@ -1022,7 +1026,14 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			highlightLayerRef.current.innerHTML = processedText
 			highlightLayerRef.current.scrollTop = textAreaRef.current.scrollTop
 			highlightLayerRef.current.scrollLeft = textAreaRef.current.scrollLeft
-		}, [localWorkflowToggles, globalWorkflowToggles, remoteWorkflowToggles, remoteConfigSettings])
+		}, [
+			localWorkflowToggles,
+			globalWorkflowToggles,
+			remoteWorkflowToggles,
+			remoteConfigSettings,
+			mcpServers,
+			selectedProvider,
+		])
 
 		useLayoutEffect(() => {
 			updateHighlights()
@@ -1494,6 +1505,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								mcpServers={mcpServers}
 								onMouseDown={handleMenuMouseDown}
 								onSelect={handleSlashCommandsSelect}
+								provider={selectedProvider}
 								query={slashCommandsQuery}
 								remoteWorkflows={remoteConfigSettings?.remoteGlobalWorkflows}
 								remoteWorkflowToggles={remoteWorkflowToggles}

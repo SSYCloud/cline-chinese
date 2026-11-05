@@ -27,8 +27,14 @@
 import type { Message as SdkMessage } from "@cline/llms"
 import type { ClineCompactionInfo, ClineMessage } from "@shared/ExtensionMessage"
 import type { Mode } from "@shared/storage/types"
+import { DEFAULT_TYPESAFE_MODEL } from "@shared/typesafe-models"
 import type { StateManager } from "@/core/storage/StateManager"
+import { HostProvider } from "@/hosts/host-provider"
+import { DEFAULT_TEST_DELETE_THRESHOLD, goalFromMessages, JevClient, pruneTests } from "@/services/typesafe-compaction/library"
+import { createTestFileAccess } from "@/services/typesafe-compaction/test-file-access"
+import { ShowMessageType } from "@/shared/proto/host/window"
 import { Logger } from "@/shared/services/Logger"
+import { SHENGSUANYUN_PROVIDER_ID } from "@/shared/slashCommands"
 import { buildCompactionMessage, parseCompactionNoticeMetadata } from "./message-translator"
 import { compactSessionMessages } from "./sdk-compaction"
 import type { SdkMessageCoordinator } from "./sdk-message-coordinator"
@@ -60,6 +66,7 @@ export interface SdkCompactionCoordinatorOptions {
 
 export class SdkCompactionCoordinator {
 	private compactInFlight = false
+	private pruneInFlight = false
 
 	constructor(private readonly options: SdkCompactionCoordinatorOptions) {}
 
@@ -133,6 +140,92 @@ export class SdkCompactionCoordinator {
 			await this.options.postStateToWebview()
 		} finally {
 			this.compactInFlight = false
+		}
+	}
+
+	private notifyPrune(text: string, sessionId?: string): void {
+		if (sessionId) {
+			this.emitInfo(text, sessionId)
+			return
+		}
+		void HostProvider.window.showMessage({ type: ShowMessageType.INFORMATION, message: text })
+	}
+
+	async pruneTests(): Promise<void> {
+		const sessionId = this.getTargetSessionId()
+		const config = this.options.stateManager.getApiConfiguration()
+		const mode = this.getCurrentMode()
+		const provider = mode === "plan" ? config.planModeApiProvider : config.actModeApiProvider
+		const apiKey = config.shengSuanYunApiKey?.trim()
+		if (provider !== SHENGSUANYUN_PROVIDER_ID || !apiKey) {
+			this.notifyPrune("/pruneTests 仅在使用胜算云供应商并配置 API Key 时可用。", sessionId)
+			await this.options.postStateToWebview()
+			return
+		}
+		if (this.pruneInFlight) return
+		this.pruneInFlight = true
+		try {
+			this.notifyPrune("正在评估并清理低价值单元测试…", sessionId)
+			await this.options.postStateToWebview()
+			const root = await this.options.getWorkspaceRoot()
+			const asker = new JevClient({
+				apiKey,
+				model: this.options.stateManager.getGlobalSettingsKey("typesafeModel")?.trim() || DEFAULT_TYPESAFE_MODEL,
+			})
+			const threshold =
+				this.options.stateManager.getGlobalSettingsKey("typesafeTestDeleteThreshold") ?? DEFAULT_TEST_DELETE_THRESHOLD
+			const active = this.options.sessions.getActiveSession()
+			const messages = active ? ((await active.sdkHost.readMessages(active.sessionId)) as SdkMessage[]) : []
+			const goal = goalFromMessages(
+				messages.map((m) => ({
+					role: m.role,
+					text:
+						typeof m.content === "string"
+							? m.content
+							: m.content
+									.filter((b) => b.type === "text")
+									.map((b) => (b as { text: string }).text)
+									.join("\n"),
+					toolUses: [],
+				})),
+			)
+			const real = createTestFileAccess(root)
+			const pending = new Map<string, string>()
+			const result = await pruneTests(
+				{
+					list: () => real.list(),
+					read: async (file) => pending.get(file) ?? real.read(file),
+					write: async (file, text) => {
+						pending.set(file, text)
+					},
+				},
+				asker,
+				{ goal, deleteThreshold: threshold },
+			)
+			if (result.deleted.length === 0) {
+				this.notifyPrune(`已扫描 ${result.tests} 个测试，没有需要删除的测试。`, sessionId)
+				return
+			}
+			const lines = result.deleted.map((d) => `- ${d.file} › ${d.name}`)
+			const choice = await HostProvider.window.showMessage({
+				type: ShowMessageType.WARNING,
+				message: `/pruneTests 将从 ${pending.size} 个文件中删除 ${result.deleted.length} 个测试（共扫描 ${result.tests} 个）。`,
+				options: { modal: true, items: ["删除"], detail: lines.join("\n") },
+			})
+			if (choice.selectedOption !== "删除") {
+				this.notifyPrune(`已取消，未删除任何测试（候选 ${result.deleted.length} 个）。`, sessionId)
+				return
+			}
+			for (const [file, text] of pending) {
+				await real.write(file, text)
+			}
+			this.notifyPrune(`已扫描 ${result.tests} 个测试，删除 ${result.deleted.length} 个。\n${lines.join("\n")}`, sessionId)
+		} catch (error) {
+			Logger.error("[SdkController] pruneTests failed:", error)
+			this.notifyPrune(`清理测试失败：${error instanceof Error ? error.message : String(error)}`, sessionId)
+		} finally {
+			this.pruneInFlight = false
+			await this.options.postStateToWebview()
 		}
 	}
 

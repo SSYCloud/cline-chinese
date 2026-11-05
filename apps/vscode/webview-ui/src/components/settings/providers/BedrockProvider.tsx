@@ -1,7 +1,7 @@
 import { openAiModelInfoSafeDefaults } from "@shared/api"
 import BedrockData from "@shared/providers/bedrock.json"
 import type { Mode } from "@shared/storage/types"
-import { isClaudeOpusAdaptiveThinkingModel, resolveClaudeOpusAdaptiveThinking } from "@shared/utils/reasoning-support"
+import { isClaudeOpusAdaptiveThinkingModel } from "@shared/utils/reasoning-support"
 import {
 	VSCodeCheckbox,
 	VSCodeDropdown,
@@ -24,6 +24,7 @@ import { ModelInfoView } from "../common/ModelInfoView"
 import { DropdownContainer } from "../common/ModelSelector"
 import ReasoningEffortSelector from "../ReasoningEffortSelector"
 import { getSavedApiKeyMask, sanitizeMaskedApiKeyInput } from "../utils/apiKeyMasking"
+import { type ReasoningEffortSelection, reasoningEffortPatch } from "../utils/reasoningEffort"
 import { useProviderApiKeyField } from "../utils/useProviderApiKeyField"
 
 const AWS_REGIONS = BedrockData.regions
@@ -40,7 +41,7 @@ interface BedrockProviderProps {
 export const BedrockProvider = ({ showModelOptions, isPopup, currentMode }: BedrockProviderProps) => {
 	const { apiConfiguration, remoteConfigSettings } = useExtensionState()
 	const { models: bedrockModels, defaultModelId: bedrockDefaultModelId } = useProviderModels("bedrock")
-	const { config, write, commitSelection } = useProviderConfig("bedrock")
+	const { config, write, commitSelection, reasoningEffort } = useProviderConfig("bedrock")
 	const { selectedModelId, selectedModelInfo, commitModelSelection } = useProviderModelSelection("bedrock", currentMode, {
 		models: bedrockModels,
 		defaultModelId: bedrockDefaultModelId,
@@ -64,22 +65,8 @@ export const BedrockProvider = ({ showModelOptions, isPopup, currentMode }: Bedr
 		selectedModelInfo.supportsGlobalEndpoint ||
 		selectedModelId.startsWith("global.") ||
 		Boolean(bedrockModels[`global.${selectedModelId}`])
-	const modeFields =
-		currentMode === "plan"
-			? {
-					reasoningEffort: apiConfiguration?.planModeReasoningEffort,
-					thinkingBudgetTokens: apiConfiguration?.planModeThinkingBudgetTokens,
-				}
-			: {
-					reasoningEffort: apiConfiguration?.actModeReasoningEffort,
-					thinkingBudgetTokens: apiConfiguration?.actModeThinkingBudgetTokens,
-				}
-	const adaptiveThinkingDefaultEffort =
-		resolveClaudeOpusAdaptiveThinking(modeFields.reasoningEffort, modeFields.thinkingBudgetTokens).effort ?? "none"
-	const handleReasoningEffortChange = (effort: string) => {
-		void write({
-			reasoning: { enabled: effort !== "none", effort: effort !== "none" ? effort : undefined },
-		}).catch((err) => console.error("Failed to update Bedrock reasoning effort:", err))
+	const handleReasoningEffortChange = (effort: ReasoningEffortSelection) => {
+		void write(reasoningEffortPatch(effort)).catch((err) => console.error("Failed to update Bedrock reasoning effort:", err))
 	}
 	const awsAuthentication =
 		config?.aws?.authentication === "iam"
@@ -602,10 +589,10 @@ export const BedrockProvider = ({ showModelOptions, isPopup, currentMode }: Bedr
 						<ReasoningEffortSelector
 							allowedEfforts={["none", "low", "medium", "high", "xhigh"] as const}
 							currentMode={currentMode}
-							defaultEffort={adaptiveThinkingDefaultEffort}
-							description="选择“无”可禁用自适应思考。更高的努力程度会增加响应细节和 token 消耗。"
-							label="自适应思考"
+							description="Use None to disable adaptive thinking. Higher effort increases response detail and token usage."
+							label="Adaptive Thinking"
 							onEffortChange={handleReasoningEffortChange}
+							value={reasoningEffort}
 						/>
 					) : selectedModelInfo.supportsReasoning === true ||
 						(isCustomModelSelected &&
@@ -613,9 +600,9 @@ export const BedrockProvider = ({ showModelOptions, isPopup, currentMode }: Bedr
 							bedrockModels[customBaseModelId]?.supportsReasoning === true) ? (
 						<ReasoningEffortSelector
 							currentMode={currentMode}
-							defaultEffort="none"
-							description="选择“无”可禁用扩展思考。更高的努力程度会提升思考深度，但会消耗更多 tokens。"
+							description="Use None to disable extended thinking. Higher effort improves depth, but uses more tokens."
 							onEffortChange={handleReasoningEffortChange}
+							value={reasoningEffort}
 						/>
 					) : null}
 

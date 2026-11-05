@@ -25,6 +25,10 @@ function isCompactionCommand(text: string): boolean {
 	return text === "/compact" || text === "/smol" || text === "/newtask"
 }
 
+function isPruneTestsCommand(text: string): boolean {
+	return text === "/pruneTests"
+}
+
 /**
  * Custom hook for managing message handlers
  * Handles sending messages, button clicks, and task management
@@ -127,6 +131,18 @@ export function useMessageHandlers(messages: ClineMessage[], chatState: ChatStat
 				if ("disableAutoScrollRef" in chatState) {
 					;(chatState as any).disableAutoScrollRef.current = false
 				}
+				return
+			}
+
+			if (isPruneTestsCommand(messageToSend)) {
+				if (errorRecoveryAvailable) {
+					return
+				}
+				setInputValue("")
+				setActiveQuote(null)
+				await SlashServiceClient.condense(StringRequest.create({ value: "pruneTests" })).catch((err) =>
+					console.error("Failed to prune tests:", err),
+				)
 				return
 			}
 

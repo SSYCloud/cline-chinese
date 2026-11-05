@@ -46,9 +46,9 @@ export function formatTimestamp(timestamp?: string, tz = "en-US"): string {
 		return "--"
 	}
 	const dateFormatter = new Intl.DateTimeFormat(tz, {
+		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",
-		year: "2-digit",
 		hour: "numeric",
 		minute: "2-digit",
 	})

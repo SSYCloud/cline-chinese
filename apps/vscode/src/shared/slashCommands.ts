@@ -3,6 +3,7 @@ export interface SlashCommand {
 	description?: string
 	section?: "default" | "custom" | "mcp"
 	cliCompatible?: boolean
+	provider?: string
 }
 
 export const BASE_SLASH_COMMANDS: SlashCommand[] = [
@@ -41,3 +42,18 @@ export const BASE_SLASH_COMMANDS: SlashCommand[] = [
 
 // VS Code-only slash commands
 export const VSCODE_ONLY_COMMANDS: SlashCommand[] = []
+
+export const SHENGSUANYUN_PROVIDER_ID = "shengsuanyun"
+
+export const PROVIDER_SLASH_COMMANDS: SlashCommand[] = [
+	{
+		name: "pruneTests",
+		description: "Prune low-value unit tests in the workspace using the 胜算云 Typesafe model",
+		section: "default",
+		provider: SHENGSUANYUN_PROVIDER_ID,
+	},
+]
+
+export function providerSlashCommands(provider: string | undefined): SlashCommand[] {
+	return PROVIDER_SLASH_COMMANDS.filter((cmd) => cmd.provider === provider)
+}

@@ -10,7 +10,11 @@ import type { Controller } from ".."
  * `/compact` as a command, so the old behavior produced an improvised fake
  * summary without actually compacting the context (CLINE-2503).
  */
-export async function condense(controller: Controller, _request: StringRequest): Promise<Empty> {
+export async function condense(controller: Controller, request: StringRequest): Promise<Empty> {
+	if (request.value === "pruneTests") {
+		await controller.pruneTests()
+		return Empty.create()
+	}
 	await controller.compactTask()
 	return Empty.create()
 }

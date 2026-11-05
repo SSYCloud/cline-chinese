@@ -192,10 +192,9 @@ export class ShengSuanYunAccountService {
 
 	async fetchUserDataRPC(): Promise<UserCreditsData> {
 		try {
-			const dqs = this.dateQueryString()
 			const [usage, payment, user] = await Promise.all([
-				this.authenticatedRequest<any>(`/modelrouter/userlog?page=1&pageSize=1000&${dqs}`),
-				this.authenticatedRequest<any>("/modelrouter/listrecharge?page=1&pageSize=10000"),
+				this.authenticatedRequest<any>(`/modelrouter/userlog?page=1&pageSize=300`),
+				this.authenticatedRequest<any>("/modelrouter/listrecharge?page=1&pageSize=300"),
 				this.getUserInfo(),
 			])
 			if (!usage || typeof usage !== "object" || !Array.isArray(usage.logs)) {

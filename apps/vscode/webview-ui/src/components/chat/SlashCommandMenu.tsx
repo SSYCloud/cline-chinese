@@ -16,6 +16,7 @@ interface SlashCommandMenuProps {
 	remoteWorkflowToggles?: Record<string, boolean>
 	remoteWorkflows?: any[]
 	mcpServers?: McpServer[]
+	provider?: string
 }
 
 const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
@@ -29,6 +30,7 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 	remoteWorkflowToggles,
 	remoteWorkflows,
 	mcpServers = [],
+	provider,
 }) => {
 	const menuRef = useRef<HTMLDivElement>(null)
 
@@ -40,6 +42,7 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 		remoteWorkflowToggles,
 		remoteWorkflows,
 		mcpServers,
+		provider,
 	)
 	const defaultCommands = filteredCommands.filter((cmd) => cmd.section === "default" || !cmd.section)
 	const workflowCommands = filteredCommands.filter((cmd) => cmd.section === "custom")

@@ -1,6 +1,11 @@
 import type { McpServer } from "@shared/mcp"
 import { PLATFORM_CONFIG, PlatformType } from "@/config/platform.config"
-import { BASE_SLASH_COMMANDS, type SlashCommand, VSCODE_ONLY_COMMANDS } from "../../../src/shared/slashCommands.ts"
+import {
+	BASE_SLASH_COMMANDS,
+	providerSlashCommands,
+	type SlashCommand,
+	VSCODE_ONLY_COMMANDS,
+} from "../../../src/shared/slashCommands.ts"
 
 export type { SlashCommand }
 
@@ -181,6 +186,7 @@ export function getMatchingSlashCommands(
 	remoteWorkflowToggles?: Record<string, boolean>,
 	remoteWorkflows?: any[],
 	mcpServers: McpServer[] = [],
+	provider?: string,
 ): SlashCommand[] {
 	const workflowCommands = getWorkflowCommands(
 		localWorkflowToggles,
@@ -189,7 +195,7 @@ export function getMatchingSlashCommands(
 		remoteWorkflows,
 	)
 	const mcpPromptCommands = getMcpPromptCommands(mcpServers)
-	const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands, ...mcpPromptCommands]
+	const allCommands = [...DEFAULT_SLASH_COMMANDS, ...providerSlashCommands(provider), ...workflowCommands, ...mcpPromptCommands]
 
 	if (!query) {
 		return allCommands
@@ -233,6 +239,7 @@ export function validateSlashCommand(
 	remoteWorkflowToggles?: Record<string, boolean>,
 	remoteWorkflows?: any[],
 	mcpServers: McpServer[] = [],
+	provider?: string,
 ): "full" | "partial" | null {
 	if (!command) {
 		return null
@@ -245,7 +252,7 @@ export function validateSlashCommand(
 		remoteWorkflows,
 	)
 	const mcpPromptCommands = getMcpPromptCommands(mcpServers)
-	const allCommands = [...DEFAULT_SLASH_COMMANDS, ...workflowCommands, ...mcpPromptCommands]
+	const allCommands = [...DEFAULT_SLASH_COMMANDS, ...providerSlashCommands(provider), ...workflowCommands, ...mcpPromptCommands]
 
 	// case insensitive matching
 	const exactMatch = allCommands.some((cmd) => cmd.name.toLowerCase() === command.toLowerCase())
