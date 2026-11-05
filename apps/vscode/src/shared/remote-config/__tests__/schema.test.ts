@@ -856,24 +856,4 @@ describe("Remote Config Schema", () => {
 			expect(result.enterpriseTelemetry?.promptUploading?.s3AccessSettings?.region).to.equal("us-east-1")
 		})
 	})
-
-	describe("Type Inference", () => {
-		it("should properly infer RemoteConfig type", () => {
-			const config: RemoteConfig = {
-				version: "v1",
-				telemetryEnabled: true,
-			}
-			// TypeScript compilation will fail if type inference is wrong
-			expect(config.version).to.be.a("string")
-		})
-
-		it("should allow optional fields to be undefined", () => {
-			const config: RemoteConfig = {
-				version: "v1",
-				// All other fields are optional and can be undefined
-			}
-			expect(config.telemetryEnabled).to.be.undefined
-			expect(config.providerSettings).to.be.undefined
-		})
-	})
 })

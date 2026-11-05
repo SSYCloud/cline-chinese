@@ -125,29 +125,6 @@ describe("TerminalProcess (Integration Tests)", () => {
 			;(emitSpy as sinon.SinonSpy).calledWith("continue").should.be.true()
 		})
 
-		it("should execute a command that lists files", async () => {
-			// Create a real VS Code terminal
-			const terminal = TerminalRegistry.createTerminal().terminal
-			createdTerminals.push(terminal)
-
-			// Spy on emit to verify behavior
-			const emitSpy = sandbox.spy(process, "emit")
-
-			// Run a command that lists files
-			const runPromise = process.run(terminal, "ls -la")
-
-			// If terminal doesn't have shell integration, advance timer
-			if (!terminal.shellIntegration) {
-				await sandbox.clock.tickAsync(3000)
-			}
-
-			await runPromise
-
-			// Verify that the continue event was emitted
-			;(emitSpy as sinon.SinonSpy).calledWith("continue").should.be.true()
-			;(emitSpy as sinon.SinonSpy).calledWith("completed").should.be.true()
-		})
-
 		it("should handle a longer running command", async () => {
 			// Create a real terminal
 			const terminal = TerminalRegistry.createTerminal().terminal

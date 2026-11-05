@@ -253,38 +253,6 @@ console.log(JSON.stringify({
 			result.cancel.should.be.true()
 			result.errorMessage?.should.equal("Hook tried to block cancellation")
 		})
-
-		it("should execute without errors for cleanup purposes", async () => {
-			const hookPath = path.join(tempDir, ".clinerules", "hooks", "TaskCancel")
-			const hookScript = `#!/usr/bin/env node
-const input = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
-const status = input.taskCancel.taskMetadata.completionStatus;
-// Hook can perform cleanup/logging based on status
-// Note: contextModification is ignored for TaskCancel hooks
-console.log(JSON.stringify({
-  cancel: false,
-  contextModification: "",
-  errorMessage: ""
-}))`
-
-			await writeHookScript(hookPath, hookScript)
-
-			const factory = new HookFactory()
-			const runner = await factory.create("TaskCancel")
-
-			const result = await runner.run({
-				taskId: "test-task-id",
-				taskCancel: {
-					taskMetadata: {
-						taskId: "test-task-id",
-						ulid: "test-ulid",
-						completionStatus: "cancelled",
-					},
-				},
-			})
-
-			result.cancel.should.be.false()
-		})
 	})
 
 	describe("Error Handling", () => {

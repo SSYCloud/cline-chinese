@@ -93,12 +93,6 @@ describe("ClineAPI Core Functionality", () => {
 			sinon.assert.calledWith(mockTask.handleWebviewAskResponse, "messageResponse", "Test message", ["image.png"])
 		})
 
-		it("should handle no active task gracefully", async () => {
-			mockController.task = undefined
-
-			await api.sendMessage("Message to nowhere", [])
-		})
-
 		it("should handle empty message", async () => {
 			const mockTask = {
 				handleWebviewAskResponse: sandbox.stub().resolves(),

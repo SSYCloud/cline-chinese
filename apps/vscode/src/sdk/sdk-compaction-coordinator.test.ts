@@ -1,7 +1,19 @@
 import { createContextCompactionPrepareTurn } from "@cline/core"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { StateManager } from "@/core/storage/StateManager"
+import { pruneTests } from "@/services/typesafe-compaction/library"
+import { createTestFileAccess } from "@/services/typesafe-compaction/test-file-access"
 import { SdkCompactionCoordinator, type SdkCompactionCoordinatorOptions } from "./sdk-compaction-coordinator"
+
+vi.mock("@/services/typesafe-compaction/library", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@/services/typesafe-compaction/library")>()),
+	pruneTests: vi.fn(),
+	JevClient: vi.fn(),
+}))
+
+vi.mock("@/services/typesafe-compaction/test-file-access", () => ({
+	createTestFileAccess: vi.fn(),
+}))
 
 vi.mock("@cline/core", () => ({
 	createContextCompactionPrepareTurn: vi.fn(),
@@ -477,3 +489,149 @@ function makeActiveSession(input: { isRunning?: boolean; sessionId?: string } = 
 		isRunning: input.isRunning ?? false,
 	}
 }
+
+describe("SdkCompactionCoordinator.pruneTests", () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	const SHENG_SUAN_YUN_CONFIG = {
+		actModeApiProvider: "shengsuanyun",
+		planModeApiProvider: "shengsuanyun",
+		shengSuanYunApiKey: "test-key",
+	}
+
+	function makePruneCoordinator(input: {
+		apiConfig?: Partial<typeof SHENG_SUAN_YUN_CONFIG>
+		activeSession?: ReturnType<typeof makeActiveSession> | undefined
+		displayedTaskId?: string | undefined
+		answer?: string
+	}) {
+		const activeSession = "activeSession" in input ? input.activeSession : makeActiveSession()
+		const displayedTaskId = "displayedTaskId" in input ? input.displayedTaskId : "history-task"
+		const files = new Map<string, string>([["a.test.ts", "original"]])
+		const real = {
+			list: vi.fn().mockResolvedValue(["a.test.ts"]),
+			read: vi.fn(async (path: string) => files.get(path) ?? ""),
+			write: vi.fn(async (path: string, text: string) => {
+				files.set(path, text)
+			}),
+		}
+		vi.mocked(createTestFileAccess).mockReturnValue(real as never)
+		const options = {
+			stateManager: {
+				getApiConfiguration: vi.fn(() => ({ ...SHENG_SUAN_YUN_CONFIG, ...input.apiConfig })),
+				getGlobalSettingsKey: vi.fn(() => undefined),
+			} as unknown as StateManager,
+			sessions: {
+				getActiveSession: vi.fn(() => activeSession),
+				waitForPendingStop: vi.fn().mockResolvedValue(undefined),
+			},
+			rebuilds: { runExclusive: vi.fn(async (op: () => Promise<unknown>) => op()) },
+			messages: { appendAndEmit: vi.fn() },
+			taskHistory: {},
+			sessionConfigBuilder: { build: vi.fn() },
+			getDisplayedTaskId: vi.fn(() => displayedTaskId),
+			createTempSessionHost: vi.fn(),
+			loadInitialMessages: vi.fn(),
+			getWorkspaceRoot: vi.fn().mockResolvedValue("/workspace"),
+			postStateToWebview: vi.fn().mockResolvedValue(undefined),
+			askInChat: vi.fn().mockResolvedValue(input.answer ?? "取消"),
+			setTurnPhase: vi.fn(),
+		} as unknown as SdkCompactionCoordinatorOptions & {
+			askInChat: ReturnType<typeof vi.fn>
+			setTurnPhase: ReturnType<typeof vi.fn>
+			messages: { appendAndEmit: ReturnType<typeof vi.fn> }
+		}
+		return { coordinator: new SdkCompactionCoordinator(options), options, files, real }
+	}
+
+	const deletion = {
+		id: "u1",
+		file: "a.test.ts",
+		name: "is truthy",
+		keepTest: 0,
+	}
+
+	it("refuses without a Sheng Suan Yun provider and never asks in chat", async () => {
+		const { coordinator, options } = makePruneCoordinator({ apiConfig: { actModeApiProvider: "anthropic" } })
+
+		await coordinator.pruneTests()
+
+		expect(options.askInChat).not.toHaveBeenCalled()
+		expect(options.messages.appendAndEmit).toHaveBeenCalledWith(
+			[expect.objectContaining({ say: "info", text: expect.stringContaining("仅在使用胜算云") })],
+			expect.anything(),
+		)
+	})
+
+	it("runs against a displayed history task that has no live session", async () => {
+		vi.mocked(pruneTests).mockResolvedValue({ files: 1, tests: 2, requests: 1, deleted: [], scores: [] })
+		const { coordinator, options } = makePruneCoordinator({ activeSession: undefined })
+
+		await coordinator.pruneTests()
+
+		expect(vi.mocked(pruneTests)).toHaveBeenCalledTimes(1)
+		expect(options.messages.appendAndEmit).not.toHaveBeenCalledWith(
+			[expect.objectContaining({ text: expect.stringContaining("需要在任务中执行") })],
+			expect.anything(),
+		)
+	})
+
+	it("reports that a task is needed only when nothing is displayed", async () => {
+		const { coordinator, options } = makePruneCoordinator({ activeSession: undefined, displayedTaskId: undefined })
+
+		await coordinator.pruneTests()
+
+		expect(vi.mocked(pruneTests)).not.toHaveBeenCalled()
+		expect(options.askInChat).not.toHaveBeenCalled()
+		expect(options.messages.appendAndEmit).toHaveBeenCalledWith(
+			[expect.objectContaining({ say: "info", text: expect.stringContaining("需要在任务中执行") })],
+			expect.anything(),
+		)
+	})
+
+	it("asks for approval in chat and writes nothing when the user cancels", async () => {
+		vi.mocked(pruneTests).mockImplementation(async (_files, _asker, _opts) => ({
+			files: 1,
+			tests: 3,
+			requests: 1,
+			deleted: [deletion],
+			scores: [],
+		}))
+		const { coordinator, options, real } = makePruneCoordinator({ answer: "取消" })
+
+		await coordinator.pruneTests()
+
+		expect(options.askInChat).toHaveBeenCalledWith(expect.stringContaining("is truthy"), ["删除", "取消"])
+		expect(real.write).not.toHaveBeenCalled()
+		expect(options.messages.appendAndEmit).toHaveBeenCalledWith(
+			[expect.objectContaining({ say: "info", text: expect.stringContaining("已取消") })],
+			expect.anything(),
+		)
+	})
+
+	it("writes the pruned files only after the user approves in chat", async () => {
+		vi.mocked(pruneTests).mockImplementation(async (files) => {
+			await files.write("a.test.ts", "pruned")
+			return { files: 1, tests: 3, requests: 1, deleted: [deletion], scores: [] }
+		})
+		const { coordinator, options, real, files } = makePruneCoordinator({ answer: "删除" })
+
+		await coordinator.pruneTests()
+
+		expect(real.write).toHaveBeenCalledWith("a.test.ts", "pruned")
+		expect(files.get("a.test.ts")).toBe("pruned")
+		expect(options.setTurnPhase).toHaveBeenLastCalledWith("idle")
+	})
+
+	it("does not ask when nothing is slated for deletion", async () => {
+		vi.mocked(pruneTests).mockResolvedValue({ files: 1, tests: 2, requests: 1, deleted: [], scores: [] })
+		const { coordinator, options, real } = makePruneCoordinator({})
+
+		await coordinator.pruneTests()
+
+		expect(options.askInChat).not.toHaveBeenCalled()
+		expect(real.write).not.toHaveBeenCalled()
+	})
+})

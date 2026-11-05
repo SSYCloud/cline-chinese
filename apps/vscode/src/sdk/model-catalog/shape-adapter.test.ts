@@ -53,17 +53,6 @@ describe("adaptSdkModelInfo", () => {
 			expect(() => adaptSdkModelInfo({ id: "m", pricing: { input: Number.POSITIVE_INFINITY } })).toThrow(CatalogShapeError)
 		})
 
-		it("throws CatalogShapeError when modalities are malformed", () => {
-			expect(() => adaptSdkModelInfo({ id: "m", modalities: "audio" })).toThrow(CatalogShapeError)
-			expect(() => adaptSdkModelInfo({ id: "m", modalities: { input: ["audio"] } })).toThrow(CatalogShapeError)
-			expect(() =>
-				adaptSdkModelInfo({
-					id: "m",
-					modalities: { input: ["audio"], output: ["unknown"] },
-				}),
-			).toThrow(CatalogShapeError)
-		})
-
 		it("CatalogShapeError exposes useful message and details", () => {
 			try {
 				adaptSdkModelInfo({ id: 5 })

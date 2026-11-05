@@ -182,31 +182,6 @@ describe("task lifecycle contract", () => {
 });
 
 describe("CORE_TELEMETRY_EVENTS", () => {
-	test("catalogs the unexpected reasoning token event", () => {
-		expect(CORE_TELEMETRY_EVENTS.AGENT.UNEXPECTED_REASONING_TOKENS).toBe(
-			AGENT_UNEXPECTED_REASONING_TOKENS_EVENT,
-		);
-	});
-
-	test("catalogs task lifecycle events", () => {
-		expect(CORE_TELEMETRY_EVENTS.TASK.PROVIDER_REQUEST_STARTED).toBe(
-			TASK_PROVIDER_REQUEST_STARTED_EVENT,
-		);
-		expect(CORE_TELEMETRY_EVENTS.TASK.PROVIDER_STREAM_STARTED).toBe(
-			TASK_PROVIDER_STREAM_STARTED_EVENT,
-		);
-		expect(CORE_TELEMETRY_EVENTS.TASK.FIRST_CHUNK_RECEIVED).toBe(
-			TASK_FIRST_CHUNK_RECEIVED_EVENT,
-		);
-		expect(CORE_TELEMETRY_EVENTS.TASK.PROVIDER_STREAM_FAILED).toBe(
-			TASK_PROVIDER_STREAM_FAILED_EVENT,
-		);
-		expect(CORE_TELEMETRY_EVENTS.TASK.CANCELLED).toBe(TASK_CANCELLED_EVENT);
-		expect(CORE_TELEMETRY_EVENTS.TASK.MAX_TOKENS_RECOVERY).toBe(
-			TASK_MAX_TOKENS_RECOVERY_EVENT,
-		);
-	});
-
 	test("re-exports the task lifecycle telemetry helper", () => {
 		expect(captureTaskLifecycleEvent).toBe(captureSharedTaskLifecycleEvent);
 	});

@@ -30,20 +30,6 @@ describe("ifFileExistsRelativePath", () => {
 		getWorkspacePathStub.reset()
 	})
 
-	it("should return BooleanResponse with boolean value", async () => {
-		getWorkspacePathStub.resolves("/workspace")
-
-		const request = StringRequest.create({
-			value: "src/test.ts",
-		})
-
-		const result = await ifFileExistsRelativePath(mockController, request)
-
-		// The result should be a BooleanResponse object
-		expect(result).to.have.property("value")
-		expect(typeof result.value).to.equal("boolean")
-	})
-
 	it("should return false when no workspace path is available", async () => {
 		const noWorkspaceScenarios = [null, undefined]
 

@@ -879,6 +879,15 @@ export class Controller {
 			loadInitialMessages: (reader, taskId) => this.sessionHistory.loadInitialMessages(reader, taskId),
 			getWorkspaceRoot: () => this.getWorkspaceRoot(),
 			postStateToWebview: () => this.postStateToWebview(),
+			askInChat: async (question, options) => {
+				const answer = await this.interactions.handleAskQuestion(question, options, undefined)
+				if (typeof answer === "string") return answer
+				return answer
+					.filter((block) => block.type === "text")
+					.map((block) => block.text)
+					.join("\n")
+			},
+			setTurnPhase: (phase) => this.turnStateTracker.set(phase),
 		})
 		this.sessionEvents = new SdkSessionEventCoordinator({
 			messageTranslatorState: this.messageTranslatorState,

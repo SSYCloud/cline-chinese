@@ -6,8 +6,22 @@ export const DEFAULT_TEST_DELETE_THRESHOLD = 0.1
 
 export const DEFAULT_MAX_TEST_REQUEST_TOKENS = 30_000
 
-export const TEST_STATE_CONTEXT =
-	"A repository test suite is being pruned. `tests` lists unit test functions with their source. Each question asks whether one test is worth keeping. A test is not worth keeping when it is empty, asserts nothing meaningful, only repeats another test, or checks something trivially true."
+export const TEST_STATE_CONTEXT = [
+	"You are auditing a repository's unit test suite and removing tests that protect nothing.",
+	"`tests` lists unit test functions with their source. Each question asks whether one test should be kept.",
+	"Default to NOT keeping. A test earns a keep only if it would fail when a realistic bug is introduced into the code it exercises.",
+	"Treat a test as NOT worth keeping if ANY of these hold:",
+	"(1) it is empty, skipped, marked todo, or has no assertion;",
+	"(2) it only checks that something is defined, truthy, an instance of a type, or does not throw, without checking the returned value or resulting state;",
+	"(3) it only re-asserts a constant, default, or value that the test itself set up, so it can only fail when the test is edited;",
+	"(4) it only checks that a mock or spy was called, with no check on the result or on observable behaviour;",
+	"(5) it repeats another test in this batch with trivial variation of the same setup and assertions;",
+	"(6) it is snapshot-only, type-only, or checks that a function or export exists;",
+	"(7) its assertions are tautological (for example expect(x).toBe(x)) or can never fail.",
+	"Keep a test only when it asserts specific observable outcomes (returned values, state changes, thrown or emitted errors, file or output side effects) for a meaningful input, including edge or failure cases.",
+	"You only see this batch, so do not assume a duplicate exists elsewhere in the suite.",
+	"If a source ends with '…', it was truncated: judge only the visible part, and keep the test only if the visible assertions already meet the bar.",
+].join(" ")
 
 export interface TestFunction {
 	id: string
@@ -414,7 +428,7 @@ export function testQuestions(tests: readonly TestFunction[]): JevQuestions {
 			`keep_${test.id}`,
 			{
 				type: "noul" as const,
-				instructions: `Unit test ${test.id} ("${test.name}" in ${test.file}) is worth keeping: it checks real behaviour that no other test covers`,
+				instructions: `Unit test ${test.id} ("${test.name}" in ${test.file}) should be kept only if it asserts specific observable behaviour that would fail on a realistic regression, and no other test in this batch already checks the same thing. When in doubt, do not keep it.`,
 			},
 		]),
 	)

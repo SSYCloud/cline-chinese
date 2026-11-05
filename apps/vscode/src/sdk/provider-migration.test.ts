@@ -102,13 +102,6 @@ describe("migrateProviders", () => {
 // ---------------------------------------------------------------------------
 
 describe("getProviderSettingsManager", () => {
-	it("returns a ProviderSettingsManager instance", () => {
-		const manager = getProviderSettingsManager(tempDir)
-		expect(manager).toBeDefined()
-		expect(typeof manager.read).toBe("function")
-		expect(typeof manager.getProviderSettings).toBe("function")
-	})
-
 	it("reads empty state when no providers exist", () => {
 		const manager = getProviderSettingsManager(tempDir)
 		const state = manager.read()

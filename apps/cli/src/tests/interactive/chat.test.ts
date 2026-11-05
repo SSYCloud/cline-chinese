@@ -38,9 +38,6 @@ test.describe("cline (authenticated) - shows chat view", () => {
 		env: clineEnv("default"),
 	});
 
-	test("shows interactive chat view", async ({ terminal }) => {
-		await waitForChatReady(terminal);
-	});
 });
 
 test.describe("Auto-approve all - Shift+Tab toggle", () => {

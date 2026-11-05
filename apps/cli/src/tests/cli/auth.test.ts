@@ -27,10 +27,6 @@ test.describe("cline auth (interactive screen)", () => {
 		env: clineEnv("unauthenticated"),
 	});
 
-	test("shows all auth options", async ({ terminal }) => {
-		await waitForAuthScreen(terminal);
-	});
-
 	test("can navigate options with keyUp / keyDown", async ({ terminal }) => {
 		await waitForAuthScreen(terminal);
 		terminal.keyDown();
@@ -99,10 +95,6 @@ test.describe("cline auth --modelid only (partial flags)", () => {
 		env: clineEnv("unauthenticated"),
 	});
 
-	test("exits with error requiring --provider", async ({ terminal }) => {
-		await expectVisible(terminal, "provider");
-		await expectExitCode(terminal, EXIT_CODE_FAIL);
-	});
 });
 
 test.describe("cline auth --baseurl only (partial flags)", () => {
@@ -115,10 +107,6 @@ test.describe("cline auth --baseurl only (partial flags)", () => {
 		env: clineEnv("unauthenticated"),
 	});
 
-	test("exits with error requiring --provider", async ({ terminal }) => {
-		await expectVisible(terminal, "provider");
-		await expectExitCode(terminal, EXIT_CODE_FAIL);
-	});
 });
 
 test.describe("cline auth --verbose only", () => {

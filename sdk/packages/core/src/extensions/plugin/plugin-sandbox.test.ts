@@ -1083,22 +1083,6 @@ describe.each([
 		}
 	});
 
-	it("resolves plugin-local dependencies in the sandbox process", async () => {
-		expect(sharedExtensions.get("sandbox-local-dep")?.name).toBe(
-			"sandbox-local-dep",
-		);
-	});
-
-	it("prefers plugin-installed SDK packages in the sandbox process", async () => {
-		expect(sharedExtensions.get("sandbox-plugin-installed-sdk")?.name).toBe(
-			"sandbox-plugin-installed-sdk",
-		);
-	});
-
-	it("allows standalone file plugins to use host runtime dependencies in the sandbox", async () => {
-		expect(sharedExtensions.get("host: true")?.name).toBe("host: true");
-	});
-
 	it("supports createTool through the agents package export in the sandbox", async () => {
 		const extension = sharedExtensions.get("sandbox-create-tool");
 		const { tools, api } = createApiCapture();

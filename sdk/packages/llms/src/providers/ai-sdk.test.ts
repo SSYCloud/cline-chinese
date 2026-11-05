@@ -432,28 +432,6 @@ describe("ai-sdk usage normalization", () => {
 			expect(normalized.cacheWriteTokens).toBe(0);
 		});
 
-		it("maps camelCase inputTokens from multiple naming conventions", () => {
-			const inputs = [
-				{ inputTokens: 100 }, // Already camelCase
-				{ input_tokens: 100 }, // snake_case
-				{ prompt_tokens: 100 }, // OpenAI convention
-			];
-			// Each should normalize to inputTokens: 100
-			expect(inputs.length).toBe(3);
-		});
-
-		it("extracts cacheReadTokens from nested structures", () => {
-			const nested = {
-				inputTokenDetails: { cacheReadTokens: 50 }, // Nested camelCase
-			};
-			const flattened = {
-				cache_read_tokens: 50, // Flat snake_case
-			};
-			// Both should normalize to cacheReadTokens: 50
-			expect(nested).toBeDefined();
-			expect(flattened).toBeDefined();
-		});
-
 		it("extracts Qwen cache writes from OpenRouter prompt token details", () => {
 			const normalized = normalizeUsage({
 				prompt_tokens: 10126,
@@ -492,28 +470,5 @@ describe("ai-sdk usage normalization", () => {
 			);
 		});
 
-		it("handles Anthropic's cache_creation metadata", () => {
-			const anthropicRaw = (
-				(fixtures as Record<string, unknown>).anthropic_stream_usage as Record<
-					string,
-					unknown
-				>
-			).raw;
-			expect(anthropicRaw).toHaveProperty("cache_creation");
-			expect(
-				(anthropicRaw as Record<string, unknown>).cache_creation,
-			).toHaveProperty("ephemeral_5m_input_tokens");
-		});
-
-		it("handles Gemini's promptTokenCount naming", () => {
-			const geminiRaw = (
-				(fixtures as Record<string, unknown>).gemini_stream_usage as Record<
-					string,
-					unknown
-				>
-			).raw;
-			expect(geminiRaw).toHaveProperty("promptTokenCount");
-			expect(geminiRaw).toHaveProperty("candidatesTokenCount");
-		});
 	});
 });

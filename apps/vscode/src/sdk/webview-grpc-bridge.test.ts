@@ -38,11 +38,6 @@ describe("WebviewGrpcBridge", () => {
 	})
 
 	describe("createListener", () => {
-		it("should return a function", () => {
-			const listener = bridge.createListener()
-			expect(typeof listener).toBe("function")
-		})
-
 		it("should push messages through the partial message stream", async () => {
 			const { sendPartialMessageEvent } = await import("@core/controller/ui/subscribeToPartialMessage")
 			const listener = bridge.createListener()

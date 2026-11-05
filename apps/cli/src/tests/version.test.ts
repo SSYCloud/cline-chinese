@@ -40,7 +40,4 @@ test.describe("cline version subcommand", () => {
 		env: clineEnv("claude-sonnet-4.6"),
 	});
 
-	test("prints 'Cline CLI version:' message", async ({ terminal }) => {
-		await expectVisible(terminal, /\d+\.\d+\.\d+/g);
-	});
 });

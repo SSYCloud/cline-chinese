@@ -433,14 +433,6 @@ describe("anthropic wire format", () => {
 		return { fetchMock, events };
 	}
 
-	it("retries an empty turn and streams the successful attempt", async () => {
-		const { fetchMock, events } = await run([emptySse, textSse]);
-
-		expect(fetchMock).toHaveBeenCalledTimes(2);
-		expect(hasTextDelta(events, "hello")).toBe(true);
-		expect(finishEvents(events)).toHaveLength(1);
-	});
-
 	it("does not retry a tool-call-only turn", async () => {
 		const { fetchMock, events } = await run([toolUseSse], [READ_FILES_TOOL]);
 

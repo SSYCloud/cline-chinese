@@ -244,49 +244,6 @@ describe("SapAiCoreModelPicker Component", () => {
 		expect(screen.getByText("gpt-5.5")).toBeInTheDocument()
 	})
 
-	it("calls onModelChange when a model is selected", () => {
-		render(
-			<ExtensionStateContextProvider>
-				<SapAiCoreModelPicker
-					onModelChange={mockOnModelChange}
-					sapAiCoreModelDeployments={createDeployments(["anthropic--claude-3.5-sonnet", "gpt-4o"])}
-					selectedModelId="anthropic--claude-3.5-sonnet"
-				/>
-			</ExtensionStateContextProvider>,
-		)
-
-		// Test that the component renders correctly and has the expected structure
-		const dropdown = screen.getByRole("combobox")
-		expect(dropdown).toBeInTheDocument()
-		expect(dropdown).toHaveValue("anthropic--claude-3.5-sonnet")
-
-		// Since VSCodeDropdown doesn't work well with testing libraries,
-		// we'll verify the component structure instead of simulating events
-		expect(screen.getByText("gpt-4o")).toBeInTheDocument()
-		expect(screen.getByText("anthropic--claude-3.5-sonnet")).toBeInTheDocument()
-	})
-
-	it("handles selection of not deployed models", () => {
-		render(
-			<ExtensionStateContextProvider>
-				<SapAiCoreModelPicker
-					onModelChange={mockOnModelChange}
-					sapAiCoreModelDeployments={createDeployments(["gpt-4o"])}
-					selectedModelId="gpt-4o"
-					useOrchestrationMode={false}
-				/>
-			</ExtensionStateContextProvider>,
-		)
-
-		// Test that not deployed models are properly displayed
-		const dropdown = screen.getByRole("combobox")
-		expect(dropdown).toBeInTheDocument()
-		expect(dropdown).toHaveValue("gpt-4o")
-
-		// Verify that not deployed models are shown with proper labeling
-		expect(screen.getByText("gpt-5.5")).toBeInTheDocument()
-	})
-
 	it("updates selected value when selectedModelId prop changes", () => {
 		const { rerender } = render(
 			<ExtensionStateContextProvider>

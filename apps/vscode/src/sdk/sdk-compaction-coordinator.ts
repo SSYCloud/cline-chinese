@@ -25,14 +25,12 @@
 // fake "Conversation Summary" instead of compacting (CLINE-2503).
 
 import type { Message as SdkMessage } from "@cline/llms"
-import type { ClineCompactionInfo, ClineMessage } from "@shared/ExtensionMessage"
+import type { ClineCompactionInfo, ClineMessage, TurnPhase } from "@shared/ExtensionMessage"
 import type { Mode } from "@shared/storage/types"
 import { DEFAULT_TYPESAFE_MODEL } from "@shared/typesafe-models"
 import type { StateManager } from "@/core/storage/StateManager"
-import { HostProvider } from "@/hosts/host-provider"
 import { DEFAULT_TEST_DELETE_THRESHOLD, goalFromMessages, JevClient, pruneTests } from "@/services/typesafe-compaction/library"
 import { createTestFileAccess } from "@/services/typesafe-compaction/test-file-access"
-import { ShowMessageType } from "@/shared/proto/host/window"
 import { Logger } from "@/shared/services/Logger"
 import { SHENGSUANYUN_PROVIDER_ID } from "@/shared/slashCommands"
 import { buildCompactionMessage, parseCompactionNoticeMetadata } from "./message-translator"
@@ -48,6 +46,8 @@ import type { SdkSessionHost } from "./session-host"
 const COMPACTION_FAILURE_MESSAGE = "无法压缩对话。请重试。"
 const COMPACTION_UNSUPPORTED_MESSAGE = "当前运行时尚不支持压缩功能。请更新 Cline Chinese后重试。"
 const COMPACTION_TURN_RUNNING_MESSAGE = "无法在响应进行中时压缩。请在当前回合完成后重试。"
+const PRUNE_DELETE_OPTION = "删除"
+const PRUNE_CANCEL_OPTION = "取消"
 
 export interface SdkCompactionCoordinatorOptions {
 	stateManager: StateManager
@@ -62,6 +62,13 @@ export interface SdkCompactionCoordinatorOptions {
 	loadInitialMessages: (sessionHost: SdkSessionHost, taskId: string) => Promise<unknown[] | undefined>
 	getWorkspaceRoot: () => Promise<string>
 	postStateToWebview: () => Promise<void>
+	/**
+	 * Ask the user a multiple-choice question in the chat (rendered as option buttons)
+	 * and resolve with the answer text. Resolves with "" if the ask is cancelled.
+	 */
+	askInChat: (question: string, options: string[]) => Promise<string>
+	/** Set the authoritative UI turn phase. */
+	setTurnPhase: (phase: TurnPhase) => void
 }
 
 export class SdkCompactionCoordinator {
@@ -143,29 +150,35 @@ export class SdkCompactionCoordinator {
 		}
 	}
 
-	private notifyPrune(text: string, sessionId?: string): void {
-		if (sessionId) {
-			this.emitInfo(text, sessionId)
-			return
-		}
-		void HostProvider.window.showMessage({ type: ShowMessageType.INFORMATION, message: text })
-	}
-
 	async pruneTests(): Promise<void> {
-		const sessionId = this.getTargetSessionId()
 		const config = this.options.stateManager.getApiConfiguration()
 		const mode = this.getCurrentMode()
 		const provider = mode === "plan" ? config.planModeApiProvider : config.actModeApiProvider
 		const apiKey = config.shengSuanYunApiKey?.trim()
 		if (provider !== SHENGSUANYUN_PROVIDER_ID || !apiKey) {
-			this.notifyPrune("/pruneTests 仅在使用胜算云供应商并配置 API Key 时可用。", sessionId)
+			this.emitInfo("/pruneTests 仅在使用胜算云供应商并配置 API Key 时可用。")
+			await this.options.postStateToWebview()
+			return
+		}
+		// The approval is an in-chat question on the displayed task. It does not need a
+		// live session: a history task is enough, and the answer is routed by
+		// resolvePendingAskQuestion, which runs before any session lookup.
+		const active = this.options.sessions.getActiveSession()
+		if (active?.isRunning) {
+			this.emitInfo(COMPACTION_TURN_RUNNING_MESSAGE, active.sessionId)
+			await this.options.postStateToWebview()
+			return
+		}
+		if (!active && !this.options.getDisplayedTaskId()) {
+			this.emitInfo("/pruneTests 需要在任务中执行。请先打开或新建一个任务。")
 			await this.options.postStateToWebview()
 			return
 		}
 		if (this.pruneInFlight) return
 		this.pruneInFlight = true
+		const sessionId = active?.sessionId
 		try {
-			this.notifyPrune("正在评估并清理低价值单元测试…", sessionId)
+			this.emitInfo("正在评估并清理低价值单元测试…", sessionId)
 			await this.options.postStateToWebview()
 			const root = await this.options.getWorkspaceRoot()
 			const asker = new JevClient({
@@ -174,7 +187,8 @@ export class SdkCompactionCoordinator {
 			})
 			const threshold =
 				this.options.stateManager.getGlobalSettingsKey("typesafeTestDeleteThreshold") ?? DEFAULT_TEST_DELETE_THRESHOLD
-			const active = this.options.sessions.getActiveSession()
+			// The goal steers the judge toward what the task is for. A history task has no
+			// live transcript here, so it is judged with an empty goal.
 			const messages = active ? ((await active.sdkHost.readMessages(active.sessionId)) as SdkMessage[]) : []
 			const goal = goalFromMessages(
 				messages.map((m) => ({
@@ -203,28 +217,31 @@ export class SdkCompactionCoordinator {
 				{ goal, deleteThreshold: threshold },
 			)
 			if (result.deleted.length === 0) {
-				this.notifyPrune(`已扫描 ${result.tests} 个测试，没有需要删除的测试。`, sessionId)
+				this.emitInfo(`已扫描 ${result.tests} 个测试，没有需要删除的测试。`, sessionId)
 				return
 			}
 			const lines = result.deleted.map((d) => `- ${d.file} › ${d.name}`)
-			const choice = await HostProvider.window.showMessage({
-				type: ShowMessageType.WARNING,
-				message: `/pruneTests 将从 ${pending.size} 个文件中删除 ${result.deleted.length} 个测试（共扫描 ${result.tests} 个）。`,
-				options: { modal: true, items: ["删除"], detail: lines.join("\n") },
-			})
-			if (choice.selectedOption !== "删除") {
-				this.notifyPrune(`已取消，未删除任何测试（候选 ${result.deleted.length} 个）。`, sessionId)
+			const question = [
+				`/pruneTests 将从 ${pending.size} 个文件中删除 ${result.deleted.length} 个测试（共扫描 ${result.tests} 个）：`,
+				...lines,
+			].join("\n")
+			const answer = await this.options.askInChat(question, [PRUNE_DELETE_OPTION, PRUNE_CANCEL_OPTION])
+			if (!answer.startsWith(PRUNE_DELETE_OPTION)) {
+				this.emitInfo(`已取消，未删除任何测试（候选 ${result.deleted.length} 个）。`, sessionId)
 				return
 			}
 			for (const [file, text] of pending) {
 				await real.write(file, text)
 			}
-			this.notifyPrune(`已扫描 ${result.tests} 个测试，删除 ${result.deleted.length} 个。\n${lines.join("\n")}`, sessionId)
+			this.emitInfo(`已扫描 ${result.tests} 个测试，删除 ${result.deleted.length} 个。\n${lines.join("\n")}`, sessionId)
 		} catch (error) {
 			Logger.error("[SdkController] pruneTests failed:", error)
-			this.notifyPrune(`清理测试失败：${error instanceof Error ? error.message : String(error)}`, sessionId)
+			this.emitInfo(`清理测试失败：${error instanceof Error ? error.message : String(error)}`, sessionId)
 		} finally {
 			this.pruneInFlight = false
+			// The approval ask resolves through the follow-up path, which marks the
+			// turn as streaming. No turn runs here, so return the phase to idle.
+			this.options.setTurnPhase("idle")
 			await this.options.postStateToWebview()
 		}
 	}

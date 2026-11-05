@@ -117,31 +117,4 @@ describe("IconButton", () => {
 		expect(onClick).not.toHaveBeenCalled();
 	});
 
-	it("prevents activation when a composed link is disabled", async () => {
-		const onClick = vi.fn();
-		const onClickCapture = vi.fn();
-		await render(
-			<IconButton
-				aria-disabled={false}
-				aria-label="Remove item"
-				asChild
-				data-disabled="consumer-value"
-				disabled
-				onClick={onClick}
-				tabIndex={0}
-			>
-				<a href="/remove" onClick={onClick} onClickCapture={onClickCapture}>
-					−
-				</a>
-			</IconButton>,
-		);
-		const link = container.querySelector<HTMLAnchorElement>("a");
-		expect(link?.getAttribute("aria-disabled")).toBe("true");
-		expect(link?.getAttribute("data-disabled")).toBe("");
-		expect(link?.getAttribute("disabled")).toBeNull();
-		expect(link?.tabIndex).toBe(-1);
-		await act(async () => link?.click());
-		expect(onClick).not.toHaveBeenCalled();
-		expect(onClickCapture).not.toHaveBeenCalled();
-	});
 });

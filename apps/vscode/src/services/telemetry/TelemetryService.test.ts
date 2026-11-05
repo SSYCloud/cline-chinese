@@ -266,33 +266,6 @@ describe("Telemetry system is abstracted and can easily switch between providers
 			await noOpProvider2.dispose()
 		})
 	})
-	describe("PostHog Provider", () => {
-		it("should create PostHog provider and track events", async () => {
-			console.log("=== Testing PostHog Provider ===")
-			const providers = await TelemetryProviderFactory.createProviders()
-			const posthogProvider = providers.find((p) => !(p instanceof NoOpTelemetryProvider)) || providers[0]
-
-			const posthogTelemetryService = new TelemetryService([posthogProvider], MOCK_METADATA)
-
-			// Test various telemetry methods
-			posthogTelemetryService.captureButtonClick("test-button", "task-123")
-			posthogTelemetryService.identifyAccount(MOCK_USER_INFO)
-			posthogTelemetryService.captureTaskFeedback("task-123", "thumbs_up")
-
-			// Test provider methods directly
-			posthogProvider.log("test_event", { test: "property" })
-			posthogProvider.identifyUser(MOCK_USER_INFO, { additional: "data" })
-
-			// Verify provider state
-			const isEnabled = posthogProvider.isEnabled()
-			const settings = posthogProvider.getSettings()
-
-			console.log("PostHog Provider enabled:", isEnabled)
-			console.log("PostHog Provider settings:", settings)
-
-			await posthogProvider.dispose()
-		})
-	})
 
 	describe("No-Op Provider", () => {
 		it("should create No-Op provider and handle all operations safely", async () => {
@@ -505,33 +478,6 @@ describe("Telemetry system is abstracted and can easily switch between providers
 			getValidOtelConfigStub.restore()
 			getRuntimeOtelConfigStub.restore()
 			isPostHogConfigValidStub.restore()
-		})
-
-		it("should handle provider switching seamlessly", async () => {
-			console.log("\n=== Testing Provider Switching ===")
-
-			// Start with available providers
-			const providers = await TelemetryProviderFactory.createProviders()
-			let telemetryService = new TelemetryService(providers, MOCK_METADATA)
-
-			telemetryService.captureButtonClick("test-button", "task-switch-1")
-			console.log("Captured event with available providers")
-
-			await Promise.all(providers.map((p) => p.dispose()))
-
-			// Switch to No-Op provider
-			const noOpProvider = new NoOpTelemetryProvider()
-			telemetryService = new TelemetryService([noOpProvider], MOCK_METADATA)
-
-			telemetryService.captureButtonClick("test-button", "task-switch-2")
-			console.log("Captured event with No-Op provider")
-
-			// Verify different behaviors
-			// PostHog provider may be enabled depending on configuration
-			// NoOp provider should always be disabled
-			assert.strictEqual(noOpProvider.isEnabled(), false, "NoOp provider should always be disabled")
-
-			await noOpProvider.dispose()
 		})
 	})
 

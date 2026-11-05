@@ -953,15 +953,6 @@ describe("Remote Config Schema", () => {
 			).to.equal("enterprise-prompts");
 		});
 
-		it("should properly infer RemoteConfig type", () => {
-			const config: RemoteConfig = {
-				version: "v1",
-				telemetryEnabled: true,
-			};
-			// TypeScript compilation will fail if type inference is wrong
-			expect(config.version).to.be.a("string");
-		});
-
 		it("should allow optional fields to be undefined", () => {
 			const config: RemoteConfig = {
 				version: "v1",
