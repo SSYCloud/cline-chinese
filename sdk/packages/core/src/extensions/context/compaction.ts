@@ -541,18 +541,6 @@ export function createContextCompactionPrepareTurn(
 			});
 			try {
 				if (effectiveMode === "overflow_recovery") {
-					// The provider already rejected the request, so recovery must end
-					// deterministically: the agentic strategy's own summarizer call could
-					// overflow the same window (its input budgeting trusts the same
-					// estimator that just undercounted). A custom compactor gets first
-					// shot — it sees mode "overflow_recovery" and owns its transcript
-					// invariants — but its result is held to the same bar basic
-					// compaction aims for: strictly smaller than the input (the runtime
-					// refuses to retry with a request that is not smaller) AND within
-					// the recovery token target. A marginal shrink would spend the
-					// run's single retry on a request that still cannot fit. On throw,
-					// decline, or an insufficient result, basic compaction runs so
-					// recovery never depends on another successful LLM request.
 					if (userCompaction?.compact) {
 						try {
 							result = await userCompaction.compact(compactionContext);
@@ -575,14 +563,6 @@ export function createContextCompactionPrepareTurn(
 									total + estimateMessageTokens(message),
 								0,
 							);
-							// The full acceptance bar, covering every degenerate size: a
-							// non-empty transcript (an empty one erases the request being
-							// retried), strictly smaller than the input (the runtime
-							// refuses a retry that is not smaller), and within the
-							// recovery token target (a marginal shrink spends the run's
-							// single retry on a request that still cannot fit). Both size
-							// comparisons use the token estimator rather than serialized
-							// length so they are expressed in the same unit as the target.
 							const acceptable =
 								result.messages.length > 0 &&
 								customMessageTokens < messageInputTokens &&
