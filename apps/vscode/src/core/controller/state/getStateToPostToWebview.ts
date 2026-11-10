@@ -48,6 +48,9 @@ export async function getStateToPostToWebview(controller: {
 	const compactionStrategy = readCompactionStrategyGlobally()
 	const typesafeModel = stateManager.getGlobalSettingsKey("typesafeModel")
 	const typesafeTestDeleteThreshold = stateManager.getGlobalSettingsKey("typesafeTestDeleteThreshold")
+	const typesafeContextDeleteThreshold = stateManager.getGlobalSettingsKey("typesafeContextDeleteThreshold")
+	const typesafeBaseUrl = stateManager.getGlobalSettingsKey("typesafeBaseUrl")
+	const typesafeApiKeyAvailable = !!stateManager.getSecretKey("typesafeApiKey")
 	const webSearchEnabled = isModelToolEnabledGlobally("web_search")
 	const subagentsEnabled = stateManager.getGlobalSettingsKey("subagentsEnabled")
 	const userInfo = stateManager.getGlobalStateKey("userInfo")
@@ -137,6 +140,9 @@ export async function getStateToPostToWebview(controller: {
 		compactionStrategy,
 		typesafeModel,
 		typesafeTestDeleteThreshold,
+		typesafeContextDeleteThreshold,
+		typesafeBaseUrl,
+		typesafeApiKeyAvailable,
 		webSearchEnabled,
 		subagentsEnabled,
 		userInfo,

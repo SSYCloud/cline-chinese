@@ -29,6 +29,10 @@ function isPruneTestsCommand(text: string): boolean {
 	return text === "/pruneTests"
 }
 
+function isPruneCtxCommand(text: string): boolean {
+	return text === "/pruneCtx"
+}
+
 /**
  * Custom hook for managing message handlers
  * Handles sending messages, button clicks, and task management
@@ -142,6 +146,18 @@ export function useMessageHandlers(messages: ClineMessage[], chatState: ChatStat
 				setActiveQuote(null)
 				await SlashServiceClient.condense(StringRequest.create({ value: "pruneTests" })).catch((err) =>
 					console.error("Failed to prune tests:", err),
+				)
+				return
+			}
+
+			if (isPruneCtxCommand(messageToSend)) {
+				if (errorRecoveryAvailable) {
+					return
+				}
+				setInputValue("")
+				setActiveQuote(null)
+				await SlashServiceClient.condense(StringRequest.create({ value: "pruneCtx" })).catch((err) =>
+					console.error("Failed to prune context:", err),
 				)
 				return
 			}

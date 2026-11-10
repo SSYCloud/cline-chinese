@@ -15,6 +15,10 @@ export async function condense(controller: Controller, request: StringRequest): 
 		await controller.pruneTests()
 		return Empty.create()
 	}
+	if (request.value === "pruneCtx") {
+		await controller.pruneCtx()
+		return Empty.create()
+	}
 	await controller.compactTask()
 	return Empty.create()
 }

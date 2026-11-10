@@ -3,6 +3,7 @@ export const featureSettingControlId = (featureId: string) => `${featureSettingE
 
 export const SETTINGS_NAVIGATION_TARGETS = {
 	"api-config": { tabId: "api-config" },
+	"systemone-config": { tabId: "systemone-config" },
 	features: { tabId: "features" },
 	checkpoints: {
 		tabId: "features",

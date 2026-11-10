@@ -138,6 +138,10 @@ export interface ExtensionState {
 	compactionStrategy?: string
 	typesafeModel?: string
 	typesafeTestDeleteThreshold?: number
+	typesafeContextDeleteThreshold?: number
+	typesafeBaseUrl?: string
+	/** Whether a dedicated SystemOne API key is stored (the key itself is never sent to the webview). */
+	typesafeApiKeyAvailable?: boolean
 	webSearchEnabled?: boolean
 	subagentsEnabled?: boolean
 	worktreesEnabled?: ClineFeatureSetting

@@ -7,6 +7,14 @@ export interface SlashCommand {
 }
 
 export const BASE_SLASH_COMMANDS: SlashCommand[] = [
+	// SystemOne (决策模型) is a global service, so /pruneCtx is available with any
+	// provider. It runs the same precompact algorithm the automatic trigger uses,
+	// on demand.
+	{
+		name: "pruneCtx",
+		description: "Prune the current context now with the SystemOne decision model",
+		section: "default",
+	},
 	// `/newtask` is an alias of `/compact`: condensing achieves its goal
 	// (continue working with a fresh, summarized context window) without the
 	// legacy new_task tool. The webview intercepts all three spellings and

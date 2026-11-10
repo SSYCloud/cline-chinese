@@ -24,15 +24,16 @@
 // which the SDK does not treat as a runtime command, so the model improvised a
 // fake "Conversation Summary" instead of compacting (CLINE-2503).
 
+import { type CoreCompactionContext, createSessionCompactionState } from "@cline/core"
 import type { Message as SdkMessage } from "@cline/llms"
 import type { ClineCompactionInfo, ClineMessage, TurnPhase } from "@shared/ExtensionMessage"
 import type { Mode } from "@shared/storage/types"
-import { DEFAULT_TYPESAFE_MODEL } from "@shared/typesafe-models"
 import type { StateManager } from "@/core/storage/StateManager"
-import { DEFAULT_TEST_DELETE_THRESHOLD, goalFromMessages, JevClient, pruneTests } from "@/services/typesafe-compaction/library"
+import { resolveTypesafeConfig } from "@/services/typesafe-compaction/config"
+import { goalFromMessages, JevClient, pruneTests } from "@/services/typesafe-compaction/library"
+import { createTypesafePreCompact } from "@/services/typesafe-compaction/precompact"
 import { createTestFileAccess } from "@/services/typesafe-compaction/test-file-access"
 import { Logger } from "@/shared/services/Logger"
-import { SHENGSUANYUN_PROVIDER_ID } from "@/shared/slashCommands"
 import { buildCompactionMessage, parseCompactionNoticeMetadata } from "./message-translator"
 import { compactSessionMessages } from "./sdk-compaction"
 import type { SdkMessageCoordinator } from "./sdk-message-coordinator"
@@ -74,6 +75,7 @@ export interface SdkCompactionCoordinatorOptions {
 export class SdkCompactionCoordinator {
 	private compactInFlight = false
 	private pruneInFlight = false
+	private pruneCtxInFlight = false
 
 	constructor(private readonly options: SdkCompactionCoordinatorOptions) {}
 
@@ -151,12 +153,9 @@ export class SdkCompactionCoordinator {
 	}
 
 	async pruneTests(): Promise<void> {
-		const config = this.options.stateManager.getApiConfiguration()
-		const mode = this.getCurrentMode()
-		const provider = mode === "plan" ? config.planModeApiProvider : config.actModeApiProvider
-		const apiKey = config.shengSuanYunApiKey?.trim()
-		if (provider !== SHENGSUANYUN_PROVIDER_ID || !apiKey) {
-			this.emitInfo("/pruneTests 仅在使用胜算云供应商并配置 API Key 时可用。")
+		const typesafe = resolveTypesafeConfig(this.options.stateManager)
+		if (!typesafe.apiKey) {
+			this.emitInfo("/pruneTests 需要先在「SystemOne」设置中配置决策模型 API Key。")
 			await this.options.postStateToWebview()
 			return
 		}
@@ -182,11 +181,11 @@ export class SdkCompactionCoordinator {
 			await this.options.postStateToWebview()
 			const root = await this.options.getWorkspaceRoot()
 			const asker = new JevClient({
-				apiKey,
-				model: this.options.stateManager.getGlobalSettingsKey("typesafeModel")?.trim() || DEFAULT_TYPESAFE_MODEL,
+				apiKey: typesafe.apiKey,
+				model: typesafe.model,
+				baseUrl: typesafe.baseUrl,
 			})
-			const threshold =
-				this.options.stateManager.getGlobalSettingsKey("typesafeTestDeleteThreshold") ?? DEFAULT_TEST_DELETE_THRESHOLD
+			const threshold = typesafe.testDeleteThreshold
 			// The goal steers the judge toward what the task is for. A history task has no
 			// live transcript here, so it is judged with an empty goal.
 			const messages = active ? ((await active.sdkHost.readMessages(active.sessionId)) as SdkMessage[]) : []
@@ -244,6 +243,138 @@ export class SdkCompactionCoordinator {
 			this.options.setTurnPhase("idle")
 			await this.options.postStateToWebview()
 		}
+	}
+
+	/**
+	 * User-triggered `/pruneCtx`: run the SystemOne (决策模型) precompact algorithm
+	 * over the conversation now, instead of waiting for the automatic compaction
+	 * trigger. The result is persisted as the same compaction sidecar `/compact`
+	 * writes, so the next turn uses the pruned working context. No-ops with a
+	 * status message when SystemOne is not configured, a turn is running, or
+	 * nothing changes.
+	 */
+	async pruneCtx(): Promise<void> {
+		const typesafe = resolveTypesafeConfig(this.options.stateManager)
+		if (!typesafe.apiKey) {
+			this.emitInfo("/pruneCtx 需要先在「SystemOne」设置中配置决策模型 API Key。")
+			await this.options.postStateToWebview()
+			return
+		}
+		const active = this.options.sessions.getActiveSession()
+		if (active?.isRunning) {
+			this.emitInfo(COMPACTION_TURN_RUNNING_MESSAGE, active.sessionId)
+			await this.options.postStateToWebview()
+			return
+		}
+		if (!active) {
+			this.emitInfo("/pruneCtx 需要在已打开的任务中执行。")
+			await this.options.postStateToWebview()
+			return
+		}
+		if (this.pruneCtxInFlight || this.compactInFlight) {
+			return
+		}
+		this.pruneCtxInFlight = true
+		const sessionId = active.sessionId
+		try {
+			await this.options.rebuilds.runExclusive(async () => {
+				const current = this.options.sessions.getActiveSession()
+				if (current?.sessionId !== sessionId) {
+					Logger.log("[SdkController] pruneCtx: Target changed while waiting for the mutex; cancelling")
+					return
+				}
+				if (current.isRunning) {
+					this.emitInfo(COMPACTION_TURN_RUNNING_MESSAGE, sessionId)
+					await this.options.postStateToWebview()
+					return
+				}
+				await this.runPruneCtx(current.sdkHost, sessionId, typesafe)
+			})
+		} catch (error) {
+			Logger.error("[SdkController] pruneCtx failed:", error)
+			this.emitInfo(`/pruneCtx 失败：${error instanceof Error ? error.message : String(error)}`, sessionId)
+			await this.options.postStateToWebview()
+		} finally {
+			this.pruneCtxInFlight = false
+		}
+	}
+
+	private async runPruneCtx(
+		sdkHost: SdkSessionHost,
+		sessionId: string,
+		typesafe: ReturnType<typeof resolveTypesafeConfig>,
+	): Promise<void> {
+		if (!sdkHost.updateSessionCompactionState) {
+			this.emitInfo(COMPACTION_UNSUPPORTED_MESSAGE, sessionId)
+			await this.options.postStateToWebview()
+			return
+		}
+		const messages = (await sdkHost.readMessages(sessionId)) as SdkMessage[]
+		if (messages.length === 0) {
+			this.emitInfo("No messages to prune.", sessionId)
+			await this.options.postStateToWebview()
+			return
+		}
+
+		const workspaceRoot = await this.options.getWorkspaceRoot()
+		const preCompact = createTypesafePreCompact({
+			apiKey: typesafe.apiKey,
+			model: typesafe.model,
+			baseUrl: typesafe.baseUrl,
+			testDeleteThreshold: typesafe.testDeleteThreshold,
+			contextDeleteThreshold: typesafe.contextDeleteThreshold,
+			workspaceRoot,
+			log: (message) => Logger.log(`[Typesafe] ${message}`),
+		})
+		if (!preCompact) {
+			this.emitInfo("/pruneCtx 需要先在「SystemOne」设置中配置决策模型 API Key。", sessionId)
+			await this.options.postStateToWebview()
+			return
+		}
+
+		const messagesBefore = messages.length
+		this.emitInfo("正在使用决策模型筛选上下文…", sessionId)
+		await this.options.postStateToWebview()
+
+		const result = await preCompact({
+			agentId: "cline-vscode",
+			conversationId: sessionId,
+			parentAgentId: null,
+			iteration: 0,
+			messages: messages as unknown as CoreCompactionContext["messages"],
+			model: { id: typesafe.model, provider: "systemone" },
+			mode: "manual",
+			abortSignal: new AbortController().signal,
+			budget: {
+				request: {
+					inputTokens: 0,
+					maxInputTokens: 0,
+					triggerTokens: 0,
+					targetTokens: 0,
+					overheadTokens: 0,
+					thresholdRatio: 0,
+					utilizationRatio: 0,
+				},
+				messages: { inputTokens: 0, triggerTokens: 0, targetTokens: 0 },
+			},
+		})
+		if (!result?.messages) {
+			this.emitInfo("上下文无需精简。", sessionId)
+			await this.options.postStateToWebview()
+			return
+		}
+
+		const compactionState = createSessionCompactionState({
+			sourceMessages: messages as unknown as CoreCompactionContext["messages"],
+			compactedMessages: result.messages,
+			conversationId: sessionId,
+		})
+		const persisted = await sdkHost.updateSessionCompactionState(sessionId, compactionState)
+		if (!persisted.updated) {
+			throw new Error("Compaction sidecar could not be persisted.")
+		}
+		this.emitInfo(`已精简上下文：${messagesBefore} → ${result.messages.length} 条消息。`, sessionId)
+		await this.options.postStateToWebview()
 	}
 
 	/**

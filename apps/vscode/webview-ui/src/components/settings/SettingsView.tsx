@@ -3,6 +3,7 @@ import { isClineInternalTester } from "@shared/internal/account"
 import { ResetStateRequest } from "@shared/proto/cline/state"
 import type { UserOrganization } from "@shared/proto/index.cline"
 import {
+	Brain,
 	CheckCheck,
 	FlaskConical,
 	HardDriveDownload,
@@ -30,13 +31,14 @@ import DebugSection from "./sections/DebugSection"
 import FeatureSettingsSection from "./sections/FeatureSettingsSection"
 import GeneralSettingsSection from "./sections/GeneralSettingsSection"
 import { RemoteConfigSection } from "./sections/RemoteConfigSection"
+import SystemOneSettingsSection from "./sections/SystemOneSettingsSection"
 import TerminalSettingsSection from "./sections/TerminalSettingsSection"
 import { getNextSettingsNavigationRequestId, resolveSettingsTarget, type SettingsNavigationRequest } from "./settingsTargets"
 
 const IS_DEV = process.env.IS_DEV
 
 // Tab definitions
-type SettingsTabID = "api-config" | "features" | "terminal" | "general" | "about" | "debug" | "remote-config"
+type SettingsTabID = "api-config" | "systemone-config" | "features" | "terminal" | "general" | "about" | "debug" | "remote-config"
 interface SettingsTab {
 	id: SettingsTabID
 	name: string
@@ -53,6 +55,13 @@ const SETTINGS_TABS: SettingsTab[] = [
 		tooltipText: "API 配置",
 		headerText: "API 配置",
 		icon: SlidersHorizontal,
+	},
+	{
+		id: "systemone-config",
+		name: "SystemOne",
+		tooltipText: "决策模型配置",
+		headerText: "决策模型配置",
+		icon: Brain,
 	},
 	{
 		id: "features",
@@ -130,6 +139,7 @@ const SettingsView = ({ navigationRequest, onDone }: SettingsViewProps) => {
 	const TAB_CONTENT_MAP: Record<SettingsTabID, React.FC<any>> = useMemo(
 		() => ({
 			"api-config": ApiConfigurationSection,
+			"systemone-config": SystemOneSettingsSection,
 			general: GeneralSettingsSection,
 			features: FeatureSettingsSection,
 			terminal: TerminalSettingsSection,

@@ -2,6 +2,7 @@ import { createContextCompactionPrepareTurn } from "@cline/core"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import type { StateManager } from "@/core/storage/StateManager"
 import { pruneTests } from "@/services/typesafe-compaction/library"
+import { createTypesafePreCompact } from "@/services/typesafe-compaction/precompact"
 import { createTestFileAccess } from "@/services/typesafe-compaction/test-file-access"
 import { SdkCompactionCoordinator, type SdkCompactionCoordinatorOptions } from "./sdk-compaction-coordinator"
 
@@ -9,6 +10,10 @@ vi.mock("@/services/typesafe-compaction/library", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@/services/typesafe-compaction/library")>()),
 	pruneTests: vi.fn(),
 	JevClient: vi.fn(),
+}))
+
+vi.mock("@/services/typesafe-compaction/precompact", () => ({
+	createTypesafePreCompact: vi.fn(),
 }))
 
 vi.mock("@/services/typesafe-compaction/test-file-access", () => ({
@@ -522,6 +527,11 @@ describe("SdkCompactionCoordinator.pruneTests", () => {
 			stateManager: {
 				getApiConfiguration: vi.fn(() => ({ ...SHENG_SUAN_YUN_CONFIG, ...input.apiConfig })),
 				getGlobalSettingsKey: vi.fn(() => undefined),
+				getSecretKey: vi.fn((key: string) =>
+					key === "shengSuanYunApiKey"
+						? (input.apiConfig?.shengSuanYunApiKey ?? SHENG_SUAN_YUN_CONFIG.shengSuanYunApiKey)
+						: undefined,
+				),
 			} as unknown as StateManager,
 			sessions: {
 				getActiveSession: vi.fn(() => activeSession),
@@ -553,14 +563,14 @@ describe("SdkCompactionCoordinator.pruneTests", () => {
 		keepTest: 0,
 	}
 
-	it("refuses without a Sheng Suan Yun provider and never asks in chat", async () => {
-		const { coordinator, options } = makePruneCoordinator({ apiConfig: { actModeApiProvider: "anthropic" } })
+	it("refuses without any SystemOne or 胜算云 key and never asks in chat", async () => {
+		const { coordinator, options } = makePruneCoordinator({ apiConfig: { shengSuanYunApiKey: "" } })
 
 		await coordinator.pruneTests()
 
 		expect(options.askInChat).not.toHaveBeenCalled()
 		expect(options.messages.appendAndEmit).toHaveBeenCalledWith(
-			[expect.objectContaining({ say: "info", text: expect.stringContaining("仅在使用胜算云") })],
+			[expect.objectContaining({ say: "info", text: expect.stringContaining("API Key") })],
 			expect.anything(),
 		)
 	})
@@ -633,5 +643,102 @@ describe("SdkCompactionCoordinator.pruneTests", () => {
 
 		expect(options.askInChat).not.toHaveBeenCalled()
 		expect(real.write).not.toHaveBeenCalled()
+	})
+})
+
+describe("SdkCompactionCoordinator.pruneCtx", () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+	})
+
+	function makePruneCtxCoordinator(input: {
+		apiKey?: string
+		activeSession?: ReturnType<typeof makeActiveSession> | undefined
+	}) {
+		const activeSession = "activeSession" in input ? input.activeSession : makeActiveSession()
+		const options = {
+			stateManager: {
+				getApiConfiguration: vi.fn(() => ({})),
+				getGlobalSettingsKey: vi.fn(() => undefined),
+				getSecretKey: vi.fn((key: string) => (key === "typesafeApiKey" ? (input.apiKey ?? "sk-systemone") : undefined)),
+			} as unknown as StateManager,
+			sessions: {
+				getActiveSession: vi.fn(() => activeSession),
+				waitForPendingStop: vi.fn().mockResolvedValue(undefined),
+			},
+			rebuilds: { runExclusive: vi.fn(async (op: () => Promise<unknown>) => op()) },
+			messages: { appendAndEmit: vi.fn() },
+			taskHistory: {},
+			sessionConfigBuilder: { build: vi.fn() },
+			getDisplayedTaskId: vi.fn(() => undefined),
+			createTempSessionHost: vi.fn(),
+			loadInitialMessages: vi.fn(),
+			getWorkspaceRoot: vi.fn().mockResolvedValue("/workspace"),
+			postStateToWebview: vi.fn().mockResolvedValue(undefined),
+			askInChat: vi.fn(),
+			setTurnPhase: vi.fn(),
+		} as unknown as SdkCompactionCoordinatorOptions & {
+			messages: { appendAndEmit: ReturnType<typeof vi.fn> }
+		}
+		return { coordinator: new SdkCompactionCoordinator(options), options, activeSession }
+	}
+
+	it("refuses without a SystemOne or 胜算云 key and does not run the hook", async () => {
+		const { coordinator, options } = makePruneCtxCoordinator({ apiKey: "" })
+
+		await coordinator.pruneCtx()
+
+		expect(vi.mocked(createTypesafePreCompact)).not.toHaveBeenCalled()
+		expect(options.messages.appendAndEmit).toHaveBeenCalledWith(
+			[expect.objectContaining({ say: "info", text: expect.stringContaining("API Key") })],
+			expect.anything(),
+		)
+	})
+
+	it("reports that a task is needed when no session is open", async () => {
+		const { coordinator, options } = makePruneCtxCoordinator({ activeSession: undefined })
+
+		await coordinator.pruneCtx()
+
+		expect(vi.mocked(createTypesafePreCompact)).not.toHaveBeenCalled()
+		expect(options.messages.appendAndEmit).toHaveBeenCalledWith(
+			[expect.objectContaining({ say: "info", text: expect.stringContaining("已打开的任务") })],
+			expect.anything(),
+		)
+	})
+
+	it("refuses while a turn is running", async () => {
+		const { coordinator, options } = makePruneCtxCoordinator({ activeSession: makeActiveSession({ isRunning: true }) })
+
+		await coordinator.pruneCtx()
+
+		expect(vi.mocked(createTypesafePreCompact)).not.toHaveBeenCalled()
+		expect(options.messages.appendAndEmit).toHaveBeenCalledWith([expect.objectContaining({ say: "info" })], expect.anything())
+	})
+
+	it("persists the pruned transcript as the compaction sidecar when the hook changes it", async () => {
+		const pruned = [{ role: "user", content: "kept" }]
+		vi.mocked(createTypesafePreCompact).mockReturnValue(vi.fn().mockResolvedValue({ messages: pruned }) as never)
+		const { coordinator, activeSession } = makePruneCtxCoordinator({})
+
+		await coordinator.pruneCtx()
+
+		expect(activeSession?.sdkHost.updateSessionCompactionState).toHaveBeenCalledWith(
+			"old-session",
+			expect.objectContaining({ messages: pruned }),
+		)
+	})
+
+	it("leaves the sidecar untouched when the hook returns no change", async () => {
+		vi.mocked(createTypesafePreCompact).mockReturnValue(vi.fn().mockResolvedValue(undefined) as never)
+		const { coordinator, activeSession, options } = makePruneCtxCoordinator({})
+
+		await coordinator.pruneCtx()
+
+		expect(activeSession?.sdkHost.updateSessionCompactionState).not.toHaveBeenCalled()
+		expect(options.messages.appendAndEmit).toHaveBeenCalledWith(
+			[expect.objectContaining({ say: "info", text: "上下文无需精简。" })],
+			expect.anything(),
+		)
 	})
 })

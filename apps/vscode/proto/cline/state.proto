@@ -110,6 +110,7 @@ message Secrets {
   optional string sheng_suan_yun_api_key = 51;
   optional string sheng_suan_yun_token = 52;
   optional string sheng_suan_yun_personal_api_key = 53;
+  optional string typesafe_api_key = 54;
 }
 
 // NOTE: Add new fields under API_HANDLER_SETTINGS_FIELDS or USER_SETTINGS_FIELDS
@@ -299,6 +300,8 @@ message Settings {
   optional bool cloud_sessions_enabled = 192;
   optional string typesafe_model = 193;
   optional double typesafe_test_delete_threshold = 194;
+  optional string typesafe_base_url = 195;
+  optional double typesafe_context_delete_threshold = 196;
 }
 
 message State {
@@ -446,6 +449,9 @@ message UpdateSettingsRequest {
   optional bool cloud_sessions_enabled = 46;
   optional string typesafe_model = 47;
   optional double typesafe_test_delete_threshold = 48;
+  optional string typesafe_api_key = 49;
+  optional string typesafe_base_url = 50;
+  optional double typesafe_context_delete_threshold = 51;
 }
 
 message UpdateTerminalConnectionTimeoutRequest {

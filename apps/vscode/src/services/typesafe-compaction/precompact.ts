@@ -18,7 +18,9 @@ import { createTestFileAccess } from "./test-file-access"
 export interface TypesafePreCompactOptions {
 	apiKey: string
 	model?: string
+	baseUrl?: string
 	testDeleteThreshold?: number
+	contextDeleteThreshold?: number
 	workspaceRoot?: string
 	fetch?: typeof fetch
 	log?: (message: string) => void
@@ -155,7 +157,7 @@ export function createTypesafePreCompact(
 	if (!apiKey) return undefined
 	const log = options.log ?? (() => {})
 	const model = options.model?.trim() || DEFAULT_TYPESAFE_MODEL
-	const compactOptions = resolveOptions()
+	const compactOptions = resolveOptions({ keepThreshold: options.contextDeleteThreshold })
 	const deleteThreshold = options.testDeleteThreshold ?? DEFAULT_TEST_DELETE_THRESHOLD
 	const workspaceRoot = options.workspaceRoot
 
@@ -165,6 +167,7 @@ export function createTypesafePreCompact(
 		const asker = new JevClient({
 			apiKey,
 			model,
+			baseUrl: options.baseUrl,
 			fetch: options.fetch,
 			signal: context.abortSignal,
 		})

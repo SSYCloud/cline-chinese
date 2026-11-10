@@ -1907,6 +1907,10 @@ export class Controller {
 		await this.compaction.pruneTests()
 	}
 
+	async pruneCtx(): Promise<void> {
+		await this.compaction.pruneCtx()
+	}
+
 	async clearTask(): Promise<void> {
 		this.pendingStartRetry = undefined
 		// No active task — UI returns to idle (input enabled, no buttons/thinking).

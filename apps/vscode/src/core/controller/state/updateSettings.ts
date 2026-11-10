@@ -192,6 +192,18 @@ export async function updateSettings(controller: Controller, request: UpdateSett
 			controller.stateManager.setGlobalState("typesafeTestDeleteThreshold", request.typesafeTestDeleteThreshold)
 		}
 
+		if (request.typesafeContextDeleteThreshold !== undefined) {
+			controller.stateManager.setGlobalState("typesafeContextDeleteThreshold", request.typesafeContextDeleteThreshold)
+		}
+
+		if (request.typesafeBaseUrl !== undefined) {
+			controller.stateManager.setGlobalState("typesafeBaseUrl", request.typesafeBaseUrl.trim())
+		}
+
+		if (request.typesafeApiKey !== undefined) {
+			controller.stateManager.setSecret("typesafeApiKey", request.typesafeApiKey.trim() || undefined)
+		}
+
 		if (request.compactionStrategy !== undefined) {
 			const strategy = request.compactionStrategy
 			if (strategy !== "basic" && strategy !== "agentic") {

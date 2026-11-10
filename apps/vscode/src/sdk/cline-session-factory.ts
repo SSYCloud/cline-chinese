@@ -44,6 +44,7 @@ import { StateManager } from "@/core/storage/StateManager"
 import { HostProvider } from "@/hosts/host-provider"
 import { ExtensionRegistryInfo } from "@/registry"
 import { getDistinctId } from "@/services/logging/distinctId"
+import { resolveTypesafeConfig } from "@/services/typesafe-compaction/config"
 import { createTypesafePreCompact } from "@/services/typesafe-compaction/precompact"
 import { fetch, fetchWithoutIdleTimeouts } from "@/shared/net"
 import { type BedrockProviderConfig, buildBedrockProviderConfig } from "./bedrock-config"
@@ -1163,17 +1164,18 @@ export async function buildSessionConfig(input: SessionConfigInput): Promise<Cor
 		fetch: resolveProviderFetch(sdkProviderId, baseUrl),
 	}
 
-	const typesafePreCompact =
-		sdkProviderId === "shengsuanyun" && apiKey
-			? createTypesafePreCompact({
-					apiKey,
-					model: stateManager.getGlobalSettingsKey("typesafeModel"),
-					testDeleteThreshold: stateManager.getGlobalSettingsKey("typesafeTestDeleteThreshold"),
-					workspaceRoot,
-					fetch: providerConfig.fetch,
-					log: (message) => Logger.log(`[Typesafe] ${message}`),
-				})
-			: undefined
+	// SystemOne (决策模型) is a global service: it runs whatever provider the chat uses.
+	const typesafe = resolveTypesafeConfig(stateManager)
+	const typesafePreCompact = createTypesafePreCompact({
+		apiKey: typesafe.apiKey,
+		model: typesafe.model,
+		baseUrl: typesafe.baseUrl,
+		testDeleteThreshold: typesafe.testDeleteThreshold,
+		contextDeleteThreshold: typesafe.contextDeleteThreshold,
+		workspaceRoot,
+		fetch: providerConfig.fetch,
+		log: (message) => Logger.log(`[Typesafe] ${message}`),
+	})
 
 	const config: CoreSessionConfig = {
 		providerId: sdkProviderId,

@@ -295,6 +295,8 @@ const USER_SETTINGS_FIELDS = {
 	useAutoCondense: { default: true as boolean },
 	typesafeModel: { default: DEFAULT_TYPESAFE_MODEL as string | undefined },
 	typesafeTestDeleteThreshold: { default: 0.1 as number },
+	typesafeBaseUrl: { default: "" as string },
+	typesafeContextDeleteThreshold: { default: 0.5 as number },
 	subagentsEnabled: { default: false as boolean },
 	worktreesEnabled: { default: false as boolean },
 	cloudSessionsEnabled: { default: false as boolean },
@@ -381,6 +383,7 @@ const SECRETS_KEYS = [
 	"shengSuanYunApiKey",
 	"shengSuanYunToken",
 	"shengSuanYunPersonalApiKey",
+	"typesafeApiKey",
 ] as const
 
 // WARNING, these are not ALL of the local state keys in practice. For example, FileContextTracker
