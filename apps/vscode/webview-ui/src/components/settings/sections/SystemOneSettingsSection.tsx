@@ -53,10 +53,6 @@ const ThresholdField = ({ id, label, description, value, fallback, onCommit }: T
 	)
 }
 
-/**
- * Global SystemOne (决策模型) configuration. These settings apply to every provider:
- * context compaction and /pruneTests use them regardless of the chat's provider.
- */
 const SystemOneSettingsSection = ({ renderSectionHeader }: { renderSectionHeader?: (tabId: string) => JSX.Element | null }) => {
 	const {
 		typesafeModel,
@@ -73,6 +69,21 @@ const SystemOneSettingsSection = ({ renderSectionHeader }: { renderSectionHeader
 		<div>
 			{renderSectionHeader?.("systemone-config")}
 			<Section>
+				<div className="space-y-1">
+					<label htmlFor="typesafe-base-url" style={{ fontWeight: 500 }}>
+						决策模型 URL
+					</label>
+					<VSCodeTextField
+						id="typesafe-base-url"
+						key={typesafeBaseUrl ?? ""}
+						onBlur={(e) => updateSetting("typesafeBaseUrl", (e.target as HTMLInputElement)?.value ?? "")}
+						placeholder={DEFAULT_TYPESAFE_BASE_URL}
+						style={{ width: "100%" }}
+						value={typesafeBaseUrl ?? ""}
+					/>
+					<p className="text-sm text-(--vscode-descriptionForeground)">留空使用默认地址。</p>
+				</div>
+
 				<ApiKeyField
 					helpText={
 						typesafeApiKeyAvailable ? "已保存决策模型 API Key。留空并保存可清除。" : "未配置时将使用胜算云 API Key。"
@@ -94,21 +105,6 @@ const SystemOneSettingsSection = ({ renderSectionHeader }: { renderSectionHeader
 					onModelChange={(value) => updateSetting("typesafeModel", value)}
 				/>
 				<p className="-mt-2 text-sm text-(--vscode-descriptionForeground)">使用决策模型筛选上下文。</p>
-
-				<div className="space-y-1">
-					<label htmlFor="typesafe-base-url" style={{ fontWeight: 500 }}>
-						决策模型 URL
-					</label>
-					<VSCodeTextField
-						id="typesafe-base-url"
-						key={typesafeBaseUrl ?? ""}
-						onBlur={(e) => updateSetting("typesafeBaseUrl", (e.target as HTMLInputElement)?.value ?? "")}
-						placeholder={DEFAULT_TYPESAFE_BASE_URL}
-						style={{ width: "100%" }}
-						value={typesafeBaseUrl ?? ""}
-					/>
-					<p className="text-sm text-(--vscode-descriptionForeground)">留空使用默认地址。</p>
-				</div>
 
 				<ThresholdField
 					description="评分低于该值的单元测试会被删除，取值范围 0-1，设为 0 关闭测试整理。"
