@@ -38,6 +38,8 @@ export interface ApiKeyFieldOptionsConfig {
 interface ApiKeyFieldProps {
 	initialValue: string
 	onChange: (value: string) => void
+	onFocus?: () => void
+	onBlur?: () => void
 	providerName: string
 	signupUrl?: string
 	placeholder?: string
@@ -64,6 +66,8 @@ const STATUS_TEXT_STYLE: CSSProperties = {
 export const ApiKeyField = ({
 	initialValue,
 	onChange,
+	onFocus,
+	onBlur,
 	providerName,
 	signupUrl,
 	placeholder = "输入 API 密钥...",

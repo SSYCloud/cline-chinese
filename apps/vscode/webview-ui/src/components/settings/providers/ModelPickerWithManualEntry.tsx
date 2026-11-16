@@ -77,9 +77,13 @@ export function ModelPickerWithManualEntry({
 				<span className="font-medium">模型</span>
 			</label>
 
-			{isStale && <div role="status">当前提供商配置下的模型列表可能已过期。</div>}
-			{isLoading && <div role="status">正在加载模型…</div>}
-			{error && <div role="alert">{error}</div>}
+			{isStale && <div role="status">对于当前的提供商配置而言，模型列表可能已过时。</div>}
+			{isLoading && <div role="status">加载模型…</div>}
+			{error && (
+				<div role="alert" style={{ color: "var(--vscode-errorForeground)", fontSize: "12px" }}>
+					{error}
+				</div>
+			)}
 
 			{hasModels && (
 				<DropdownContainer className="dropdown-container">

@@ -48,7 +48,6 @@ import {
 	createStreamErrorTelemetry,
 	isTimeoutReason,
 } from "../services/stream-error-telemetry";
-import { wrapFetchForAimlapiAttribution } from "./aimlapi/attribution";
 import {
 	classifyProviderError,
 	isRetryableBeyondSdkRetries,
@@ -2294,10 +2293,7 @@ function createAiSdkProvider(
 					kind,
 					{
 						...config,
-						fetch: wrapFetchForAimlapiAttribution(
-							wrapFetchForStickySession(config.fetch, request, context),
-							request.providerId,
-						),
+						fetch: wrapFetchForStickySession(config.fetch, request, context),
 					},
 					context,
 				);

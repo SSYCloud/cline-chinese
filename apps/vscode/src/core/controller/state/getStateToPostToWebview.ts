@@ -15,7 +15,6 @@ import { getDistinctId } from "@/services/logging/distinctId"
 import { getExtensionVariant } from "@/services/telemetry/rollout-metadata"
 import { isJwtExpired } from "@/shared/utils/jwt"
 import { getLatestAnnouncementId } from "@/utils/announcements"
-import { getClineOnboardingModels } from "../models/getClineOnboardingModels"
 
 /**
  * Builds the ExtensionState object to push to the webview.
@@ -36,7 +35,6 @@ export async function getStateToPostToWebview(controller: {
 	const stateManager = controller.stateManager
 
 	// Get API configuration from cache for immediate access
-	const onboardingModels = getClineOnboardingModels()
 	const apiConfiguration = stateManager.getApiConfiguration()
 	const lastShownAnnouncementId = stateManager.getGlobalStateKey("lastShownAnnouncementId")
 	const taskHistory = stateManager.getGlobalStateKey("taskHistory")
@@ -178,7 +176,6 @@ export async function getStateToPostToWebview(controller: {
 		chineseNewUserPopupShown,
 		chineseDailyPopupEnabled,
 		chineseDailyPopupLastShownDate,
-		onboardingModels,
 		mcpResponsesCollapsed,
 		taskHistory: processedTaskHistory,
 		shouldShowAnnouncement,

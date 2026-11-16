@@ -1,5 +1,5 @@
+import type { OnboardingModel } from "@shared/cline/onboarding"
 import type { OpenRouterModelInfo, ShengSuanYunModelInfo } from "@shared/proto/cline/models"
-import type { OnboardingModel } from "@shared/proto/cline/state"
 import { ListIcon, ZapIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Item, ItemContent, ItemDescription, ItemHeader, ItemTitle } from "@/components/ui/item"

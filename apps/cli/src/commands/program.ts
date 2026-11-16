@@ -27,12 +27,12 @@ export function addRootOptions(cmd: Command): Command {
 			.option("-p, --plan", "Run in plan mode")
 			.option(
 				"-y, --yolo",
-				"Auto-approve a limited tool set for unsupervised runs (benchmarks, CI). DANGEROUS: use only in sandboxed environments.",
+				"针对无人值守运行（如基准测试、持续集成）场景，自动批准使用一套受限的工具。危险：仅限在沙盒环境中使用。",
 			)
 			.option("--json", "Output messages as JSON instead of styled text")
 			.option(
 				"--auto-approve <boolean>",
-				"为所有工具设置工具自动批准（默认：true）",
+				"为所有工具设置自动批准（默认值：true）。若设为 false，则在执行操作时会触发确认提示，而非直接自动执行（即“YOLO”模式）。",
 				normalizeAutoApproveValue,
 			)
 			.option("-c, --cwd <path>", "工作目录")
@@ -117,7 +117,7 @@ export function createProgram(): Command {
 		.enablePositionalOptions()
 		.argument(
 			"[prompt]",
-			"你的提示。默认以执行模式启动并启用自动批准。",
+			"您的提示词。默认以“YOLO”模式运行；如需退出此模式，请传入 `--auto-approve false`（或 `--act` / `--plan`）。",
 		);
 
 	addRootOptions(program);

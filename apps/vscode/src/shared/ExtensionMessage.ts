@@ -14,7 +14,6 @@ import type { CloudTaskTargetView, CurrentCloudTaskInfo } from "./cloud/cloud-se
 import { HistoryItem } from "./HistoryItem"
 import { McpDisplayMode } from "./McpDisplayMode"
 import { ClineMessageModelInfo } from "./messages"
-import { OnboardingModelGroup } from "./proto/cline/state"
 import { Mode } from "./storage/types"
 import { TelemetrySetting } from "./TelemetrySetting"
 import { UserInfo } from "./UserInfo"
@@ -50,7 +49,6 @@ export interface ExtensionState {
 	chineseDailyPopupEnabled?: boolean
 	/** Local calendar date (YYYY-MM-DD) on which the daily promo popup was last presented. */
 	chineseDailyPopupLastShownDate?: string
-	onboardingModels: OnboardingModelGroup | undefined
 	apiConfiguration?: ApiConfiguration
 	autoApprovalSettings: AutoApprovalSettings
 	browserSettings: BrowserSettings

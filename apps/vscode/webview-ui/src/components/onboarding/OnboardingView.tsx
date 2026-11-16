@@ -5,8 +5,9 @@ import {
 	resolveClinePassModelInfo,
 	shengSuanYunDefaultModelInfo,
 } from "@shared/api"
+import type { OnboardingModel, OnboardingModelGroup } from "@shared/cline/onboarding"
 import { StringRequest } from "@shared/proto/cline/common"
-import type { OnboardingModel, OnboardingModelGroup, OpenRouterModelInfo } from "@shared/proto/index.cline"
+import type { OpenRouterModelInfo } from "@shared/proto/index.cline"
 import { VSCodeLink } from "@vscode/webview-ui-toolkit/react"
 import { AlertCircleIcon, CircleCheckIcon, CircleIcon, ListIcon, LoaderCircleIcon, ZapIcon } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
