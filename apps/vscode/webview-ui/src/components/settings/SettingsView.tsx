@@ -58,7 +58,7 @@ const SETTINGS_TABS: SettingsTab[] = [
 	},
 	{
 		id: "systemone-config",
-		name: "SystemOne",
+		name: "决策模型",
 		tooltipText: "决策模型配置",
 		headerText: "决策模型配置",
 		icon: Brain,

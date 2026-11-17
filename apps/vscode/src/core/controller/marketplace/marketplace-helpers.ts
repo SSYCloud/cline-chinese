@@ -13,6 +13,7 @@ import {
 	installMcpServer,
 	installPlugin,
 	isMarketplaceSkillInstalled,
+	loadMarketplaceCatalog,
 	type MarketplaceActionResult,
 	type MarketplaceEntryInput,
 	type MarketplacePrimitiveType,
@@ -47,6 +48,7 @@ import {
 import { StateManager } from "@/core/storage/StateManager"
 import { HostProvider } from "@/hosts/host-provider"
 import { fetch } from "@/shared/net"
+import { Logger } from "@/shared/services/Logger"
 import type { Controller } from "../index"
 
 type MarketplaceType = "mcp" | "skill" | "plugin"
@@ -57,7 +59,6 @@ type SpawnResult = {
 	stderr: string
 }
 
-const MARKETPLACE_CATALOG_URL = "https://cline.github.io/marketplace/catalog.json"
 const SHENG_SUAN_YUN = "https://loomloom.shengsuanyun.com/loom/v1"
 const SHENG_SUAN_YUN_SKILL_URL_PREFIX = "https://loomloom.shengsuanyun.com"
 const OFFICIAL_PLUGINS_REPO = "https://github.com/cline/plugins.git"
@@ -131,10 +132,12 @@ function sanitizeEntry(raw: unknown): MarketplaceEntry | undefined {
 }
 
 export async function fetchMarketplaceCatalog(): Promise<MarketplaceCatalog> {
-	const response = await fetch(MARKETPLACE_CATALOG_URL, { headers: { Accept: "application/json" } })
-	if (!response.ok) throw new Error(`Marketplace catalog request failed: ${response.status}`)
-	const json = (await response.json()) as { entries?: unknown[] }
-	const entries = (json.entries ?? []).map(sanitizeEntry).filter((entry): entry is MarketplaceEntry => entry !== undefined)
+	const json = await loadMarketplaceCatalog({
+		onPrioritySourceError: (source, error) => Logger.warn(`Skipping priority marketplace catalog ${source}:`, error),
+	})
+	const entries = (Array.isArray(json.entries) ? json.entries : [])
+		.map(sanitizeEntry)
+		.filter((entry): entry is MarketplaceEntry => entry !== undefined)
 	// Cloud SkillBots use their dedicated channel and local pins, never the package installer.
 	return MarketplaceCatalog.create({ entries })
 }

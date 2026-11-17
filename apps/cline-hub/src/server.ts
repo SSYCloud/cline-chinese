@@ -27,7 +27,7 @@ import {
 	syncHubClientsAndSessions,
 	syncHubHealth,
 } from "./server/hub";
-import { fetchMarketplaceCatalog } from "./server/marketplace";
+import { loadMarketplaceCatalog } from "@cline/core";
 import {
 	loadModels,
 	runProviderOAuthLogin,
@@ -135,7 +135,7 @@ export async function startClineHubDashboardServer(): Promise<ClineHubDashboardS
 			}
 			if (url.pathname === "/api/marketplace/catalog") {
 				try {
-					return createJsonResponse(await fetchMarketplaceCatalog());
+					return createJsonResponse(await loadMarketplaceCatalog());
 				} catch (error) {
 					return createJsonResponse(
 						{

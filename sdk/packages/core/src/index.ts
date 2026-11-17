@@ -669,6 +669,17 @@ export {
 	uninstallMarketplaceSkill,
 } from "./services/marketplace";
 export type {
+	LoadMarketplaceCatalogOptions,
+	MarketplaceCatalogFetch,
+	MarketplaceCatalogRecord,
+} from "./services/marketplace-catalog";
+export {
+	loadMarketplaceCatalog,
+	MARKETPLACE_CATALOG_URL,
+	mergeMarketplaceCatalogs,
+	PRIORITY_MARKETPLACE_CATALOG_SOURCE,
+} from "./services/marketplace-catalog";
+export type {
 	McpInstallOptions,
 	McpInstallResult,
 	McpUninstallOptions,

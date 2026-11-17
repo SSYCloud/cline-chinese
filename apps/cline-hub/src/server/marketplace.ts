@@ -23,6 +23,7 @@ import {
 	resolveSkillsConfigSearchPaths,
 	resolveWorkflowsConfigSearchPaths,
 	SKILLS_CLI_PACKAGE,
+	loadMarketplaceCatalog,
 	uninstallMarketplaceEntry as uninstallCoreMarketplaceEntry,
 	uninstallPlugin as uninstallLocalPlugin,
 } from "@cline/core";
@@ -927,7 +928,7 @@ export async function installMarketplaceEntryFromCatalog(
 	} = {},
 ): Promise<MarketplaceInstallResult> {
 	const requested = readInstallRequest(args);
-	const catalog = await (options.loadCatalog ?? fetchMarketplaceCatalog)();
+	const catalog = await (options.loadCatalog ?? loadMarketplaceCatalog)();
 	const entry = readCatalogEntries(catalog).find(
 		(candidate) =>
 			candidate.id === requested.id && candidate.type === requested.type,
@@ -951,7 +952,7 @@ export async function uninstallMarketplaceEntryFromCatalog(
 	} = {},
 ): Promise<MarketplaceInstallResult> {
 	const requested = readInstallRequest(args);
-	const catalog = await (options.loadCatalog ?? fetchMarketplaceCatalog)();
+	const catalog = await (options.loadCatalog ?? loadMarketplaceCatalog)();
 	const entry = readCatalogEntries(catalog).find(
 		(candidate) =>
 			candidate.id === requested.id && candidate.type === requested.type,

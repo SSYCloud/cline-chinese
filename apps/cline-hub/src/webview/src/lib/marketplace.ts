@@ -18,6 +18,7 @@ export type MarketplaceEntry = {
 	type: MarketplacePrimitiveType;
 	name: string;
 	featured?: boolean;
+	sourceIndex?: number;
 	tagline: string;
 	description: string;
 	tags: string[];

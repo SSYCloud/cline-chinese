@@ -246,7 +246,7 @@ export const ApiKeyField = ({
 						display: "inline",
 						fontSize: "inherit",
 					}}>
-					你可以在此注册获取 {providerName} API 密钥。
+					获取 {providerName} API 密钥。
 				</VSCodeLink>
 				{/*  )} */}
 			</p>

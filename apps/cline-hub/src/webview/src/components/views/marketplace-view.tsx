@@ -120,6 +120,8 @@ function compareFeaturedEntries(
 	left: MarketplaceEntry,
 	right: MarketplaceEntry,
 ): number {
+	const sourceDelta = (left.sourceIndex ?? 0) - (right.sourceIndex ?? 0);
+	if (sourceDelta !== 0) return sourceDelta;
 	return Number(Boolean(right.featured)) - Number(Boolean(left.featured));
 }
 

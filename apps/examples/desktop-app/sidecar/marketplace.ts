@@ -17,7 +17,7 @@ import {
 	relative,
 	resolve,
 } from "node:path";
-import type { HubMcpApi } from "@cline/core";
+import { type HubMcpApi, loadMarketplaceCatalog } from "@cline/core";
 import {
 	installPlugin as installCorePlugin,
 	type MarketplaceActionResult,
@@ -95,9 +95,6 @@ type CatalogLoader = () => Promise<unknown>;
 const MAX_OUTPUT_CHARS = 12_000;
 const INSTALL_COMMAND_TIMEOUT_MS = 120_000;
 const OFFICIAL_PLUGINS_REPO = "https://github.com/cline/plugins.git";
-const MARKETPLACE_CATALOG_URL =
-	process.env.CLINE_MARKETPLACE_CATALOG_URL?.trim() ||
-	"https://cline.github.io/marketplace/catalog.json";
 const SECRET_PATTERN =
 	/(api[_ -]?key|access[_ -]?token|refresh[_ -]?token|auth(?:orization)?[_ -]?token|token|secret|password|authorization|credential)/i;
 const SECRET_KEY_VALUE_PATTERN =
@@ -110,15 +107,11 @@ const SECRET_AUTHORIZATION_VALUE_PATTERN =
 export async function fetchMarketplaceCatalog(
 	fetchImpl: CatalogFetch = fetch,
 ): Promise<unknown> {
-	const response = await fetchImpl(MARKETPLACE_CATALOG_URL, {
-		headers: { Accept: "application/json" },
+	return loadMarketplaceCatalog({
+		fetchImpl,
+		onPrioritySourceError: (source, error) =>
+			console.warn(`Skipping priority marketplace catalog ${source}:`, error),
 	});
-	if (!response.ok) {
-		throw new Error(
-			`Failed to fetch marketplace catalog: ${response.status} ${response.statusText}`.trim(),
-		);
-	}
-	return response.json();
 }
 
 function isPrimitiveType(value: unknown): value is MarketplacePrimitiveType {
