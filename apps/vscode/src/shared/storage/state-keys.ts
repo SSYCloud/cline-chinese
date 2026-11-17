@@ -297,6 +297,7 @@ const USER_SETTINGS_FIELDS = {
 	typesafeTestDeleteThreshold: { default: 0.1 as number },
 	typesafeBaseUrl: { default: "" as string },
 	typesafeContextDeleteThreshold: { default: 0.5 as number },
+	typesafeCustomModelInfo: { default: undefined as ModelInfo | undefined },
 	subagentsEnabled: { default: false as boolean },
 	worktreesEnabled: { default: false as boolean },
 	cloudSessionsEnabled: { default: false as boolean },

@@ -36,6 +36,37 @@ describe("SdkMessageCoordinator", () => {
 		expect(task.messageStateHandler.getClineMessages()).toEqual(messages)
 	})
 
+	it("keeps messages appended while no task is open, and updates them by ts", () => {
+		const coordinator = new SdkMessageCoordinator({ getTask: () => undefined })
+		const first = { ts: 1, type: "say" as const, say: "info" as const, text: "scanning", partial: false }
+		const updated = { ...first, text: "done" }
+
+		coordinator.appendMessages([first])
+		coordinator.appendMessages([updated])
+
+		expect(coordinator.getDetachedMessages()).toEqual([expect.objectContaining({ ts: 1, text: "done" })])
+	})
+
+	it("routes messages to the task, not the detached list, once a task exists", () => {
+		const task = createTaskProxy("session-123", vi.fn(), vi.fn())
+		const coordinator = new SdkMessageCoordinator({ getTask: () => task })
+		const message = { ts: 2, type: "say" as const, say: "info" as const, text: "hi", partial: false }
+
+		coordinator.appendMessages([message])
+
+		expect(coordinator.getDetachedMessages()).toEqual([])
+		expect(task.messageStateHandler.getClineMessages()).toEqual([message])
+	})
+
+	it("clears detached messages on request", () => {
+		const coordinator = new SdkMessageCoordinator({ getTask: () => undefined })
+		coordinator.appendMessages([{ ts: 3, type: "say" as const, say: "info" as const, text: "x", partial: false }])
+
+		coordinator.clearDetachedMessages()
+
+		expect(coordinator.getDetachedMessages()).toEqual([])
+	})
+
 	it("appends and emits messages in order", () => {
 		const task = createTaskProxy("session-123", vi.fn(), vi.fn())
 		const coordinator = new SdkMessageCoordinator({ getTask: () => task })

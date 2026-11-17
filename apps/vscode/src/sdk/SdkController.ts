@@ -1915,6 +1915,7 @@ export class Controller {
 		this.pendingStartRetry = undefined
 		// No active task — UI returns to idle (input enabled, no buttons/thinking).
 		this.turnStateTracker.set("idle")
+		this.messages.clearDetachedMessages()
 		// A cloud task still provisioning has no SDK session for taskControl to end;
 		// stop it here so it cannot re-install its view after the user left.
 		this.cloud.cancelPendingStart()
@@ -2024,6 +2025,14 @@ export class Controller {
 			Logger.error("[SdkController] Failed to post state after askResponse phase change:", error)
 		})
 		await this.followups.askResponse(prompt, images, files, this.task?.taskState?.askResponse, turnStateBefore.phase)
+	}
+
+	/**
+	 * Answer a question raised while no task is open (e.g. `/pruneTests` from the
+	 * home screen). Returns false when no such question is waiting.
+	 */
+	answerDetachedAsk(text?: string, images?: string[], files?: string[]): boolean {
+		return this.interactions.resolvePendingAskQuestion(text, images, files)
 	}
 
 	async editMessageAndRegenerate(input: {
@@ -2462,6 +2471,7 @@ export class Controller {
 	 * replace it.
 	 */
 	async showTaskWithId(taskId: string): Promise<TaskResponse> {
+		this.messages.clearDetachedMessages()
 		const historyItem = this.cloud.isCloudSessionId(taskId)
 			? await this.cloud.openCloudTask(taskId)
 			: await this.taskControl.showTaskWithId(taskId)
@@ -3143,6 +3153,9 @@ export class Controller {
 				.map(sessionHistoryRecordToHistoryItem)
 				.filter((item) => item.ts && item.task)
 				.sort((a, b) => b.ts - a.ts)
+			if (!snapshotTask) {
+				state.clineMessages = this.messages.getDetachedMessages()
+			}
 			const legacyTaskHistory = state.taskHistory ?? []
 			const mergedTaskHistoryById = new Map<string, HistoryItem>()
 

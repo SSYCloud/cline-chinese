@@ -48,6 +48,7 @@ export async function getStateToPostToWebview(controller: {
 	const typesafeTestDeleteThreshold = stateManager.getGlobalSettingsKey("typesafeTestDeleteThreshold")
 	const typesafeContextDeleteThreshold = stateManager.getGlobalSettingsKey("typesafeContextDeleteThreshold")
 	const typesafeBaseUrl = stateManager.getGlobalSettingsKey("typesafeBaseUrl")
+	const typesafeCustomModelInfo = stateManager.getGlobalSettingsKey("typesafeCustomModelInfo")
 	const typesafeApiKeyAvailable = !!stateManager.getSecretKey("typesafeApiKey")
 	const webSearchEnabled = isModelToolEnabledGlobally("web_search")
 	const subagentsEnabled = stateManager.getGlobalSettingsKey("subagentsEnabled")
@@ -140,6 +141,7 @@ export async function getStateToPostToWebview(controller: {
 		typesafeTestDeleteThreshold,
 		typesafeContextDeleteThreshold,
 		typesafeBaseUrl,
+		typesafeCustomModelInfo,
 		typesafeApiKeyAvailable,
 		webSearchEnabled,
 		subagentsEnabled,

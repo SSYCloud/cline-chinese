@@ -5,7 +5,7 @@ import { WorkspaceRoot } from "@shared/multi-root/types"
 import { RemoteConfigFields } from "@shared/storage/state-keys"
 import type { Environment } from "../config"
 import { AutoApprovalSettings } from "./AutoApprovalSettings"
-import { ApiConfiguration } from "./api"
+import { ApiConfiguration, ModelInfo } from "./api"
 import { BrowserSettings } from "./BrowserSettings"
 import { ClineFeatureSetting } from "./ClineFeatureSetting"
 import { BannerCardData } from "./cline/banner"
@@ -138,6 +138,7 @@ export interface ExtensionState {
 	typesafeTestDeleteThreshold?: number
 	typesafeContextDeleteThreshold?: number
 	typesafeBaseUrl?: string
+	typesafeCustomModelInfo?: ModelInfo
 	/** Whether a dedicated SystemOne API key is stored (the key itself is never sent to the webview). */
 	typesafeApiKeyAvailable?: boolean
 	webSearchEnabled?: boolean

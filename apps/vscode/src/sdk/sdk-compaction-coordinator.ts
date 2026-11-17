@@ -168,11 +168,6 @@ export class SdkCompactionCoordinator {
 			await this.options.postStateToWebview()
 			return
 		}
-		if (!active && !this.options.getDisplayedTaskId()) {
-			this.emitInfo("/pruneTests 需要在任务中执行。请先打开或新建一个任务。")
-			await this.options.postStateToWebview()
-			return
-		}
 		if (this.pruneInFlight) return
 		this.pruneInFlight = true
 		const sessionId = active?.sessionId

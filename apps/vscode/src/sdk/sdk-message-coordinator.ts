@@ -20,6 +20,7 @@ export interface SdkMessageCoordinatorOptions {
 export class SdkMessageCoordinator {
 	private readonly sessionEventListeners = new Set<SessionEventListener>()
 	private saveClineMessagesTimer: ReturnType<typeof setTimeout> | undefined
+	private detachedMessages: ClineMessage[] = []
 
 	constructor(private readonly options: SdkMessageCoordinatorOptions) {}
 
@@ -78,6 +79,7 @@ export class SdkMessageCoordinator {
 
 		const task = this.options.getTask()
 		if (!task?.messageStateHandler) {
+			this.upsertDetachedMessages(messages)
 			return
 		}
 
@@ -89,10 +91,35 @@ export class SdkMessageCoordinator {
 
 		const task = this.options.getTask()
 		if (!task?.messageStateHandler) {
+			this.detachedMessages = [...messages]
 			return
 		}
 
 		task.messageStateHandler.replaceMessages(messages)
+	}
+
+	/**
+	 * Messages shown in the chat while no task is open (e.g. `/pruneTests` run from the
+	 * home screen). They have no task to persist into, so they live only until the
+	 * next task opens or clears.
+	 */
+	getDetachedMessages(): ClineMessage[] {
+		return [...this.detachedMessages]
+	}
+
+	clearDetachedMessages(): void {
+		this.detachedMessages = []
+	}
+
+	private upsertDetachedMessages(messages: ClineMessage[]): void {
+		for (const message of messages) {
+			const index = this.detachedMessages.findIndex((existing) => existing.ts === message.ts)
+			if (index === -1) {
+				this.detachedMessages.push(message)
+			} else {
+				this.detachedMessages[index] = message
+			}
+		}
 	}
 
 	appendAndEmit(messages: ClineMessage[], event: CoreSessionEvent): void {

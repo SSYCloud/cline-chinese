@@ -14,7 +14,11 @@ import { Controller } from ".."
 export async function askResponse(controller: Controller, request: AskResponseRequest): Promise<Empty> {
 	try {
 		if (!controller.task) {
-			Logger.warn("askResponse: No active task to receive response")
+			if (request.responseType === "messageResponse") {
+				controller.answerDetachedAsk(request.text, request.images, request.files)
+			} else {
+				Logger.warn("askResponse: No active task to receive response")
+			}
 			return Empty.create()
 		}
 

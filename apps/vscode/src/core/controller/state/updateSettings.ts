@@ -2,6 +2,7 @@ import { setCompactionStrategyGlobally, setModelToolEnabledGlobally } from "@cli
 import { Empty } from "@shared/proto/cline/common"
 import { PlanActMode, McpDisplayMode as ProtoMcpDisplayMode, UpdateSettingsRequest } from "@shared/proto/cline/state"
 import { convertProtoToApiProvider } from "@shared/proto-conversions/models/api-configuration-conversion"
+import { fromProtobufModelInfo } from "@shared/proto-conversions/models/typeConversion"
 import { OpenaiReasoningEffort } from "@shared/storage/types"
 import { TelemetrySetting } from "@shared/TelemetrySetting"
 import { ClineEnv } from "@/config"
@@ -194,6 +195,13 @@ export async function updateSettings(controller: Controller, request: UpdateSett
 
 		if (request.typesafeContextDeleteThreshold !== undefined) {
 			controller.stateManager.setGlobalState("typesafeContextDeleteThreshold", request.typesafeContextDeleteThreshold)
+		}
+
+		if (request.typesafeCustomModelInfo !== undefined) {
+			controller.stateManager.setGlobalState(
+				"typesafeCustomModelInfo",
+				fromProtobufModelInfo(request.typesafeCustomModelInfo),
+			)
 		}
 
 		if (request.typesafeBaseUrl !== undefined) {

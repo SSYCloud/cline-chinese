@@ -22,6 +22,7 @@ export interface ShengSuanYunModelPickerProps {
 	onModelChange?: (modelId: string) => void
 	label?: string
 	inputId?: string
+	allowCustomModelId?: boolean
 }
 // Star icon for favorites
 const StarIcon = ({ isFavorite, onClick }: { isFavorite: boolean; onClick: (e: React.MouseEvent) => void }) => {
@@ -169,12 +170,13 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({
 	onModelChange,
 	label = "模型",
 	inputId = "model-search",
+	allowCustomModelId = false,
 }) => {
 	const { apiConfiguration, shengSuanYunModels, setShengSuanYunModels } = useExtensionState()
 	const { handleModeFieldsChange } = useApiConfigurationHandlers()
 	const modeFields = getModeSpecificFields(apiConfiguration, currentMode)
 	const fallbackModelId = models
-		? modelId && models[modelId]
+		? modelId && (models[modelId] || allowCustomModelId)
 			? modelId
 			: Object.keys(models)[0]
 		: modeFields.shengSuanYunModelId || shengSuanYunDefaultModelId
@@ -302,6 +304,9 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({
 				event.preventDefault()
 				if (selectedIndex >= 0 && selectedIndex < modelSearchResults.length) {
 					handleModelChange(modelSearchResults[selectedIndex].id)
+					setIsDropdownVisible(false)
+				} else if (allowCustomModelId && searchTerm.trim()) {
+					handleModelChange(searchTerm.trim())
 					setIsDropdownVisible(false)
 				}
 				break
@@ -482,7 +487,7 @@ const ShengSuanYunModelPicker: React.FC<ShengSuanYunModelPickerProps> = ({
 					provider="shengsuanyun"
 					selectedModelId={selectedModelId}
 				/>
-			) : (
+			) : allowCustomModelId ? null : (
 				<p
 					style={{
 						fontSize: "12px",

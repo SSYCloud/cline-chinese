@@ -206,6 +206,7 @@ describe("SDK remote-config coordination", () => {
 			cloud: { getCurrentTaskInfo: () => undefined },
 			turnStateTracker: { get: () => undefined },
 			messageTranslatorState: { getMinter: () => ({ epoch: 1, nextSeq: () => 1 }) },
+			messages: { getDetachedMessages: () => [] },
 		}
 
 		await SdkController.prototype.getStateToPostToWebview.call(controller as never)
@@ -926,9 +927,11 @@ describe("cancelling a provisioning cloud task", () => {
 
 	it("cancels the pending cloud start when the user starts a new task", async () => {
 		const cancelPendingStart = vi.fn(() => true)
+		const clearDetachedMessages = vi.fn()
 		const controller = {
 			turnStateTracker: { set: vi.fn() },
 			cloud: { cancelPendingStart },
+			messages: { clearDetachedMessages },
 			taskControl: { clearTask: vi.fn(async () => undefined) },
 			postStateToWebview: vi.fn(async () => undefined),
 		}
@@ -936,6 +939,7 @@ describe("cancelling a provisioning cloud task", () => {
 		await SdkController.prototype.clearTask.call(controller as never)
 
 		expect(cancelPendingStart).toHaveBeenCalledOnce()
+		expect(clearDetachedMessages).toHaveBeenCalledOnce()
 		expect(controller.taskControl.clearTask).toHaveBeenCalledOnce()
 	})
 })

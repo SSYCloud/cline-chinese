@@ -1,6 +1,7 @@
+import type { ModelInfo } from "@shared/api"
 import { DEFAULT_TYPESAFE_MODEL, TYPESAFE_MODELS } from "@shared/typesafe-models"
-import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
-import { useEffect, useState } from "react"
+import { VSCodeCheckbox, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
+import { useEffect, useMemo, useState } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { ApiKeyField } from "../common/ApiKeyField"
 import Section from "../Section"
@@ -53,17 +54,126 @@ const ThresholdField = ({ id, label, description, value, fallback, onCommit }: T
 	)
 }
 
+interface CustomModelNumberFieldProps {
+	id: string
+	label: string
+	placeholder: string
+	value: number | undefined
+	integer?: boolean
+	onCommit: (value: number | undefined) => void
+}
+
+/** Optional non-negative number that commits on blur; empty clears the value and invalid text reverts. */
+const CustomModelNumberField = ({ id, label, placeholder, value, integer = false, onCommit }: CustomModelNumberFieldProps) => {
+	const [input, setInput] = useState(value === undefined ? "" : String(value))
+
+	useEffect(() => {
+		setInput(value === undefined ? "" : String(value))
+	}, [value])
+
+	const commit = () => {
+		const trimmed = input.trim()
+		if (trimmed === "") {
+			onCommit(undefined)
+			return
+		}
+		const parsed = Number(trimmed)
+		const isValid = Number.isFinite(parsed) && parsed >= 0 && (!integer || Number.isInteger(parsed))
+		if (!isValid) {
+			setInput(value === undefined ? "" : String(value))
+			return
+		}
+		onCommit(parsed)
+	}
+
+	return (
+		<div className="space-y-1">
+			<label htmlFor={id} style={{ fontWeight: 500 }}>
+				{label}
+			</label>
+			<VSCodeTextField
+				id={id}
+				onBlur={commit}
+				onInput={(e) => setInput((e.target as HTMLInputElement)?.value ?? "")}
+				placeholder={placeholder}
+				style={{ width: "100%" }}
+				value={input}
+			/>
+		</div>
+	)
+}
+
+interface CustomModelInfoFieldsProps {
+	modelId: string
+	info: ModelInfo | undefined
+}
+
+const CustomModelInfoFields = ({ modelId, info }: CustomModelInfoFieldsProps) => {
+	const commit = (patch: Partial<ModelInfo>) => {
+		updateSetting("typesafeCustomModelInfo", {
+			supportsPromptCache: false,
+			...info,
+			name: modelId,
+			...patch,
+		})
+	}
+
+	return (
+		<div className="space-y-5">
+			<CustomModelNumberField
+				id="typesafe-custom-input-price"
+				integer={false}
+				label="输入价格（每百万 tokens）"
+				onCommit={(value) => commit({ inputPrice: value })}
+				placeholder="例如 0.31"
+				value={info?.inputPrice}
+			/>
+			<CustomModelNumberField
+				id="typesafe-custom-output-price"
+				integer={false}
+				label="输出价格（每百万 tokens）"
+				onCommit={(value) => commit({ outputPrice: value })}
+				placeholder="例如 1.2"
+				value={info?.outputPrice}
+			/>
+			<CustomModelNumberField
+				id="typesafe-custom-context-window"
+				integer={true}
+				label="上下文大小（tokens）"
+				onCommit={(value) => commit({ contextWindow: value })}
+				placeholder="例如 128000"
+				value={info?.contextWindow}
+			/>
+			<VSCodeCheckbox
+				checked={!!info?.supportsImages}
+				onChange={(e: any) => commit({ supportsImages: e.target.checked === true })}>
+				支持图片输入
+			</VSCodeCheckbox>
+		</div>
+	)
+}
+
 const SystemOneSettingsSection = ({ renderSectionHeader }: { renderSectionHeader?: (tabId: string) => JSX.Element | null }) => {
 	const {
 		typesafeModel,
 		typesafeTestDeleteThreshold,
 		typesafeContextDeleteThreshold,
 		typesafeBaseUrl,
+		typesafeCustomModelInfo,
 		typesafeApiKeyAvailable,
 		mode,
 	} = useExtensionState()
 
-	const selectedModel = typesafeModel && TYPESAFE_MODELS[typesafeModel] ? typesafeModel : DEFAULT_TYPESAFE_MODEL
+	const selectedModel = typesafeModel?.trim() || DEFAULT_TYPESAFE_MODEL
+	const isCustomModel = !TYPESAFE_MODELS[selectedModel]
+	const customModelInfo = typesafeCustomModelInfo?.name === selectedModel ? typesafeCustomModelInfo : undefined
+
+	const pickerModels = useMemo<Record<string, ModelInfo>>(() => {
+		if (!isCustomModel || !customModelInfo) {
+			return TYPESAFE_MODELS
+		}
+		return { ...TYPESAFE_MODELS, [selectedModel]: customModelInfo }
+	}, [isCustomModel, customModelInfo, selectedModel])
 
 	return (
 		<div>
@@ -97,14 +207,17 @@ const SystemOneSettingsSection = ({ renderSectionHeader }: { renderSectionHeader
 				/>
 
 				<ShengSuanYunModelPicker
+					allowCustomModelId
 					currentMode={mode}
 					inputId="typesafe-model"
 					label="决策模型"
 					modelId={selectedModel}
-					models={TYPESAFE_MODELS}
+					models={pickerModels}
 					onModelChange={(value) => updateSetting("typesafeModel", value)}
 				/>
-				<p className="-mt-2 text-sm text-(--vscode-descriptionForeground)">使用决策模型筛选上下文。</p>
+				<p className="my-3">使用决策模型筛选上下文。输入列表中没有的模型 ID 后按 Enter 确认。</p>
+
+				{isCustomModel && <CustomModelInfoFields info={customModelInfo} key={selectedModel} modelId={selectedModel} />}
 
 				<ThresholdField
 					description="评分低于该值的单元测试会被删除，取值范围 0-1，设为 0 关闭测试整理。"

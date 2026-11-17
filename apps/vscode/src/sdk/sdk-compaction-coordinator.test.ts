@@ -588,32 +588,46 @@ describe("SdkCompactionCoordinator.pruneTests", () => {
 		)
 	})
 
-	it("reports that a task is needed only when nothing is displayed", async () => {
-		const { coordinator, options } = makePruneCoordinator({ activeSession: undefined, displayedTaskId: undefined })
+	it("runs with no task open and renders the approval and result in chat", async () => {
+		vi.mocked(pruneTests).mockImplementation(async (files) => {
+			await files.write("a.test.ts", "pruned")
+			return { files: 1, tests: 3, requests: 1, deleted: [deletion], scores: [] }
+		})
+		const { coordinator, options, real, files } = makePruneCoordinator({
+			activeSession: undefined,
+			displayedTaskId: undefined,
+			answer: "删除",
+		})
 
 		await coordinator.pruneTests()
 
-		expect(vi.mocked(pruneTests)).not.toHaveBeenCalled()
-		expect(options.askInChat).not.toHaveBeenCalled()
+		expect(vi.mocked(pruneTests)).toHaveBeenCalledTimes(1)
+		expect(options.askInChat).toHaveBeenCalledWith(expect.stringContaining("is truthy"), ["删除", "取消"])
+		expect(real.write).toHaveBeenCalledWith("a.test.ts", "pruned")
+		expect(files.get("a.test.ts")).toBe("pruned")
 		expect(options.messages.appendAndEmit).toHaveBeenCalledWith(
-			[expect.objectContaining({ say: "info", text: expect.stringContaining("需要在任务中执行") })],
+			[expect.objectContaining({ say: "info", text: expect.stringContaining("删除 1 个") })],
 			expect.anything(),
 		)
+		expect(options.setTurnPhase).toHaveBeenLastCalledWith("idle")
 	})
 
-	it("asks for approval in chat and writes nothing when the user cancels", async () => {
-		vi.mocked(pruneTests).mockImplementation(async (_files, _asker, _opts) => ({
+	it("cancels without writing when no task is open and the user declines", async () => {
+		vi.mocked(pruneTests).mockImplementation(async () => ({
 			files: 1,
 			tests: 3,
 			requests: 1,
 			deleted: [deletion],
 			scores: [],
 		}))
-		const { coordinator, options, real } = makePruneCoordinator({ answer: "取消" })
+		const { coordinator, options, real } = makePruneCoordinator({
+			activeSession: undefined,
+			displayedTaskId: undefined,
+			answer: "取消",
+		})
 
 		await coordinator.pruneTests()
 
-		expect(options.askInChat).toHaveBeenCalledWith(expect.stringContaining("is truthy"), ["删除", "取消"])
 		expect(real.write).not.toHaveBeenCalled()
 		expect(options.messages.appendAndEmit).toHaveBeenCalledWith(
 			[expect.objectContaining({ say: "info", text: expect.stringContaining("已取消") })],
