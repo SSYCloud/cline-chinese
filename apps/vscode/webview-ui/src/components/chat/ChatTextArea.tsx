@@ -1,5 +1,5 @@
 import { mentionRegex, mentionRegexGlobal } from "@shared/context-mentions"
-import { StringRequest } from "@shared/proto/cline/common"
+import { EmptyRequest, StringRequest } from "@shared/proto/cline/common"
 import { FileSearchRequest, FileSearchType, RelativePathsRequest } from "@shared/proto/cline/file"
 import { PlanActMode, TogglePlanActModeRequest } from "@shared/proto/cline/state"
 import { type SlashCommand } from "@shared/slashCommands"
@@ -37,6 +37,7 @@ import {
 	getMatchingSlashCommands,
 	insertSlashCommand,
 	removeSlashCommand,
+	type SkillCommandSource,
 	shouldShowSlashCommandsMenu,
 	slashCommandDeleteRegex,
 	slashCommandRegexGlobal,
@@ -246,6 +247,29 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		const [showSlashCommandsMenu, setShowSlashCommandsMenu] = useState(false)
 		const [selectedSlashCommandsIndex, setSelectedSlashCommandsIndex] = useState(0)
 		const [slashCommandsQuery, setSlashCommandsQuery] = useState("")
+		const [skillCommandSources, setSkillCommandSources] = useState<SkillCommandSource[]>([])
+		useEffect(() => {
+			if (!showSlashCommandsMenu) {
+				return
+			}
+			let cancelled = false
+			FileServiceClient.refreshSkills(EmptyRequest.create({}))
+				.then((result) => {
+					if (!cancelled) {
+						setSkillCommandSources(
+							[...result.globalSkills, ...result.localSkills].map((skill) => ({
+								name: skill.name,
+								description: skill.description,
+								enabled: skill.enabled,
+							})),
+						)
+					}
+				})
+				.catch((error) => console.error("Failed to load skills for slash commands:", error))
+			return () => {
+				cancelled = true
+			}
+		}, [showSlashCommandsMenu])
 		const slashCommandsMenuContainerRef = useRef<HTMLDivElement>(null)
 
 		const [thumbnailsHeight, setThumbnailsHeight] = useState(0)
@@ -509,6 +533,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								remoteConfigSettings?.remoteGlobalWorkflows,
 								mcpServers,
 								selectedProvider,
+								skillCommandSources,
 							)
 
 							if (allCommands.length === 0) {
@@ -535,6 +560,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							remoteConfigSettings?.remoteGlobalWorkflows,
 							mcpServers,
 							selectedProvider,
+							skillCommandSources,
 						)
 						if (commands.length > 0) {
 							handleSlashCommandsSelect(commands[selectedSlashCommandsIndex])
@@ -1012,6 +1038,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					remoteConfigSettings?.remoteGlobalWorkflows,
 					mcpServers,
 					selectedProvider,
+					skillCommandSources,
 				)
 
 				if (isValidCommand) {
@@ -1032,6 +1059,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			remoteConfigSettings,
 			mcpServers,
 			selectedProvider,
+			skillCommandSources,
 		])
 
 		useLayoutEffect(() => {
@@ -1510,6 +1538,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								remoteWorkflowToggles={remoteWorkflowToggles}
 								selectedIndex={selectedSlashCommandsIndex}
 								setSelectedIndex={setSelectedSlashCommandsIndex}
+								skills={skillCommandSources}
 							/>
 						</div>
 					)}

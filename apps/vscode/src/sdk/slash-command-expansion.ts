@@ -1,4 +1,5 @@
 import type { AvailableRuntimeCommand } from "@cline/core"
+import { MCP_SERVER_COMMAND_PREFIX, SKILL_COMMAND_PREFIX } from "@/shared/slashCommands"
 
 /**
  * Matches a slash-command token that is either at the start of the message or
@@ -89,6 +90,12 @@ export interface WorkflowRecordRef {
 	filePath: string
 }
 
+export interface McpServerRef {
+	name: string
+	/** Tool names as the SDK exposes them to the model (`serverName__toolName`). */
+	toolNames: readonly string[]
+}
+
 export interface ExpandSlashCommandsOptions {
 	/**
 	 * Exact command names of workflows the user disabled via the Workflows
@@ -102,6 +109,8 @@ export interface ExpandSlashCommandsOptions {
 	 * whose frontmatter `name` differs from its filename.
 	 */
 	workflowRecords?: ReadonlyArray<WorkflowRecordRef>
+	/** Enabled MCP servers, used to expand `/mcp:<server>`. */
+	mcpServers?: ReadonlyArray<McpServerRef>
 }
 
 /**
@@ -175,9 +184,17 @@ export function expandSlashCommands(
 	}
 	const disabledWorkflowNames = options.disabledWorkflowNames ?? new Set()
 	const workflowRecords = options.workflowRecords ?? []
+	const mcpServers = options.mcpServers ?? []
 	for (const match of text.matchAll(SLASH_COMMAND_TOKEN_REGEX)) {
 		const token = match[2]
 		const typedName = token.slice(1)
+		if (typedName.startsWith(SKILL_COMMAND_PREFIX) || typedName.startsWith(MCP_SERVER_COMMAND_PREFIX)) {
+			const directive = resolvePrefixedCommand(typedName, commands, mcpServers)
+			if (directive !== undefined) {
+				return spliceToken(text, match, directive)
+			}
+			continue
+		}
 		const command = findRuntimeCommand(commands, typedName, workflowRecords)
 		if (!command) {
 			continue
@@ -198,11 +215,52 @@ export function expandSlashCommands(
 		if (command.kind === "skill" && !command.id.startsWith("builtin:")) {
 			continue
 		}
-		const start = (match.index ?? 0) + match[1].length
-		const end = start + token.length
-		return text.slice(0, start) + command.instructions + text.slice(end)
+		return spliceToken(text, match, command.instructions)
 	}
 	return text
+}
+
+function spliceToken(text: string, match: RegExpMatchArray, replacement: string): string {
+	const start = (match.index ?? 0) + match[1].length
+	const end = start + match[2].length
+	return text.slice(0, start) + replacement + text.slice(end)
+}
+
+/**
+ * Turns `/skill:<name>` and `/mcp:<server>` into an instruction for the model.
+ * The prefixed form exists to force the choice, so the instruction names the
+ * skill whose body to follow or the server whose tools to use.
+ */
+function resolvePrefixedCommand(
+	typedName: string,
+	commands: readonly AvailableRuntimeCommand[],
+	mcpServers: readonly McpServerRef[],
+): string | undefined {
+	if (typedName.startsWith(SKILL_COMMAND_PREFIX)) {
+		const requested = typedName.slice(SKILL_COMMAND_PREFIX.length).toLowerCase()
+		const skill = commands.find(
+			(command) =>
+				command.kind === "skill" && !command.id.startsWith("builtin:") && command.name.toLowerCase() === requested,
+		)
+		if (!skill) {
+			return undefined
+		}
+		// The `skills` tool is only registered when the runtime finds an enabled skill
+		// (see isSkillsToolAvailable in @cline/core), so an explicit /skill:<name>
+		// inlines the body instead of asking the model to call a tool that may be absent.
+		return `Follow these instructions from the "${skill.name}" skill for this request:\n\n${skill.instructions}`
+	}
+
+	const requested = typedName.slice(MCP_SERVER_COMMAND_PREFIX.length)
+	if (!requested || requested.includes(":")) {
+		return undefined
+	}
+	const server = mcpServers.find((candidate) => candidate.name.toLowerCase() === requested.toLowerCase())
+	if (!server) {
+		return undefined
+	}
+	const toolList = server.toolNames.length > 0 ? ` Its tools are: ${server.toolNames.join(", ")}.` : ""
+	return `For this request, use the tools from the MCP server "${server.name}".${toolList}`
 }
 
 export interface BuildDisabledWorkflowNamesOptions {

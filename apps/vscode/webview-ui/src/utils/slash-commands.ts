@@ -2,12 +2,21 @@ import type { McpServer } from "@shared/mcp"
 import { PLATFORM_CONFIG, PlatformType } from "@/config/platform.config"
 import {
 	BASE_SLASH_COMMANDS,
+	isSlashSafeName,
+	MCP_SERVER_COMMAND_PREFIX,
 	providerSlashCommands,
+	SKILL_COMMAND_PREFIX,
 	type SlashCommand,
 	VSCODE_ONLY_COMMANDS,
 } from "../../../src/shared/slashCommands.ts"
 
 export type { SlashCommand }
+
+export interface SkillCommandSource {
+	name: string
+	description?: string
+	enabled: boolean
+}
 
 const DEFAULT_SLASH_COMMANDS: SlashCommand[] =
 	PLATFORM_CONFIG.type === PlatformType.VSCODE ? [...BASE_SLASH_COMMANDS, ...VSCODE_ONLY_COMMANDS] : BASE_SLASH_COMMANDS
@@ -99,6 +108,61 @@ export function getMcpPromptCommands(mcpServers: McpServer[] = []): SlashCommand
 	return commands
 }
 
+export function getSkillCommands(skills: SkillCommandSource[] = []): SlashCommand[] {
+	return skills
+		.filter((skill) => skill.enabled && isSlashSafeName(skill.name))
+		.map((skill) => ({
+			name: `${SKILL_COMMAND_PREFIX}${skill.name}`,
+			description: skill.description || skill.name,
+			section: "skill",
+		}))
+}
+
+export function getMcpServerCommands(mcpServers: McpServer[] = []): SlashCommand[] {
+	return mcpServers
+		.filter((server) => !server.disabled && isSlashSafeName(server.name))
+		.map((server) => ({
+			name: `${MCP_SERVER_COMMAND_PREFIX}${server.name}`,
+			description: describeMcpServer(server),
+			section: "mcpServer",
+		}))
+}
+
+function describeMcpServer(server: McpServer): string {
+	if (server.status === "connected") {
+		return `已连接 · ${server.tools?.length ?? 0} 个工具`
+	}
+	if (server.status === "connecting") {
+		return "连接中"
+	}
+	return "未连接"
+}
+
+function collectSlashCommands(
+	localWorkflowToggles: Record<string, boolean>,
+	globalWorkflowToggles: Record<string, boolean>,
+	remoteWorkflowToggles: Record<string, boolean> | undefined,
+	remoteWorkflows: any[] | undefined,
+	mcpServers: McpServer[],
+	provider: string | undefined,
+	skills: SkillCommandSource[],
+): SlashCommand[] {
+	const workflowCommands = getWorkflowCommands(
+		localWorkflowToggles,
+		globalWorkflowToggles,
+		remoteWorkflowToggles,
+		remoteWorkflows,
+	)
+	return [
+		...DEFAULT_SLASH_COMMANDS,
+		...providerSlashCommands(provider),
+		...workflowCommands,
+		...getMcpPromptCommands(mcpServers),
+		...getSkillCommands(skills),
+		...getMcpServerCommands(mcpServers),
+	]
+}
+
 // Regex for detecting slash commands in text
 // Must be at start of string OR preceded by whitespace to avoid matching URLs/paths
 // e.g., matches "/newtask" or "text /newtask" but not "http://example.com/newtask"
@@ -187,15 +251,17 @@ export function getMatchingSlashCommands(
 	remoteWorkflows?: any[],
 	mcpServers: McpServer[] = [],
 	provider?: string,
+	skills: SkillCommandSource[] = [],
 ): SlashCommand[] {
-	const workflowCommands = getWorkflowCommands(
+	const allCommands = collectSlashCommands(
 		localWorkflowToggles,
 		globalWorkflowToggles,
 		remoteWorkflowToggles,
 		remoteWorkflows,
+		mcpServers,
+		provider,
+		skills,
 	)
-	const mcpPromptCommands = getMcpPromptCommands(mcpServers)
-	const allCommands = [...DEFAULT_SLASH_COMMANDS, ...providerSlashCommands(provider), ...workflowCommands, ...mcpPromptCommands]
 
 	if (!query) {
 		return allCommands
@@ -240,19 +306,21 @@ export function validateSlashCommand(
 	remoteWorkflows?: any[],
 	mcpServers: McpServer[] = [],
 	provider?: string,
+	skills: SkillCommandSource[] = [],
 ): "full" | "partial" | null {
 	if (!command) {
 		return null
 	}
 
-	const workflowCommands = getWorkflowCommands(
+	const allCommands = collectSlashCommands(
 		localWorkflowToggles,
 		globalWorkflowToggles,
 		remoteWorkflowToggles,
 		remoteWorkflows,
+		mcpServers,
+		provider,
+		skills,
 	)
-	const mcpPromptCommands = getMcpPromptCommands(mcpServers)
-	const allCommands = [...DEFAULT_SLASH_COMMANDS, ...providerSlashCommands(provider), ...workflowCommands, ...mcpPromptCommands]
 
 	// case insensitive matching
 	const exactMatch = allCommands.some((cmd) => cmd.name.toLowerCase() === command.toLowerCase())

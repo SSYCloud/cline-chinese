@@ -1306,6 +1306,10 @@ export class Controller {
 				remoteAlwaysEnabledNames: remoteWorkflows.filter((workflow) => workflow.alwaysEnabled).map((w) => w.name),
 			})
 			return expandSlashCommands(text, [...service.listRuntimeCommands(), ...BUILTIN_SLASH_COMMANDS], {
+				mcpServers: this.mcpHub.getServers().map((server) => ({
+					name: server.name,
+					toolNames: (server.tools ?? []).map((tool) => `${server.name}__${tool.name}`),
+				})),
 				disabledWorkflowNames,
 				workflowRecords,
 			})

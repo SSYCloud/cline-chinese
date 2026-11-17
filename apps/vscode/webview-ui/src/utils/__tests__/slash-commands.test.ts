@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest"
 import {
 	getMatchingSlashCommands,
 	getMcpPromptCommands,
+	getMcpServerCommands,
+	getSkillCommands,
 	removeSlashCommand,
 	slashCommandRegex,
 	validateSlashCommand,
@@ -190,6 +192,56 @@ describe("slash-commands", () => {
 				section: "default",
 				cliCompatible: true,
 			})
+		})
+	})
+
+	describe("skill and MCP server commands", () => {
+		const skills = [
+			{ name: "release-notes", description: "Write release notes", enabled: true },
+			{ name: "disabled-skill", description: "Off", enabled: false },
+			{ name: "has space", description: "Unsafe name", enabled: true },
+		]
+
+		it("offers only enabled, typeable skills as /skill:<name>", () => {
+			expect(getSkillCommands(skills)).toEqual([
+				{ name: "skill:release-notes", description: "Write release notes", section: "skill" },
+			])
+		})
+
+		it("falls back to the skill name when a skill has no description", () => {
+			expect(getSkillCommands([{ name: "lint", enabled: true }])[0].description).toBe("lint")
+		})
+
+		it("offers enabled MCP servers as /mcp:<name> with their connection state", () => {
+			const servers = [
+				createMockMcpServer({ name: "github", status: "connected", tools: [{ name: "a" }, { name: "b" }] }),
+				createMockMcpServer({ name: "db", status: "disconnected" }),
+				createMockMcpServer({ name: "off", disabled: true }),
+			]
+			expect(getMcpServerCommands(servers)).toEqual([
+				{ name: "mcp:github", description: "已连接 · 2 个工具", section: "mcpServer" },
+				{ name: "mcp:db", description: "未连接", section: "mcpServer" },
+			])
+		})
+
+		it("filters skill and server commands by the typed query", () => {
+			const servers = [createMockMcpServer({ name: "github" })]
+			const skillMatches = getMatchingSlashCommands("", {}, {}, undefined, undefined, servers, undefined, skills)
+			expect(skillMatches.filter((cmd) => cmd.section === "skill").map((cmd) => cmd.name)).toEqual(["skill:release-notes"])
+			expect(getMatchingSlashCommands("mcp:gi", {}, {}, undefined, undefined, servers).map((cmd) => cmd.name)).toEqual([
+				"mcp:github",
+			])
+		})
+
+		it("validates typed skill and server commands as full matches", () => {
+			const servers = [createMockMcpServer({ name: "github" })]
+			expect(validateSlashCommand("skill:release-notes", {}, {}, undefined, undefined, servers, undefined, skills)).toBe(
+				"full",
+			)
+			expect(validateSlashCommand("mcp:gith", {}, {}, undefined, undefined, servers)).toBe("partial")
+			expect(
+				validateSlashCommand("skill:disabled-skill", {}, {}, undefined, undefined, servers, undefined, skills),
+			).toBeNull()
 		})
 	})
 

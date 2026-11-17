@@ -88,6 +88,53 @@ describe("expandSlashCommands", () => {
 		expect(expandSlashCommands("/deep-planning the refactor", [builtin])).toBe("Plan deeply. the refactor")
 	})
 
+	it("inlines the body of /skill:<name> so delivery does not depend on the skills tool", () => {
+		expect(expandSlashCommands("/skill:debug why does this fail", commands)).toBe(
+			'Follow these instructions from the "debug" skill for this request:\n\nUse the debugging skill. why does this fail',
+		)
+	})
+
+	it("matches /skill:<name> case-insensitively and ignores workflows of the same name", () => {
+		expect(expandSlashCommands("/skill:DEBUG", commands)).toContain('from the "debug" skill')
+		expect(expandSlashCommands("/skill:release", commands)).toBe("/skill:release")
+	})
+
+	it("leaves /skill:<name> unchanged when no such skill exists", () => {
+		expect(expandSlashCommands("/skill:missing do it", commands)).toBe("/skill:missing do it")
+	})
+
+	it("does not let /skill:<name> resolve builtin pseudo-skills", () => {
+		const builtin: AvailableRuntimeCommand = {
+			id: "builtin:deep-planning",
+			name: "deep-planning",
+			instructions: "Plan deeply.",
+			kind: "skill",
+		}
+		expect(expandSlashCommands("/skill:deep-planning", [builtin])).toBe("/skill:deep-planning")
+	})
+
+	const mcpServers = [
+		{ name: "github", toolNames: ["github__create_issue", "github__list_prs"] },
+		{ name: "empty", toolNames: [] },
+	]
+
+	it("expands /mcp:<server> into an instruction naming the server and its tools", () => {
+		expect(expandSlashCommands("/mcp:github open an issue", commands, { mcpServers })).toBe(
+			'For this request, use the tools from the MCP server "github". Its tools are: github__create_issue, github__list_prs. open an issue',
+		)
+	})
+
+	it("omits the tool list when the server exposes no tools", () => {
+		expect(expandSlashCommands("/mcp:empty", commands, { mcpServers })).toBe(
+			'For this request, use the tools from the MCP server "empty".',
+		)
+	})
+
+	it("leaves /mcp:<server> unchanged for unknown servers and MCP prompt tokens", () => {
+		expect(expandSlashCommands("/mcp:unknown hi", commands, { mcpServers })).toBe("/mcp:unknown hi")
+		expect(expandSlashCommands("/mcp:github:summarize hi", commands, { mcpServers })).toBe("/mcp:github:summarize hi")
+	})
+
 	it("does not treat path segments as commands", () => {
 		expect(expandSlashCommands("look at /release/notes.txt", commands)).toBe("look at /release/notes.txt")
 	})

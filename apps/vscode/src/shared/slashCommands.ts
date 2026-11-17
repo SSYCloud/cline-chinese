@@ -1,9 +1,23 @@
 export interface SlashCommand {
 	name: string
 	description?: string
-	section?: "default" | "custom" | "mcp"
+	section?: "default" | "custom" | "mcp" | "skill" | "mcpServer"
 	cliCompatible?: boolean
 	provider?: string
+}
+
+export const SKILL_COMMAND_PREFIX = "skill:"
+export const MCP_SERVER_COMMAND_PREFIX = "mcp:"
+
+const SLASH_SAFE_NAME_REGEX = /^[a-zA-Z0-9_.@-]+$/
+
+/**
+ * Names that can be typed after a slash and still match the chat input's
+ * command token regex. Names with spaces or colons cannot be invoked by typing,
+ * so their commands are not offered.
+ */
+export function isSlashSafeName(name: string): boolean {
+	return SLASH_SAFE_NAME_REGEX.test(name)
 }
 
 export const BASE_SLASH_COMMANDS: SlashCommand[] = [
