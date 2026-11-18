@@ -50,15 +50,10 @@ export class SSYAccountService {
 
 	async fetchUserDataRPC(): Promise<UserCreditsData> {
 		try {
-			const dqs = this.dateQueryString()
-			let [rate, usage, payment] = await Promise.all([
-				this.authReq<any>("/base/rate"),
-				this.authReq<any>(`/modelrouter/userlog?page=1&pageSize=1000&${dqs}`),
-				this.authReq<any>("/modelrouter/listrecharge?page=1&pageSize=10000"),
+			let [usage, payment] = await Promise.all([
+				this.authReq<any>(`/modelrouter/userlog?page=1&pageSize=1000`),
+				this.authReq<any>("/modelrouter/listrecharge?page=1&pageSize=1000"),
 			])
-			if (!rate) {
-				throw new Error(`获取胜算云账户信息失败！`)
-			}
 			if (!usage || !Array.isArray(usage?.logs)) {
 				usage = []
 			} else {
@@ -84,7 +79,6 @@ export class SSYAccountService {
 			}
 			Logger.log("UserCreditsData", usage, payment)
 			return UserCreditsData.create({
-				rate: rate,
 				usageTransactions: usage,
 				paymentTransactions: payment,
 			})

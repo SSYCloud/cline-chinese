@@ -202,7 +202,7 @@ const SystemOneSettingsSection = ({ renderSectionHeader }: { renderSectionHeader
 					label="决策模型 API Key"
 					onChange={(value) => updateSetting("typesafeApiKey", value)}
 					placeholder={typesafeApiKeyAvailable ? "已保存（输入新值以替换）" : "输入 API 密钥..."}
-					providerName="SystemOne"
+					providerName=""
 					signupUrl="https://shengsuanyun.com"
 				/>
 

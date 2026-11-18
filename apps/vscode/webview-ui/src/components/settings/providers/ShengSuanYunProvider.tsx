@@ -157,6 +157,7 @@ export const ShengSuanYunProvider = ({ showModelOptions, isPopup, currentMode, i
 
 	return (
 		<div>
+			{/* @deprecated 用户控制台合并功能即将弃用。合并到企业网关控制台  */}
 			<ApiKeyField
 				initialValue={currentApiKey}
 				keyOptions={keyOptions}

@@ -24,6 +24,7 @@ export enum SSYErrorType {
 }
 
 export const SSY_PROVIDER_ID = "shengsuanyun"
+/** @deprecated 用户控制台合并功能即将弃用。合并到企业网关控制台 */
 export const SSY_BUY_CREDITS_URL = "https://console.shengsuanyun.com/user/recharge"
 
 interface ErrorDetails {

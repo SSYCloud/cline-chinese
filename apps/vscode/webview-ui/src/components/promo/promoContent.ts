@@ -25,7 +25,9 @@ export interface PromoPopupContent {
 
 /** Window event consumed by ChatView to switch the main UI into Batch mode. */
 export const OPEN_BATCH_MODE_EVENT = "loomloom-open-batch"
-
+{
+	/* @deprecated 用户控制台合并功能即将弃用。合并到企业网关控制台  */
+}
 export const NEW_USER_BENEFITS_URL = "https://console.shengsuanyun.com/user/recharge"
 export const LOOMLOOM_INTRO_URL = "https://www.shengsuanyun.com/zh/loomloom"
 

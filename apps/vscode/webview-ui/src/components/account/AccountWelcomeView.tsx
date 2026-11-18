@@ -35,7 +35,7 @@ export const AccountWelcomeView = () => {
 			</p>
 
 			<ClineAuthStatus message={authStatusMessage} />
-
+			{/* @deprecated 用户控制台合并功能即将弃用。合并到企业网关控制台  */}
 			<p className="text-(--vscode-descriptionForeground) text-xs text-center m-0">
 				继续操作即表示您同意 <VSCodeLink href="https://www.shengsuanyun.com/tos">服务条款</VSCodeLink> 和{" "}
 				<VSCodeLink href="https://www.shengsuanyun.com/privacy">隐私政策.</VSCodeLink>

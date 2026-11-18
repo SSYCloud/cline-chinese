@@ -381,6 +381,7 @@ export const SSYAccountView = () => {
 										</>
 									)}
 								</div>
+								{/* @deprecated 用户控制台合并功能即将弃用。合并到企业网关控制台  */}
 								<VSCodeButtonLink
 									className="bg-[#f1e83f] text-black"
 									href="https://console.shengsuanyun.com/user/recharge">
