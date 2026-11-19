@@ -367,7 +367,7 @@
     },
     "apps/vscode": {
       "name": "cline-chinese",
-      "version": "4.1.33",
+      "version": "4.1.35",
       "dependencies": {
         "@anthropic-ai/sdk": "^0.37.0",
         "@bufbuild/protobuf": "^2.2.5",

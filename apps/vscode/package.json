@@ -2,7 +2,7 @@
 	"name": "cline-chinese",
 	"displayName": "Cline Chinese",
 	"description": "Cline 的开源社区汉化版本",
-	"version": "4.1.33",
+	"version": "4.1.35",
 	"icon": "assets/icons/icon.png",
 	"engines": {
 		"vscode": "^1.101.0"
@@ -241,7 +241,9 @@
 			},
 			{
 				"command": "cline-chinese.generateGitCommitMessage",
-				"when": "config.git.enabled && scmProvider == git"
+				"when": "config.git.enabled && scmProvider == git",
+				"key": "ctrl+shift+g",
+				"mac": "cmd+shift+g"
 			},
 			{
 				"command": "cline-chinese.focusChatInput",
