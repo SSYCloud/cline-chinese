@@ -9,7 +9,7 @@ describe("deriveForkSessionTitle", () => {
 				sourceTitle: "Investigate history picker",
 				messages: [],
 			}),
-		).toBe("Investigate history picker (fork)");
+		).toBe("Investigate history picker（分叉）");
 	});
 
 	it("keeps appending fork suffixes for repeated forks", () => {
@@ -18,7 +18,7 @@ describe("deriveForkSessionTitle", () => {
 				sourceTitle: "Investigate history picker (fork)",
 				messages: [],
 			}),
-		).toBe("Investigate history picker (fork) (fork)");
+		).toBe("Investigate history picker (fork)（分叉）");
 	});
 
 	it("derives the fork title from the first user message when needed", () => {
@@ -37,7 +37,7 @@ describe("deriveForkSessionTitle", () => {
 			deriveForkSessionTitle({
 				messages,
 			}),
-		).toBe("Fix the CLI history UX (fork)");
+		).toBe("Fix the CLI history UX（分叉）");
 	});
 
 	it("preserves the fork suffix when truncating long titles", () => {
@@ -47,6 +47,6 @@ describe("deriveForkSessionTitle", () => {
 		});
 
 		expect(title).toHaveLength(120);
-		expect(title.endsWith(" (fork)")).toBe(true);
+		expect(title.endsWith("（分叉）")).toBe(true);
 	});
 });

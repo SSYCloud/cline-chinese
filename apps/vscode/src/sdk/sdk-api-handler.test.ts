@@ -130,7 +130,7 @@ describe("buildSdkProviderConfig", () => {
 		)
 
 		expect(providerConfig.headers).toMatchObject({
-			"HTTP-Referer": "https://cline.bot",
+			"HTTP-Referer": "https://www.shengsuanyun.com",
 			"X-Title": "Cline",
 			"User-Agent": "Cline/4.1.16",
 			"X-IS-MULTIROOT": "false",

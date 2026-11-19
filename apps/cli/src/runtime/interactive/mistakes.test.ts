@@ -36,7 +36,7 @@ describe("createMistakeLimitDecisionResolver", () => {
 			}),
 		).resolves.toMatchObject({
 			action: "continue",
-			guidance: expect.stringContaining("retry with a different approach"),
+			guidance: expect.stringContaining("以不同的方法重试"),
 		});
 	});
 

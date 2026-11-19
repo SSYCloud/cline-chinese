@@ -727,10 +727,7 @@ class DiscordConnector extends ConnectorBase<
 	DiscordConnectorState
 > {
 	constructor() {
-		super(
-			"discord",
-			"由 RPC 运行时会话支持的 Discord 交互与网关桥接",
-		);
+		super("discord", "由 RPC 运行时会话支持的 Discord 交互与网关桥接");
 	}
 
 	protected override createCommand(): Command {
@@ -748,10 +745,7 @@ class DiscordConnector extends ConnectorBase<
 					"--owner-user-id <id>",
 					"应标记为连接器所有者的 Discord 用户 ID",
 				)
-				.option(
-					"--ignore-bot-authors",
-					"忽略来自其他 Discord 机器人的消息",
-				)
+				.option("--ignore-bot-authors", "忽略来自其他 Discord 机器人的消息")
 				.option(
 					"--mention-role-ids <ids>",
 					"应触发提及处理程序的逗号分隔的角色 ID",
@@ -767,10 +761,7 @@ class DiscordConnector extends ConnectorBase<
 				// 保留这些选项是为了让现有的调用和持久化的自动启动参数
 				// 继续解析；除非传入 --no-tools，否则默认启用工具。
 				.option("--enable-tools", "启用工具（默认）")
-				.option(
-					"--hook-command <command>",
-					"为连接器事件运行 shell 命令",
-				)
+				.option("--hook-command <command>", "为连接器事件运行 shell 命令")
 				.option(
 					"--rpc-address <host:port>",
 					"RPC 地址",
@@ -779,10 +770,7 @@ class DiscordConnector extends ConnectorBase<
 				)
 				.option("--host <host>", "Webhook 监听主机")
 				.option("--port <port>", "Webhook 监听端口")
-				.option(
-					"--base-url <url>",
-					"Discord 交互 Webhook 的公共基础 URL",
-				)
+				.option("--base-url <url>", "Discord 交互 Webhook 的公共基础 URL")
 				.addHelpText(
 					"after",
 					[
@@ -1560,9 +1548,7 @@ class DiscordConnector extends ConnectorBase<
 		process.once("SIGTERM", () => requestStop("sigterm"));
 
 		io.writeln(`[discord] 正在监听 ${options.host}:${options.port}`);
-		io.writeln(
-			`[discord] 配置 Discord 交互端点：${webhookUrl}`,
-		);
+		io.writeln(`[discord] 配置 Discord 交互端点：${webhookUrl}`);
 		io.writeln(
 			`[discord] 已为提及、回复、回应和私信启动网关监听器${options.allowBotAuthors ? "（允许机器人作者）" : ""}`,
 		);

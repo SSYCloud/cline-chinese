@@ -102,9 +102,9 @@ describe("connector task updates", () => {
 	it("formats run progress updates for chat delivery", () => {
 		expect(formatConnectorTaskUpdate(createProjection())).toBe(
 			[
-				"[telegram-team] Task update",
+				"[telegram-team] 任务更新",
 				"Investigating failing test and patching the connector relay.",
-				"1 run active | 1 task in progress | 2/3 tasks complete",
+				"1 个活动运行 | 1 个进行中的任务 | 2/3 个任务完成",
 			].join("\n"),
 		);
 	});

@@ -119,7 +119,7 @@ describe("config view helpers", () => {
 
 	it("uses section counts instead of a combined Plugins heading", () => {
 		expect(getConfigTabCountHeading("plugins", 10)).toBeUndefined();
-		expect(getConfigTabCountHeading("skills", 20)).toBe("Skills (20)");
+		expect(getConfigTabCountHeading("skills", 20)).toBe("技能 (20)");
 	});
 
 	it("renders a loaded Agent Plugin as enabled", () => {
@@ -159,14 +159,14 @@ describe("config view helpers", () => {
 	});
 
 	it("mentions Space toggle in the footer for toggleable rows", () => {
-		expect(getConfigFooterText({ canToggle: true })).toContain("Space toggle");
+		expect(getConfigFooterText({ canToggle: true })).toContain("空格 切换");
 	});
 
 	it("omits Space toggle in the footer for non-toggleable rows", () => {
 		expect(getConfigFooterText({ canToggle: false })).not.toContain(
-			"Space toggle",
+			"空格 切换",
 		);
-		expect(getConfigFooterText()).not.toContain("Space toggle");
+		expect(getConfigFooterText()).not.toContain("空格 切换");
 	});
 
 	it("derives footer toggle affordance from selected row behavior", () => {

@@ -3,6 +3,7 @@ import {
 	existsSync,
 	mkdirSync,
 	mkdtempSync,
+	realpathSync,
 	rmSync,
 	writeFileSync,
 } from "node:fs";
@@ -207,7 +208,11 @@ describe("delete_chat_session worktree cleanup", () => {
 			name: "session_deleted",
 			payload: expect.objectContaining({
 				sessionId: "session-wt",
-				removedWorktree: { path: worktree.path, repoRoot: repo },
+				removedWorktree: {
+					path: worktree.path,
+					// git reports the resolved path; macOS symlinks /var to /private/var.
+					repoRoot: realpathSync(repo),
+				},
 			}),
 		});
 		expect(existsSync(worktree.path)).toBe(false);

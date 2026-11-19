@@ -19,7 +19,6 @@ import type {
 	StartSessionInput,
 	StartSessionResult,
 } from "../../runtime/host/runtime-host";
-import type { HubTransportContext } from "./handlers/context";
 import { HubServerTransport } from "./hub-server-transport";
 
 function createStartedTransportOptions() {

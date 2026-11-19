@@ -10,7 +10,7 @@ import {
 describe("assertHistorySessionIsDeletable", () => {
 	it("rejects deleting the active interactive session", () => {
 		expect(() => assertHistorySessionIsDeletable("sess_1", "sess_1")).toThrow(
-			"Cannot delete the active session",
+			"无法删除当前活动会话。请先开始或恢复另一个会话。",
 		);
 	});
 

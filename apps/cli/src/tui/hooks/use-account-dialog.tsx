@@ -58,7 +58,9 @@ export function useAccountDialog(opts: {
 			return;
 		}
 		if (action === "learn-more") {
-			await open("https://www.shengsuanyun.com", { wait: false }).catch(() => {});
+			await open("https://www.shengsuanyun.com", { wait: false }).catch(
+				() => {},
+			);
 			refocusTextarea();
 			return;
 		}

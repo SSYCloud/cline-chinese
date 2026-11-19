@@ -35,7 +35,7 @@ describe("slash command registry", () => {
 		expect(resolveSlashCommand(registry, "settings")).toMatchObject({
 			source: "tui",
 			execution: "local",
-			description: "Modify agent configuration",
+			description: "修改代理配置",
 			visible: true,
 		});
 		expect(resolveSlashCommand(registry, "team")).toMatchObject({
@@ -45,7 +45,7 @@ describe("slash command registry", () => {
 		expect(resolveSlashCommand(registry, "mcp")).toMatchObject({
 			source: "tui",
 			execution: "local",
-			description: "Manage MCP servers",
+			description: "管理 MCP 服务器",
 			visible: true,
 		});
 	});
@@ -107,13 +107,13 @@ describe("slash command registry", () => {
 		expect(resolveSlashCommand(registry, "skills")).toMatchObject({
 			source: "tui",
 			execution: "local",
-			description: "Browse skills and workflows",
+			description: "浏览技能和工作流",
 			visible: true,
 		});
 		expect(resolveSlashCommand(registry, "quit")).toMatchObject({
 			source: "tui",
 			execution: "local",
-			description: "Exit Cline",
+			description: "退出 Cline",
 			visible: true,
 		});
 		expect(
@@ -273,7 +273,7 @@ describe("slash command registry", () => {
 		expect(resolveSlashCommand(registry, "plugins")).toMatchObject({
 			source: "tui",
 			execution: "local",
-			description: "Manage plugins",
+			description: "管理插件",
 			visible: true,
 			selectable: true,
 		});
@@ -292,7 +292,7 @@ describe("slash command registry", () => {
 		expect(resolveSlashCommand(registry, "config")).toMatchObject({
 			source: "tui",
 			execution: "local",
-			description: "Modify agent configuration",
+			description: "修改代理配置",
 			visible: false,
 			selectable: false,
 		});

@@ -382,8 +382,8 @@ describe("anthropic wire format", () => {
 		usage: { output_tokens: 1 },
 	});
 
-	const emptySse = sse([messageStart, messageDelta("end_turn"), messageStop]);
-	const textSse = sse([
+	const _emptySse = sse([messageStart, messageDelta("end_turn"), messageStop]);
+	const _textSse = sse([
 		messageStart,
 		{
 			type: "content_block_start",

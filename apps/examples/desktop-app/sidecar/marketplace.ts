@@ -17,9 +17,10 @@ import {
 	relative,
 	resolve,
 } from "node:path";
-import { type HubMcpApi, loadMarketplaceCatalog } from "@cline/core";
 import {
+	type HubMcpApi,
 	installPlugin as installCorePlugin,
+	loadMarketplaceCatalog,
 	type MarketplaceActionResult,
 	type MarketplaceEntryInput,
 	resolveSkillsConfigSearchPaths,

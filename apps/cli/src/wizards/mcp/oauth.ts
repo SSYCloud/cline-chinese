@@ -38,8 +38,6 @@ export async function authorizeMcpServerOAuthWithBrowser(
 			throw error instanceof Error ? error : new Error(toErrorMessage(error));
 		}
 		p.log.error(`OAuth 授权失败：${toErrorMessage(error)}`);
-		p.log.warn(
-			`服务器 "${name}" 仍已保存。请选择"授权 OAuth"以重试。`,
-		);
+		p.log.warn(`服务器 "${name}" 仍已保存。请选择"授权 OAuth"以重试。`);
 	}
 }

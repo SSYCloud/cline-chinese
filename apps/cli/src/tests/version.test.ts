@@ -39,5 +39,4 @@ test.describe("cline version subcommand", () => {
 		program: { file: CLINE_BIN, args: ["version"] },
 		env: clineEnv("claude-sonnet-4.6"),
 	});
-
 });

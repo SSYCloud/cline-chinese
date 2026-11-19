@@ -105,9 +105,7 @@ export function HomeView(props: {
 			</box>
 			<box marginBottom={1} flexShrink={0}>
 				<text fg="gray">
-					<em>
-						使用 / 输入斜杠命令，@ 提及文件，Ctrl+P 打开菜单
-					</em>
+					<em>使用 / 输入斜杠命令，@ 提及文件，Ctrl+P 打开菜单</em>
 				</text>
 			</box>
 

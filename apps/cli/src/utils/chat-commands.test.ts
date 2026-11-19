@@ -31,19 +31,19 @@ describe("chat commands", () => {
 
 			expect(handled).toBe(true);
 			expect(reply).toHaveBeenCalledWith(
-				expect.stringContaining("Cline connector commands:"),
+				expect.stringContaining("Cline 连接器命令:"),
 			);
 			expect(reply).toHaveBeenCalledWith(
-				expect.stringContaining("Current state: tools=on, yolo=off"),
+				expect.stringContaining("当前状态: tools=on, yolo=off"),
 			);
 			expect(reply).toHaveBeenCalledWith(
 				expect.stringContaining(
-					"/schedule create/list/trigger/delete - manage scheduled workflows",
+					"/schedule create/list/trigger/delete - 管理定时工作流",
 				),
 			);
 			expect(reply).toHaveBeenCalledWith(
 				expect.stringContaining(
-					"When tools are on, I can inspect files, edit code, run commands/tests, and help prepare PRs.",
+					"当工具开启时，我可以检查文件、编辑代码、运行命令/测试，并帮助准备 PR。",
 				),
 			);
 		}
@@ -90,7 +90,7 @@ describe("chat commands", () => {
 
 		expect(await maybeHandleChatCommand("/help@clinebot", context)).toBe(true);
 		expect(reply).toHaveBeenCalledWith(
-			expect.stringContaining("Cline connector commands:"),
+			expect.stringContaining("Cline 连接器命令:"),
 		);
 	});
 
@@ -147,7 +147,7 @@ describe("chat commands", () => {
 		expect(handled).toBe(true);
 		expect(reply).toHaveBeenCalledWith(
 			expect.stringContaining(
-				"Tool controls are locked because this connector was started with --no-tools.",
+				"工具控制已被锁定，因为此连接器以 --no-tools 启动。",
 			),
 		);
 	});
@@ -171,7 +171,7 @@ describe("chat commands", () => {
 
 		expect(handled).toBe(true);
 		expect(reset).toHaveBeenCalledTimes(1);
-		expect(reply).toHaveBeenCalledWith("Started a fresh session.");
+		expect(reply).toHaveBeenCalledWith("已开始新会话。");
 	});
 
 	it("supports registering reusable commands on a host", async () => {
@@ -216,7 +216,7 @@ describe("chat commands", () => {
 
 		expect(handled).toBe(true);
 		expect(reply).toHaveBeenCalledWith(
-			"Usage: /team <task description>\nStarts a team of agents for the given task.",
+			"用法: /team <任务描述>\n为给定任务启动一个代理团队。",
 		);
 	});
 
@@ -237,7 +237,7 @@ describe("chat commands", () => {
 
 		expect(handled).toBe(true);
 		expect(reply).toHaveBeenCalledWith(
-			"The /team command must be entered directly as a prompt, not via a chat command.",
+			"/team 命令必须直接作为提示输入，而不是通过聊天命令。",
 		);
 	});
 
@@ -264,7 +264,7 @@ describe("chat commands", () => {
 		expect(handled).toBe(true);
 		expect(fork).toHaveBeenCalledTimes(1);
 		expect(reply).toHaveBeenCalledWith(
-			"Forked session sess_original into new session sess_fork. This is now the active session. Use /history to switch sessions.",
+			"已将会话 sess_original 分叉到新会话 sess_fork。这现在是活动会话。使用 /history 切换会话。",
 		);
 	});
 
@@ -287,9 +287,7 @@ describe("chat commands", () => {
 
 		expect(handled).toBe(true);
 		expect(fork).toHaveBeenCalledTimes(1);
-		expect(reply).toHaveBeenCalledWith(
-			"Fork failed: could not read messages from the current session.",
-		);
+		expect(reply).toHaveBeenCalledWith("分叉失败: 无法从当前会话读取消息。");
 	});
 
 	it("surfaces thrown error message when fork throws", async () => {

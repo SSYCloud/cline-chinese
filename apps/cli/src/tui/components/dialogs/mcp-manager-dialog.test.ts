@@ -165,9 +165,7 @@ describe("mcp manager dialog helpers", () => {
 	});
 
 	it("keeps the footer focused on toggling", () => {
-		expect(getMcpManagerFooterText(true)).toBe(
-			"空格切换所选，Esc 返回",
-		);
+		expect(getMcpManagerFooterText(true)).toBe("空格切换所选，Esc 返回");
 		expect(getMcpManagerFooterText(true)).not.toContain("删除");
 		expect(getMcpManagerFooterText(false)).toBe("按 Esc 返回");
 	});

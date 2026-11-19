@@ -44,9 +44,7 @@ export function MigrationNoticeContent(
 				setStatus("已在你的浏览器中打开.");
 			})
 			.catch(() => {
-				setStatus(
-					"无法自动打开浏览器。请使用下面的网址。",
-				);
+				setStatus("无法自动打开浏览器。请使用下面的网址。");
 			});
 	}, [notice.url]);
 
@@ -81,9 +79,7 @@ export function MigrationNoticeContent(
 				</box>
 			</box>
 			{status && <text fg={palette.muted}>{status}</text>}
-			<text fg={palette.muted}>
-				按 Enter 打开，按任意其他键关闭
-				</text>
+			<text fg={palette.muted}>按 Enter 打开，按任意其他键关闭</text>
 		</box>
 	);
 }

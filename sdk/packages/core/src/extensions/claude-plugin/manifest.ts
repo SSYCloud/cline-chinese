@@ -30,10 +30,7 @@ const MANIFEST_FIELDS = new Set([
 	"hooks",
 	"mcpServers",
 ]);
-const UNSUPPORTED_COMPONENT_FIELDS = new Set([
-	"outputStyles",
-	"lspServers",
-]);
+const UNSUPPORTED_COMPONENT_FIELDS = new Set(["outputStyles", "lspServers"]);
 const DEFAULT_COMPONENT_LOCATIONS: Readonly<Record<string, string>> = {
 	commands: "./commands",
 	skills: "./skills",
@@ -208,9 +205,7 @@ export async function readClaudePluginManifest(
 		...(typeof parsed.commands === "string"
 			? { commandsPath: parsed.commands }
 			: {}),
-		...(typeof parsed.agents === "string"
-			? { agentsPath: parsed.agents }
-			: {}),
+		...(typeof parsed.agents === "string" ? { agentsPath: parsed.agents } : {}),
 		inline: {
 			...(isRecord(parsed.hooks) ? { hooks: parsed.hooks } : {}),
 			...(isRecord(parsed.mcpServers) ? { mcpServers: parsed.mcpServers } : {}),

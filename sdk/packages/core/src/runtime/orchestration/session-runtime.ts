@@ -17,7 +17,6 @@ import type {
 } from "../../extensions/agent-plugin";
 import type { UserInstructionConfigService } from "../../extensions/config";
 import type { McpAppsRuntime } from "../../extensions/mcp";
-import type { ConfiguredAgentConfig } from "../../extensions/tools/team/configured-agent-config";
 import type {
 	RunCommandExecutionController,
 	ToolExecutors,
@@ -29,6 +28,7 @@ import type {
 	SubAgentStartContext,
 	TeamEvent,
 } from "../../extensions/tools/team";
+import type { ConfiguredAgentConfig } from "../../extensions/tools/team/configured-agent-config";
 import type { WorkspaceManager } from "../../services/workspace/workspace-manager";
 import type { CoreSessionConfig } from "../../types/config";
 

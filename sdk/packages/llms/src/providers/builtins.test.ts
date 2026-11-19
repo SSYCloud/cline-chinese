@@ -430,7 +430,7 @@ describe("built-in provider metadata", () => {
 		await expect(getProvider("cline")).resolves.toMatchObject({
 			name: "Cline Usage-Billing",
 			capabilities: expect.arrayContaining(["popular"]),
-			metadata: { popularRank: 1 },
+			metadata: { popularRank: 2 },
 		});
 		await expect(getProvider("zai")).resolves.not.toMatchObject({
 			capabilities: expect.arrayContaining(["popular"]),
@@ -627,7 +627,7 @@ describe("regional API line base URLs", () => {
 		const models = spec?.modelsFactory?.() ?? {};
 		const current = models["deepseek-flash"];
 		expect(spec?.defaultModelId).toBe("deepseek-flash");
-		expect(current?.contextWindow).toBe(1_000_000);
+		expect(current?.contextWindow).toBe(1_048_576);
 		expect(models["deepseek-v4-flash"]).toEqual({
 			...current,
 			id: "deepseek-v4-flash",

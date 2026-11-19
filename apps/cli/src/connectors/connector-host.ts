@@ -243,16 +243,13 @@ async function forgetStaleThreadSession<
 	if (!forgotten) {
 		return false;
 	}
-	input.logger.core.log(
-		"连接线程会话已不存在；正在启动新会话",
-		{
-			severity: "warn",
-			transport: input.transport,
-			threadId: input.thread.id,
-			channelId: input.thread.channelId,
-			sessionId: input.sessionId,
-		},
-	);
+	input.logger.core.log("连接线程会话已不存在；正在启动新会话", {
+		severity: "warn",
+		transport: input.transport,
+		threadId: input.thread.id,
+		channelId: input.thread.channelId,
+		sessionId: input.sessionId,
+	});
 	return true;
 }
 
@@ -445,8 +442,7 @@ export async function handleConnectorUserTurn<
 	);
 	if (authorization.action === "deny") {
 		const denialMessage =
-			authorization.message?.trim() ||
-			"你无权使用此机器人。";
+			authorization.message?.trim() || "你无权使用此机器人。";
 		await postConnectorText(input.thread, input.transport, denialMessage);
 		await dispatchConnectorHook(
 			input.hookCommand,
@@ -467,16 +463,13 @@ export async function handleConnectorUserTurn<
 			},
 			input.logger,
 		);
-		input.logger.core.log(
-			"入站连接事件被授权钩子拒绝",
-			{
-				transport: input.transport,
-				threadId: input.thread.id,
-				channelId: input.thread.channelId,
-				participantKey: initialState.participantKey,
-				reason: authorization.reason,
-			},
-		);
+		input.logger.core.log("入站连接事件被授权钩子拒绝", {
+			transport: input.transport,
+			threadId: input.thread.id,
+			channelId: input.thread.channelId,
+			participantKey: initialState.participantKey,
+			reason: authorization.reason,
+		});
 		return;
 	}
 	const commandName = resolveConnectorCommandName(
@@ -1056,9 +1049,7 @@ export async function handleConnectorUserTurn<
 			}
 			const enqueueTurn = input.enqueueTurn;
 			if (!enqueueTurn) {
-				throw new Error(
-					"活跃连接回合需要按线程的回合队列",
-				);
+				throw new Error("活跃连接回合需要按线程的回合队列");
 			}
 			await enqueueTurn(() =>
 				runConnectorRuntimeTurnWithRecovery({

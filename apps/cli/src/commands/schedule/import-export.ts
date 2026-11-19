@@ -155,9 +155,7 @@ export function registerScheduleImportCommand(
 					parsed.workspaceRoot ?? parsed.workspace_root ?? "",
 				).trim();
 				if (!workspaceRoot) {
-					io.writeErr(
-						"计划导入要求源文件中包含 workspaceRoot/workspace_root",
-					);
+					io.writeErr("计划导入要求源文件中包含 workspaceRoot/workspace_root");
 					fail();
 					return;
 				}

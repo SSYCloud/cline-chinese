@@ -12,7 +12,7 @@ describe("team command prompt rewrite", () => {
 		expect(rewriteTeamPrompt("/team investigate rpc startup")).toEqual({
 			kind: "rewritten",
 			prompt:
-				'<user_command slash="team">spawn a team of agents for the following task: investigate rpc startup</user_command>',
+				'<user_command slash="team">为以下任务启动一个代理团队: investigate rpc startup</user_command>',
 		});
 	});
 
@@ -22,12 +22,12 @@ describe("team command prompt rewrite", () => {
 		).toEqual({
 			kind: "rewritten",
 			prompt:
-				'<user_command slash="team">spawn a team of agents for the following task: investigate rpc startup\ninclude tests</user_command>',
+				'<user_command slash="team">为以下任务启动一个代理团队: investigate rpc startup\ninclude tests</user_command>',
 		});
 	});
 
 	it("returns usage for /team without a task", () => {
 		expect(rewriteTeamPrompt("/team")).toEqual({ kind: "usage" });
-		expect(TEAM_COMMAND_USAGE).toContain("/team <task description>");
+		expect(TEAM_COMMAND_USAGE).toContain("/team <任务描述>");
 	});
 });

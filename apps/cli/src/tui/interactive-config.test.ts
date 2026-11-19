@@ -9,7 +9,7 @@ describe("getMcpDescription", () => {
 				transport: { type: "stdio", command: "node" },
 				timeoutSeconds: 120,
 			}),
-		).toBe("stdio, local, timeout 120s");
+		).toBe("stdio, 本地, 超时 120秒");
 	});
 
 	it("reports malformed programmatic timeouts as unconfigured", () => {

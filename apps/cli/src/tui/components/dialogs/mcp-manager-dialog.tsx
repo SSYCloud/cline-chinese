@@ -25,9 +25,7 @@ function stringifyError(error: unknown): string {
 }
 
 export function getMcpManagerFooterText(hasServers: boolean): string {
-	return hasServers
-		? "空格切换所选，Esc 返回"
-		: "按 Esc 返回";
+	return hasServers ? "空格切换所选，Esc 返回" : "按 Esc 返回";
 }
 
 export function getMcpManagerEntryStatus(
@@ -188,9 +186,7 @@ export function McpManagerContent(
 				<box flexDirection="column" marginTop={1}>
 					<text fg={palette.error}>OAuth 错误</text>
 					<text fg={palette.error}>{selectedServer.lastError}</text>
-					<text fg="gray">
-						运行 cline mcp 并选择"授权 OAuth"以重试。
-					</text>
+					<text fg="gray">运行 cline mcp 并选择"授权 OAuth"以重试。</text>
 				</box>
 			)}
 

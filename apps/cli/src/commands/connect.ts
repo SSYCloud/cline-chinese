@@ -137,9 +137,7 @@ export async function runCleanupConnectorInstance(
 		return 1;
 	}
 	if (!connector.stopInstance) {
-		io.writeErr(
-			`connect 适配器 "${adapterName}" 不支持按实例停止`,
-		);
+		io.writeErr(`connect 适配器 "${adapterName}" 不支持按实例停止`);
 		return 1;
 	}
 	const result = await connector.stopInstance(instanceId, io);
@@ -234,9 +232,7 @@ export async function runRestartConnector(
 		return replacement.exitCode;
 	}
 
-	io.writeErr(
-		`[connect] 替换失败；正在恢复 ${adapterName} 实例 ${instanceId}`,
-	);
+	io.writeErr(`[connect] 替换失败；正在恢复 ${adapterName} 实例 ${instanceId}`);
 	const rollback = await runConnectAdapterWithResult(
 		adapterName,
 		previousConnection.lastSuccessfulArgs,
@@ -245,9 +241,7 @@ export async function runRestartConnector(
 	if (rollback.exitCode === 0) {
 		io.writeln(`[connect] 已恢复 ${adapterName} 实例 ${instanceId}`);
 	} else {
-		io.writeErr(
-			`[connect] 恢复 ${adapterName} 实例 ${instanceId} 失败`,
-		);
+		io.writeErr(`[connect] 恢复 ${adapterName} 实例 ${instanceId} 失败`);
 	}
 	return replacement.exitCode;
 }

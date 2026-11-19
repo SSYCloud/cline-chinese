@@ -22,7 +22,7 @@ async function reserveAvailablePort(): Promise<number> {
 
 function spawn(command: string[], env: Record<string, string>) {
 	const child = Bun.spawn(command, {
-		cwd: import.meta.dir + "/..",
+		cwd: `${import.meta.dir}/..`,
 		env: { ...process.env, ...env },
 		stdin: "inherit",
 		stdout: "inherit",

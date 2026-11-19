@@ -133,7 +133,7 @@ describe("createCliLoggerAdapter", () => {
 
 			const logPath = join(dataDir, "logs", `${commandName}.log`);
 			const log = readFileSync(logPath, "utf8");
-			expect(log).toContain("CLI process error");
+			expect(log).toContain("CLI 进程错误");
 			expect(log).toContain("unhandledRejection");
 			expect(log).toContain("message schema validation failed");
 		} finally {

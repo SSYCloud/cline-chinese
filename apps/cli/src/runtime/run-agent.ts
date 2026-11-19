@@ -84,9 +84,7 @@ function emitTeamRestored(config: Config): void {
 		emitJsonLine("stdout", { type: "team_restored", teamName });
 		return;
 	}
-	writeln(
-		`${c.dim}[团队] 已为 "${teamName}" 恢复持久化的团队状态${c.reset}`,
-	);
+	writeln(`${c.dim}[团队] 已为 "${teamName}" 恢复持久化的团队状态${c.reset}`);
 }
 
 function printRunStats(
@@ -435,7 +433,7 @@ export async function runAgent(
 		process.exitCode = 0;
 	} catch (err) {
 		if (timedOut) {
-			writeErr(`run timed out after ${config.timeoutSeconds}s`);
+			writeErr(`运行在 ${config.timeoutSeconds} 秒后超时`);
 		} else {
 			const message = formatCliErrorMessage(err, { modelId: config.modelId });
 			logCliError(config.logger, "CLI task run failed", { error: err });

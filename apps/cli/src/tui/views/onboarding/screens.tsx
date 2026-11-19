@@ -467,10 +467,7 @@ export function OnboardingProviderPickerScreen(props: {
 			)}
 
 			<text fg="gray" paddingX={1}>
-				<em>
-					输入搜索，↑/↓ 导航，按 Enter 选择，按 Esc 返回，Ctrl+C
-					退出
-				</em>
+				<em>输入搜索，↑/↓ 导航，按 Enter 选择，按 Esc 返回，Ctrl+C 退出</em>
 			</text>
 		</OnboardingFrame>
 	);
@@ -578,9 +575,7 @@ export function OnboardingClinePassSubscriptionScreen(props: {
 							fg={isSubscribed ? colors.success : planAccent}
 							flexShrink={0}
 						>
-							{isSubscribed
-								? "ClinePass 订阅已激活"
-								: "需要 ClinePass 订阅"}
+							{isSubscribed ? "ClinePass 订阅已激活" : "需要 ClinePass 订阅"}
 						</text>
 
 						{isLoading ? (
@@ -743,10 +738,7 @@ export function OnboardingModelPickerScreen(props: {
 			)}
 
 			<text fg="gray" paddingX={1}>
-				<em>
-					输入搜索，↑/↓ 导航，按 Enter 选择，按 Esc 返回，Ctrl+C
-					退出
-				</em>
+				<em>输入搜索，↑/↓ 导航，按 Enter 选择，按 Esc 返回，Ctrl+C 退出</em>
 			</text>
 		</OnboardingFrame>
 	);
@@ -801,9 +793,7 @@ export function OnboardingCustomModelIdScreen(props: {
 			</box>
 
 			<text fg="gray" paddingX={1}>
-				<em>
-					按 Enter 创建，按 Esc 返回模型选择，Ctrl+C 退出
-				</em>
+				<em>按 Enter 创建，按 Esc 返回模型选择，Ctrl+C 退出</em>
 			</text>
 		</OnboardingFrame>
 	);
@@ -826,10 +816,10 @@ export function OnboardingThinkingLevelScreen(props: {
 		>
 			<text fg={defaultFg} paddingX={1}>
 				为 {props.selectedModelName} 设置思考级别
-				</text>
-				<text fg="gray" paddingX={1}>
-					扩展思考让模型能够推理复杂问题
-				</text>
+			</text>
+			<text fg="gray" paddingX={1}>
+				扩展思考让模型能够推理复杂问题
+			</text>
 
 			<box flexDirection="column">
 				{THINKING_LEVELS.map((level, i) => {

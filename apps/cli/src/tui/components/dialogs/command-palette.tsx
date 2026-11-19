@@ -221,9 +221,7 @@ export function CommandPaletteContent(
 				)}
 			</box>
 
-			<text fg="gray">
-				输入搜索，方向键导航，回车执行，Esc 关闭
-			</text>
+			<text fg="gray">输入搜索，方向键导航，回车执行，Esc 关闭</text>
 		</box>
 	);
 }

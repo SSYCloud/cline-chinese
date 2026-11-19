@@ -103,7 +103,7 @@ describe("telegramConnector", () => {
 				"--allowed-user-id",
 				"123; rm -rf /",
 			]),
-		).toThrow("digits only");
+		).toThrow("connect telegram --allowed-user-id 只能包含数字");
 	});
 
 	it("rejects mixing --allowed-user-id with --hook-command", () => {
@@ -118,7 +118,9 @@ describe("telegramConnector", () => {
 				"--hook-command",
 				"echo noop",
 			]),
-		).toThrow("either --allowed-user-id or --hook-command");
+		).toThrow(
+			"connect telegram 只能传入 --allowed-user-id 或 --hook-command 之一，不能同时传入",
+		);
 	});
 
 	it("rejects mixing --allowed-user-id with the hook command env var", () => {
@@ -134,7 +136,9 @@ describe("telegramConnector", () => {
 					"--allowed-user-id",
 					"1201547643",
 				]),
-			).toThrow("either --allowed-user-id or --hook-command");
+			).toThrow(
+				"connect telegram 只能传入 --allowed-user-id 或 --hook-command 之一，不能同时传入",
+			);
 		} finally {
 			if (originalHookCommand === undefined) {
 				delete process.env.CLINE_CONNECT_HOOK_COMMAND;
@@ -210,7 +214,7 @@ describe("telegramConnector", () => {
 		expect(fetchImpl).toHaveBeenCalledTimes(1);
 		expect(errors).toEqual([]);
 		expect(output).toEqual([
-			`[telegram] connector already running pid=${process.pid} rpc=127.0.0.1:54321`,
+			`[telegram] 连接器已在运行 pid=${process.pid} rpc=127.0.0.1:54321`,
 		]);
 	});
 
@@ -325,7 +329,7 @@ describe("telegram bot username resolution", () => {
 
 		await expect(
 			__test__.fetchTelegramBotUsername("bad-token", fetchImpl),
-		).rejects.toThrow("Telegram getMe failed");
+		).rejects.toThrow("Telegram getMe 失败");
 	});
 });
 
@@ -785,6 +789,6 @@ describe("telegram slash command delivery", () => {
 		});
 
 		expect(deleteSession).toHaveBeenCalledWith("session-1", true);
-		expect(posts).toContainEqual({ raw: "Started a fresh session." });
+		expect(posts).toContainEqual({ raw: "已开始新会话。" });
 	});
 });

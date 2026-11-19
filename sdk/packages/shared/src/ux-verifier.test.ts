@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { UxVerificationReportSchema } from "./ux-verifier";
+
 const report = {
 	kind: "ux_verification",
 	version: 1,

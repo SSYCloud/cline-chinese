@@ -299,9 +299,7 @@ export async function runCli(): Promise<void> {
 	const pluginInstallCmd = pluginCmd
 		.command("install")
 		.alias("i")
-		.description(
-			"从官方关键字、npm、git、URL 或本地路径安装 Cline 插件",
-		)
+		.description("从官方关键字、npm、git、URL 或本地路径安装 Cline 插件")
 		.argument(
 			"<source>",
 			"官方关键字、npm 包、git URL、插件文件 URL 或本地插件路径",
@@ -345,10 +343,7 @@ export async function runCli(): Promise<void> {
 		.description("按名称或路径卸载 Cline 插件")
 		.argument("<name>", "插件包名称、已安装的 slug 或插件路径")
 		.option("--json", "以 JSON 输出")
-		.option(
-			"--cwd <path>",
-			"先搜索 <path>/.cline/plugins，再搜索全局插件",
-		)
+		.option("--cwd <path>", "先搜索 <path>/.cline/plugins，再搜索全局插件")
 		.action(async (name: string) => {
 			const opts = pluginUninstallCmd.opts<{
 				json?: boolean;
@@ -390,10 +385,7 @@ export async function runCli(): Promise<void> {
 		.argument("[channel]", "用于连接 Cline CLI 的频道")
 		.option("--stop", "终止所有当前的频道连接")
 		.option("--restart", "重启频道连接")
-		.option(
-			"--restart-instance <id>",
-			"重启一个连接器实例（用于守护进程恢复）",
-		)
+		.option("--restart-instance <id>", "重启一个连接器实例（用于守护进程恢复）")
 		.option(
 			"--cleanup-instance <id>",
 			"回收一个已停止的连接器实例，保留自动启动（用于 hub 监管）",
@@ -478,9 +470,7 @@ export async function runCli(): Promise<void> {
 				const { runMcpWizard } = await import("./wizards/mcp");
 				ctx.exitCode = await runMcpWizard();
 			} else {
-				writeln(
-					"MCP 向导需要 TTY。使用 cline config mcp 列出服务器。",
-				);
+				writeln("MCP 向导需要 TTY。使用 cline config mcp 列出服务器。");
 			}
 		});
 	const mcpInstallCmd = mcpCmd
@@ -768,9 +758,7 @@ export async function runCli(): Promise<void> {
 		return;
 	}
 	if (args.invalidTimeoutSeconds) {
-		writeErr(
-			`无效的超时时间 "${args.invalidTimeoutSeconds}"（期望整数 >= 1）`,
-		);
+		writeErr(`无效的超时时间 "${args.invalidTimeoutSeconds}"（期望整数 >= 1）`);
 		process.exitCode = 1;
 		return;
 	}
@@ -792,9 +780,7 @@ export async function runCli(): Promise<void> {
 	setCurrentOutputMode(args.outputMode);
 
 	if (args.outputMode === "json" && (args.interactive || !args.prompt)) {
-		writeErr(
-			"JSON 输出模式需要提示词参数或管道 stdin（不支持交互模式）",
-		);
+		writeErr("JSON 输出模式需要提示词参数或管道 stdin（不支持交互模式）");
 		process.exitCode = 1;
 		return;
 	}
@@ -1039,9 +1025,7 @@ export async function runCli(): Promise<void> {
 			}
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
-			writeln(
-				`${c.dim}[模型目录] 目录解析失败（${message}）${c.reset}`,
-			);
+			writeln(`${c.dim}[模型目录] 目录解析失败（${message}）${c.reset}`);
 		}
 		const knownModelIds = knownModels
 			? Object.keys(filterChatModels(knownModels))
@@ -1142,9 +1126,7 @@ export async function runCli(): Promise<void> {
 			});
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
-			writeln(
-				`${c.dim}[提供商设置] 保存选择失败（${message}）${c.reset}`,
-			);
+			writeln(`${c.dim}[提供商设置] 保存选择失败（${message}）${c.reset}`);
 		}
 		// Check for piped input (skip when stdin is not a real pipe/file, e.g. headless CI).
 		// Guard `isTTY` first so we never block on fd 0 when stdin is a terminal (and avoid
@@ -1185,9 +1167,7 @@ export async function runCli(): Promise<void> {
 		if (args.interactive || !args.prompt) {
 			if (isZenMode) {
 				writeErr(
-					args.interactive
-						? "--zen 不兼容交互模式。"
-						: "--zen 需要提示词。",
+					args.interactive ? "--zen 不兼容交互模式。" : "--zen 需要提示词。",
 				);
 				process.exitCode = 1;
 				return;

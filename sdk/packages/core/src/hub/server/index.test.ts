@@ -7,7 +7,15 @@ import {
 } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import {
+	afterAll,
+	afterEach,
+	beforeAll,
+	describe,
+	expect,
+	it,
+	vi,
+} from "vitest";
 import { WebSocketServer } from "ws";
 import { createLocalHubScheduleRuntimeHandlers } from "../daemon/runtime-handlers";
 import {
@@ -81,6 +89,25 @@ function requireServer(
 
 describe("hub server startup", () => {
 	const servers = new Set<HubWebSocketServer>();
+	const previousDataDir = process.env.CLINE_DATA_DIR;
+	let dataDir: string;
+
+	// The owner context resolves discovery, locks, and session history under
+	// the data dir. Without this the suite reads the developer's real
+	// ~/.cline sessions, and shutdown waits on indexing them.
+	beforeAll(async () => {
+		dataDir = await mkdtemp(join(tmpdir(), "cline-hub-server-test-"));
+		process.env.CLINE_DATA_DIR = dataDir;
+	});
+
+	afterAll(async () => {
+		if (previousDataDir === undefined) {
+			delete process.env.CLINE_DATA_DIR;
+		} else {
+			process.env.CLINE_DATA_DIR = previousDataDir;
+		}
+		await rm(dataDir, { recursive: true, force: true });
+	});
 
 	afterEach(async () => {
 		for (const server of servers) {

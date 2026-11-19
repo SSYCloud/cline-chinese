@@ -275,16 +275,13 @@ export function createConnectorRuntimeTurnStream(input: {
 						}
 					},
 					onError: (error) => {
-						input.logger.core.log(
-							"连接器运行时事件流在回合中途失败",
-							{
-								severity: "warn",
-								transport: input.transport,
-								conversationId: input.conversationId,
-								sessionId: input.sessionId,
-								error,
-							},
-						);
+						input.logger.core.log("连接器运行时事件流在回合中途失败", {
+							severity: "warn",
+							transport: input.transport,
+							conversationId: input.conversationId,
+							sessionId: input.sessionId,
+							error,
+						});
 						push({ type: "error", error });
 					},
 				},

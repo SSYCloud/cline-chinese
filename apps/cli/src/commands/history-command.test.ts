@@ -95,7 +95,7 @@ describe("registerHistoryCommand", () => {
 		await program.parseAsync(["history", "delete"], { from: "user" });
 
 		expect(io.writeErr).toHaveBeenCalledWith(
-			"history delete requires --session-id <id>",
+			"history delete 需要 --session-id <id>",
 		);
 		expect(historyMocks.runHistoryDelete).not.toHaveBeenCalled();
 		expect(setExitCode).toHaveBeenCalledWith(1);

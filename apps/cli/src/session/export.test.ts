@@ -31,7 +31,7 @@ describe("generateConversationHTML", () => {
 
 		expect(html).toContain("web_search");
 		expect(html).toContain("latest Bun release");
-		expect(html).toContain('<span class="success">Success</span>');
+		expect(html).toContain('<span class="success">成功</span>');
 		expect(html).toContain("Bun 1.3.14 is current.");
 	});
 });

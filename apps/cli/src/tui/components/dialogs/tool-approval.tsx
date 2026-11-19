@@ -25,10 +25,10 @@ export function formatApprovalParams(
 			if (!info?.files.length) break;
 			const keys = buildReadFilesKeys(info.files);
 			return info.files.map((f, i) => {
-			const range =
-				f.startLine != null
-					? ` 行 ${f.startLine}-${f.endLine ?? "末尾"}`
-					: "";
+				const range =
+					f.startLine != null
+						? ` 行 ${f.startLine}-${f.endLine ?? "末尾"}`
+						: "";
 				return (
 					<text key={keys[i]} fg="gray" selectable>
 						{"  "}

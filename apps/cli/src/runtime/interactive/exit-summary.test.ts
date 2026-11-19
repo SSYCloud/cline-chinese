@@ -82,12 +82,12 @@ describe("interactive exit summary", () => {
 			totalCost: 0.25,
 		});
 
-		expect(output).toContain("Session Summary");
+		expect(output).toContain("会话摘要");
 		expect(output).toContain("  ID        sess_123");
-		expect(output).toContain("  Model     cline:openai/gpt-5.3-codex");
-		expect(output).toContain("  Messages  2");
-		expect(output).toContain("  Cost      $0.250000");
-		expect(output).toContain("  Continue  ");
+		expect(output).toContain("  模型      cline:openai/gpt-5.3-codex");
+		expect(output).toContain("  消息数    2");
+		expect(output).toContain("  费用      $0.250000");
+		expect(output).toContain("  继续      ");
 		expect(output).toContain("cline --id sess_123");
 	});
 
@@ -98,7 +98,7 @@ describe("interactive exit summary", () => {
 			messageCount: 1,
 		});
 
-		expect(output).toContain("  Duration  0s");
+		expect(output).toContain("  时长      0s");
 		expect(output).not.toContain("NaN");
 	});
 
@@ -112,7 +112,7 @@ describe("interactive exit summary", () => {
 			totalCost: 0.25,
 		});
 
-		expect(output).not.toContain("  Cost");
+		expect(output).not.toContain("  费用");
 		expect(output).not.toContain("$0.250000");
 	});
 });

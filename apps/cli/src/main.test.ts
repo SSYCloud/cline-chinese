@@ -664,11 +664,11 @@ describe("runCli lightweight command dispatch", () => {
 		expect(process.exitCode).toBe(1);
 		expect(consoleError).toHaveBeenCalledWith(
 			expect.stringContaining(
-				"Unknown command or unquoted prompt: nonexistent-command",
+				"未知命令或未加引号的提示词：nonexistent-command",
 			),
 		);
 		expect(consoleError).toHaveBeenCalledWith(
-			expect.stringContaining('Use "cline --help"'),
+			expect.stringContaining('使用 "cline --help"'),
 		);
 		expect(runtimeMocks.runAgent).not.toHaveBeenCalled();
 		expect(mockState.runAgentImports).toBe(0);
@@ -687,9 +687,7 @@ describe("runCli lightweight command dispatch", () => {
 		await expect(runCli()).resolves.toBeUndefined();
 		expect(process.exitCode).toBe(1);
 		expect(consoleError).toHaveBeenCalledWith(
-			expect.stringContaining(
-				"Unknown command or unquoted prompt: hello world",
-			),
+			expect.stringContaining("未知命令或未加引号的提示词：hello world"),
 		);
 		expect(runtimeMocks.runAgent).not.toHaveBeenCalled();
 		expect(mockState.runAgentImports).toBe(0);
@@ -1564,7 +1562,7 @@ describe("runCli lightweight command dispatch", () => {
 		await expect(runCli()).resolves.toBeUndefined();
 		expect(process.exitCode).toBe(1);
 		expect(consoleError).toHaveBeenCalledWith(
-			expect.stringContaining("Unknown command or unquoted prompt: hello"),
+			expect.stringContaining("未知命令或未加引号的提示词：hello"),
 		);
 		expect(runtimeMocks.runAgent).not.toHaveBeenCalled();
 		expect(hubRuntimeMocks.ensureCliHubServer).not.toHaveBeenCalled();
@@ -1574,14 +1572,16 @@ describe("runCli lightweight command dispatch", () => {
 		runtimeMocks.runAgent.mockClear();
 
 		forcePromptModeInput();
-		process.argv = ["bun", "src/index.ts", "/team find the bug"];
+		// One-shot runs default to yolo, which disables team tools; --act keeps
+		// the /team contract this test covers.
+		process.argv = ["bun", "src/index.ts", "--act", "/team find the bug"];
 
 		const { runCli } = await import("./main");
 
 		await expect(runCli()).resolves.toBeUndefined();
 		expect(runtimeMocks.runAgent).toHaveBeenCalledTimes(1);
 		expect(runtimeMocks.runAgent).toHaveBeenCalledWith(
-			'<user_command slash="team">spawn a team of agents for the following task: find the bug</user_command>',
+			'<user_command slash="team">为以下任务启动一个代理团队: find the bug</user_command>',
 			expect.objectContaining({
 				enableAgentTeams: true,
 				teamName: undefined,
@@ -1606,7 +1606,7 @@ describe("runCli lightweight command dispatch", () => {
 		expect(process.exitCode).toBe(1);
 		expect(mockState.runAgentCalls).toBe(0);
 		expect(consoleError).toHaveBeenCalledWith(
-			expect.stringContaining("Unknown command or unquoted prompt: /team"),
+			expect.stringContaining("未知命令或未加引号的提示词：/team"),
 		);
 	});
 

@@ -252,10 +252,7 @@ class GoogleChatConnector extends ConnectorBase<
 				// 保留这些选项，以便现有调用和持久化的自动启动参数
 				// 继续被解析；除非传入 --no-tools，否则工具默认开启。
 				.option("--enable-tools", "启用工具（默认）")
-				.option(
-					"--hook-command <command>",
-					"为连接器事件运行 shell 命令",
-				)
+				.option("--hook-command <command>", "为连接器事件运行 shell 命令")
 				.option(
 					"--rpc-address <host:port>",
 					"RPC 地址",
@@ -265,10 +262,7 @@ class GoogleChatConnector extends ConnectorBase<
 				.option("--host <host>", "Webhook 监听主机")
 				.option("--port <port>", "Webhook 监听端口")
 				.option("--base-url <url>", "用于 Webhook 配置的公共基础 URL")
-				.option(
-					"--pubsub-topic <topic>",
-					"处理所有消息事件的可选 Pub/Sub 主题",
-				)
+				.option("--pubsub-topic <topic>", "处理所有消息事件的可选 Pub/Sub 主题")
 				.option("--impersonate-user <email>", "可选的委派用户邮箱")
 				.option("--use-adc", "使用 Google Application Default Credentials")
 				.option("--credentials-json <json>", "服务账号凭据 JSON")
@@ -506,10 +500,8 @@ class GoogleChatConnector extends ConnectorBase<
 				`[gchat] 连接器已在运行 pid=${state.pid} rpc=${state.rpcAddress} url=${state.baseUrl}`,
 			formatBackgroundStartMessage: (pid) =>
 				`[gchat] 正在后台启动连接器 pid=${pid} user=${options.userName}`,
-			foregroundHint:
-				"[gchat] 使用 `cline connect gchat -i ...` 在前台运行",
-			launchFailureMessage:
-				"无法在后台启动 Google Chat 连接器",
+			foregroundHint: "[gchat] 使用 `cline connect gchat -i ...` 在前台运行",
+			launchFailureMessage: "无法在后台启动 Google Chat 连接器",
 		});
 		if (backgroundExitCode !== undefined) {
 			return backgroundExitCode;

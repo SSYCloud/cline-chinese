@@ -267,10 +267,7 @@ class WhatsAppConnector extends ConnectorBase<
 	WhatsAppConnectorState
 > {
 	constructor() {
-		super(
-			"whatsapp",
-			"WhatsApp Business 网页钩子桥接，基于 RPC 运行时会话",
-		);
+		super("whatsapp", "WhatsApp Business 网页钩子桥接，基于 RPC 运行时会话");
 	}
 
 	protected override createCommand(): Command {
@@ -295,10 +292,7 @@ class WhatsAppConnector extends ConnectorBase<
 				// Retained so existing invocations and persisted autostart arguments
 				// keep parsing; tools are on unless --no-tools is passed.
 				.option("--enable-tools", "启用工具（默认）")
-				.option(
-					"--hook-command <command>",
-					"为连接器事件运行 shell 命令",
-				)
+				.option("--hook-command <command>", "为连接器事件运行 shell 命令")
 				.option(
 					"--rpc-address <host:port>",
 					"RPC 地址",
@@ -802,10 +796,9 @@ class WhatsAppConnector extends ConnectorBase<
 				"/health": () => new Response("ok"),
 				"/": () =>
 					new Response(
-						[
-							"WhatsApp 连接器正在运行。",
-							`Webhook URL：${endpointUrl}`,
-						].join("\n"),
+						["WhatsApp 连接器正在运行。", `Webhook URL：${endpointUrl}`].join(
+							"\n",
+						),
 					),
 			},
 		});

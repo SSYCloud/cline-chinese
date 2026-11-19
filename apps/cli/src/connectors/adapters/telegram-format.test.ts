@@ -201,7 +201,7 @@ describe("telegram formatted replies", () => {
 
 		expect(posts).toEqual([{ raw: "Bad **` markdown" }]);
 		expect(logger.core.log).toHaveBeenCalledWith(
-			"Telegram formatted reply failed; falling back",
+			"Telegram 格式化回复失败；正在降级处理",
 			expect.objectContaining({
 				severity: "warn",
 				transport: "telegram",

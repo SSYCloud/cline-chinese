@@ -612,14 +612,14 @@ Find installable skills.`,
 
 		expect(plugin?.name).toBe("broken-plugin");
 		expect(plugin?.loadErrorPhase).toBe("setup");
-		expect(plugin?.loadError).toContain("setup failed: setup exploded");
+		expect(plugin?.loadError).toContain("设置失败: setup exploded");
 
 		const invalidPlugin = data.plugins.find(
 			(item) => item.path === invalidPluginPath,
 		);
 		expect(invalidPlugin?.name).toBe("invalid-plugin");
 		expect(invalidPlugin?.loadErrorPhase).toBe("load");
-		expect(invalidPlugin?.loadError).toContain("load failed:");
+		expect(invalidPlugin?.loadError).toContain("加载失败:");
 	});
 
 	it("preserves multiple load failures for the same plugin path", () => {
@@ -650,7 +650,7 @@ Find installable skills.`,
 		);
 
 		expect(plugin.loadError).toBe(
-			"setup failed: first failure\nsetup failed: second failure",
+			"设置失败: first failure\n设置失败: second failure",
 		);
 		expect(plugin.loadErrorPhase).toBeUndefined();
 	});
@@ -1179,11 +1179,9 @@ Review with the bundled skill.`,
 		const linear = data.mcp.find((item) => item.name === "linear");
 		const docs = data.mcp.find((item) => item.name === "docs");
 
-		expect(linear?.description).toBe(
-			"streamableHttp, oauth error, timeout 60s",
-		);
+		expect(linear?.description).toBe("streamableHttp, OAuth 错误, 超时 60秒");
 		expect(linear?.loadError).toBe("OAuth authorization failed");
-		expect(docs?.description).toBe("sse, oauth authorized, timeout 60s");
+		expect(docs?.description).toBe("sse, OAuth 已授权, 超时 60秒");
 		expect(docs?.loadError).toBeUndefined();
 	});
 

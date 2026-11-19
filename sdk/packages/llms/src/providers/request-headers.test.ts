@@ -36,7 +36,7 @@ describe("resolveProviderRequestHeaders", () => {
 		});
 
 		expect(headers).toMatchObject({
-			"HTTP-Referer": "https://cline.bot",
+			"HTTP-Referer": "https://www.shengsuanyun.com",
 			"X-Title": "Cline",
 			"User-Agent": "Cline/3.0.38",
 			"X-IS-MULTIROOT": "false",
@@ -132,7 +132,7 @@ describe("resolveProviderRequestHeaders", () => {
 		});
 
 		expect(headers).toMatchObject({
-			"HTTP-Referer": "https://cline.bot",
+			"HTTP-Referer": "https://www.shengsuanyun.com",
 			"X-Title": "Cline",
 			"User-Agent": "Cline/4.1.16",
 			"X-CLIENT-TYPE": "VSCode Extension",

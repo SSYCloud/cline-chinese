@@ -68,7 +68,7 @@ export async function createCliCore(options?: {
 	});
 	// Refresh cached flags without putting PostHog on the CLI startup path.
 	void core.featureFlags.poll().catch((error) => {
-		options?.logger?.error?.("已在你的浏览器中打开", { error });
+		options?.logger?.error?.("轮询 CLI 功能标志失败", { error });
 	});
 	options?.logger?.log("CLI core runtime 路由已选择", {
 		backendMode: explicitBackendMode ?? "env-managed",

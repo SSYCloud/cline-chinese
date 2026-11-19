@@ -203,7 +203,7 @@ describe("onboarding auth telemetry forwarding", () => {
 			{ wait: false },
 		);
 		expect(setStatus).toHaveBeenCalledWith(
-			"Could not open browser. Visit the URL below.",
+			"无法打开浏览器。请访问下面的网址。",
 		);
 	});
 });

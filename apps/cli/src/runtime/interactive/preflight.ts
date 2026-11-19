@@ -7,9 +7,7 @@ export function assertInteractivePreflight(config: Config): void {
 		process.exit(1);
 	}
 	if (!process.stdin.isTTY || !process.stdout.isTTY) {
-		writeErr(
-			"交互模式需要 TTY（stdin/stdout 必须都是终端）",
-		);
+		writeErr("交互模式需要 TTY（stdin/stdout 必须都是终端）");
 		process.exit(1);
 	}
 }

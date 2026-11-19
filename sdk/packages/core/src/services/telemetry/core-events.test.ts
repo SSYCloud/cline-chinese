@@ -1,13 +1,6 @@
 import {
-	AGENT_UNEXPECTED_REASONING_TOKENS_EVENT,
 	captureTaskLifecycleEvent as captureSharedTaskLifecycleEvent,
 	type ITelemetryService,
-	TASK_CANCELLED_EVENT,
-	TASK_FIRST_CHUNK_RECEIVED_EVENT,
-	TASK_MAX_TOKENS_RECOVERY_EVENT,
-	TASK_PROVIDER_REQUEST_STARTED_EVENT,
-	TASK_PROVIDER_STREAM_FAILED_EVENT,
-	TASK_PROVIDER_STREAM_STARTED_EVENT,
 } from "@cline/shared";
 import { describe, expect, test, vi } from "vitest";
 import {

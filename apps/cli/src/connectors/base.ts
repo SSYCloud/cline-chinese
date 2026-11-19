@@ -420,9 +420,7 @@ export abstract class ConnectorBase<Options, State>
 			stoppedProcesses = 1;
 			input.io.writeln(input.describeStoppedProcess(state));
 		} else if (isProcessRunning(pid)) {
-			input.io.writeErr(
-				`[connect] 停止连接器进程失败 pid=${pid}`,
-			);
+			input.io.writeErr(`[connect] 停止连接器进程失败 pid=${pid}`);
 			return {
 				stoppedProcesses: 0,
 				failedProcesses: 1,

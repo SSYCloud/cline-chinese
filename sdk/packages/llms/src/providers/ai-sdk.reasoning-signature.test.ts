@@ -106,7 +106,9 @@ describe("Anthropic-protocol thinking signature", () => {
 
 		const signatures = events
 			.filter((e) => e.type === "reasoning-delta")
-			.map((e) => (e.metadata as Record<string, unknown> | undefined)?.signature)
+			.map(
+				(e) => (e.metadata as Record<string, unknown> | undefined)?.signature,
+			)
 			.filter((s) => s !== undefined);
 		expect(signatures).toEqual(["SIG123"]);
 	});

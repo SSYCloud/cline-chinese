@@ -21,7 +21,7 @@ describe("pasted text snippet helpers", () => {
 
 	it("formats a compact single-line marker with preview text", () => {
 		expect(formatPastedTextSnippetMarker("alpha\nbeta\ngamma")).toBe(
-			"[alpha beta gamma... Pasted +3 lines]",
+			"[alpha beta gamma... 已粘贴 +3 行]",
 		);
 	});
 
@@ -30,7 +30,7 @@ describe("pasted text snippet helpers", () => {
 
 		expect(
 			createUniquePastedTextSnippetMarker("alpha\nbeta\ngamma", [marker]),
-		).toBe("[alpha beta gamma... Pasted +3 lines #2]");
+		).toBe("[alpha beta gamma... 已粘贴 +3 行 #2]");
 	});
 
 	it("expands pasted snippet markers before submission", () => {

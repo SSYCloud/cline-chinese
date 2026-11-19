@@ -35,7 +35,7 @@ describe("buildForkSessionMetadata", () => {
 			messages,
 		});
 
-		expect(metadata.title).toBe("Source title (fork)");
+		expect(metadata.title).toBe("Source title（分叉）");
 		expect(metadata.totalCost).toBe(1.25);
 		expect(metadata.fork).toEqual({
 			forkedFromSessionId: "sess_source",

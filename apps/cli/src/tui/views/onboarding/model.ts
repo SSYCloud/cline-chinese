@@ -68,13 +68,15 @@ export const MAIN_MENU: MenuOption[] = [
 	{
 		label: "\u4f7f\u7528 Cline \u767b\u5f55",
 		value: "cline",
-		detail: "\u6700\u65b0\u6a21\u578b\uff0c\u5b9a\u671f\u514d\u8d39\u4fc3\u9500",
+		detail:
+			"\u6700\u65b0\u6a21\u578b\uff0c\u5b9a\u671f\u514d\u8d39\u4fc3\u9500",
 		icon: "\u263a",
 	},
 	{
 		label: "\u4f7f\u7528 ClinePass \u767b\u5f55",
 		value: "cline-pass",
-		detail: "\u9762\u5411\u6240\u6709\u4eba\u7684\u4f4e\u6210\u672c\u8ba2\u9605",
+		detail:
+			"\u9762\u5411\u6240\u6709\u4eba\u7684\u4f4e\u6210\u672c\u8ba2\u9605",
 		icon: "\u2726",
 	},
 	{
@@ -86,7 +88,8 @@ export const MAIN_MENU: MenuOption[] = [
 	{
 		label: "\u81ea\u5e26\u63d0\u4f9b\u5546",
 		value: "byo",
-		detail: "API \u5bc6\u94a5\u6216\u672c\u5730\u670d\u52a1\u5668\uff08\u4f8b\u5982 Ollama\uff09",
+		detail:
+			"API \u5bc6\u94a5\u6216\u672c\u5730\u670d\u52a1\u5668\uff08\u4f8b\u5982 Ollama\uff09",
 		icon: "\u26b7",
 	},
 ];

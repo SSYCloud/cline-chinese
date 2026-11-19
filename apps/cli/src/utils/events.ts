@@ -217,9 +217,7 @@ export function handleEvent(event: AgentEvent, config: Config): void {
 			if (config.verbose) {
 				const iterations = event.iterations;
 				const label = event.reason === "aborted" ? "已中止" : "已完成";
-				write(
-					`\n${c.dim}── ${label} (${iterations} 次迭代) ──${c.reset}\n`,
-				);
+				write(`\n${c.dim}── ${label} (${iterations} 次迭代) ──${c.reset}\n`);
 			}
 			activeInlineStream = undefined;
 			inlineStreamHasOutput = false;

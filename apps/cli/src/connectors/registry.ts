@@ -16,8 +16,7 @@ const registry = new Map<string, ConnectorRegistryEntry>([
 		"discord",
 		{
 			name: "discord",
-			description:
-				"Discord 交互与网关桥接，以 RPC 运行时会话为后端",
+			description: "Discord 交互与网关桥接，以 RPC 运行时会话为后端",
 			load: async () => (await import("./adapters/discord")).discordConnector,
 		},
 	],

@@ -1,8 +1,8 @@
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadMarketplaceCatalog } from "@cline/core";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 describe("loadMarketplaceCatalog", () => {
 	const tempDirs: string[] = [];

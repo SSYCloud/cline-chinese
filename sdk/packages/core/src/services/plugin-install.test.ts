@@ -300,7 +300,10 @@ export default {
 			writeClaudePlugin(pluginDir, "demo-plugin");
 			writeFileSync(
 				join(pluginDir, "package.json"),
-				JSON.stringify({ name: "demo-plugin", dependencies: { left: "1.0.0" } }),
+				JSON.stringify({
+					name: "demo-plugin",
+					dependencies: { left: "1.0.0" },
+				}),
 				"utf8",
 			);
 
@@ -317,14 +320,18 @@ export default {
 				"claude",
 			);
 			expect(result.format).toBe("claude-code");
-			expect(result.installPath.startsWith(`${claudeInstallRoot}/demo-plugin-`)).toBe(true);
+			expect(
+				result.installPath.startsWith(`${claudeInstallRoot}/demo-plugin-`),
+			).toBe(true);
 			expect(
 				readFileSync(
 					join(result.installPath, ".claude-plugin", "plugin.json"),
 					"utf8",
 				),
 			).toContain('"name":"demo-plugin"');
-			expect(existsSync(join(result.installPath, "skills", "hello", "SKILL.md"))).toBe(true);
+			expect(
+				existsSync(join(result.installPath, "skills", "hello", "SKILL.md")),
+			).toBe(true);
 			expect(result.entryPaths).toEqual([]);
 		});
 

@@ -90,7 +90,7 @@ describe("createInteractiveModeSwitchTool", () => {
 
 		expect(pendingModeChange).toEqual({ current: "act", source: "tool" });
 		expect(tuiModeChanged.current).toHaveBeenCalledWith("act");
-		expect(result).toContain("successfully switched to act mode");
+		expect(result).toContain("你已成功切换到执行模式");
 	});
 
 	it("errors instead of completing the run when already in act mode", async () => {
@@ -101,7 +101,7 @@ describe("createInteractiveModeSwitchTool", () => {
 		// A successful result would end the run via completesRun even though
 		// nothing changed, so the no-op case must surface as a tool error.
 		await expect(tool.execute({}, toolContext)).rejects.toThrow(
-			"Already in act mode.",
+			"已处于执行模式。",
 		);
 		expect(pendingModeChange.current).toBeNull();
 	});

@@ -256,7 +256,10 @@ export const ApplyPatchInputUnionSchema = z.union([
 export const SkillsInputSchema = z.object({
 	skill: z.string().min(1).describe("Name of the skill to execute."),
 	args: z
-		.preprocess((value) => (value === null ? undefined : value), z.string().optional())
+		.preprocess(
+			(value) => (value === null ? undefined : value),
+			z.string().optional(),
+		)
 		.optional()
 		.describe("Optional arguments for the skill; omit when not needed"),
 });

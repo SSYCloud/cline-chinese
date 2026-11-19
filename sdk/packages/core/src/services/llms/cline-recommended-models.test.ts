@@ -613,7 +613,10 @@ describe("resolveClineDefaultModelId", () => {
 		const fetchImpl = vi.fn(
 			async () =>
 				new Response(
-					JSON.stringify({ free: [{ id: "cline-free/live" }], recommended: [] }),
+					JSON.stringify({
+						free: [{ id: "cline-free/live" }],
+						recommended: [],
+					}),
 					{ status: 200 },
 				),
 		) as unknown as typeof fetch;

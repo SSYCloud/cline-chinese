@@ -482,7 +482,7 @@ describe("handleConnectorUserTurn", () => {
 			reusedLogMessage: "reused",
 		});
 
-		expect(posts).toEqual(["Started a fresh session."]);
+		expect(posts).toEqual(["已开始新会话。"]);
 		expect(getState().sessionId).toBeUndefined();
 		expect(runtime.client.abortRuntimeSession).toHaveBeenCalledWith(
 			"session-1",
@@ -534,7 +534,7 @@ describe("handleConnectorUserTurn", () => {
 			reusedLogMessage: "reused",
 		});
 
-		expect(posts).toEqual(["Only the connector owner can use slash commands."]);
+		expect(posts).toEqual(["只有连接器所有者可以使用斜杠命令。"]);
 		expect(getState().sessionId).toBe("session-1");
 		expect(runtime.client.abortRuntimeSession).not.toHaveBeenCalled();
 	});
@@ -576,7 +576,7 @@ describe("handleConnectorUserTurn", () => {
 			reusedLogMessage: "reused",
 		});
 
-		expect(posts).toEqual(["Started a fresh session."]);
+		expect(posts).toEqual(["已开始新会话。"]);
 		expect(getState().sessionId).toBeUndefined();
 		expect(runtime.client.abortRuntimeSession).toHaveBeenCalledWith(
 			"session-1",
@@ -632,7 +632,7 @@ describe("handleConnectorUserTurn", () => {
 		});
 
 		expect(posts.at(-1)).toEqual({
-			raw: "tools=off (disabled by connector startup)",
+			raw: "tools=off（已通过连接器启动禁用）",
 		});
 
 		await handleConnectorUserTurn({
@@ -641,7 +641,7 @@ describe("handleConnectorUserTurn", () => {
 		});
 
 		expect(posts.at(-1)).toEqual({
-			raw: "tools=off (disabled by connector startup)",
+			raw: "tools=off（已通过连接器启动禁用）",
 		});
 
 		const runtime = createRuntimeClient("not a local tools command");
@@ -671,7 +671,7 @@ describe("handleConnectorUserTurn", () => {
 		});
 
 		expect(posts.at(-1)).toEqual({
-			raw: "yolo=off (disabled by connector startup)",
+			raw: "yolo=off（已通过连接器启动禁用）",
 		});
 	});
 
@@ -1124,7 +1124,7 @@ describe("handleConnectorUserTurn", () => {
 				}),
 			}),
 		);
-		expect(messageText(posts.at(-1))).toContain('Scheduled "nightly".');
+		expect(messageText(posts.at(-1))).toContain('已计划 "nightly"。');
 	});
 
 	it("handles schedule commands directly in connector chats", async () => {
@@ -1234,14 +1234,12 @@ describe("handleConnectorUserTurn", () => {
 				}),
 			}),
 		);
-		expect(messageText(posts.at(-4))).toContain('Scheduled "nightly".');
+		expect(messageText(posts.at(-4))).toContain('已计划 "nightly"。');
 		expect(messageText(posts.at(-3))).toContain("schedule-1 [enabled]");
 		expect(messageText(posts.at(-3))).not.toContain("schedule-2");
-		expect(messageText(posts.at(-2))).toContain(
-			"Triggered schedule schedule-1.",
-		);
+		expect(messageText(posts.at(-2))).toContain("已触发计划 schedule-1。");
 		expect(triggerScheduleNow).toHaveBeenCalledWith("schedule-1");
-		expect(messageText(posts.at(-1))).toBe("Deleted schedule schedule-1.");
+		expect(messageText(posts.at(-1))).toBe("已删除计划 schedule-1。");
 		expect(deleteSchedule).toHaveBeenCalledWith("schedule-1");
 	});
 
@@ -1438,9 +1436,7 @@ describe("handleConnectorUserTurn", () => {
 			text: "a bot keeps talking",
 		});
 
-		expect(posts).toEqual([
-			"Thread muted. I will ignore messages here until /unmute.",
-		]);
+		expect(posts).toEqual(["线程已静音。在 /unmute 之前我会忽略这里的消息。"]);
 		expect(runtime.startRuntimeSession).not.toHaveBeenCalled();
 		expect(runtime.sendRuntimeSession).not.toHaveBeenCalled();
 
@@ -1453,7 +1449,7 @@ describe("handleConnectorUserTurn", () => {
 			text: "hello again",
 		});
 
-		expect(posts.at(-2)).toBe("Thread unmuted.");
+		expect(posts.at(-2)).toBe("线程已取消静音。");
 		expect(posts.at(-1)).toBe("runtime reply");
 		expect(runtime.sendRuntimeSession).toHaveBeenCalledTimes(1);
 	});
@@ -1502,9 +1498,7 @@ describe("handleConnectorUserTurn", () => {
 		expect(runtime.client.abortRuntimeSession).toHaveBeenCalledWith(
 			"session-1",
 		);
-		expect(posts).toEqual([
-			"Thread muted. I will ignore messages here until /unmute.",
-		]);
+		expect(posts).toEqual(["线程已静音。在 /unmute 之前我会忽略这里的消息。"]);
 	});
 
 	it("mutes a specific participant in the current connector thread", async () => {
@@ -1583,7 +1577,7 @@ describe("handleConnectorUserTurn", () => {
 		});
 
 		expect(alice.posts[0]).toBe(
-			"Muted <@bob> in this thread. I will ignore their messages until /unmute <@bob>.",
+			"已在本线程静音 <@bob>。我将忽略其消息，直到 /unmute <@bob>。",
 		);
 		expect(bob.posts).toEqual([]);
 		expect(alice.posts.at(-1)).toBe("runtime reply");
@@ -1603,7 +1597,7 @@ describe("handleConnectorUserTurn", () => {
 			},
 		});
 
-		expect(alice.posts.at(-1)).toBe("Unmuted <@bob> in this thread.");
+		expect(alice.posts.at(-1)).toBe("已在本线程取消静音 <@bob>。");
 		expect(bob.posts.at(-1)).toBe("runtime reply");
 		expect(runtime.sendRuntimeSession).toHaveBeenCalledTimes(2);
 	});
@@ -1684,8 +1678,8 @@ describe("handleConnectorUserTurn", () => {
 		});
 
 		expect(alice.posts).toEqual([
-			"Muted <@bob> in this thread. I will ignore their messages until /unmute <@bob>.",
-			"No thread-level mute is active. Participant-specific mutes are still active for <@bob>. Use /unmute <target> to clear one.",
+			"已在本线程静音 <@bob>。我将忽略其消息，直到 /unmute <@bob>。",
+			"没有激活的线程级静音。针对特定参与者的静音仍对 <@bob> 生效。使用 /unmute <target> 清除其中一项。",
 		]);
 		expect(bob.posts).toEqual([]);
 		expect(runtime.sendRuntimeSession).not.toHaveBeenCalled();
@@ -1756,7 +1750,7 @@ describe("handleConnectorUserTurn", () => {
 			"session-bob",
 		);
 		expect(posts).toEqual([
-			"Muted <@bob> in this thread. I will ignore their messages until /unmute <@bob>.",
+			"已在本线程静音 <@bob>。我将忽略其消息，直到 /unmute <@bob>。",
 		]);
 	});
 
@@ -1855,7 +1849,7 @@ describe("handleConnectorUserTurn", () => {
 				startedLogMessage: "started",
 				createEmptyRuntimeReplyResolver,
 			}),
-		).rejects.toThrow("Runtime completed without assistant reply text.");
+		).rejects.toThrow("运行时完成但缺少助手回复文本。");
 
 		expect(createEmptyRuntimeReplyResolver).toHaveBeenCalledWith({
 			client: runtime.client,

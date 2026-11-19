@@ -108,7 +108,9 @@ export function parseClaudeAgentMarkdown(
 	const maxIterations = parseMaxTurns(frontmatter.maxTurns, warnings);
 	for (const field of UNENFORCED_AGENT_FIELDS) {
 		if (frontmatter[field] !== undefined) {
-			warnings.push(`Agent field '${field}' is not supported by Cline and is ignored.`);
+			warnings.push(
+				`Agent field '${field}' is not supported by Cline and is ignored.`,
+			);
 		}
 	}
 
@@ -172,7 +174,9 @@ function parseMaxTurns(value: unknown, warnings: string[]): number | undefined {
 	if (typeof value === "number" && Number.isInteger(value) && value > 0) {
 		return value;
 	}
-	warnings.push(`maxTurns must be a positive integer; '${String(value)}' is ignored.`);
+	warnings.push(
+		`maxTurns must be a positive integer; '${String(value)}' is ignored.`,
+	);
 	return undefined;
 }
 
@@ -184,7 +188,12 @@ function parseSkills(value: unknown): string[] | undefined {
 }
 
 function toStringList(value: unknown): string[] {
-	const raw = typeof value === "string" ? value.split(",") : Array.isArray(value) ? value : [];
+	const raw =
+		typeof value === "string"
+			? value.split(",")
+			: Array.isArray(value)
+				? value
+				: [];
 	return Array.from(
 		new Set(
 			raw

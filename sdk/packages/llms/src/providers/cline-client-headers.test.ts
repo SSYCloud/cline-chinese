@@ -10,7 +10,7 @@ describe("buildClineClientHeaders", () => {
 	it("falls back to the SDK client type when no identity is registered", () => {
 		expect(getClineClientIdentity()).toBeUndefined();
 		expect(buildClineClientHeaders()).toEqual({
-			"HTTP-Referer": "https://cline.bot",
+			"HTTP-Referer": "https://www.shengsuanyun.com",
 			"X-Title": "Cline",
 			"X-IS-MULTIROOT": "false",
 			"User-Agent": "Cline/unknown",

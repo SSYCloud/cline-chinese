@@ -170,8 +170,7 @@ export class AcpAgent implements Agent {
 			{
 				id: "plan",
 				name: "规划",
-				description:
-					"探索代码库并规划更改，而不修改文件",
+				description: "探索代码库并规划更改，而不修改文件",
 			},
 			{
 				id: "act",
@@ -471,10 +470,7 @@ export class AcpAgent implements Agent {
 					);
 				}
 				if (!isAcpAuthMethodId(value)) {
-					throw RequestError.invalidParams(
-						undefined,
-						`未知提供商: ${value}`,
-					);
+					throw RequestError.invalidParams(undefined, `未知提供商: ${value}`);
 				}
 
 				session.currentProviderId = value;

@@ -94,7 +94,6 @@ test.describe("cline auth --modelid only (partial flags)", () => {
 		...TERMINAL_WIDE,
 		env: clineEnv("unauthenticated"),
 	});
-
 });
 
 test.describe("cline auth --baseurl only (partial flags)", () => {
@@ -106,7 +105,6 @@ test.describe("cline auth --baseurl only (partial flags)", () => {
 		...TERMINAL_WIDE,
 		env: clineEnv("unauthenticated"),
 	});
-
 });
 
 test.describe("cline auth --verbose only", () => {

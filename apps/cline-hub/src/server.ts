@@ -1,4 +1,4 @@
-import { CORE_BUILD_VERSION } from "@cline/core";
+import { CORE_BUILD_VERSION, loadMarketplaceCatalog } from "@cline/core";
 import { isNonLocalBindHost } from "./options";
 import {
 	handleToolApprovalResponse,
@@ -27,7 +27,6 @@ import {
 	syncHubClientsAndSessions,
 	syncHubHealth,
 } from "./server/hub";
-import { loadMarketplaceCatalog } from "@cline/core";
 import {
 	loadModels,
 	runProviderOAuthLogin,

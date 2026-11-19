@@ -244,9 +244,7 @@ export async function startConnectorViaHub(input: {
 			) {
 				return { delegated: false, reason: message };
 			}
-			input.io.writeErr(
-				`[connect] hub 拒绝启动 ${input.channel}: ${message}`,
-			);
+			input.io.writeErr(`[connect] hub 拒绝启动 ${input.channel}: ${message}`);
 			return { delegated: true, exitCode: 1 };
 		}
 		const payload = reply.payload as ConnectorStartResult | undefined;

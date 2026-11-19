@@ -52,6 +52,6 @@ describe("history export picker", () => {
 	it("includes available history actions in the footer", () => {
 		expect(
 			buildHistoryFooterText({ canDelete: true, canExport: true }),
-		).toContain("\u2190 delete, \u2192 export");
+		).toContain("\u2190 \u5220\u9664, \u2192 \u5bfc\u51fa");
 	});
 });

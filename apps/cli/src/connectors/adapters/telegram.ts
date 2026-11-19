@@ -94,9 +94,7 @@ function readTelegramBotId(botToken: string): string | undefined {
 function normalizeAllowedTelegramUserId(value: string): string {
 	const userId = value.trim();
 	if (!/^\d+$/.test(userId)) {
-		throw new Error(
-			"connect telegram --allowed-user-id 只能包含数字",
-		);
+		throw new Error("connect telegram --allowed-user-id 只能包含数字");
 	}
 	return userId;
 }
@@ -361,17 +359,14 @@ async function deliverScheduledResult(input: {
 	const binding = match?.binding;
 	const deliveryThreadId = match?.key || threadId;
 	if (!binding?.serializedThread) {
-		input.logger.core.log(
-			"计划中的 Telegram 投递已跳过：缺少线程绑定",
-			{
-				severity: "warn",
-				transport: "telegram",
-				scheduleId: input.scheduleId,
-				executionId: input.executionId,
-				threadId: deliveryThreadId,
-				bindingKey: bindingKey || undefined,
-			},
-		);
+		input.logger.core.log("计划中的 Telegram 投递已跳过：缺少线程绑定", {
+			severity: "warn",
+			transport: "telegram",
+			scheduleId: input.scheduleId,
+			executionId: input.executionId,
+			threadId: deliveryThreadId,
+			bindingKey: bindingKey || undefined,
+		});
 		return;
 	}
 	await dispatchConnectorHook(
@@ -491,10 +486,7 @@ class TelegramConnector extends ConnectorBase<
 					"--allowed-user-id <id>",
 					"仅允许此 Telegram 用户 ID 使用机器人",
 				)
-				.option(
-					"--hook-command <command>",
-					"为连接器事件运行 shell 命令",
-				)
+				.option("--hook-command <command>", "为连接器事件运行 shell 命令")
 				.option(
 					"--rpc-address <host:port>",
 					"RPC 地址",
@@ -941,8 +933,7 @@ class TelegramConnector extends ConnectorBase<
 						startedLogMessage: "Telegram 线程已启动 RPC 会话",
 						messageReceivedLogMessage: "已收到 Telegram 消息",
 						threadResetLogMessage: "Telegram 线程已重置",
-						connectorStopLogMessage:
-							"已从聊天中请求停止 Telegram 连接器",
+						connectorStopLogMessage: "已从聊天中请求停止 Telegram 连接器",
 						onMessageReceived: async (details) => {
 							await dispatchConnectorHook(
 								options.hookCommand,
@@ -1159,14 +1150,11 @@ class TelegramConnector extends ConnectorBase<
 					});
 				},
 				onError: (error) => {
-					loggerAdapter.core.log(
-						"Telegram 连接器服务器事件流失败",
-						{
-							severity: "warn",
-							transport: "telegram",
-							error,
-						},
-					);
+					loggerAdapter.core.log("Telegram 连接器服务器事件流失败", {
+						severity: "warn",
+						transport: "telegram",
+						error,
+					});
 					requestStop("rpc_server_event_stream_failed");
 				},
 			},
@@ -1180,12 +1168,8 @@ class TelegramConnector extends ConnectorBase<
 			`[telegram] 已连接为 @${options.botUsername} mode=${telegram.runtimeMode} rpc=${rpcAddress} provider=${startRequest.provider} model=${startRequest.model} tools=${startRequest.enableTools ? "on" : "off"}`,
 		);
 		io.writeln("[telegram] 在聊天中发送 /clear 以启动新的 RPC 会话");
-		io.writeln(
-			"[telegram] 在聊天中发送 /whereami 以获取其投递线程 ID",
-		);
-		io.writeln(
-			"[telegram] 使用 /tools、/yolo 或 /cwd <path> 更新运行时设置",
-		);
+		io.writeln("[telegram] 在聊天中发送 /whereami 以获取其投递线程 ID");
+		io.writeln("[telegram] 使用 /tools、/yolo 或 /cwd <path> 更新运行时设置");
 		io.writeln("[telegram] 在聊天中发送 /exit 或按 Ctrl+C 停止");
 
 		const shutdown = () => {

@@ -255,12 +255,19 @@ async function loadAgents(
 	context: ClaudePluginComponentContext,
 	diagnostics: ClaudePluginDiagnostic[],
 ): Promise<ConfiguredAgentConfig[]> {
-	const target = join(context.pluginRoot, context.agentsPath ?? AGENTS_DIRECTORY_NAME);
+	const target = join(
+		context.pluginRoot,
+		context.agentsPath ?? AGENTS_DIRECTORY_NAME,
+	);
 	if (!(await pathExists(target))) {
 		return [];
 	}
 	const kind = (await stat(target)).isDirectory() ? "directory" : "file";
-	const root = await resolveContainedExistingPath(context.pluginRoot, target, kind);
+	const root = await resolveContainedExistingPath(
+		context.pluginRoot,
+		target,
+		kind,
+	);
 	const files =
 		kind === "file"
 			? [{ filePath: root, subfolders: [] as string[] }]
@@ -269,12 +276,15 @@ async function loadAgents(
 	const agents: ConfiguredAgentConfig[] = [];
 	for (const { filePath, subfolders } of files) {
 		try {
-			const parsed = parseClaudeAgentMarkdown(await readFile(filePath, "utf8"), {
-				pluginName: context.pluginName,
-				pluginRoot: context.pluginRoot,
-				fileName: basename(filePath, ".md"),
-				subfolders,
-			});
+			const parsed = parseClaudeAgentMarkdown(
+				await readFile(filePath, "utf8"),
+				{
+					pluginName: context.pluginName,
+					pluginRoot: context.pluginRoot,
+					fileName: basename(filePath, ".md"),
+					subfolders,
+				},
+			);
 			for (const warning of parsed.warnings) {
 				diagnostics.push({
 					level: "warning",

@@ -18,12 +18,12 @@ import {
 	resolve,
 } from "node:path";
 import {
+	loadMarketplaceCatalog,
 	type MarketplaceActionResult,
 	type MarketplaceEntryInput,
 	resolveSkillsConfigSearchPaths,
 	resolveWorkflowsConfigSearchPaths,
 	SKILLS_CLI_PACKAGE,
-	loadMarketplaceCatalog,
 	uninstallMarketplaceEntry as uninstallCoreMarketplaceEntry,
 	uninstallPlugin as uninstallLocalPlugin,
 } from "@cline/core";

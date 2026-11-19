@@ -1,17 +1,16 @@
 "use client";
 
+import { clsx as cn } from "clsx";
+import useEmblaCarousel from "embla-carousel-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import {
+	type ComponentProps,
 	createContext,
+	type ReactNode,
 	useCallback,
 	useContext,
 	useEffect,
-	type ComponentProps,
-	type ReactNode,
 } from "react";
-import useEmblaCarousel from "embla-carousel-react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-
-import { clsx as cn } from "clsx";
 
 export type CarouselApi = ReturnType<typeof useEmblaCarousel>[1];
 type CarouselOptions = Parameters<typeof useEmblaCarousel>[0];

@@ -45,7 +45,7 @@ describe("parseChangelog", () => {
 		expect(releases[0]?.version).toBe(packageJson.version);
 		expect(releases[0]?.notes.length).toBeGreaterThan(0);
 		expect(releaseUrl(releases[0].version)).toBe(
-			`https://github.com/cline/cline/releases/tag/desktop-v${packageJson.version}`,
+			`https://github.com/SSYCloud/cline-chinese/releases/tag/desktop-v${packageJson.version}`,
 		);
 	});
 });

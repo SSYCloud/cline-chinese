@@ -74,10 +74,7 @@ describe("createSelectionCopyHandler", () => {
 		await Promise.resolve();
 		await Promise.resolve();
 
-		expect(deps.showToast).toHaveBeenCalledWith(
-			"Copied to clipboard",
-			"success",
-		);
+		expect(deps.showToast).toHaveBeenCalledWith("已复制到剪贴板", "success");
 	});
 
 	it("reports success when OSC52 succeeds even if system clipboard fails", async () => {
@@ -89,10 +86,7 @@ describe("createSelectionCopyHandler", () => {
 		await Promise.resolve();
 		await Promise.resolve();
 
-		expect(deps.showToast).toHaveBeenCalledWith(
-			"Copied to clipboard",
-			"success",
-		);
+		expect(deps.showToast).toHaveBeenCalledWith("已复制到剪贴板", "success");
 	});
 
 	it("calls fallback when OSC52 fails and toasts on success", async () => {
@@ -106,10 +100,7 @@ describe("createSelectionCopyHandler", () => {
 		await Promise.resolve();
 		await Promise.resolve();
 
-		expect(deps.showToast).toHaveBeenCalledWith(
-			"Copied to clipboard",
-			"success",
-		);
+		expect(deps.showToast).toHaveBeenCalledWith("已复制到剪贴板", "success");
 	});
 
 	it("toasts an error when fallback returns false", async () => {
@@ -121,10 +112,7 @@ describe("createSelectionCopyHandler", () => {
 		await Promise.resolve();
 		await Promise.resolve();
 
-		expect(deps.showToast).toHaveBeenCalledWith(
-			"Unable to copy selection",
-			"error",
-		);
+		expect(deps.showToast).toHaveBeenCalledWith("无法复制所选内容", "error");
 	});
 
 	it("aborts the prior in-flight fallback when a new selection arrives", () => {
@@ -169,10 +157,7 @@ describe("createSelectionCopyHandler", () => {
 		await Promise.resolve();
 		await Promise.resolve();
 		expect(deps.showToast).toHaveBeenCalledTimes(1);
-		expect(deps.showToast).toHaveBeenCalledWith(
-			"Copied to clipboard",
-			"success",
-		);
+		expect(deps.showToast).toHaveBeenCalledWith("已复制到剪贴板", "success");
 	});
 
 	it("aborts in-flight fallback when the next selection starts", async () => {
@@ -194,10 +179,7 @@ describe("createSelectionCopyHandler", () => {
 		await Promise.resolve();
 		await Promise.resolve();
 
-		expect(deps.showToast).toHaveBeenCalledWith(
-			"Copied to clipboard",
-			"success",
-		);
+		expect(deps.showToast).toHaveBeenCalledWith("已复制到剪贴板", "success");
 	});
 
 	it("dispose() aborts any in-flight fallback and suppresses later toasts", async () => {

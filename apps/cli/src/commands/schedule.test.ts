@@ -106,7 +106,7 @@ describe("runScheduleCommand list output", () => {
 
 		expect(code).toBe(0);
 		expect(errors).toEqual([]);
-		expect(output).toEqual(["No schedules found."]);
+		expect(output).toEqual(["未找到计划。"]);
 		// Schedule commands are workspace-scoped: the hub client must register
 		// with a workspace context (and the hub auth token) before commanding.
 		expect(mockNodeHubClientCtor).toHaveBeenCalledWith(
@@ -892,7 +892,7 @@ describe("runScheduleCommand export", () => {
 
 			expect(code).toBe(0);
 			expect(errors).toEqual([]);
-			expect(output).toEqual([`Exported schedule sched_abc to ${targetPath}`]);
+			expect(output).toEqual([`已导出计划 sched_abc 到 ${targetPath}`]);
 
 			const written = await readFile(targetPath, "utf8");
 			expect(written).toBe(JSON.stringify(scheduleRecord, null, 2));
@@ -950,7 +950,7 @@ describe("runScheduleCommand export", () => {
 
 			expect(code).toBe(0);
 			expect(errors).toEqual([]);
-			expect(output).toEqual([`Exported schedule sched_yaml to ${targetPath}`]);
+			expect(output).toEqual([`已导出计划 sched_yaml 到 ${targetPath}`]);
 
 			const yaml = await import("yaml");
 			const written = await readFile(targetPath, "utf8");

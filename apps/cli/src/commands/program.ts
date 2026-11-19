@@ -41,37 +41,22 @@ export function addRootOptions(cmd: Command): Command {
 				"Set reasoning effort: none|low|medium|high|xhigh. Bare --thinking uses medium; omitted uses the level last chosen with /model, or the provider default.",
 			)
 			.option("--compaction <mode>", CLI_COMPACTION_MODE_OPTION_DESCRIPTION)
-			.option(
-				"-i, --tui",
-				"为交互式会话打开终端用户界面（TUI）",
-			)
+			.option("-i, --tui", "为交互式会话打开终端用户界面（TUI）")
 			.option("--id <session-id>", "Resume an existing session by ID")
 			.option("-P, --provider <id>", "Provider id (default: cline)")
 			.option(
 				"-k, --key <api-key>",
 				"API key for this run, also saved as the provider's key",
 			)
-			.option(
-				"-m, --model <model-id>",
-				"用于所选提供方会话的模型",
-			)
-			.option(
-				"-s, --system <system-prompt>",
-				"覆盖默认系统提示",
-			)
+			.option("-m, --model <model-id>", "用于所选提供方会话的模型")
+			.option("-s, --system <system-prompt>", "覆盖默认系统提示")
 			.option("-z, --zen", "在后台 hub 中启动一个会话")
 			.option(
 				"--retries <count>",
 				`Number of maximum consecutive mistakes (retries) before exiting (default: ${CLI_DEFAULT_MAX_CONSECUTIVE_MISTAKES})`,
 			)
-			.option(
-				"-t, --timeout <seconds>",
-				"可选的超时秒数（默认：0 表示无超时）",
-			)
-			.option(
-				"--acp",
-				"以 Agent Client Protocol（ACP）模式运行以集成编辑器",
-			)
+			.option("-t, --timeout <seconds>", "可选的超时秒数（默认：0 表示无超时）")
+			.option("--acp", "以 Agent Client Protocol（ACP）模式运行以集成编辑器")
 			.option("--config <path>", "配置目录（默认：~/.cline）")
 			.option(
 				"--data-dir <path>",
@@ -96,10 +81,7 @@ export function addRootOptions(cmd: Command): Command {
 			)
 			.addOption(
 				// TODO: Refactor teams to resume session without team name
-				new Option(
-					"--team-name <name>",
-					"覆盖运行时团队状态名称",
-				).hideHelp(),
+				new Option("--team-name <name>", "覆盖运行时团队状态名称").hideHelp(),
 			)
 	);
 }

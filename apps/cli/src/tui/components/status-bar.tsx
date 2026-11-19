@@ -320,9 +320,7 @@ export function StatusBar(props: StatusBarProps) {
 			{!isCloud &&
 				(autoApproveAll ? (
 					<text fg={defaultFg}>
-						<span fg={successColor}>
-							{AUTO_APPROVE_GLYPH} 启用自动批准
-						</span>
+						<span fg={successColor}>{AUTO_APPROVE_GLYPH} 启用自动批准</span>
 						<span fg="gray"> (Shift+Tab)</span>
 					</text>
 				) : (

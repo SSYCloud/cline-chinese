@@ -550,9 +550,7 @@ export async function checkForUpdates(
 					updateCommand,
 					packageManager,
 				);
-				writeln(
-					`${c.cyan}正在安装 ${packageName}@${latestVersion}…${c.reset}`,
-				);
+				writeln(`${c.cyan}正在安装 ${packageName}@${latestVersion}…${c.reset}`);
 				try {
 					const exitCode = await runCliUpdate(manualUpdateCommand);
 					if (exitCode === 0) {
@@ -600,9 +598,7 @@ export async function checkForUpdates(
 
 		if (installedUpdates.length > 0) {
 			const label =
-				installedUpdates.length === 1
-					? "已安装更新"
-					: "已安装以下更新";
+				installedUpdates.length === 1 ? "已安装更新" : "已安装以下更新";
 			writeln(
 				`${c.green}✓${c.reset} ${label} ${formatUpdateSummaryTargets(installedUpdates)}`,
 			);

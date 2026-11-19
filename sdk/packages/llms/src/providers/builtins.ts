@@ -760,8 +760,7 @@ const cline = createClineLikeSpec({
 	// A new user has no credits yet, so the offline default is the first free
 	// model. Core's resolveClineDefaultModelId prefers the live feed's first free.
 	defaultModelId:
-		GENERATED_CLINE_RECOMMENDED_MODELS.free?.[0]?.id ??
-		CLINE_DEFAULT_MODEL_ID,
+		GENERATED_CLINE_RECOMMENDED_MODELS.free?.[0]?.id ?? CLINE_DEFAULT_MODEL_ID,
 	defaults: {
 		options: {
 			onResponseError: async (response: Response) => {

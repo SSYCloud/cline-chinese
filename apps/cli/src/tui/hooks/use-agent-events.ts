@@ -361,9 +361,7 @@ export function useAgentEventHandlers(deps: AgentEventDeps) {
 					team(`[团队运行] 已排队 ${event.run.id} -> ${event.run.agentId} ...`);
 					break;
 				case "run_started":
-					team(
-						`[团队运行] 已开始 ${event.run.id} -> ${event.run.agentId} ...`,
-					);
+					team(`[团队运行] 已开始 ${event.run.id} -> ${event.run.agentId} ...`);
 					break;
 				case "run_progress":
 					if (event.message === "heartbeat") break;
@@ -384,9 +382,7 @@ export function useAgentEventHandlers(deps: AgentEventDeps) {
 					team(`[团队运行] 已中断 ${event.run.id}`);
 					break;
 				case "outcome_created":
-					team(
-						`[团队结果] 已创建 ${event.outcome.id}: ${event.outcome.title}`,
-					);
+					team(`[团队结果] 已创建 ${event.outcome.id}: ${event.outcome.title}`);
 					break;
 				case "outcome_fragment_attached":
 					team(

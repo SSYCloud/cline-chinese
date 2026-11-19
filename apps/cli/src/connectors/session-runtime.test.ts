@@ -162,7 +162,6 @@ describe("buildConnectorStartRequest", () => {
 			model: "anthropic/claude-sonnet-5.5",
 		});
 	});
-
 });
 
 describe("isReusableConnectorSession", () => {

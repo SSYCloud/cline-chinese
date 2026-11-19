@@ -92,8 +92,7 @@ export interface ToolApprovalResult {
  * tool call blocks. Hosts also match on this string to classify a tool
  * result as a user rejection (vs. a timeout/disconnect/system rejection).
  */
-export const USER_REJECTED_TOOL_REASON =
-	"此工具调用被用户拒绝，未予执行。";
+export const USER_REJECTED_TOOL_REASON = "此工具调用被用户拒绝，未予执行。";
 
 /**
  * Guidance the agent runtime appends to every rejected tool approval reason

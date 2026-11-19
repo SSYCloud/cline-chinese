@@ -148,12 +148,9 @@ describe("createCliCore", () => {
 		await expect(
 			sessionModule.createCliCore({ logger }),
 		).resolves.toBeDefined();
-		expect(logger.error).toHaveBeenCalledWith(
-			"Error polling CLI feature flags",
-			{
-				error,
-			},
-		);
+		expect(logger.error).toHaveBeenCalledWith("轮询 CLI 功能标志失败", {
+			error,
+		});
 	});
 
 	it("forces the local backend when requested by the caller", async () => {
@@ -252,14 +249,11 @@ describe("createCliCore", () => {
 
 		await sessionModule.createCliCore({ logger });
 
-		expect(logger.log).toHaveBeenCalledWith(
-			"CLI core runtime routing selected",
-			{
-				backendMode: "env-managed",
-				rpcAddress: "127.0.0.1:25463",
-				forceLocalBackend: false,
-			},
-		);
+		expect(logger.log).toHaveBeenCalledWith("CLI core runtime 路由已选择", {
+			backendMode: "env-managed",
+			rpcAddress: "127.0.0.1:25463",
+			forceLocalBackend: false,
+		});
 	});
 
 	it("lists sessions through core history with manifest fallback enabled", async () => {

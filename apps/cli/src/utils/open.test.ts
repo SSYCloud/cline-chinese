@@ -95,7 +95,7 @@ describe("open wrapper (linux)", () => {
 		// spawns, so the call sites' existing .catch fallbacks handle it.
 		usePlatform("linux");
 		await expect(open("https://example.com", { wait: false })).rejects.toThrow(
-			"xdg-open is not available",
+			"无法打开浏览器: xdg-open 不可用",
 		);
 		expect(hoisted.realOpenMock).not.toHaveBeenCalled();
 	});

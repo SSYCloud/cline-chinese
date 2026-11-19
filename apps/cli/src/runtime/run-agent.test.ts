@@ -41,15 +41,15 @@ const sessionEventsMocks = vi.hoisted(() => ({
 const CLINE_PASS_SUBSCRIPTION_URL =
 	"https://app.cline.bot/dashboard/subscription?personal=true";
 const SDK_CLINE_PASS_SUBSCRIPTION_MESSAGE = `No access to ClinePass subscription models yet. Subscribe to ClinePass, the low cost open weights model coding plan: ${CLINE_PASS_SUBSCRIPTION_URL}`;
-const CLI_CLINE_PASS_SUBSCRIPTION_MESSAGE = `No access to ClinePass subscription models yet. Subscribe to ClinePass, the low cost open weights model coding plan: ${getCliSubscriptionUrl()}`;
+const CLI_CLINE_PASS_SUBSCRIPTION_MESSAGE = `尚无法访问 ClinePass 订阅模型。订阅 ClinePass（低成本开源权重模型编码方案）: ${getCliSubscriptionUrl()}`;
 const CLINE_PASS_LIMIT_DETAIL_MESSAGE =
 	"You have reached your 5-hour Clinepass limit. The limit resets in 5h, please try again later.";
 const CLI_CLINE_PASS_LIMIT_MESSAGE = [
-	"ClinePass limit reached",
+	"ClinePass 限制已达上限",
 	CLINE_PASS_LIMIT_DETAIL_MESSAGE,
-	"Switch to Cline usage-based billing and retry with the Cline provider.",
-	"Interactive CLI: open the model selector with /model, choose Cline, then retry.",
-	"Headless CLI: rerun with --provider cline.",
+	"切换到 Cline 按使用量计费，并使用 Cline 提供商重试。",
+	"交互式 CLI: 使用 /model 打开模型选择器，选择 Cline，然后重试。",
+	"无头 CLI: 使用 --provider cline 重新运行。",
 ].join("\n");
 const CLINE_ORG_INDIVIDUAL_INFERENCE_SUBSCRIPTION_MESSAGE =
 	"Organization accounts cannot use ClinePass subscriptions. Go to /account -> change account to switch to your personal account for ClinePass";
@@ -606,9 +606,7 @@ describe("runAgent", () => {
 			startInput.config.sessionId,
 			expect.any(Error),
 		);
-		expect(outputMocks.writeErr).toHaveBeenCalledWith(
-			"run timed out after 0.05s",
-		);
+		expect(outputMocks.writeErr).toHaveBeenCalledWith("运行在 0.05 秒后超时");
 		expect(process.exitCode).toBe(1);
 	});
 

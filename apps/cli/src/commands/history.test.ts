@@ -126,9 +126,9 @@ describe("formatHistoryListLine", () => {
 			}),
 		);
 
-		expect(detail).toContain("Checkpoint");
-		expect(detail).toContain("run 3");
-		expect(detail).toContain("3 total");
+		expect(detail).toContain("检查点");
+		expect(detail).toContain("运行 3");
+		expect(detail).toContain("共 3 个");
 	});
 
 	it("omits checkpoint summary when absent", () => {
@@ -258,7 +258,7 @@ describe("runHistoryList", () => {
 		expect(mockedListSessions).toHaveBeenCalledWith(50, {
 			hydrate: true,
 		});
-		expect(io.writeln).toHaveBeenCalledWith("No history found.");
+		expect(io.writeln).toHaveBeenCalledWith("未找到历史记录。");
 	});
 });
 
@@ -397,7 +397,7 @@ describe("runHistoryExport", () => {
 
 		expect(code).toBe(1);
 		expect(io.writeErr).toHaveBeenCalledWith(
-			"Session sess_missing not found or has no messages.json",
+			"会话 sess_missing 不存在或没有 messages.json",
 		);
 	});
 });

@@ -128,7 +128,7 @@ describe("createTaskWorktree", () => {
 		const result = await createTaskWorktree({ cwd: nonRepoPath });
 
 		expect(result.success).toBe(false);
-		expect(result.message).toMatch(/Not a git repository/);
+		expect(result.message).toMatch(/不是 git 仓库/);
 	});
 
 	it("cleans up the task directory when git worktree add fails", async () => {
@@ -142,7 +142,7 @@ describe("createTaskWorktree", () => {
 		});
 
 		expect(result.success).toBe(false);
-		expect(result.message).toMatch(/Failed to create worktree/);
+		expect(result.message).toMatch(/创建 worktree 失败/);
 		expect(await pathExists(path.join(clineDir, "worktrees", "empty"))).toBe(
 			false,
 		);
@@ -159,8 +159,8 @@ describe("createTaskWorktree", () => {
 		});
 
 		expect(traversal.success).toBe(false);
-		expect(traversal.message).toMatch(/Invalid worktree id/);
+		expect(traversal.message).toMatch(/无效的 worktree id/);
 		expect(nullByte.success).toBe(false);
-		expect(nullByte.message).toMatch(/Invalid worktree id/);
+		expect(nullByte.message).toMatch(/无效的 worktree id/);
 	});
 });

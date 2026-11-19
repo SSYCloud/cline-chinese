@@ -144,8 +144,8 @@ export function SkillsPickerContent(props: SkillsPickerContentProps) {
 									height={1}
 								>
 									<text fg={isSelected ? palette.textOnSelection : palette.act}>
-										{isSelected ? "❯ " : "  "}
-										在 {SKILLS_MARKETPLACE_URL} 浏览更多技能
+										{isSelected ? "❯ " : "  "}在 {SKILLS_MARKETPLACE_URL}{" "}
+										浏览更多技能
 									</text>
 								</box>
 							);

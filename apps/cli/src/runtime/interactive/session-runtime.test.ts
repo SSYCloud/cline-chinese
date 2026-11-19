@@ -287,7 +287,7 @@ describe("createInteractiveSessionRuntime", () => {
 		const gate = deferred<typeof manager>();
 		createCliCoreMock.mockReturnValue(gate.promise);
 		const commands = expect(runtime.getPluginCommandsApi()).rejects.toThrow(
-			"shutdown requested",
+			"交互式运行时已请求关闭",
 		);
 		const cleanup = runtime.cleanup();
 		gate.resolve(manager);
@@ -297,7 +297,7 @@ describe("createInteractiveSessionRuntime", () => {
 			"cli_interactive_startup_cancelled",
 		);
 		await expect(runtime.getPluginCommandsApi()).rejects.toThrow(
-			"shutdown requested",
+			"交互式运行时已请求关闭",
 		);
 		expect(createCliCoreMock).toHaveBeenCalledTimes(1);
 	});
@@ -434,7 +434,7 @@ describe("createInteractiveSessionRuntime", () => {
 		await runtime.ensureReady();
 
 		await expect(runtime.compactCurrentSession()).rejects.toThrow(
-			"Cannot compact while the current turn is running",
+			"当前回合运行中无法压缩。请等待其完成或先中止它。",
 		);
 		expect(manager.readMessages).toHaveBeenCalledWith(sessionId);
 		expect(compactInteractiveMessagesMock).not.toHaveBeenCalled();
@@ -450,7 +450,7 @@ describe("createInteractiveSessionRuntime", () => {
 		await runtime.ensureReady();
 
 		await expect(runtime.compactCurrentSession()).rejects.toThrow(
-			"compaction is off",
+			"无法压缩，因为此会话已关闭压缩功能。",
 		);
 		expect(compactInteractiveMessagesMock).not.toHaveBeenCalled();
 		expect(manager.updateSessionCompactionState).not.toHaveBeenCalled();

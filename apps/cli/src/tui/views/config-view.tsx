@@ -192,7 +192,7 @@ function getSharedToolNames(items: InteractiveConfigItem[]): Set<string> {
 function appendToolGroupRows(
 	rows: ConfigRow[],
 	groups: Array<[string, InteractiveConfigItem[]]>,
-	sharedToolNames: ReadonlySet<string>,
+	_sharedToolNames: ReadonlySet<string>,
 ): void {
 	for (const [, groupItems] of groups) {
 		const first = groupItems[0];

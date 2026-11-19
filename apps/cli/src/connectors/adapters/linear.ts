@@ -87,9 +87,7 @@ async function importLinearAdapterModule(): Promise<LinearAdapterModule> {
 		"@chat-adapter/linear",
 	)) as Partial<LinearAdapterModule>;
 	if (typeof mod.createLinearAdapter !== "function") {
-		throw new Error(
-			"@chat-adapter/linear 未导出 createLinearAdapter()",
-		);
+		throw new Error("@chat-adapter/linear 未导出 createLinearAdapter()");
 	}
 	return { createLinearAdapter: mod.createLinearAdapter };
 }
@@ -312,10 +310,7 @@ class LinearConnector extends ConnectorBase<
 				// Retained so existing invocations and persisted autostart arguments
 				// keep parsing; tools are on unless --no-tools is passed.
 				.option("--enable-tools", "启用工具（默认）")
-				.option(
-					"--hook-command <command>",
-					"为连接器事件运行 shell 命令",
-				)
+				.option("--hook-command <command>", "为连接器事件运行 shell 命令")
 				.option(
 					"--rpc-address <host:port>",
 					"RPC 地址",
@@ -531,8 +526,7 @@ class LinearConnector extends ConnectorBase<
 				`[linear] 连接器已在运行 pid=${state.pid} rpc=${state.rpcAddress} url=${state.baseUrl}`,
 			formatBackgroundStartMessage: (pid) =>
 				`[linear] 正在后台启动连接器 pid=${pid} user=${options.userName}`,
-			foregroundHint:
-				"[linear] 使用 `cline connect linear -i ...` 在前台运行",
+			foregroundHint: "[linear] 使用 `cline connect linear -i ...` 在前台运行",
 			launchFailureMessage: "无法在后台启动 Linear 连接器",
 		});
 		if (backgroundExitCode !== undefined) {

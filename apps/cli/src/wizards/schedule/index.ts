@@ -103,8 +103,7 @@ async function actionCreate(client: HubScheduleClient): Promise<void> {
 			validate: (v) => {
 				if (!v?.trim()) return "Cron 表达式是必填项";
 				const parts = v.trim().split(/\s+/);
-				if (parts.length !== 5)
-					return "必须为 5 个字段：分 时 日 月 星期";
+				if (parts.length !== 5) return "必须为 5 个字段：分 时 日 月 星期";
 				return undefined;
 			},
 		});
@@ -348,9 +347,7 @@ async function actionStats(client: HubScheduleClient): Promise<void> {
 	p.log.info(`成功率：${(stats.successRate * 100).toFixed(1)}%`);
 	p.log.info(`平均时长：${stats.avgDurationSeconds.toFixed(0)}s`);
 	if (stats.lastFailure) {
-		p.log.warn(
-			`上次失败：${stats.lastFailure.errorMessage ?? "未知错误"}`,
-		);
+		p.log.warn(`上次失败：${stats.lastFailure.errorMessage ?? "未知错误"}`);
 	}
 }
 
@@ -403,9 +400,7 @@ export async function runScheduleWizard(): Promise<number> {
 	});
 	if (!ensured.ok) {
 		s.stop("无法连接到中心服务器");
-		p.log.error(
-			"计划需要中心服务器。使用以下命令启动：cline hub start",
-		);
+		p.log.error("计划需要中心服务器。使用以下命令启动：cline hub start");
 		p.outro("失败");
 		return 1;
 	}

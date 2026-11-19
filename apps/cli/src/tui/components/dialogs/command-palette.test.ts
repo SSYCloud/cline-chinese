@@ -66,7 +66,7 @@ describe("command palette", () => {
 			canForkSession: true,
 		});
 
-		expect(filterCommandPaletteItems(items, "provider")[0]?.label).toBe(
+		expect(filterCommandPaletteItems(items, "提供商")[0]?.label).toBe(
 			"切换提供商",
 		);
 		expect(filterCommandPaletteItems(items, "mcp")[0]?.label).toBe(
@@ -139,6 +139,6 @@ describe("command palette", () => {
 				option: true,
 				shift: false,
 			})?.label,
-		).toBe("Create Session Fork");
+		).toBe("创建会话分叉");
 	});
 });

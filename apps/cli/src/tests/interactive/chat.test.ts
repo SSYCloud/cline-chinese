@@ -37,7 +37,6 @@ test.describe("cline (authenticated) - shows chat view", () => {
 		...TERMINAL_WIDE,
 		env: clineEnv("default"),
 	});
-
 });
 
 test.describe("Auto-approve all - Shift+Tab toggle", () => {

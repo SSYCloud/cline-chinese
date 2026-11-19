@@ -55,11 +55,11 @@ export async function dispatchConnectorHook(
 		}
 	} catch (error) {
 		logger.core.log("连接器钩子分发失败", {
-		severity: "warn",
-		adapter: hookPayload.adapter,
-		event: hookPayload.event,
-		error,
-	});
+			severity: "warn",
+			adapter: hookPayload.adapter,
+			event: hookPayload.event,
+			error,
+		});
 	}
 }
 

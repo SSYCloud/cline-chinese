@@ -524,9 +524,7 @@ function ClineFreeModelLimitErrorView(props: {
 				borderColor={accent}
 				paddingX={1}
 			>
-				<text fg={props.theme.accents.error}>
-					已达到每日免费模型限额
-				</text>
+				<text fg={props.theme.accents.error}>已达到每日免费模型限额</text>
 				<text
 					fg={props.defaultFg}
 					selectable
@@ -568,11 +566,7 @@ function ClineFreePromotionEndedErrorView(props: {
 					selectable
 					content="该模型的免费推广已结束，不再可用。"
 				/>
-				<text
-					fg={props.defaultFg}
-					selectable
-					content="选择其他模型以继续。"
-				/>
+				<text fg={props.defaultFg} selectable content="选择其他模型以继续。" />
 				<text fg="gray">使用 /model 打开模型选择器。</text>
 			</box>
 		</box>
@@ -790,8 +784,7 @@ export function ChatEntryView(props: {
 			if (entry.tokens > 0)
 				parts.push(`${entry.tokens.toLocaleString()} tokens`);
 			if (entry.cost > 0) parts.push(`${entry.cost.toFixed(2)} 美元`);
-			if (entry.iterations > 0)
-				parts.push(`${entry.iterations} 次迭代`);
+			if (entry.iterations > 0) parts.push(`${entry.iterations} 次迭代`);
 			if (parts.length === 0) return null;
 			return <text fg="gray" content={parts.join(" | ")} />;
 		}

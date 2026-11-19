@@ -161,9 +161,7 @@ describe("parseClaudeAgentMarkdown", () => {
 			"---\ndescription: d\n---\nRun ${CLAUDE_PLUGIN_ROOT}/scripts/check.sh.",
 		);
 
-		expect(config.systemPrompt).toBe(
-			"Run /plugins/demo/scripts/check.sh.",
-		);
+		expect(config.systemPrompt).toBe("Run /plugins/demo/scripts/check.sh.");
 	});
 
 	it("reports each Claude field Cline does not enforce instead of silently dropping it", () => {
@@ -270,7 +268,9 @@ describe("loadClaudePlugins agents", () => {
 			pluginDataRoot: join(searchRoot, "data"),
 		});
 
-		expect(report.agents.map((agent) => agent.name)).toEqual(["custom:security"]);
+		expect(report.agents.map((agent) => agent.name)).toEqual([
+			"custom:security",
+		]);
 	});
 
 	it("skips an agent file that symlinks outside the plugin and keeps the others", async () => {
@@ -283,8 +283,14 @@ describe("loadClaudePlugins agents", () => {
 			join(pluginRoot, ".claude-plugin", "plugin.json"),
 			JSON.stringify({ name: "linked" }),
 		);
-		await writeFile(join(outside, "host.md"), "---\ndescription: d\n---\nHost.");
-		await symlink(join(outside, "host.md"), join(pluginRoot, "agents", "host.md"));
+		await writeFile(
+			join(outside, "host.md"),
+			"---\ndescription: d\n---\nHost.",
+		);
+		await symlink(
+			join(outside, "host.md"),
+			join(pluginRoot, "agents", "host.md"),
+		);
 		await writeFile(
 			join(pluginRoot, "agents", "local.md"),
 			"---\ndescription: d\n---\nLocal.",

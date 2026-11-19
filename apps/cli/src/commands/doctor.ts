@@ -22,6 +22,7 @@ import { Command } from "commander";
 import { version as cliVersion } from "../../package.json";
 import { isProcessRunning } from "../connectors/common";
 import { resolveCliLogPath } from "../logging/log-path";
+import { isSpawnedProcessLogMessage } from "../logging/process";
 import open from "../utils/open";
 import { c, writeln } from "../utils/output";
 import { stopAllConnectors } from "./connect";
@@ -297,7 +298,7 @@ function readRecentSpawnedProcesses(limit = 20): SpawnedProcessRecord[] {
 		for (let index = lines.length - 1; index >= 0; index -= 1) {
 			try {
 				const parsed = JSON.parse(lines[index]) as Record<string, unknown>;
-				if (parsed.msg !== "Process spawned") {
+				if (!isSpawnedProcessLogMessage(parsed.msg)) {
 					continue;
 				}
 				records.push({

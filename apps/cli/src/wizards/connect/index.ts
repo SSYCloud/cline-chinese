@@ -91,9 +91,7 @@ async function collectSecurity(
 
 	if (isCancel(restrict)) return null;
 	if (!restrict) {
-		p.log.warn(
-			"任何发现此机器人的人都能在你的机器上运行任务。",
-		);
+		p.log.warn("任何发现此机器人的人都能在你的机器上运行任务。");
 		return [];
 	}
 
@@ -152,9 +150,7 @@ export async function runConnectWizard(): Promise<number> {
 	p.log.step(`正在设置 ${platform.name}`);
 
 	if (platform.type === "webhook") {
-		p.log.warn(
-			"此连接器需要公开可访问的网址用于 webhook。",
-		);
+		p.log.warn("此连接器需要公开可访问的网址用于 webhook。");
 	}
 
 	const args = await collectFields(platform);

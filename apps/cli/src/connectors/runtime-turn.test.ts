@@ -103,7 +103,7 @@ describe("createConnectorRuntimeTurnStream", () => {
 			chunks.push(chunk);
 		}
 
-		expect(toolStatuses).toEqual(["Executing read_file..."]);
+		expect(toolStatuses).toEqual(["正在执行 read_file..."]);
 		expect(chunks.join("")).toBe("Here is the result.");
 		expect(sendRuntimeSession).toHaveBeenCalledWith("session-1", request, {
 			timeoutMs: null,
@@ -157,7 +157,7 @@ describe("createConnectorRuntimeTurnStream", () => {
 
 		expect(chunks.join("")).toBe("Final response");
 		expect(log).toHaveBeenCalledWith(
-			"Connector tool status delivery failed",
+			"连接器工具状态投递失败",
 			expect.objectContaining({
 				severity: "warn",
 				transport: "slack",
@@ -190,7 +190,7 @@ describe("createConnectorRuntimeTurnStream", () => {
 
 		expect(chunks).toEqual([]);
 		expect(log).toHaveBeenCalledWith(
-			"Connector runtime turn queued",
+			"连接器运行时回合已排队",
 			expect.objectContaining({
 				transport: "discord",
 				sessionId: "session-1",
@@ -244,5 +244,4 @@ describe("createConnectorRuntimeTurnStream", () => {
 
 		expect(failures).toEqual(["Invalid API key"]);
 	});
-
 });

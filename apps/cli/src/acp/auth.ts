@@ -43,9 +43,7 @@ async function performOAuthLogin(input: {
 				return Promise.resolve(defaultValue);
 			}
 			return Promise.reject(
-				new Error(
-					"OAuth 流程需要交互式输入，而 ACP 模式下不可用",
-				),
+				new Error("OAuth 流程需要交互式输入，而 ACP 模式下不可用"),
 			);
 		},
 		onOutput: (message) => writeDiagnostic(`[acp/auth] ${message}`),
@@ -64,9 +62,7 @@ async function performOAuthLogin(input: {
 	);
 	const apiKey = getPersistedProviderApiKey(input.providerId, settings);
 	if (!apiKey) {
-		throw new Error(
-			`OAuth 登录未能为 ${input.providerId} 持久保存凭据`,
-		);
+		throw new Error(`OAuth 登录未能为 ${input.providerId} 持久保存凭据`);
 	}
 	return apiKey;
 }

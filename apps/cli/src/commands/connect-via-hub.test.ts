@@ -85,7 +85,7 @@ describe("startConnectorViaHub", () => {
 			restart: false,
 		});
 		expect(io.writeln).toHaveBeenCalledWith(
-			expect.stringContaining("started under hub supervision pid=4242"),
+			expect.stringContaining("已在 hub 监管下启动 pid=4242"),
 		);
 		expect(mocks.close).toHaveBeenCalled();
 	});
@@ -121,7 +121,7 @@ describe("startConnectorViaHub", () => {
 			exitCode: 0,
 		});
 		expect(io.writeln).toHaveBeenCalledWith(
-			expect.stringContaining("already running under the hub"),
+			expect.stringContaining("已在 hub 下运行"),
 		);
 	});
 
@@ -145,7 +145,7 @@ describe("startConnectorViaHub", () => {
 
 		expect(outcome).toEqual({
 			delegated: false,
-			reason: "hub does not support connector supervision",
+			reason: "hub 不支持连接器监管",
 		});
 		expect(mocks.command).not.toHaveBeenCalled();
 	});
@@ -189,7 +189,7 @@ describe("startConnectorViaHub", () => {
 			exitCode: 1,
 		});
 		expect(io.writeErr).toHaveBeenCalledWith(
-			expect.stringContaining("hub refused to start slack"),
+			expect.stringContaining("hub 拒绝启动 slack"),
 		);
 	});
 

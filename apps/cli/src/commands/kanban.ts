@@ -309,9 +309,7 @@ async function ensureKanbanInstalled(
 		},
 	);
 	if (installExitCode !== 0) {
-		writeErr(
-			`安装 kanban 失败。请尝试运行: ${installCommand.displayCommand}`,
-		);
+		writeErr(`安装 kanban 失败。请尝试运行: ${installCommand.displayCommand}`);
 		return false;
 	}
 

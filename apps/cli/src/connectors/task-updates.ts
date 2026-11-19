@@ -59,11 +59,7 @@ export function formatConnectorTaskUpdate(
 	const teamName = event.summary.teamName;
 	switch (event.lastEvent.eventType) {
 		case "run_started":
-			return [
-				`[${teamName}] 任务已开始`,
-				buildProgressSummary(event),
-				message,
-			]
+			return [`[${teamName}] 任务已开始`, buildProgressSummary(event), message]
 				.filter(Boolean)
 				.join("\n");
 		case "run_progress":

@@ -209,9 +209,7 @@ export function ClineModelSelectorContent(
 				})}
 			</box>
 
-			<text fg="gray">
-				↑/↓ 导航，Enter 选择，Tab 切换提供商，Esc 返回
-			</text>
+			<text fg="gray">↑/↓ 导航，Enter 选择，Tab 切换提供商，Esc 返回</text>
 		</box>
 	);
 }

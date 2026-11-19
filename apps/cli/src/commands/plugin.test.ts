@@ -654,9 +654,7 @@ describe("plugin install command", () => {
 
 		expect(code).toBe(0);
 		expect(existsSync(installed.installPath)).toBe(false);
-		expect(output.join("\n")).toContain(
-			"Uninstalled plugin cli-uninstall-plugin",
-		);
+		expect(output.join("\n")).toContain("已卸载插件 cli-uninstall-plugin");
 	});
 
 	it("prints JSON output for command callers", async () => {
@@ -779,10 +777,9 @@ export default {
 			});
 
 			expect(code).toBe(0);
-			expect(output.join("\n")).toContain("Installed plugin from");
-			expect(output.join("\n")).toContain(
-				"Warning: failed to sync plugin MCP servers",
-			);
+			expect(output.join("\n")).toContain(`已从 ${source} 安装插件`);
+			expect(output.join("\n")).toContain("警告：无法同步");
+			expect(output.join("\n")).toContain("的插件 MCP 服务器");
 			expect(output.join("\n")).toContain("mcp-plugin");
 		} finally {
 			if (originalSettingsPath === undefined) {
@@ -931,7 +928,7 @@ export default {
 
 		expect(code).toBe(0);
 		expect(authorized).toEqual(["interactive-docs"]);
-		expect(output.join("\n")).toContain("Installed plugin from");
+		expect(output.join("\n")).toContain(`已从 ${source} 安装插件`);
 	});
 
 	it("keeps plugin install successful when MCP OAuth authorization fails", async () => {
@@ -972,7 +969,7 @@ export default {
 
 		expect(code).toBe(0);
 		expect(output.join("\n")).toContain(
-			"Warning: failed to authorize MCP server failing-docs: oauth unavailable",
+			"警告：无法授权 MCP 服务器 failing-docs: oauth unavailable",
 		);
 	});
 
@@ -1012,11 +1009,9 @@ export default {
 
 		expect(code).toBe(0);
 		expect(authorize).not.toHaveBeenCalled();
-		expect(output.join("\n")).toContain(
-			"Plugin MCP servers may require OAuth authorization",
-		);
+		expect(output.join("\n")).toContain("插件 MCP 服务器可能需要 OAuth 授权");
 		expect(output.join("\n")).toContain("non-interactive-docs");
-		expect(output.join("\n")).toContain('Run "cline mcp"');
+		expect(output.join("\n")).toContain('运行 "cline mcp"');
 	});
 
 	it("prints JSON output for official plugin installs", async () => {

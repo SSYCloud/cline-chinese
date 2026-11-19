@@ -77,8 +77,10 @@ export function getIndividualPlanFeatures(
 function isFormattedClinePassSubscriptionMessage(message: string): boolean {
 	const normalized = message.trim().toLowerCase();
 	return (
-		normalized.includes("no access to clinepass subscription models yet") &&
-		normalized.includes("subscribe to clinepass")
+		(normalized.includes("no access to clinepass subscription models yet") &&
+			normalized.includes("subscribe to clinepass")) ||
+		(normalized.includes("尚无法访问 clinepass 订阅模型") &&
+			normalized.includes("订阅 clinepass"))
 	);
 }
 

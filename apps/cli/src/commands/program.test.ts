@@ -52,11 +52,9 @@ describe("root option help text", () => {
 		expect(configDefault).toBe("~/.cline");
 		expect(dataDirDefault).toBe("~/.cline/data");
 
+		expect(help).toContain(`配置目录（默认：${configDefault}）`);
 		expect(help).toContain(
-			`Configuration directory (default: ${configDefault})`,
-		);
-		expect(help).toContain(
-			`Use isolated local state at this directory path (default: ${dataDirDefault})`,
+			`在此目录路径使用隔离的本地状态（默认：${dataDirDefault}）`,
 		);
 	});
 

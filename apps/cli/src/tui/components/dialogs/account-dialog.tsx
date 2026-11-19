@@ -464,9 +464,7 @@ export function AccountDialogContent(
 			<box flexDirection="column" paddingX={1} gap={1}>
 				<text fg={palette.act}>Cline 账户</text>
 				<text>登录或创建 Cline 账户。</text>
-				<text fg="gray">
-					定期免费促销和折扣，获取最新模型的使用权限。
-				</text>
+				<text fg="gray">定期免费促销和折扣，获取最新模型的使用权限。</text>
 
 				<box flexDirection="column">
 					{actions.map((action, index) => (
@@ -538,9 +536,7 @@ export function AccountDialogContent(
 					<text fg="gray" selectable>
 						{loaded.user.email}
 					</text>
-					<text fg="gray">
-						注册于 {formatDate(loaded.user.createdAt)}
-					</text>
+					<text fg="gray">注册于 {formatDate(loaded.user.createdAt)}</text>
 				</box>
 			</box>
 

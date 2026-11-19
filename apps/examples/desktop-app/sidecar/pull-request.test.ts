@@ -233,7 +233,8 @@ describe("check and merge states", () => {
 		const result = await createPullRequestStatusReader({ run: runner() })(
 			"/repo",
 		);
-		const value = result!.pullRequest!;
+		if (!result?.pullRequest) throw new Error("Expected a pull request");
+		const value = result.pullRequest;
 		expect(
 			getMergeStatus({ ...value, mergeStateStatus: "BLOCKED" }).label,
 		).toBe("Blocked");

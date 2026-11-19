@@ -475,9 +475,7 @@ export function useOnboardingController(props: OnboardingControllerProps) {
 		setClinePassSubscriptionOpenStatus("正在打开订阅页面...");
 		void open(clinePassSubscriptionUrl, { wait: false })
 			.then(() => {
-				setClinePassSubscriptionOpenStatus(
-					"已在你的浏览器中打开订阅页面。",
-				);
+				setClinePassSubscriptionOpenStatus("已在你的浏览器中打开订阅页面。");
 			})
 			.catch(() => {
 				setClinePassSubscriptionOpenStatus(

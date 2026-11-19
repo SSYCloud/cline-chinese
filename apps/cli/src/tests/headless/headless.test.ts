@@ -198,7 +198,6 @@ test.describe("cline -t (timeout) - headless yolo", () => {
 			CLINE_VCR_CASSETTE: "./fixtures/headless-timeout.json",
 		}),
 	});
-
 });
 
 test.describe("cline --json -t (timeout) - JSON mode", () => {
@@ -212,7 +211,6 @@ test.describe("cline --json -t (timeout) - JSON mode", () => {
 			CLINE_VCR_CASSETTE: "./fixtures/headless-json-timeout.json",
 		}),
 	});
-
 });
 
 // ---------------------------------------------------------------------------

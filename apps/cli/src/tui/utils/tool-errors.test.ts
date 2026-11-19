@@ -24,7 +24,7 @@ describe("tool error presentation", () => {
 
 		expect(getToolErrorPresentation(raw)).toMatchObject({
 			severity: "warning",
-			summary: "Invalid run_commands input; tool call skipped.",
+			summary: "无效的 run_commands 输入；工具调用已跳过。",
 		});
 		expect(isWarningToolError(raw)).toBe(true);
 	});
@@ -36,7 +36,7 @@ describe("tool error presentation", () => {
 			),
 		).toMatchObject({
 			severity: "warning",
-			summary: "editor call was skipped before execution.",
+			summary: "editor 调用在执行前被跳过。",
 		});
 	});
 
@@ -81,7 +81,7 @@ describe("tool error presentation", () => {
 
 		expect(presentation).toEqual({
 			severity: "error",
-			summary: "Tool returned a structured error.",
+			summary: "工具返回了结构化错误。",
 			detail: JSON.stringify({ code: "E_TOOL", data: { value: 1 } }),
 		});
 	});

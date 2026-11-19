@@ -84,7 +84,7 @@ describe("runHookCommand", () => {
 
 		await expect(runHookCommand(io)).resolves.toBe(1);
 
-		expect(io.writeErr).toHaveBeenCalledWith("invalid hook payload");
+		expect(io.writeErr).toHaveBeenCalledWith("无效的 hook 载荷");
 		expect(appendHookAudit).not.toHaveBeenCalled();
 		expect(handleSessionHookEvent).not.toHaveBeenCalled();
 		expect(writeHookJson).not.toHaveBeenCalled();

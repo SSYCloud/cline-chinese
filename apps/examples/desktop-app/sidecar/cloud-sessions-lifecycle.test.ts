@@ -3,7 +3,6 @@ import { createCloudSessionTestRuntime } from "./cloud-session-test-runtime";
 import {
 	type CloudSessionApi,
 	CloudSessionError,
-	CloudSessionManager,
 	type CloudSessionRecord,
 	cloudSessionToDiscoveryRecord,
 } from "./cloud-sessions";

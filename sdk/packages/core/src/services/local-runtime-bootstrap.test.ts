@@ -935,7 +935,7 @@ describe("prepareLocalRuntimeBootstrap", () => {
 		});
 
 		expect(bootstrap.providerConfig.headers).toMatchObject({
-			"HTTP-Referer": "https://cline.bot",
+			"HTTP-Referer": "https://www.shengsuanyun.com",
 			"X-Title": "Cline",
 			"User-Agent": "Cline/3.0.38",
 			"X-IS-MULTIROOT": "false",
@@ -1073,7 +1073,7 @@ describe("prepareLocalRuntimeBootstrap", () => {
 		});
 
 		expect(bootstrap.providerConfig.headers).toMatchObject({
-			"HTTP-Referer": "https://cline.bot",
+			"HTTP-Referer": "https://www.shengsuanyun.com",
 			"X-Title": "Cline",
 			"User-Agent": "Cline/9.9.9",
 			"X-IS-MULTIROOT": "true",

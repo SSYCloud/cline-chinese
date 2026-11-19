@@ -13,7 +13,15 @@ import {
 } from "node:fs";
 import { cp, mkdir, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
-import { basename, dirname, extname, join, relative, resolve, sep } from "node:path";
+import {
+	basename,
+	dirname,
+	extname,
+	join,
+	relative,
+	resolve,
+	sep,
+} from "node:path";
 import { toPosixSeparators } from "@cline/shared";
 import {
 	isClaudePluginDirectory,
@@ -1001,7 +1009,10 @@ async function installLocalPackage(
 	return packageRoot;
 }
 
-const CLAUDE_MARKETPLACE_RELATIVE_PATH = join(".claude-plugin", "marketplace.json");
+const CLAUDE_MARKETPLACE_RELATIVE_PATH = join(
+	".claude-plugin",
+	"marketplace.json",
+);
 
 async function locateClaudePluginRoot(
 	packageRoot: string,
@@ -1037,10 +1048,7 @@ async function locateClaudePluginRoot(
 		if (relative(realpathSync(packageRoot), root).split(sep)[0] === "..") {
 			continue;
 		}
-		if (
-			!isClaudePluginDirectory(root) ||
-			isNativeAgentPluginDirectory(root)
-		) {
+		if (!isClaudePluginDirectory(root) || isNativeAgentPluginDirectory(root)) {
 			continue;
 		}
 		candidates.push({

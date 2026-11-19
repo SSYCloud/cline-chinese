@@ -34,7 +34,7 @@ describe("buildOrganizationConfigOption", () => {
 		}
 		expect(option.currentValue).toBe("org-2");
 		expect(option.options).toEqual([
-			{ value: PERSONAL_ACCOUNT_VALUE, name: "Personal" },
+			{ value: PERSONAL_ACCOUNT_VALUE, name: "个人" },
 			{ value: "org-1", name: "Acme Corp" },
 			{ value: "org-2", name: "Cline Bot Inc" },
 		]);

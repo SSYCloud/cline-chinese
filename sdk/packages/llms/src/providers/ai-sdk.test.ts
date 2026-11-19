@@ -469,6 +469,5 @@ describe("ai-sdk usage normalization", () => {
 				}),
 			);
 		});
-
 	});
 });

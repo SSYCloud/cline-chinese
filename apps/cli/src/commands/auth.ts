@@ -444,9 +444,7 @@ export async function runAuthProviderCommand(
 			id: settings.auth?.accountId,
 			provider: providerId,
 		});
-		io.writeln(
-			`${c.green}你现在已登录到 ${c.cyan}${providerId}${c.reset}`,
-		);
+		io.writeln(`${c.green}你现在已登录到 ${c.cyan}${providerId}${c.reset}`);
 		return 0;
 	} catch (error) {
 		io.writeErr(error instanceof Error ? error.message : String(error));

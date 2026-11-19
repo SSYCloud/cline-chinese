@@ -3391,13 +3391,13 @@ describe("AgentRuntime", () => {
 		await runtime.run("Hi");
 
 		// Two chunks within a second report progress once.
-		expect(eventTypes.filter((type) => type === "tool-call-delta")).toHaveLength(
-			1,
-		);
+		expect(
+			eventTypes.filter((type) => type === "tool-call-delta"),
+		).toHaveLength(1);
 		const events = capture.mock.calls.map(([input]) => input);
-		expect(events.some((input) => input.event === "agent.tool-call-delta")).toBe(
-			false,
-		);
+		expect(
+			events.some((input) => input.event === "agent.tool-call-delta"),
+		).toBe(false);
 		expect(
 			events.find((input) => input.event === "agent.run-finished")?.properties,
 		).toEqual(expect.objectContaining({ maxIdleMs: 42, status: "completed" }));

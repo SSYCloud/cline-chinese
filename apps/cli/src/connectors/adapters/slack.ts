@@ -469,16 +469,13 @@ async function deliverScheduledResult(input: {
 			isSlackInvalidThreadTsError(error) &&
 			clearSlackBinding(input.bindingsPath, deliveryThreadId)
 		) {
-			input.logger.core.log(
-				"在 invalid_thread_ts 后清除了过期的 Slack 绑定",
-				{
-					severity: "warn",
-					transport: "slack",
-					threadId: deliveryThreadId,
-					scheduleId: input.scheduleId,
-					executionId: input.executionId,
-				},
-			);
+			input.logger.core.log("在 invalid_thread_ts 后清除了过期的 Slack 绑定", {
+				severity: "warn",
+				transport: "slack",
+				threadId: deliveryThreadId,
+				scheduleId: input.scheduleId,
+				executionId: input.executionId,
+			});
 		}
 		throw error;
 	}
@@ -489,10 +486,7 @@ class SlackConnector extends ConnectorBase<
 	SlackConnectorState
 > {
 	constructor() {
-		super(
-			"slack",
-			"Slack Webhook/Socket 桥接，以 RPC 运行时会话为后端",
-		);
+		super("slack", "Slack Webhook/Socket 桥接，以 RPC 运行时会话为后端");
 	}
 
 	protected override createCommand(): Command {
@@ -501,18 +495,12 @@ class SlackConnector extends ConnectorBase<
 				.createCommand()
 				.usage("--base-url <PUBLIC_BASE_URL> [options]")
 				.option("--user-name <name>", "Slack 机器人用户名标签")
-				.option(
-					"--bot-token <token>",
-					"单工作区模式的 Slack 机器人令牌",
-				)
+				.option("--bot-token <token>", "单工作区模式的 Slack 机器人令牌")
 				.option("--signing-secret <secret>", "Slack 签名密钥")
 				.option("--app-token <token>", "Socket 模式的 Slack 应用级令牌")
 				.option("--client-id <id>", "Slack OAuth 客户端 ID")
 				.option("--client-secret <secret>", "Slack OAuth 客户端密钥")
-				.option(
-					"--encryption-key <key>",
-					"用于加密安装的 Base64 32 字节密钥",
-				)
+				.option("--encryption-key <key>", "用于加密安装的 Base64 32 字节密钥")
 				.option(
 					"--installation-key-prefix <prefix>",
 					"覆盖已存储的安装密钥前缀",
@@ -528,10 +516,7 @@ class SlackConnector extends ConnectorBase<
 				// 保留以便现有调用和已持久化的自动启动参数
 				// 继续正常解析；除非传入 --no-tools，否则工具始终开启。
 				.option("--enable-tools", "启用工具（默认）")
-				.option(
-					"--hook-command <command>",
-					"为连接器事件运行一条 shell 命令",
-				)
+				.option("--hook-command <command>", "为连接器事件运行一条 shell 命令")
 				.option(
 					"--rpc-address <host:port>",
 					"RPC 地址",
@@ -540,10 +525,7 @@ class SlackConnector extends ConnectorBase<
 				)
 				.option("--host <host>", "Webhook 监听主机")
 				.option("--port <port>", "Webhook 监听端口")
-				.option(
-					"--base-url <url>",
-					"Webhook 和 OAuth 回调的公共基础 URL",
-				)
+				.option("--base-url <url>", "Webhook 和 OAuth 回调的公共基础 URL")
 				.addHelpText(
 					"after",
 					[
@@ -593,9 +575,7 @@ class SlackConnector extends ConnectorBase<
 		const connectionMode = inferSlackConnectionMode(baseUrl);
 		const isSocketMode = connectionMode === "socket";
 		if (isSocketMode && (opts.clientId?.trim() || opts.clientSecret?.trim())) {
-			throw new Error(
-				"Slack Socket 模式不支持 --client-id 或 --client-secret",
-			);
+			throw new Error("Slack Socket 模式不支持 --client-id 或 --client-secret");
 		}
 		const botToken =
 			opts.botToken?.trim() || process.env.SLACK_BOT_TOKEN?.trim();
@@ -603,14 +583,10 @@ class SlackConnector extends ConnectorBase<
 			? opts.appToken?.trim() || process.env.SLACK_APP_TOKEN?.trim()
 			: undefined;
 		if (isSocketMode && !appToken) {
-			throw new Error(
-				"Slack Socket 模式需要 --app-token 或 SLACK_APP_TOKEN",
-			);
+			throw new Error("Slack Socket 模式需要 --app-token 或 SLACK_APP_TOKEN");
 		}
 		if (isSocketMode && !botToken) {
-			throw new Error(
-				"Slack Socket 模式需要 --bot-token 或 SLACK_BOT_TOKEN",
-			);
+			throw new Error("Slack Socket 模式需要 --bot-token 或 SLACK_BOT_TOKEN");
 		}
 		return {
 			userName:
@@ -777,8 +753,7 @@ class SlackConnector extends ConnectorBase<
 			formatAlreadyRunningMessage: formatAlreadyRunning,
 			formatBackgroundStartMessage: (pid) =>
 				`[slack] 正在后台启动连接器 pid=${pid} user=${options.userName} mode=${options.connectionMode}`,
-			foregroundHint:
-				"[slack] 使用 `cline connect slack -i ...` 在前台运行",
+			foregroundHint: "[slack] 使用 `cline connect slack -i ...` 在前台运行",
 			launchFailureMessage: "无法在后台启动 Slack 连接器",
 		});
 		if (backgroundExitCode !== undefined) {
@@ -1292,9 +1267,7 @@ class SlackConnector extends ConnectorBase<
 		if (options.connectionMode === "webhook") {
 			io.writeln(`[slack] 正在监听 ${options.host}:${options.port}`);
 			io.writeln(`[slack] 配置 Slack Webhook URL：${webhookUrl}`);
-			io.writeln(
-				`[slack] 配置 Slack OAuth 回调 URL：${oauthCallbackUrl}`,
-			);
+			io.writeln(`[slack] 配置 Slack OAuth 回调 URL：${oauthCallbackUrl}`);
 		} else {
 			io.writeln("[slack] Socket 模式已连接");
 		}

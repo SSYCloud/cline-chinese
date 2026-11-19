@@ -70,8 +70,7 @@ describe("runInteractiveChatCommand", () => {
 			turnResult: {
 				usage: { inputTokens: 0, outputTokens: 0 },
 				iterations: 0,
-				commandOutput:
-					"Usage: /team <task description>\nStarts a team of agents for the given task.",
+				commandOutput: "用法: /team <任务描述>\n为给定任务启动一个代理团队。",
 			},
 		});
 		expect(runtime.restartEmpty).not.toHaveBeenCalled();
@@ -95,7 +94,7 @@ describe("runInteractiveChatCommand", () => {
 
 		expect(result.handled).toBe(false);
 		if (!result.handled) {
-			expect(result.input).toContain("spawn a team of agents");
+			expect(result.input).toContain("为以下任务启动一个代理团队");
 			expect(result.input).toContain("inspect the TUI");
 		}
 		expect(config.enableAgentTeams).toBe(true);
@@ -124,7 +123,7 @@ describe("runInteractiveChatCommand", () => {
 			turnResult: {
 				usage: { inputTokens: 0, outputTokens: 0 },
 				iterations: 0,
-				commandOutput: "Started a fresh session.",
+				commandOutput: "已开始新会话。",
 			},
 		});
 		expect(runtime.resetForNewSession).toHaveBeenCalledOnce();

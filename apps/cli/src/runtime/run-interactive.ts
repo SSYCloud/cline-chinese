@@ -84,9 +84,7 @@ export function assertHistorySessionIsDeletable(
 	activeSessionId: string,
 ): void {
 	if (activeSessionId && sessionId === activeSessionId) {
-		throw new Error(
-			"无法删除当前活动会话。请先开始或恢复另一个会话。",
-		);
+		throw new Error("无法删除当前活动会话。请先开始或恢复另一个会话。");
 	}
 }
 
@@ -692,9 +690,7 @@ export async function runInteractive(
 						};
 					}
 					const errorText = result.text.trim();
-					throw new Error(
-						errorText || `回合以 ${result.finishReason} 结束`,
-					);
+					throw new Error(errorText || `回合以 ${result.finishReason} 结束`);
 				}
 				const usage = zeroCliUsageCost(
 					await sessionRuntime.getAccumulatedUsage(result.usage),

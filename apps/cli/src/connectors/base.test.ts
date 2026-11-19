@@ -116,9 +116,7 @@ describe("ConnectorBase background launch", () => {
 		await expect(new TestConnector().runBackground(io)).resolves.toBe(1);
 
 		expect(io.writeErr).toHaveBeenCalledWith(
-			expect.stringContaining(
-				"launch failed: child exited before becoming ready",
-			),
+			expect.stringContaining("launch failed：子进程在就绪前已退出"),
 		);
 	});
 
@@ -151,7 +149,7 @@ describe("ConnectorBase background launch", () => {
 
 		expect(mocks.terminateProcess).toHaveBeenCalledWith(42);
 		expect(io.writeErr).toHaveBeenCalledWith(
-			expect.stringContaining("launch failed: timed out after 0ms"),
+			expect.stringContaining("launch failed：0ms 后超时"),
 		);
 	});
 
@@ -195,7 +193,7 @@ describe("ConnectorBase background launch", () => {
 		expect(stopSessions).not.toHaveBeenCalled();
 		expect(clearBindings).not.toHaveBeenCalled();
 		expect(io.writeErr).toHaveBeenCalledWith(
-			"[connect] failed to stop connector process pid=42",
+			"[connect] 停止连接器进程失败 pid=42",
 		);
 	});
 

@@ -62,7 +62,7 @@ describe("cline-pass-errors", () => {
 			getCliClinePassLimitMessage(raw),
 		);
 		expect(formatCliErrorMessage(new Error(raw))).toContain(
-			"Switch to Cline usage-based billing",
+			"切换到 Cline 按使用量计费，并使用 Cline 提供商重试。",
 		);
 		expect(formatCliErrorMessage(new Error(raw))).toContain("--provider cline");
 	});
@@ -78,11 +78,9 @@ describe("cline-pass-errors", () => {
 		);
 		expect(formatCliErrorMessage(new Error(raw))).not.toContain("Error 429");
 		expect(formatCliErrorMessage(new Error(raw))).toContain(
-			"Try again in 23h 59m",
+			"在 23h 59m 后重试，或选择另一个模型。",
 		);
-		expect(formatCliErrorMessage(new Error(raw))).toContain(
-			"select another model",
-		);
+		expect(formatCliErrorMessage(new Error(raw))).toContain("选择另一个模型");
 		expect(formatCliErrorMessage(new Error(raw))).not.toContain(
 			"usage-based billing",
 		);

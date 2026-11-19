@@ -332,7 +332,7 @@ describe("mcp install command", () => {
 		expect(code).toBe(1);
 		expect(runWizard).not.toHaveBeenCalled();
 		expect(writeErr).toHaveBeenCalledWith(
-			"cline mcp install opens the MCP wizard and requires a TTY. Pass --yes to install noninteractively.",
+			"cline mcp install 会打开 MCP 向导并需要 TTY。请传入 --yes 以非交互方式安装。",
 		);
 	});
 
@@ -347,7 +347,7 @@ describe("mcp install command", () => {
 
 		expect(code).toBe(1);
 		expect(writeErr).toHaveBeenCalledWith(
-			"cline mcp install opens the MCP wizard and requires a TTY. Pass --yes to install noninteractively.",
+			"cline mcp install 会打开 MCP 向导并需要 TTY。请传入 --yes 以非交互方式安装。",
 		);
 	});
 
@@ -381,7 +381,7 @@ describe("mcp install command", () => {
 			yes: true,
 			io: { writeln, writeErr },
 		});
-		expect(writeln).toHaveBeenCalledWith("Installed MCP server docs.");
+		expect(writeln).toHaveBeenCalledWith("已安装 MCP 服务器 docs。");
 		expect(writeErr).not.toHaveBeenCalled();
 	});
 

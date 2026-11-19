@@ -20,7 +20,7 @@ describe("resolveStatusNoticeLabel", () => {
 				message: "auto-compacting",
 				reason: "auto_compaction",
 			} as AgentEvent),
-		).toBe("auto-compacting");
+		).toBe("自动压缩中");
 		expect(
 			resolveStatusNoticeLabel({
 				type: "notice",
@@ -29,7 +29,7 @@ describe("resolveStatusNoticeLabel", () => {
 				message: "manual",
 				reason: "manual_compaction",
 			} as AgentEvent),
-		).toBe("compacting");
+		).toBe("压缩中");
 		expect(
 			resolveStatusNoticeLabel({
 				type: "notice",
@@ -38,7 +38,7 @@ describe("resolveStatusNoticeLabel", () => {
 				message: "compaction-budget-adjusted",
 				reason: "compaction_budget_emergency",
 			} as AgentEvent),
-		).toBe("context budget adjusted");
+		).toBe("上下文预算已调整");
 	});
 });
 
@@ -206,7 +206,7 @@ describe("handleEvent text formatting", () => {
 		);
 
 		expect(output).toContain(`\x1b[36m[team_task]\x1b[0m create`);
-		expect(output).toContain("error:");
+		expect(output).toContain("错误:");
 		expect(output).toContain(
 			'Field "status" is not allowed when action=create',
 		);
@@ -224,8 +224,8 @@ describe("handleEvent text formatting", () => {
 			{ verbose: true } as Config,
 		);
 
-		expect(output).toContain("── finished (5 iterations) ──");
-		expect(output).not.toContain("── aborted (5 iterations) ──");
+		expect(output).toContain("── 已完成 (5 次迭代) ──");
+		expect(output).not.toContain("── 已中止 (5 次迭代) ──");
 	});
 
 	it("prints aborted done events as aborted in verbose mode", () => {
@@ -239,7 +239,7 @@ describe("handleEvent text formatting", () => {
 			{ verbose: true } as Config,
 		);
 
-		expect(output).toContain("── aborted (2 iterations) ──");
+		expect(output).toContain("── 已中止 (2 次迭代) ──");
 	});
 
 	it("formats ClinePass limit agent errors before writing to stderr", () => {
@@ -254,8 +254,10 @@ describe("handleEvent text formatting", () => {
 			{} as Config,
 		);
 
-		expect(errorOutput).toContain("ClinePass limit reached");
-		expect(errorOutput).toContain("Switch to Cline usage-based billing");
+		expect(errorOutput).toContain("ClinePass 限制已达上限");
+		expect(errorOutput).toContain(
+			"切换到 Cline 按使用量计费，并使用 Cline 提供商重试。",
+		);
 		expect(errorOutput).toContain("--provider cline");
 	});
 
@@ -272,7 +274,7 @@ describe("handleEvent text formatting", () => {
 		);
 
 		expect(errorOutput).toContain("Daily free model limit reached");
-		expect(errorOutput).toContain("select another model");
+		expect(errorOutput).toContain("选择另一个模型");
 		expect(errorOutput).not.toContain("usage-based billing");
 	});
 
@@ -287,7 +289,7 @@ describe("handleEvent text formatting", () => {
 		);
 
 		expect(errorOutput).toContain("Free model promotion ended");
-		expect(errorOutput).toContain("Select another model");
+		expect(errorOutput).toContain("选择另一个模型以继续。");
 	});
 
 	it("suppresses heartbeat-only team progress messages", () => {
@@ -319,8 +321,8 @@ describe("handleEvent text formatting", () => {
 			},
 		} as unknown as TeamEvent);
 
-		expect(output).toContain("queued");
-		expect(output).toContain("started");
+		expect(output).toContain("已排队");
+		expect(output).toContain("已开始");
 		expect(output).toContain("...");
 		// Consecutive team events should not have blank lines between them
 		expect(output).not.toMatch(/\n\n/);
@@ -343,6 +345,6 @@ describe("handleEvent text formatting", () => {
 			},
 		} as unknown as TeamEvent);
 
-		expect(output).toMatch(/Investigating.*\n.*\[team run\].*started.*\n$/s);
+		expect(output).toMatch(/Investigating.*\n.*\[团队运行\].*已开始.*\n$/s);
 	});
 });

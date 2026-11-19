@@ -497,7 +497,7 @@ describe("runConnectAdapter", () => {
 
 		expect(mocks.run).toHaveBeenCalledTimes(1);
 		expect(io.writeErr).toHaveBeenCalledWith(
-			"[connect] replacement was not started because telegram instance cline_bot is still running",
+			"[connect] 替换进程未启动，因为 telegram 实例 cline_bot 仍在运行",
 		);
 		expect(mocks.persistConnectorConnection).not.toHaveBeenCalled();
 	});
@@ -570,7 +570,7 @@ describe("runCleanupConnectorInstance", () => {
 			runCleanupConnectorInstance("slack", "cline-slack", io),
 		).resolves.toBe(1);
 		expect(io.writeErr).toHaveBeenCalledWith(
-			'connect adapter "slack" does not support per-instance stop',
+			'connect 适配器 "slack" 不支持按实例停止',
 		);
 	});
 
@@ -580,7 +580,7 @@ describe("runCleanupConnectorInstance", () => {
 		await expect(
 			runCleanupConnectorInstance("nope", "instance", io),
 		).resolves.toBe(1);
-		expect(io.writeErr).toHaveBeenCalledWith('unknown connect adapter "nope"');
+		expect(io.writeErr).toHaveBeenCalledWith('未知的 connect 适配器 "nope"');
 	});
 });
 

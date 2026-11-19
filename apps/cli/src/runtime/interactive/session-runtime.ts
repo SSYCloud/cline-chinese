@@ -209,9 +209,7 @@ export function createInteractiveSessionRuntime(input: {
 	const ensureSessionManager = (): Promise<CliCore> => {
 		if (sessionManager) return Promise.resolve(sessionManager);
 		if (shutdownRequested)
-			return Promise.reject(
-				new Error("interactive runtime shutdown requested"),
-			);
+			return Promise.reject(new Error("交互式运行时已请求关闭"));
 		if (!sessionManagerPromise) {
 			sessionManagerPromise = createSessionManager().finally(() => {
 				sessionManagerPromise = undefined;
@@ -724,9 +722,7 @@ export function createInteractiveSessionRuntime(input: {
 		compacted: boolean;
 	}> => {
 		if (input.config.compaction?.enabled === false) {
-			throw new Error(
-				"无法压缩，因为此会话已关闭压缩功能。",
-			);
+			throw new Error("无法压缩，因为此会话已关闭压缩功能。");
 		}
 		const manager = sessionManager;
 		const sourceSessionId = activeSessionId;
@@ -746,9 +742,7 @@ export function createInteractiveSessionRuntime(input: {
 		}
 		const sessionRecord = await manager.get(sourceSessionId);
 		if (sessionRecord?.status === "running") {
-			throw new Error(
-				"当前回合运行中无法压缩。请等待其完成或先中止它。",
-			);
+			throw new Error("当前回合运行中无法压缩。请等待其完成或先中止它。");
 		}
 		let result: Awaited<ReturnType<typeof compactInteractiveMessages>>;
 		const abortController = new AbortController();
@@ -855,14 +849,11 @@ export function createInteractiveSessionRuntime(input: {
 			try {
 				await manager.stop(sourceSessionId);
 			} catch (error) {
-				input.config.logger?.log(
-					"恢复后停止源会话失败",
-					{
-						sessionId: sourceSessionId,
-						error,
-						severity: "warn",
-					},
-				);
+				input.config.logger?.log("恢复后停止源会话失败", {
+					sessionId: sourceSessionId,
+					error,
+					severity: "warn",
+				});
 			}
 		}
 		const restoredMessages = restored.messages ?? [];

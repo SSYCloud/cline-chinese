@@ -104,8 +104,7 @@ function ReadOutput(props: { fullText: string; rawInput?: unknown }) {
 	return (
 		<box paddingLeft={2}>
 			<text fg="gray">
-				{RESULT} {lines.length} 行
-				{language ? ` | ${language}` : ""}
+				{RESULT} {lines.length} 行{language ? ` | ${language}` : ""}
 			</text>
 		</box>
 	);

@@ -1,6 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+	type UxVerificationCheck,
+	UxVerificationReportSchema,
+} from "@cline/shared/browser";
+import { clsx as cn } from "clsx";
 import {
 	Check,
 	CircleAlert,
@@ -11,20 +15,16 @@ import {
 	ShieldCheck,
 	X,
 } from "lucide-react";
-import {
-	UxVerificationReportSchema,
-	type UxVerificationCheck,
-} from "@cline/shared/browser";
-import { GeneratedMediaContent } from "./generated-media.js";
-import { clsx as cn } from "clsx";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import {
 	Carousel,
+	type CarouselApi,
 	CarouselContent,
 	CarouselItem,
 	CarouselNext,
 	CarouselPrevious,
-	type CarouselApi,
 } from "./carousel.js";
+import { GeneratedMediaContent } from "./generated-media.js";
 
 export type UxScreenshotPresentation = "slide" | "thumbnail";
 export type UxScreenshotRenderer = (

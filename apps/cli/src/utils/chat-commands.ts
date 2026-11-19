@@ -474,9 +474,7 @@ function createDefaultChatCommandHost(): ChatCommandHost {
 					return;
 				}
 				if (!result) {
-					await context.reply(
-						"分叉失败: 无法从当前会话读取消息。",
-					);
+					await context.reply("分叉失败: 无法从当前会话读取消息。");
 					return;
 				}
 				await context.reply(
