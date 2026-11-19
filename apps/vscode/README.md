@@ -1,12 +1,12 @@
 
-# Cline Chinese · Cline 中文汉化版 
+# Cline Chinese · Cline 中文汉化版
 
 ![Installs](https://img.shields.io/visual-studio-marketplace/i/HybridTalentComputing.cline-chinese)
 ![Rating](https://img.shields.io/visual-studio-marketplace/r/HybridTalentComputing.cline-chinese)
-![VS Code](https://img.shields.io/badge/VS%20Code-1.85%2B-007ACC?logo=visualstudiocode)
+![VS Code](https://img.shields.io/badge/VS%20Code-1.101.0%2B-007ACC?logo=visualstudiocode)
 ![License](https://img.shields.io/github/license/SSYCloud/cline-chinese)
 
-[GitHub 仓库](https://github.com/SSYCloud/cline-chinese) · [完整文档](https://hybridtalentcomputing.gitbook.io/cline-chinese-doc/) · [报告问题](https://github.com/SSYCloud/cline-chinese/issues)
+[GitHub 仓库](https://github.com/SSYCloud/cline-chinese) · [报告问题](https://github.com/SSYCloud/cline-chinese/issues)
 
 
 ---
@@ -25,25 +25,20 @@
 | `minimax/minimax-m2.5` |
 | `bigmodel/glm-4.6` |
 
-
-[填写**胜算云 API**问卷即有机会获得**最高¥100体验券**](https://tcnqigfvmci2.feishu.cn/share/base/form/shrcnPIFa1DGJBdt0c2ypmwoPkf)
-
-[填写batch模式loomloom问卷同样可重复获**最高¥100体验券**](https://tcnqigfvmci2.feishu.cn/share/base/form/shrcnwpBHyLm8qC30LGqoDNfXbh)
-
 ---
 
 ## 这是什么
 
-Cline Chinese 是 [Cline](https://github.com/cline/cline) 的开源社区汉化版本，由Leo老师作为发起人。即日起（2026.7.30），胜算云开源项目团队（SSYCloud）正式成为 Cline Chinese 开源项目的管理方和核心贡献者，负责项目的代码日常维护及Cline中文编程社区运营工作。感谢各位的信任、陪伴与支持！Leo 老师也依旧会持续关注和参与本项目。
-
+Cline Chinese 是 [Cline](https://github.com/cline/cline) 的开源社区汉化版本，由Leo老师作为发起人。胜算云开源项目团队（SSYCloud）是本项目的日常维护方，负责代码维护及Cline中文编程社区运营。Leo 老师也依旧会持续关注和参与本项目。
 
 ## 项目身份、来源与差异化
 
-Cline Chinese 是基于 [Cline](https://github.com/cline/cline) 的开源社区 fork做了UI、提示词、返回思考等全量汉化，不是原版 Cline 官方发布的扩展。本项目在 VS Code Marketplace 上使用独立的项目身份和发布信息：
+Cline Chinese 是基于 [Cline](https://github.com/cline/cline) 的开源社区 fork，对 UI、提示词、返回思考等做了全量汉化，**不是原版 Cline 官方发布的扩展**。本项目在 VS Code Marketplace 上使用独立的项目身份和发布信息：
 
 - **显示名称**：`Cline Chinese`
 - **扩展标识**：`cline-chinese`
-- **Code maintainer**: `SSYCloud`
+- **发布者**：`HybridTalentComputing`
+- **维护方**：SSYCloud（胜算云开源项目团队）
 - **独立图标**：扩展包使用项目自己的 `apps/vscode/assets/icons/icon.png` 图标
 - **独立维护路径**：代码、README、版本发布和问题反馈均以本仓库为准
 - **保留的 Marketplace listing**：[Cline Chinese](https://marketplace.visualstudio.com/items?itemName=HybridTalentComputing.cline-chinese)
@@ -53,6 +48,7 @@ Cline Chinese 是基于 [Cline](https://github.com/cline/cline) 的开源社区 
 - 面向 DeepSeek、Kimi、Qwen、GLM 等中文模型的 prompt 优化和适配；
 - 胜算云 API 供应商和统一模型网关集成；
 - 与当前 Cline 会话协作的 Batch 模式，接入 LoomLoom SkillBot 与批量工作表；
+- Cline Plugins / Customize 市场，支持 Skills/MCP/Plugins 的发现、安装与卸载；
 - 中文社区维护、中文使用指南以及面向中国用户的配置说明。
 
 此前用于灰度发布的重复 Marketplace listing `shengsuan-cloud.cline-shengsuan` 已 **Unpublish**。后续 Marketplace 上仅保留并维护 `Cline Chinese` 这一独立项目；本仓库的后续版本将从这里独立构建、发布和维护。
@@ -66,8 +62,6 @@ Cline Chinese 是基于 [Cline](https://github.com/cline/cline) 的开源社区 
 |**默认对接胜算云统一 API 网关** | 一份 Key 切换多家模型，全球算力调度 + 自动容灾，无需自配代理 |
 |**Batch 批量工作流** | 在原有 Cline 会话中使用 LoomLoom SkillBot，由 Agent 与工作表协作准备、检查和运行多条任务 |
 
-**当前下载量**：271k+ VS Code 插件市场（截至 2026-07-30）
-
 ## 中文编程为什么选 Cline Chinese，而不是原版 Cline？
 
 | | Cline Chinese | 原版 Cline |
@@ -78,6 +72,7 @@ Cline Chinese 是基于 [Cline](https://github.com/cline/cline) 的开源社区 
 | 插件 / MCP | ✅ Skills / Plugins / MCP 全支持 | ✅ 支持 |
 | API 网关 / 多模型切换 | ✅ 胜算云网关，一 Key 切多模型 | ❌ 需自配代理 |
 | Batch 模式 / LoomLoom SkillBot | ✅ 同一会话中的 Agent 协作与批量工作表 | — 本项目新增能力 |
+| Cline Plugins / 自定义市场 | ✅ Skills/MCP/Plugins 发现、安装、卸载 | — 本项目新增能力 |
 
 ## Batch：让 Cline 和 LoomLoom 一起完成批量任务
 
@@ -175,7 +170,7 @@ TypeScript 里 interface 和 type 到底有什么区别？
 ### 文件操作
 
 - `@路径`：添加文件或文件夹到上下文
-- `/`：快捷命令（如 `/explain` 解释代码、`/tests` 生成测试）
+- `/`：快捷命令（如 `/explain` 解释代码、`/tests` 生成测试、`/skill:<name>` 调用 Skill、`/mcp:<server>` 调用 MCP 服务器）
 - 拖拽：直接拖文件进聊天框
 
 ### 终端命令
@@ -235,7 +230,7 @@ Cline Chinese 可以直接在你的 VS Code 终端里执行命令。涉及安装
 
 ### 遥测、错误报告与企业 OpenTelemetry
 
-在构建时注入有效配置、且未被部署策略关闭时，Cline 可能使用 PostHog 发送使用遥测或错误报告，默认数据入口包括 `https://data.cline.bot`，生产环境的 PostHog 服务地址由构建配置决定。遥测或错误报告可能包含扩展版本、VS Code/宿主版本、操作系统、远程工作区标记、设备标识、模型/提供商、提示词长度、图片/文件标记、token 数量、成本、耗时、工具或 MCP 调用统计，以及错误名称、消息、堆栈和部分附加属性。错误消息中可能意外包含路径、URL 或服务商返回内容片段，因此请勿在错误文本中放入秘密信息。
+在构建时注入有效配置、且未被部署策略关闭时，Cline 可能发送使用遥测或错误报告。遥测或错误报告可能包含扩展版本、VS Code/宿主版本、操作系统、远程工作区标记、设备标识、模型/提供商、提示词长度、图片/文件标记、token 数量、成本、耗时、工具或 MCP 调用统计，以及错误名称、消息、堆栈和部分附加属性。错误消息中可能意外包含路径、URL 或服务商返回内容片段，因此请勿在错误文本中放入秘密信息。
 
 普通使用遥测通常受 Cline 的 telemetry 设置和 VS Code 的遥测设置控制，关闭后会停止相应的普通遥测；但某些构建、组织配置或必要事件路径可能仍按部署策略发送。企业或自托管部署还可以通过 OpenTelemetry 将指标和日志发送到组织配置的 OTLP collector，具体地址和字段由构建、环境变量或组织配置决定。
 
@@ -249,19 +244,19 @@ Cline Chinese 可以直接在你的 VS Code 终端里执行命令。涉及安装
 
 ### 第三方服务的数据保留
 
-对于 Anthropic、OpenAI、DeepSeek、Qwen、Gemini、OpenRouter、Mistral、Bedrock、Vertex、Ollama、LM Studio、MCP server、PostHog 或组织 OTLP collector 等服务，Cline Chinese 的维护者无法决定其数据保留期限。选择胜算云 API 供应商时，任务历史不上传云端、API Key 只存在本地、模型 API 请求只转发且不做胜算云云端留存；但胜算云账户认证、余额、用量和充值等账户服务仍按其服务规则处理。使用任何服务前，请阅读对应隐私政策、服务条款和数据控制台设置。
+对于 Anthropic、OpenAI、DeepSeek、Qwen、Gemini、OpenRouter、Mistral、Bedrock、Vertex、Ollama、LM Studio、MCP server 或组织 OTLP collector 等服务，Cline Chinese 的维护者无法决定其数据保留期限。选择胜算云 API 供应商时，任务历史不上传云端、API Key 只存在本地、模型 API 请求只转发且不做云端留存；但胜算云账户认证、余额、用量和充值等账户服务仍按其服务规则处理。使用任何服务前，请阅读对应隐私政策、服务条款和数据控制台设置。
 ## ❓ 常见问题
 
 ### 安装与升级
 
-**Q：升级到 v4.0 后老配置还在吗？**
-A：在。v4.0 升级会自动迁移；如遇异常可在设置里手动配置一次。
+**Q：升级到 v4.1 后老配置还在吗？**
+A：在。升级会自动迁移；如遇异常可在设置里手动配置一次。
 
 **Q：和原版 Cline 同时安装会冲突吗？**
 A：建议只装一个。Cline Chinese 是从原版 Cline fork 出来的独立扩展，使用前请确认所安装的 Marketplace listing、发布者和版本，避免同时维护两个同源项目。
 
 **Q：能装在 Cursor / Windsurf 等 VS Code 兼容编辑器里吗？**
-A：能。VSIX 直接安装即可。CLI 命令见 [安装文档](https://hybridtalentcomputing.gitbook.io/cline-chinese-doc/install)。
+A：能。VSIX 直接安装即可。
 
 ### 模型与配置
 
@@ -321,6 +316,71 @@ A：具体有效期见 [胜算云用户协议](https://lean.shengsuanyun.com/api
 **Q：能开发票吗？**
 A：企业用户可以，[胜算云控制台](https://console.shengsuanyun.com/user/overview/?from=cline-chinese) → 企业认证后申请。
 
+## 🛠️ 开发与构建
+
+本项目使用 **Bun** 作为包管理器与任务运行器，**Node ≥22** 作为运行时。不要使用 npm / yarn / pnpm。
+
+### 前置条件
+
+- [Bun](https://bun.sh) 1.4.2
+- Node ≥22
+
+### 安装依赖
+
+```bash
+# 在仓库根目录
+bun install
+```
+
+### 构建 VS Code 扩展
+
+在 `apps/vscode` 目录下：
+
+```bash
+# 1. 生成 Protobuf 代码
+bun run protos
+
+# 2. 构建 Webview UI
+bun run build:webview
+
+# 3. 构建扩展 bundle（生产）
+bun esbuild.mjs --production
+
+# 或者一次性完成完整打包
+bun run package
+```
+
+常用脚本：
+
+| 脚本 | 说明 |
+|------|------|
+| `bun run dev` | 开发模式：生成 proto + 监听 esbuild 与 tsc |
+| `bun run compile` | 类型检查 + Lint + 构建 bundle |
+| `bun run package` | 生产打包（可生成 `.vsix`） |
+| `bun run test:unit` | 运行 bun 单元测试 |
+| `bun run test:integration` | 运行 VS Code 集成测试 |
+| `bun run test:e2e` | 运行 Playwright E2E 测试 |
+| `bun run vsix` | 打包 VSIX |
+
+扩展的入口是 `src/extension.ts`，构建产物输出到 `dist/extension.js`（esbuild，`platform: "node"`）。
+
+### 目录结构简述
+
+```
+apps/vscode/
+├── src/                 # 核心扩展源码（Controller、Task、WebviewProvider 等）
+├── src/generated/       # Protobuf 生成代码（运行 bun run protos 后产生）
+├── src/shared/          # 共享类型与 proto 定义
+├── src/sdk/             # Cline SDK 适配层
+├── src/standalone/      # 独立 cline-core 入口
+├── webview-ui/          # React 前端界面
+├── dist/                # 构建产物（extension.js）
+├── dist-standalone/     # 独立运行时构建产物
+├── esbuild.mjs          # esbuild 构建脚本
+├── tsconfig.json
+└── package.json
+```
+
 ## 📞 反馈与支持
 
 | 渠道 | 适用场景 | 响应时间 |
@@ -375,60 +435,55 @@ Cline Chinese 是社区项目 + 胜算云团队共同维护的开源分支。Leo
 </p>
 
 ## 版本更新说明
-### 2026.07.30（ver .4.0.3）
+
+### 4.1.x（当前）
+
+- 版本：`4.1.35`
+- 所需 VS Code：`^1.101.0`
+- 构建工具链已迁移至 **Bun + esbuild**
+- 新增 Claude Code 插件支持（在市场中展示、加载 Claude Code 插件）
+- 新增 `/skill:<name>` 与 `/mcp:<server>` 斜杠命令
+- 新增 SystemOne 设置，以及 SDK 层的消息压缩与消息协调
+- 将 xAI 提供商设置迁移至通用提供商设置
+- 移除 PostHog 遥测
+- 提供商切换性能优化（存储操作批处理，约 18x 提升）
+
+### 2026.07.30（ver 4.0.3）
 
 🔥 本次更新带来了架构级重构和强大的插件生态！
 - 新增
-1. 新增 Cline SDK 运行时支持，所有任务（代理轮次、工具、MCP、检查点、压缩、遥测等）统一通过共享 SDK 会话层管理。
-
-2. 新增 ClinePass 通行证（含引导流程、注册订阅、实时模型列表、额度提示）及 Customize 自定义市场，支持 Skills/MCP/Plugins 的发现、安装与卸载。
-
-3. 新增 Cline Plugins 插件系统，支持通过自定义工具、工作流和 MCP 功能扩展 Cline；同步添加插件 MCP 支持及共享市场安装/卸载管道。
-
-4. 聊天新增排队机制，忙碌时提交的消息自动排队并可取消；支持编辑已发送消息并重新生成。
-
-5. 新增通用 SDK 提供商设置，支持更多提供商共享模型选择器、推理控制和配置持久化；额外新增 Fireworks GLM 5.2、Kimi K2.6 Fast/2.7 Code、Qwen 3.7 Plus、MiniMax M3、SAP AI Core、LiteLLM、Codex OAuth 及 OpenAI 兼容模型。
-
+  1. 新增 Cline SDK 运行时支持，所有任务（代理轮次、工具、MCP、检查点、压缩、遥测等）统一通过共享 SDK 会话层管理。
+  2. 新增 ClinePass 通行证（含引导流程、注册订阅、实时模型列表、额度提示）及 Customize 自定义市场，支持 Skills/MCP/Plugins 的发现、安装与卸载。
+  3. 新增 Cline Plugins 插件系统，支持通过自定义工具、工作流和 MCP 功能扩展 Cline；同步添加插件 MCP 支持及共享市场安装/卸载管道。
+  4. 聊天新增排队机制，忙碌时提交的消息自动排队并可取消；支持编辑已发送消息并重新生成。
+  5. 新增通用 SDK 提供商设置，支持更多提供商共享模型选择器、推理控制和配置持久化；额外新增 Fireworks GLM 5.2、Kimi K2.6 Fast/2.7 Code、Qwen 3.7 Plus、MiniMax M3、SAP AI Core、LiteLLM、Codex OAuth 及 OpenAI 兼容模型。
 - 变更
-
-1. VS Code 扩展从旧版任务实现迁移至共享 Cline SDK，构建/打包工作流迁移至 Bun。
-
-2. 重新设计计划/执行模式处理（支持从计划切换至执行时自动继续）及提供商/模型配置（切换提供商时设置保留、会话自动重启）。
-
-3. 简化提供商设置 UI 和终端执行路径；旧版 MCP 文件迁移至共享设置文件，安装后自动刷新无需重启。
-
-4. 命令自动批准默认禁用（提升安全性）；删除旧版"Explain Changes"功能；临时禁用子代理以稳定 SDK 基础体验。
-
-5. 更新任务历史处理（旧版历史可见性、元数据保留、删除行为修正）及压缩/错误限制路由。
-
+  1. VS Code 扩展从旧版任务实现迁移至共享 Cline SDK，构建/打包工作流迁移至 Bun。
+  2. 重新设计计划/执行模式处理（支持从计划切换至执行时自动继续）及提供商/模型配置（切换提供商时设置保留、会话自动重启）。
+  3. 简化提供商设置 UI 和终端执行路径；旧版 MCP 文件迁移至共享设置文件，安装后自动刷新无需重启。
+  4. 命令自动批准默认禁用（提升安全性）；删除旧版"Explain Changes"功能；临时禁用子代理以稳定 SDK 基础体验。
+  5. 更新任务历史处理（旧版历史可见性、元数据保留、删除行为修正）及压缩/错误限制路由。
 - 修复
+  1. 修复市场边缘情况（安装后 MCP 刷新、标签页禁用、隐藏工作流、插件技能显示及卸载稳定性）。
+  2. 修复活动轮次聊天提交（排队状态及时显示、消息即时渲染、删除延迟发送）及编辑消息 Escape 取消。
+  3. 修复终端可靠性（Windows 输出捕获、PowerShell 处理、状态显示、超时、heredoc、重复回显等）。
+  4. 修复 SDK 消息预算（截断大型输出、限制助手文本/bash 摄入/媒体预算、规范化 JSON 输入）。
+  5. 修复登录与功能标志解析（启动时使用正确的用户身份，简化登录 UX）。
 
-1. 修复市场边缘情况（安装后 MCP 刷新、标签页禁用、隐藏工作流、插件技能显示及卸载稳定性）。
-
-2. 修复活动轮次聊天提交（排队状态及时显示、消息即时渲染、删除延迟发送）及编辑消息 Escape 取消。
-
-3. 修复终端可靠性（Windows 输出捕获、PowerShell 处理、状态显示、超时、heredoc、重复回显等）。
-
-4. 修复 SDK 消息预算（截断大型输出、限制助手文本/bash 摄入/媒体预算、规范化 JSON 输入）。
-
-5. 修复登录与功能标志解析（启动时使用正确的用户身份，简化登录 UX）。
-
-### 2026.07.21（ver .3.89.2）
-
+### 2026.07.21（ver 3.89.2）
 
 1. 升级捆绑的 Anthropic SDK 至与 Node 24 运行时兼容，修复 VS Code 1.123+ 上 Anthropic 提供商问题。
 2. 更新 Vertex AI 提供商至兼容的 Anthropic Vertex SDK 版本。
 
-### 2026.07.13（ver .3.89.1）
-
+### 2026.07.13（ver 3.89.1）
 
 1. 恢复 VS Code 1.123 及更高版本上的 Anthropic 提供商（Node 24 运行时破坏捆绑 SDK）。
 2. 处理 DeepSeek V4 推理格式。
 
+### 2026.06.29（ver 3.86.5）
 
-### 2026.06.29 （ver .3.86.5）
-1. 修复和原版cline参数配置共享的问题，可能会导致需要重新配置，给您带来的不便，还请见谅。
-2. 修复deepseek-v4修改上下文长度为1m不生效的问题。
+1. 修复和原版 Cline 参数配置共享的问题，可能会导致需要重新配置，给您带来的不便，还请见谅。
+2. 修复 deepseek-v4 修改上下文长度为 1M 不生效的问题。
 
 
 ## 免责声明
