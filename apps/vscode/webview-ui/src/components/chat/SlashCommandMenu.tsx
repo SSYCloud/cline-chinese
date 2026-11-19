@@ -2,7 +2,7 @@ import type { McpServer } from "@shared/mcp"
 import React, { useCallback, useEffect, useRef } from "react"
 import ScreenReaderAnnounce from "@/components/common/ScreenReaderAnnounce"
 import { useMenuAnnouncement } from "@/hooks/useMenuAnnouncement"
-import type { SkillCommandSource, SlashCommand } from "@/utils/slash-commands"
+import type { PluginCommandSource, SkillCommandSource, SlashCommand } from "@/utils/slash-commands"
 import { getMatchingSlashCommands } from "@/utils/slash-commands"
 
 interface SlashCommandMenuProps {
@@ -18,6 +18,7 @@ interface SlashCommandMenuProps {
 	mcpServers?: McpServer[]
 	provider?: string
 	skills?: SkillCommandSource[]
+	pluginCommands?: PluginCommandSource[]
 }
 
 const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
@@ -33,6 +34,7 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 	mcpServers = [],
 	provider,
 	skills = [],
+	pluginCommands = [],
 }) => {
 	const menuRef = useRef<HTMLDivElement>(null)
 
@@ -46,6 +48,7 @@ const SlashCommandMenu: React.FC<SlashCommandMenuProps> = ({
 		mcpServers,
 		provider,
 		skills,
+		pluginCommands,
 	)
 	const defaultCommands = filteredCommands.filter((cmd) => cmd.section === "default" || !cmd.section)
 	const workflowCommands = filteredCommands.filter((cmd) => cmd.section === "custom")

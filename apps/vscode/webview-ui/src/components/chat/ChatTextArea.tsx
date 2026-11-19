@@ -20,7 +20,7 @@ import { useExtensionState } from "@/context/ExtensionStateContext"
 import { usePlatform } from "@/context/PlatformContext"
 import { useNormalizedApiConfiguration } from "@/hooks/useNormalizedApiConfiguration"
 import { cn } from "@/lib/utils"
-import { FileServiceClient, StateServiceClient } from "@/services/grpc-client"
+import { FileServiceClient, SlashServiceClient, StateServiceClient } from "@/services/grpc-client"
 import {
 	ContextMenuOptionType,
 	getContextMenuOptionIndex,
@@ -36,6 +36,7 @@ import { isSafari } from "@/utils/platformUtils"
 import {
 	getMatchingSlashCommands,
 	insertSlashCommand,
+	type PluginCommandSource,
 	removeSlashCommand,
 	type SkillCommandSource,
 	shouldShowSlashCommandsMenu,
@@ -248,6 +249,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 		const [selectedSlashCommandsIndex, setSelectedSlashCommandsIndex] = useState(0)
 		const [slashCommandsQuery, setSlashCommandsQuery] = useState("")
 		const [skillCommandSources, setSkillCommandSources] = useState<SkillCommandSource[]>([])
+		const [pluginCommandSources, setPluginCommandSources] = useState<PluginCommandSource[]>([])
 		useEffect(() => {
 			if (!showSlashCommandsMenu) {
 				return
@@ -266,6 +268,17 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					}
 				})
 				.catch((error) => console.error("Failed to load skills for slash commands:", error))
+			SlashServiceClient.getAvailableSlashCommands(EmptyRequest.create({}))
+				.then((result) => {
+					if (!cancelled) {
+						setPluginCommandSources(
+							result.commands
+								.filter((command) => command.section === "custom" && command.name.includes(":"))
+								.map((command) => ({ name: command.name, description: command.description })),
+						)
+					}
+				})
+				.catch((error) => console.error("Failed to load plugin slash commands:", error))
 			return () => {
 				cancelled = true
 			}
@@ -534,6 +547,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								mcpServers,
 								selectedProvider,
 								skillCommandSources,
+								pluginCommandSources,
 							)
 
 							if (allCommands.length === 0) {
@@ -561,6 +575,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 							mcpServers,
 							selectedProvider,
 							skillCommandSources,
+							pluginCommandSources,
 						)
 						if (commands.length > 0) {
 							handleSlashCommandsSelect(commands[selectedSlashCommandsIndex])
@@ -1039,6 +1054,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					mcpServers,
 					selectedProvider,
 					skillCommandSources,
+					pluginCommandSources,
 				)
 
 				if (isValidCommand) {
@@ -1060,6 +1076,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 			mcpServers,
 			selectedProvider,
 			skillCommandSources,
+			pluginCommandSources,
 		])
 
 		useLayoutEffect(() => {
@@ -1532,6 +1549,7 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 								mcpServers={mcpServers}
 								onMouseDown={handleMenuMouseDown}
 								onSelect={handleSlashCommandsSelect}
+								pluginCommands={pluginCommandSources}
 								provider={selectedProvider}
 								query={slashCommandsQuery}
 								remoteWorkflows={remoteConfigSettings?.remoteGlobalWorkflows}

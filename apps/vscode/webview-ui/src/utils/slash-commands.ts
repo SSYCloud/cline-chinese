@@ -108,6 +108,26 @@ export function getMcpPromptCommands(mcpServers: McpServer[] = []): SlashCommand
 	return commands
 }
 
+export interface PluginCommandSource {
+	name: string
+	description?: string
+}
+
+/**
+ * Commands contributed by Claude Code plugins. Their names are namespaced
+ * (`plugin:command`), so they use the chat input's own token alphabet, which
+ * accepts colons, rather than the stricter skill-name check.
+ */
+export function getPluginCommands(commands: PluginCommandSource[] = []): SlashCommand[] {
+	return commands
+		.filter((command) => /^[a-zA-Z0-9_.@-]+:[a-zA-Z0-9_.@-]+$/.test(command.name))
+		.map((command) => ({
+			name: command.name,
+			description: command.description || command.name,
+			section: "custom",
+		}))
+}
+
 export function getSkillCommands(skills: SkillCommandSource[] = []): SlashCommand[] {
 	return skills
 		.filter((skill) => skill.enabled && isSlashSafeName(skill.name))
@@ -146,6 +166,7 @@ function collectSlashCommands(
 	mcpServers: McpServer[],
 	provider: string | undefined,
 	skills: SkillCommandSource[],
+	pluginCommands: PluginCommandSource[] = [],
 ): SlashCommand[] {
 	const workflowCommands = getWorkflowCommands(
 		localWorkflowToggles,
@@ -159,6 +180,7 @@ function collectSlashCommands(
 		...workflowCommands,
 		...getMcpPromptCommands(mcpServers),
 		...getSkillCommands(skills),
+		...getPluginCommands(pluginCommands),
 		...getMcpServerCommands(mcpServers),
 	]
 }
@@ -252,6 +274,7 @@ export function getMatchingSlashCommands(
 	mcpServers: McpServer[] = [],
 	provider?: string,
 	skills: SkillCommandSource[] = [],
+	pluginCommands: PluginCommandSource[] = [],
 ): SlashCommand[] {
 	const allCommands = collectSlashCommands(
 		localWorkflowToggles,
@@ -261,6 +284,7 @@ export function getMatchingSlashCommands(
 		mcpServers,
 		provider,
 		skills,
+		pluginCommands,
 	)
 
 	if (!query) {
@@ -307,6 +331,7 @@ export function validateSlashCommand(
 	mcpServers: McpServer[] = [],
 	provider?: string,
 	skills: SkillCommandSource[] = [],
+	pluginCommands: PluginCommandSource[] = [],
 ): "full" | "partial" | null {
 	if (!command) {
 		return null
@@ -320,6 +345,7 @@ export function validateSlashCommand(
 		mcpServers,
 		provider,
 		skills,
+		pluginCommands,
 	)
 
 	// case insensitive matching

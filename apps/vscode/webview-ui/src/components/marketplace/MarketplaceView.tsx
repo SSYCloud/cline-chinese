@@ -93,11 +93,7 @@ const PRIMITIVES: PrimitiveConfig[] = [
 	},
 ]
 
-// Plugins are hidden in the extension until the hub can manage the plugin process
-// (see https://github.com/SSYCloud/cline-chinese/pull/12522). MCP servers and skills are unaffected.
-const HIDDEN_PRIMITIVE_TYPES: ReadonlySet<PrimitiveType> = new Set(["plugin"])
-
-const VISIBLE_PRIMITIVES = PRIMITIVES.filter((primitive) => !HIDDEN_PRIMITIVE_TYPES.has(primitive.type))
+const VISIBLE_PRIMITIVES = PRIMITIVES
 
 const MARKETPLACE_SECTIONS: Array<{ type: MarketplaceSectionType; label: string }> = [
 	{ type: "installed", label: "已安装" },
@@ -120,10 +116,15 @@ function getPrimitive(type: PrimitiveType): PrimitiveConfig {
 	return PRIMITIVES.find((primitive) => primitive.type === type) ?? PRIMITIVES[0]
 }
 
+const CLAUDE_CODE_PLUGIN_SOURCE = "claude-code"
+const CLINE_CLAUDE_PLUGIN_SOURCE = "cline-claude"
+
 function sourceLabel(entry: MarketplaceLocalInstalledEntry): string | undefined {
 	if (entry.source === "global") return "全局"
 	if (entry.source === "workspace") return "工作区"
 	if (entry.source === "remote") return "远程"
+	if (entry.source === CLAUDE_CODE_PLUGIN_SOURCE) return "Claude Code"
+	if (entry.source === CLINE_CLAUDE_PLUGIN_SOURCE) return "Cline"
 	return undefined
 }
 
@@ -975,6 +976,10 @@ const LocalInstalledRow = ({
 }) => {
 	const origin = sourceLabel(entry)
 	const canUninstall = !(entry.type === "skill" && entry.path?.startsWith("remote:"))
+	const isClaudeCodePlugin = entry.type === "plugin" && entry.source === CLAUDE_CODE_PLUGIN_SOURCE
+	const uninstallTitle = isClaudeCodePlugin
+		? `从 Cline 移除 ${entry.name || entry.id}（Claude Code 中的安装保留）`
+		: `卸载 ${entry.name || entry.id}`
 	return (
 		<div className="marketplace-row">
 			<div className="marketplace-row-main">
@@ -1000,7 +1005,7 @@ const LocalInstalledRow = ({
 					className="marketplace-icon-button marketplace-icon-button-danger"
 					disabled={uninstalling || !canUninstall}
 					onClick={() => onUninstall(entry)}
-					title={canUninstall ? `卸载 ${entry.name || entry.id}` : "远程管理的 skills 无法在此卸载"}
+					title={canUninstall ? uninstallTitle : "远程管理的 skills 无法在此卸载"}
 					type="button">
 					{uninstalling ? (
 						<LoaderCircleIcon aria-hidden className="marketplace-icon-spin" />

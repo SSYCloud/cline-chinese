@@ -1,4 +1,4 @@
-import type { AvailableRuntimeCommand } from "@cline/core"
+import type { AvailableRuntimeCommand, ClaudePluginSlashCommand } from "@cline/core"
 import { MCP_SERVER_COMMAND_PREFIX, SKILL_COMMAND_PREFIX } from "@/shared/slashCommands"
 
 /**
@@ -337,4 +337,31 @@ export function buildDisabledWorkflowNames(options: BuildDisabledWorkflowNamesOp
 		}
 	}
 	return disabled
+}
+
+/**
+ * Expand a typed Claude plugin command. The template replaces the token, and
+ * `$ARGUMENTS` takes the rest of that same line. Text after the line break is
+ * kept as the user typed it. Returns the text unchanged when no Claude command
+ * matches the typed name.
+ */
+export function expandClaudePluginSlashCommands(text: string, commands: readonly ClaudePluginSlashCommand[]): string {
+	if (!text.includes("/") || commands.length === 0) {
+		return text
+	}
+	for (const match of text.matchAll(SLASH_COMMAND_TOKEN_REGEX)) {
+		const typedName = match[2].slice(1)
+		const command = commands.find((candidate) => candidate.name === typedName)
+		if (!command) {
+			continue
+		}
+		const start = (match.index ?? 0) + match[1].length
+		const end = start + match[2].length
+		const lineEnd = text.indexOf("\n", end)
+		const sameLine = lineEnd === -1 ? text.slice(end) : text.slice(end, lineEnd)
+		const following = lineEnd === -1 ? "" : text.slice(lineEnd)
+		const body = command.template.split("$ARGUMENTS").join(sameLine.trim())
+		return text.slice(0, start) + body + following
+	}
+	return text
 }

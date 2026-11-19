@@ -10,9 +10,12 @@ import {
 	disablePluginMcpServersInSettings,
 	discoverPluginModulePaths,
 	getPluginDisplayName,
+	installClaudePlugin,
 	installMcpServer,
 	installPlugin,
 	isMarketplaceSkillInstalled,
+	listClaudeMarketplaceCatalog,
+	listClaudePluginInventory,
 	loadMarketplaceCatalog,
 	type MarketplaceActionResult,
 	type MarketplaceEntryInput,
@@ -21,6 +24,7 @@ import {
 	readGlobalSettings,
 	resolvePluginConfigSearchPaths,
 	SKILLS_CLI_PACKAGE,
+	setClaudePluginEnabled,
 	setDisabledPlugin,
 	syncPluginMcpServersToSettings,
 	uninstallMarketplaceEntry as uninstallCoreMarketplaceEntry,
@@ -131,15 +135,43 @@ function sanitizeEntry(raw: unknown): MarketplaceEntry | undefined {
 	})
 }
 
+export const CLAUDE_CODE_CATALOG_INSTALL_COMMAND = "claude-code"
+const CLAUDE_CODE_ENTRY_ID_PREFIX = "claude:"
+
+async function fetchClaudeCodeCatalogEntries(): Promise<MarketplaceEntry[]> {
+	try {
+		const catalog = await listClaudeMarketplaceCatalog()
+		return catalog.available.map((plugin) =>
+			MarketplaceEntry.create({
+				id: `${CLAUDE_CODE_ENTRY_ID_PREFIX}${plugin.pluginId}`,
+				type: "plugin",
+				name: plugin.name,
+				description: plugin.description,
+				author: plugin.marketplaceName,
+				install: {
+					args: [plugin.pluginId],
+					env: [],
+					command: CLAUDE_CODE_CATALOG_INSTALL_COMMAND,
+				},
+			}),
+		)
+	} catch (error) {
+		// Claude Code may be absent or offline; the Cline catalog must still load.
+		Logger.warn("Skipping Claude Code plugin marketplace:", error)
+		return []
+	}
+}
+
 export async function fetchMarketplaceCatalog(): Promise<MarketplaceCatalog> {
 	const json = await loadMarketplaceCatalog({
 		onPrioritySourceError: (source, error) => Logger.warn(`Skipping priority marketplace catalog ${source}:`, error),
 	})
-	const entries = (Array.isArray(json.entries) ? json.entries : [])
+	const clineEntries = (Array.isArray(json.entries) ? json.entries : [])
 		.map(sanitizeEntry)
 		.filter((entry): entry is MarketplaceEntry => entry !== undefined)
 	// Cloud SkillBots use their dedicated channel and local pins, never the package installer.
-	return MarketplaceCatalog.create({ entries })
+	const claudeEntries = await fetchClaudeCodeCatalogEntries()
+	return MarketplaceCatalog.create({ entries: [...clineEntries, ...claudeEntries] })
 }
 
 function normalizeMatchValue(value: string | undefined): string {
@@ -208,7 +240,7 @@ function sanitizeSegment(value: string): string {
 }
 
 function isOfficialPluginInstalled(entry: MarketplaceEntry): boolean {
-	if (entry.type !== "plugin") return false
+	if (entry.type !== "plugin" || getPluginRepoSource(entry)) return false
 	const [source] = getEntryArgs(entry)
 	if (!source || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(source.trim())) return false
 	const sourceKey = `official:${OFFICIAL_PLUGINS_REPO}#plugins/${source.trim()}`
@@ -273,7 +305,8 @@ export function listInstalledMarketplaceEntries(
 				(entry) =>
 					isMcpInstalled(controller, entry) ||
 					isSkillInstalled(entry, loomLoomListingIds) ||
-					isOfficialPluginInstalled(entry),
+					isOfficialPluginInstalled(entry) ||
+					isClineClaudePluginInstalled(entry),
 			)
 			.map(marketplaceKey),
 	})
@@ -399,10 +432,21 @@ function installMcpMarketplaceEntry(entry: MarketplaceEntry, args: string[]): Ma
 	})
 }
 
+const PLAIN_GITHUB_REPO_PATTERN = /^https:\/\/github\.com\/[^/]+\/[^/]+?(?:\.git)?\/?$/
+
+function getPluginRepoSource(entry: MarketplaceEntry): string | undefined {
+	const repo = entry.sourceUrl?.trim()
+	return repo && PLAIN_GITHUB_REPO_PATTERN.test(repo) ? repo : undefined
+}
+
+function getPluginInstallSource(entry: MarketplaceEntry, args: string[]): string {
+	const [slug] = args
+	if (!slug) throw new Error("Marketplace plugin install args must start with a plugin source.")
+	return getPluginRepoSource(entry) ?? slug
+}
+
 async function installPluginMarketplaceEntry(entry: MarketplaceEntry, args: string[]): Promise<MarketplaceInstallResult> {
-	const [source] = args
-	if (!source) throw new Error("Marketplace plugin install args must start with a plugin source.")
-	const result = await installPlugin({ source })
+	const result = await installPlugin({ source: getPluginInstallSource(entry, args) })
 	const warnings = result.mcpSyncFailures.map(
 		(failure) => `Failed to sync plugin MCP servers for ${failure.pluginName ?? failure.pluginPath}: ${failure.message}`,
 	)
@@ -449,9 +493,27 @@ async function installSkillMarketplaceEntry(entry: MarketplaceEntry, args: strin
 	})
 }
 
+async function installClaudeCodePluginEntry(entry: MarketplaceEntry, args: string[]): Promise<MarketplaceInstallResult> {
+	const [pluginId] = args
+	const outcome = await installClaudePlugin(pluginId)
+	if (!outcome.installed) {
+		throw new Error(`Could not install ${entry.name || pluginId}: ${outcome.message}`)
+	}
+	return MarketplaceInstallResult.create({
+		id: entry.id,
+		type: entry.type,
+		status: "installed",
+		message: `Installed ${entry.name || pluginId} with Claude Code.`,
+		output: outcome.message,
+	})
+}
+
 export async function installMarketplaceEntryFromCatalog(entry: MarketplaceEntry): Promise<MarketplaceInstallResult> {
 	const args = getEntryArgs(entry)
 	if (args.length === 0) throw new Error("Marketplace install args are required.")
+	if (entry.install?.command === CLAUDE_CODE_CATALOG_INSTALL_COMMAND) {
+		return installClaudeCodePluginEntry(entry, args)
+	}
 	if (entry.type === "mcp") return installMcpMarketplaceEntry(entry, args)
 	if (entry.type === "plugin") return installPluginMarketplaceEntry(entry, args)
 	return installSkillMarketplaceEntry(entry, args)
@@ -525,11 +587,53 @@ function isGlobalClinePath(filePath: string | undefined): boolean {
 	return [resolveClineHome(), join(homedir(), ".agents", "skills")].some((root) => isPathWithin(root, filePath))
 }
 
+export const CLAUDE_CODE_PLUGIN_SOURCE = "claude-code"
+export const CLINE_CLAUDE_PLUGIN_SOURCE = "cline-claude"
+
+function clineClaudePluginInstallRoot(): string {
+	return join(resolveClineHome(), "plugins", "_installed", "claude")
+}
+
+function readClaudePluginManifestName(pluginRoot: string): string | undefined {
+	try {
+		const manifest = JSON.parse(fs.readFileSync(join(pluginRoot, ".claude-plugin", "plugin.json"), "utf8")) as {
+			name?: unknown
+		}
+		return typeof manifest.name === "string" ? manifest.name : undefined
+	} catch {
+		return undefined
+	}
+}
+
+function isClineClaudePluginInstalled(entry: MarketplaceEntry): boolean {
+	if (entry.type !== "plugin") return false
+	const installRoot = clineClaudePluginInstallRoot()
+	if (!existsSync(installRoot)) return false
+	return fs.readdirSync(installRoot).some((name) => readClaudePluginManifestName(join(installRoot, name)) === entry.id)
+}
+
+async function listClaudeCodePluginLocalEntries(workspacePath: string | undefined): Promise<MarketplaceLocalInstalledEntry[]> {
+	const inventory = await listClaudePluginInventory({ cwd: workspacePath })
+	return inventory.map((plugin) =>
+		MarketplaceLocalInstalledEntry.create({
+			id: plugin.rootPath,
+			type: "plugin",
+			name: plugin.manifest.name,
+			description: plugin.manifest.description,
+			path: plugin.rootPath,
+			source: isPathWithin(clineClaudePluginInstallRoot(), plugin.rootPath)
+				? CLINE_CLAUDE_PLUGIN_SOURCE
+				: CLAUDE_CODE_PLUGIN_SOURCE,
+			enabled: plugin.enabled,
+		}),
+	)
+}
+
 async function listPluginLocalEntries(): Promise<MarketplaceLocalInstalledEntry[]> {
 	const workspacePath = HostProvider.isInitialized() ? (await HostProvider.workspace.getWorkspacePaths({})).paths[0] : undefined
 	const roots = resolvePluginConfigSearchPaths(workspacePath).filter((directory) => existsSync(directory))
 	const disabledPlugins = new Set(readGlobalSettings().disabledPlugins ?? [])
-	const entries: MarketplaceLocalInstalledEntry[] = []
+	const entries: MarketplaceLocalInstalledEntry[] = [...(await listClaudeCodePluginLocalEntries(workspacePath))]
 	for (const root of roots) {
 		for (const pluginPath of discoverPluginModulePaths(root)) {
 			entries.push(
@@ -654,7 +758,10 @@ export async function toggleLocalMarketplaceInstalledEntry(
 		return listLocalMarketplaceInstalledEntries(controller)
 	}
 	if (entry.type === "plugin") {
-		await togglePluginLocalEntry(controller, entry, enabled)
+		if (entry.source === CLAUDE_CODE_PLUGIN_SOURCE || entry.source === CLINE_CLAUDE_PLUGIN_SOURCE) {
+		} else {
+			await togglePluginLocalEntry(controller, entry, enabled)
+		}
 		await controller.invalidateUserInstructionService()
 		return listLocalMarketplaceInstalledEntries(controller)
 	}
@@ -696,6 +803,16 @@ export async function uninstallLocalMarketplaceInstalledEntry(
 			type: entry.type,
 			status: "uninstalled",
 			message: `Uninstalled ${name || entry.id}.`,
+		})
+	}
+	if (entry.type === "plugin" && entry.source === CLAUDE_CODE_PLUGIN_SOURCE) {
+		setClaudePluginEnabled(name, false)
+		await controller.invalidateUserInstructionService()
+		return MarketplaceInstallResult.create({
+			id: entry.id,
+			type: entry.type,
+			status: "uninstalled",
+			message: `Removed ${name} from Cline. Claude Code still has it installed; its files were not deleted.`,
 		})
 	}
 	if (entry.type === "plugin") {

@@ -13,6 +13,7 @@ import {
 	ensureChatWorkspace,
 	findCheckpointForRun,
 	getProviderAuthStorageId,
+	listClaudePluginSlashCommands,
 	loadRulesForSystemPromptFromRecords,
 	type PreparedRemoteConfigCoreIntegration,
 	type RuleConfig,
@@ -125,7 +126,7 @@ import {
 } from "./sdk-user-message-mapping"
 import { readCurrentMessages } from "./session-host"
 import { ShengSuanYunAccountService } from "./shengsuanyun-account-service"
-import { buildDisabledWorkflowNames, expandSlashCommands } from "./slash-command-expansion"
+import { buildDisabledWorkflowNames, expandClaudePluginSlashCommands, expandSlashCommands } from "./slash-command-expansion"
 import { StatePostDebouncer } from "./state-post-debouncer"
 import { createTaskProxy, type TaskProxy } from "./task-proxy"
 import { syncTelemetrySettingFromSharedGlobalSettings } from "./telemetry-settings-sync"
@@ -1285,9 +1286,29 @@ export class Controller {
 	 * and honors the user's workflow enable/disable toggles. Returns the input
 	 * unchanged if no known command matches or expansion fails.
 	 */
+	/**
+	 * Claude plugin commands are resolved before Cline's own workflow lookup and
+	 * are not gated by it, so a failure in that lookup cannot leave a plugin
+	 * command unexpanded.
+	 */
+	private async expandClaudePluginCommands(text: string): Promise<string> {
+		try {
+			const workspaceRoot = await this.getWorkspaceRoot()
+			const commands = await listClaudePluginSlashCommands({ cwd: workspaceRoot })
+			return expandClaudePluginSlashCommands(text, commands)
+		} catch (error) {
+			Logger.warn("[SdkController] Claude plugin command resolution failed, using raw text:", error)
+			return text
+		}
+	}
+
 	private async resolveSlashCommands(text: string): Promise<string> {
 		if (this.isDisposed) {
 			return text
+		}
+		const claudePluginExpanded = await this.expandClaudePluginCommands(text)
+		if (claudePluginExpanded !== text) {
+			return claudePluginExpanded
 		}
 		try {
 			const workspaceRoot = await this.getWorkspaceRoot()
