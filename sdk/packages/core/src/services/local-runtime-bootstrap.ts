@@ -23,6 +23,12 @@ import {
 	type AgentPluginPackageDiagnostic,
 	loadAgentPluginPackages,
 } from "../extensions/agent-plugin";
+import {
+	type ClaudePluginDiagnostic,
+	type ClaudePluginLoadReport,
+	createClaudePluginExtension,
+	loadClaudePlugins,
+} from "../extensions/claude-plugin";
 import type { ConnectorsRequest } from "../extensions/composio/composio-meta-tools";
 import { createComposioToolsExtension } from "../extensions/composio/composio-tools-extension";
 import {
@@ -123,6 +129,19 @@ function logAgentPluginDiagnostics(
 			`[agent-plugins] ${item.pluginName ?? item.pluginPath}${component}: ${item.message}`,
 			{ severity: item.level === "warning" ? "warn" : "error" },
 		);
+	}
+}
+
+function logClaudePluginDiagnostics(
+	diagnostics: ReadonlyArray<ClaudePluginDiagnostic>,
+	logger: BasicLogger | undefined,
+): void {
+	for (const item of diagnostics) {
+		const subject = item.pluginName ?? item.pluginPath;
+		const location = item.componentPath ? ` (${item.componentPath})` : "";
+		logger?.log(`[claude-plugins] ${subject}: ${item.message}${location}`, {
+			severity: item.level === "warning" ? "warn" : "error",
+		});
 	}
 }
 
@@ -538,6 +557,38 @@ export async function prepareLocalRuntimeBootstrap(
 		}
 	}
 
+	let loadedClaudePlugins: ClaudePluginLoadReport | undefined;
+	if (hasConfigExtension(configExtensions, "plugins")) {
+		try {
+			const disabledPluginNames = [...resolveDisabledAgentPluginNames()];
+			loadedClaudePlugins = await loadClaudePlugins({
+				pluginPaths: input.config.agentPluginPaths,
+				cwd: input.config.cwd,
+				disabledPluginNames,
+				reservedPluginNames: (loadedAgentPluginPackages?.plugins ?? []).map(
+					(plugin) => plugin.manifest.name,
+				),
+			});
+			logClaudePluginDiagnostics(
+				loadedClaudePlugins.diagnostics,
+				extensionContext.logger,
+			);
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			extensionContext.logger?.log(
+				`[claude-plugins] Plugin discovery failed; continuing without Claude Code plugins: ${message}`,
+				{ severity: "error" },
+			);
+		}
+	}
+	const claudePluginExtension = loadedClaudePlugins
+		? createClaudePluginExtension({
+				plugins: loadedClaudePlugins.plugins,
+				cwd: input.config.cwd,
+				logger: extensionContext.logger,
+			})
+		: undefined;
+
 	// Composio registers only search/connect/execute meta tools in-process,
 	// independently of persisted desktop connections. Compiled hosts cannot
 	// spawn the drop-in plugin sandbox.
@@ -555,7 +606,10 @@ export async function prepareLocalRuntimeBootstrap(
 		builtInExtensions,
 		mergeAgentExtensions(
 			localConfig?.extensions,
-			filterExtensionToolRegistrations(loadedPlugins?.extensions),
+			mergeAgentExtensions(
+				filterExtensionToolRegistrations(loadedPlugins?.extensions),
+				claudePluginExtension ? [claudePluginExtension] : undefined,
+			),
 		),
 	);
 	const pluginSkillDirectories = hasConfigExtension(configExtensions, "plugins")
@@ -646,8 +700,15 @@ export async function prepareLocalRuntimeBootstrap(
 			onSubAgentEnd: subAgentLifecycleCallbacks?.onSubAgentEnd,
 			userInstructionService: userInstructionService,
 			pluginSkillDirectories,
-			agentPluginSkills: loadedAgentPluginPackages?.skills,
-			agentPluginMcpServers: loadedAgentPluginPackages?.mcpServers,
+			agentPluginSkills: [
+				...(loadedAgentPluginPackages?.skills ?? []),
+				...(loadedClaudePlugins?.skills ?? []),
+			],
+			agentPluginMcpServers: [
+				...(loadedAgentPluginPackages?.mcpServers ?? []),
+				...(loadedClaudePlugins?.mcpServers ?? []),
+			],
+			claudePluginAgents: loadedClaudePlugins?.agents ?? [],
 			configExtensions: configExtensions,
 			toolExecutors: effectiveToolExecutors,
 			toolPolicies,

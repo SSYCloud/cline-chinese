@@ -1,9 +1,11 @@
 import { execFileSync } from "node:child_process";
 import {
 	existsSync,
+	mkdirSync,
 	mkdtempSync,
 	readFileSync,
 	rmSync,
+	symlinkSync,
 	writeFileSync,
 } from "node:fs";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -16,6 +18,7 @@ import {
 	setHomeDir,
 } from "@cline/shared/storage";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { loadClaudePlugins } from "../extensions/claude-plugin";
 import {
 	installPlugin,
 	isOfficialPluginSlug,
@@ -274,5 +277,158 @@ export default {
 
 		expect(second.installPath).toBe(first.installPath);
 		expect(existsSync(second.entryPaths[0] ?? "")).toBe(true);
+	});
+
+	describe("Claude Code plugins", () => {
+		function writeClaudePlugin(directory: string, name: string): void {
+			mkdirSync(join(directory, ".claude-plugin"), { recursive: true });
+			writeFileSync(
+				join(directory, ".claude-plugin", "plugin.json"),
+				JSON.stringify({ name, version: "1.0.0" }),
+				"utf8",
+			);
+			mkdirSync(join(directory, "skills", "hello"), { recursive: true });
+			writeFileSync(
+				join(directory, "skills", "hello", "SKILL.md"),
+				"---\nname: hello\ndescription: Greet the user\n---\nSay hello.\n",
+				"utf8",
+			);
+		}
+
+		it("installs a Claude Code plugin directory into the Claude install root without running npm", async () => {
+			const pluginDir = join(root, "demo-plugin");
+			writeClaudePlugin(pluginDir, "demo-plugin");
+			writeFileSync(
+				join(pluginDir, "package.json"),
+				JSON.stringify({ name: "demo-plugin", dependencies: { left: "1.0.0" } }),
+				"utf8",
+			);
+
+			const result = await installPlugin({
+				source: pluginDir,
+				npmCommand: join(root, "npm-that-does-not-exist"),
+			});
+
+			const claudeInstallRoot = join(
+				home,
+				".cline",
+				"plugins",
+				"_installed",
+				"claude",
+			);
+			expect(result.format).toBe("claude-code");
+			expect(result.installPath.startsWith(`${claudeInstallRoot}/demo-plugin-`)).toBe(true);
+			expect(
+				readFileSync(
+					join(result.installPath, ".claude-plugin", "plugin.json"),
+					"utf8",
+				),
+			).toContain('"name":"demo-plugin"');
+			expect(existsSync(join(result.installPath, "skills", "hello", "SKILL.md"))).toBe(true);
+			expect(result.entryPaths).toEqual([]);
+		});
+
+		it("installs the one Claude Code plugin a marketplace repository lists, not the repository root", async () => {
+			const repo = join(root, "marketplace-repo");
+			mkdirSync(join(repo, ".claude-plugin"), { recursive: true });
+			writeFileSync(
+				join(repo, ".claude-plugin", "marketplace.json"),
+				JSON.stringify({
+					name: "marketplace-repo",
+					plugins: [{ name: "demo-plugin", source: "./plugin" }],
+				}),
+				"utf8",
+			);
+			writeClaudePlugin(join(repo, "plugin"), "demo-plugin");
+			writeFileSync(join(repo, "package.json"), '{"name":"repo"}', "utf8");
+
+			const result = await installPlugin({ source: repo });
+
+			expect(result.format).toBe("claude-code");
+			expect(
+				existsSync(join(result.installPath, ".claude-plugin", "plugin.json")),
+			).toBe(true);
+			expect(existsSync(join(result.installPath, "plugin"))).toBe(false);
+			expect(existsSync(join(result.installPath, "package.json"))).toBe(false);
+		});
+
+		it("refuses a marketplace that lists several Claude Code plugins", async () => {
+			const repo = join(root, "multi-repo");
+			mkdirSync(join(repo, ".claude-plugin"), { recursive: true });
+			writeFileSync(
+				join(repo, ".claude-plugin", "marketplace.json"),
+				JSON.stringify({
+					plugins: [
+						{ name: "alpha", source: "./alpha" },
+						{ name: "beta", source: "./beta" },
+					],
+				}),
+				"utf8",
+			);
+			writeClaudePlugin(join(repo, "alpha"), "alpha");
+			writeClaudePlugin(join(repo, "beta"), "beta");
+
+			await expect(installPlugin({ source: repo })).rejects.toThrow(
+				/lists 2 Claude Code plugins \(alpha, beta\)/,
+			);
+		});
+
+		it("never installs a marketplace plugin whose source resolves outside the repository", async () => {
+			const repo = join(root, "escape-repo");
+			mkdirSync(join(repo, ".claude-plugin"), { recursive: true });
+			writeFileSync(
+				join(repo, ".claude-plugin", "marketplace.json"),
+				JSON.stringify({
+					plugins: [{ name: "outside", source: "./../outside-plugin" }],
+				}),
+				"utf8",
+			);
+			writeClaudePlugin(join(root, "outside-plugin"), "outside");
+
+			await expect(installPlugin({ source: repo })).rejects.toThrow(
+				/No Claude Code plugin is listed/,
+			);
+			expect(
+				existsSync(join(home, ".cline", "plugins", "_installed", "claude")),
+			).toBe(false);
+		});
+
+		it("does not copy a plugin that a repository symlinks to a directory outside it", async () => {
+			const repo = join(root, "symlink-repo");
+			mkdirSync(join(repo, ".claude-plugin"), { recursive: true });
+			writeFileSync(
+				join(repo, ".claude-plugin", "marketplace.json"),
+				JSON.stringify({ plugins: [{ name: "linked", source: "./linked" }] }),
+				"utf8",
+			);
+			const outside = join(root, "host-only-plugin");
+			writeClaudePlugin(outside, "host-only");
+			symlinkSync(outside, join(repo, "linked"), "dir");
+
+			await expect(installPlugin({ source: repo })).rejects.toThrow(
+				/No Claude Code plugin is listed/,
+			);
+			expect(
+				existsSync(join(home, ".cline", "plugins", "_installed", "claude")),
+			).toBe(false);
+		});
+
+		it("makes a plugin installed by the Cline installer visible to the Claude plugin loader", async () => {
+			const pluginDir = join(root, "loadable-plugin");
+			writeClaudePlugin(pluginDir, "loadable-plugin");
+			await installPlugin({ source: pluginDir });
+
+			const report = await loadClaudePlugins({
+				cwd: workspace,
+				pluginDataRoot: join(root, "plugin-data"),
+			});
+
+			expect(report.plugins.map((plugin) => plugin.manifest.name)).toEqual([
+				"loadable-plugin",
+			]);
+			expect(
+				report.plugins[0]?.skills.map((skill) => skill.metadata.name),
+			).toEqual(["hello"]);
+		});
 	});
 });

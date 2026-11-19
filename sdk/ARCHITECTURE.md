@@ -672,6 +672,7 @@ Design implications:
 - `extensions/config`: config loaders, parsers, watchers, and watcher projections such as runtime slash-command expansion
 - `extensions/plugin`: runtime plugin discovery, loading, the plugin registry, the worker/subprocess sandbox transports, and their shared bootstrap
 - `extensions/context`: core-owned context/message pipeline concerns such as compaction
+- `extensions/claude-plugin`: the Claude Code plugin adapter. It reads `.claude-plugin/plugin.json` and translates skills, MCP servers, commands, and hooks into the native Agent Plugin pipes and one `AgentExtension`. Claude-specific formats, the hook stdin/stdout protocol, and tool-name aliasing stay inside this folder. The bootstrap only calls `loadClaudePlugins` and `createClaudePluginExtension`.
 
 Design implications:
 

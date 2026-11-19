@@ -17,6 +17,7 @@ import type {
 } from "../../extensions/agent-plugin";
 import type { UserInstructionConfigService } from "../../extensions/config";
 import type { McpAppsRuntime } from "../../extensions/mcp";
+import type { ConfiguredAgentConfig } from "../../extensions/tools/team/configured-agent-config";
 import type {
 	RunCommandExecutionController,
 	ToolExecutors,
@@ -78,6 +79,7 @@ export interface RuntimeBuilderInput {
 	userInstructionService?: UserInstructionConfigService;
 	pluginSkillDirectories?: ReadonlyArray<string>;
 	agentPluginSkills?: ReadonlyArray<AgentPluginPackageSkill>;
+	claudePluginAgents?: ReadonlyArray<ConfiguredAgentConfig>;
 	agentPluginMcpServers?: ReadonlyArray<AgentPluginPackageMcpServer>;
 	configExtensions?: RuntimeConfigExtensionKind[];
 	toolExecutors?: Partial<ToolExecutors>;

@@ -47,7 +47,10 @@ import {
 	createDelegatedAgentConfigProvider,
 	type TeamEvent,
 } from "../../extensions/tools/team";
-import type { ConfiguredAgentConfig } from "../../extensions/tools/team/configured-agent-config";
+import type {
+	ConfiguredAgentConfig,
+	ConfiguredAgentLoadResult,
+} from "../../extensions/tools/team/configured-agent-config";
 import { loadConfiguredAgentConfigs } from "../../extensions/tools/team/configured-agent-config";
 import { createConfiguredAgentTools } from "../../extensions/tools/team/configured-agent-tool";
 import { createUxVerifierTool } from "../../extensions/tools/team/ux-verification";
@@ -119,6 +122,29 @@ const CONFIGURED_AGENT_TOOL_NAME_ALIASES: Record<string, string> = {
 function resolveConfiguredAgentToolName(toolName: string): string {
 	const normalized = toolName.trim().toLowerCase();
 	return CONFIGURED_AGENT_TOOL_NAME_ALIASES[normalized] ?? normalized;
+}
+
+/**
+ * Claude Code plugin agents join the workspace agents as one list. A workspace
+ * agent keeps its name when both define the same one, so a repository's own
+ * configuration is never shadowed by an installed plugin.
+ */
+function withClaudePluginAgents(
+	loaded: ConfiguredAgentLoadResult,
+	pluginAgents: ReadonlyArray<ConfiguredAgentConfig> = [],
+): ConfiguredAgentLoadResult {
+	const claimedNames = new Set(
+		loaded.configs.map((agent) => agent.name.trim().toLowerCase()),
+	);
+	const added = pluginAgents.filter((agent) => {
+		const key = agent.name.trim().toLowerCase();
+		if (claimedNames.has(key)) {
+			return false;
+		}
+		claimedNames.add(key);
+		return true;
+	});
+	return { configs: [...loaded.configs, ...added], errors: loaded.errors };
 }
 
 function filterToolsForConfiguredAgent(
@@ -475,9 +501,12 @@ export class DefaultRuntimeBuilder implements RuntimeBuilder {
 		const effectiveTeamName = config.teamName?.trim() || createTeamName();
 		const teamStoreKey = config.sessionId?.trim() || effectiveTeamName;
 		const configuredAgents = normalized.enableSpawnAgent
-			? loadConfiguredAgentConfigs({
-					workspaceRoot: workspaceConfigRoot,
-				})
+			? withClaudePluginAgents(
+					loadConfiguredAgentConfigs({
+						workspaceRoot: workspaceConfigRoot,
+					}),
+					input.claudePluginAgents,
+				)
 			: { configs: [], errors: [] };
 		const configuredAgentsNeedSkills = configuredAgents.configs.some(
 			(agent) => agent.skills !== undefined,

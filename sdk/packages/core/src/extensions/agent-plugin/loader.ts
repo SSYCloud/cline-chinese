@@ -13,12 +13,13 @@ import {
 } from "node:path";
 import {
 	AGENT_PLUGIN_MANIFEST_FILE_NAME,
+	isClaudePluginDirectory,
 	resolveAgentPluginSearchPaths,
 	resolveClineDataDir,
 	SKILLS_CONFIG_DIRECTORY_NAME,
 } from "@cline/shared/storage";
 import type { McpServerRegistration, McpServerTransportConfig } from "../mcp";
-import { parseAgentSkillMarkdown } from "./agent-skill";
+import { type ParsedAgentSkill, parseAgentSkillMarkdown } from "./agent-skill";
 import type {
 	AgentPluginPackageDiagnostic,
 	AgentPluginPackageLoadReport,
@@ -91,7 +92,7 @@ async function resolveDirectory(path: string): Promise<string> {
 	return resolvedPath;
 }
 
-async function resolveContainedExistingPath(
+export async function resolveContainedExistingPath(
 	rootPath: string,
 	path: string,
 	expectedKind: "file" | "directory",
@@ -405,10 +406,14 @@ async function loadManifest(
 	};
 }
 
-async function loadSkills(
+export async function loadSkills(
 	pluginRoot: string,
 	pluginName: string,
 	diagnostics: AgentPluginPackageDiagnostic[],
+	parseSkill: (
+		content: string,
+		directoryName: string,
+	) => ParsedAgentSkill = parseAgentSkillMarkdown,
 ): Promise<AgentPluginPackageSkill[]> {
 	const candidatePath = join(pluginRoot, SKILLS_CONFIG_DIRECTORY_NAME);
 	let hasSkillsLocation: boolean;
@@ -536,10 +541,7 @@ async function loadSkills(
 		}
 
 		try {
-			const parsed = parseAgentSkillMarkdown(
-				await readFile(filePath, "utf8"),
-				entry.name,
-			);
+			const parsed = parseSkill(await readFile(filePath, "utf8"), entry.name);
 			skills.push({
 				pluginName,
 				pluginRoot,
@@ -620,7 +622,7 @@ function expandPluginVariables(
 	);
 }
 
-function resolvePluginDataPath(
+export function resolvePluginDataPath(
 	pluginDataRoot: string,
 	pluginName: string,
 	pluginRoot: string,
@@ -904,6 +906,29 @@ async function loadMcpServers(input: {
 		);
 		return [];
 	}
+	return resolveMcpServersFromDocument(document, {
+		componentPath: mcpPath,
+		pluginRoot: input.pluginRoot,
+		pluginName: input.pluginName,
+		pluginDataRoot: input.pluginDataRoot,
+		diagnostics: input.diagnostics,
+	});
+}
+/**
+ * Validate an already-parsed Agent Plugins MCP document and translate each server
+ * into a runtime registration. Shared with the Claude Code plugin adapter, which
+ * converts its `.mcp.json` into this document shape first.
+ */
+export async function resolveMcpServersFromDocument(
+	document: Record<string, unknown>,
+	input: {
+		componentPath: string;
+		pluginRoot: string;
+		pluginName: string;
+		pluginDataRoot: string;
+		diagnostics: AgentPluginPackageDiagnostic[];
+	},
+): Promise<AgentPluginPackageMcpServer[]> {
 	try {
 		assertExactFields(document, new Set(["$schema", "mcpServers"]), "mcp.json");
 		if (document.$schema !== AGENT_PLUGINS_V1_MCP_SCHEMA) {
@@ -920,7 +945,7 @@ async function loadMcpServers(input: {
 				scope: "mcp",
 				pluginPath: input.pluginRoot,
 				pluginName: input.pluginName,
-				componentPath: mcpPath,
+				componentPath: input.componentPath,
 				message: `Invalid Agent Plugin MCP component: ${errorMessage(error)}`,
 			}),
 		);
@@ -988,7 +1013,7 @@ async function loadMcpServers(input: {
 					scope: "mcp-server",
 					pluginPath: input.pluginRoot,
 					pluginName: input.pluginName,
-					componentPath: mcpPath,
+					componentPath: input.componentPath,
 					componentName: serverName,
 					message: `Skipping invalid Agent Plugin MCP server '${serverName}': ${errorMessage(error)}`,
 				}),
@@ -1005,6 +1030,14 @@ async function loadPackageManifest(
 	| Pick<LoadedAgentPluginPackage, "rootPath" | "manifestPath" | "manifest">
 	| undefined
 > {
+	if (
+		isClaudePluginDirectory(pluginRoot) &&
+		!(await pathLocationExists(
+			join(pluginRoot, AGENT_PLUGIN_MANIFEST_FILE_NAME),
+		))
+	) {
+		return undefined;
+	}
 	let loadedManifest: Awaited<ReturnType<typeof loadManifest>>;
 	try {
 		loadedManifest = await loadManifest(pluginRoot, diagnostics);

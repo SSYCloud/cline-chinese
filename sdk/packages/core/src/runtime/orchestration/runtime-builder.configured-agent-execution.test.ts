@@ -408,4 +408,55 @@ You are a reviewer.`,
 
 		await runtime.shutdown("test");
 	});
+
+	it("exposes Claude plugin agents as subagent tools and lets a same-named workspace agent take precedence", async () => {
+		const { DefaultRuntimeBuilder } = await import("./runtime-builder");
+		const tempHome = mkdtempSync(join(tmpdir(), "cline-plugin-agent-home-"));
+		const workspaceRoot = mkdtempSync(join(tmpdir(), "cline-plugin-agent-root-"));
+		tempDirs.push(tempHome, workspaceRoot);
+		process.env.HOME = tempHome;
+		setHomeDir(tempHome);
+
+		const agentsDir = join(workspaceRoot, ".cline", "agents");
+		mkdirSync(agentsDir, { recursive: true });
+		writeFileSync(
+			join(agentsDir, "planner.yml"),
+			`---
+name: demo:planner
+description: Workspace planner
+---
+Plan from the workspace.`,
+			"utf8",
+		);
+
+		const runtime = await new DefaultRuntimeBuilder().build({
+			config: makeBaseConfig({ cwd: workspaceRoot, workspaceRoot }),
+			configExtensions: [],
+			claudePluginAgents: [
+				{
+					name: "demo:planner",
+					description: "Plugin planner",
+					systemPrompt: "Plan from the plugin.",
+				},
+				{
+					name: "demo:review:audit",
+					description: "Finds auth gaps",
+					systemPrompt: "Audit auth.",
+				},
+			],
+		});
+
+		const plannerTools = runtime.tools.filter(
+			(tool) => tool.name === "subagent_demo_planner",
+		);
+		expect(plannerTools).toHaveLength(1);
+		expect(plannerTools[0]?.description).toContain("Workspace planner");
+
+		const auditTool = runtime.tools.find(
+			(tool) => tool.name === "subagent_demo_review_audit",
+		);
+		expect(auditTool?.description).toContain("Finds auth gaps");
+
+		await runtime.shutdown("test");
+	});
 });

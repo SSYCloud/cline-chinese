@@ -668,6 +668,48 @@ export function isAgentPluginDirectory(directoryPath: string): boolean {
 	}
 }
 
+/**
+ * Claude Code's plugin manifest location, relative to the plugin root. Plugins
+ * installed for Claude Code carry this manifest instead of `plugin.json`.
+ */
+export const CLAUDE_PLUGIN_MANIFEST_RELATIVE_PATH = join(
+	".claude-plugin",
+	AGENT_PLUGIN_MANIFEST_FILE_NAME,
+);
+
+export function isClaudePluginDirectory(directoryPath: string): boolean {
+	try {
+		return statSync(
+			join(directoryPath, CLAUDE_PLUGIN_MANIFEST_RELATIVE_PATH),
+		).isFile();
+	} catch {
+		return false;
+	}
+}
+
+/**
+ * Claude Code's plugin store root. Its `installed_plugins.json` registry records
+ * the exact install directory of every plugin Claude Code has installed.
+ */
+export function resolveClaudePluginStoreDir(): string {
+	return join(HOME_DIR, CLAUDE_CONFIG_DIR, PLUGINS_DIRECTORY_NAME);
+}
+
+export const CLAUDE_INSTALLED_PLUGINS_FILE_NAME = "installed_plugins.json";
+
+/**
+ * Where Claude Code keeps installed plugins. Like {@link resolveAgentPluginSearchPaths},
+ * these are host-wide roots only: a repository must not be able to activate
+ * plugins (and their hook commands) just by being opened.
+ */
+export function resolveClineClaudePluginInstallDir(): string {
+	return join(resolveClineDir(), "plugins", "_installed", "claude");
+}
+
+export function resolveClaudePluginSearchPaths(): string[] {
+	return [resolveClaudePluginStoreDir(), resolveClineClaudePluginInstallDir()];
+}
+
 interface PluginPackageManifest {
 	plugins?: PluginManifest[];
 }

@@ -273,6 +273,21 @@ export {
 	resolvePluginConfigSearchPaths,
 	resolvePluginSkillDirectoriesFromPaths,
 } from "./extensions";
+export {
+	type ClaudeAvailablePlugin,
+	type ClaudeCatalogSnapshot,
+	ClaudeCliError,
+	type ClaudeInstalledPluginRecord,
+	type ClaudePluginInstallOutcome,
+	type ClaudePluginInventoryEntry,
+	type ClaudePluginInventoryOptions,
+	type ClaudePluginSlashCommand,
+	installClaudePlugin,
+	listClaudeMarketplaceCatalog,
+	listClaudePluginInventory,
+	listClaudePluginSlashCommands,
+	setClaudePluginEnabled,
+} from "./extensions/claude-plugin";
 export type {
 	AvailableRuntimeCommand,
 	CreateInstructionWatcherOptions,

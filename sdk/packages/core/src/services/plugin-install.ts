@@ -6,19 +6,27 @@ import {
 	mkdirSync,
 	readdirSync,
 	readFileSync,
+	realpathSync,
 	renameSync,
 	rmSync,
 	statSync,
 } from "node:fs";
 import { cp, mkdir, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
-import { basename, dirname, extname, join, relative, resolve } from "node:path";
+import { basename, dirname, extname, join, relative, resolve, sep } from "node:path";
 import { toPosixSeparators } from "@cline/shared";
 import {
+	isClaudePluginDirectory,
 	isPluginModulePath,
+	resolveClineClaudePluginInstallDir,
 	resolveClineDir,
 	resolvePluginModuleEntries,
 } from "@cline/shared/storage";
+import {
+	isNativeAgentPluginDirectory,
+	readClaudePluginManifest,
+	resolvePluginDirectory,
+} from "../extensions/claude-plugin/manifest";
 import {
 	type McpServerRegistration,
 	resolveDefaultMcpSettingsPath,
@@ -44,6 +52,7 @@ export interface PluginInstallResult {
 	entryPaths: string[];
 	mcpSyncFailures: PluginMcpSettingsSyncResult["failures"];
 	mcpOAuthCandidates: PluginMcpOAuthCandidate[];
+	format?: "claude-code";
 }
 
 export interface PluginMcpOAuthCandidate {
@@ -800,7 +809,6 @@ async function installPackageDependencies(
 async function installGitPackage(
 	parsed: Extract<ParsedPluginSource, { type: "git" }>,
 	stagingRoot: string,
-	npmCommand: string,
 ): Promise<string> {
 	if (parsed.ref?.startsWith("-")) {
 		throw new Error(`Invalid git ref "${parsed.ref}".`);
@@ -828,7 +836,6 @@ async function installGitPackage(
 			cwd: packageRoot,
 		});
 	}
-	await installPackageDependencies(packageRoot, npmCommand);
 	return packageRoot;
 }
 
@@ -963,7 +970,6 @@ async function installLocalPackage(
 	parsed: Extract<ParsedPluginSource, { type: "local" }>,
 	stagingRoot: string,
 	cwd: string,
-	npmCommand: string,
 ): Promise<string> {
 	const absolutePath = resolve(cwd, resolveHomePath(parsed.path));
 	if (!existsSync(absolutePath)) {
@@ -992,8 +998,98 @@ async function installLocalPackage(
 			return name !== ".git" && name !== "node_modules";
 		},
 	});
-	await installPackageDependencies(packageRoot, npmCommand);
 	return packageRoot;
+}
+
+const CLAUDE_MARKETPLACE_RELATIVE_PATH = join(".claude-plugin", "marketplace.json");
+
+async function locateClaudePluginRoot(
+	packageRoot: string,
+): Promise<string | undefined> {
+	if (
+		isClaudePluginDirectory(packageRoot) &&
+		!isNativeAgentPluginDirectory(packageRoot)
+	) {
+		return packageRoot;
+	}
+	const marketplacePath = join(packageRoot, CLAUDE_MARKETPLACE_RELATIVE_PATH);
+	if (!existsSync(marketplacePath)) {
+		return undefined;
+	}
+	const document = JSON.parse(readFileSync(marketplacePath, "utf8")) as {
+		plugins?: unknown;
+	};
+	const plugins = Array.isArray(document.plugins) ? document.plugins : [];
+	const candidates: Array<{ name: string; root: string }> = [];
+	for (const plugin of plugins) {
+		if (!plugin || typeof plugin !== "object") {
+			continue;
+		}
+		const { name, source } = plugin as { name?: unknown; source?: unknown };
+		if (typeof source !== "string" || !source.startsWith("./")) {
+			continue;
+		}
+		const candidate = resolve(packageRoot, source);
+		if (!existsSync(candidate)) {
+			continue;
+		}
+		const root = realpathSync(candidate);
+		if (relative(realpathSync(packageRoot), root).split(sep)[0] === "..") {
+			continue;
+		}
+		if (
+			!isClaudePluginDirectory(root) ||
+			isNativeAgentPluginDirectory(root)
+		) {
+			continue;
+		}
+		candidates.push({
+			name: typeof name === "string" ? name : source,
+			root,
+		});
+	}
+	if (candidates.length === 0) {
+		throw new Error(
+			`No Claude Code plugin is listed in ${CLAUDE_MARKETPLACE_RELATIVE_PATH}.`,
+		);
+	}
+	if (candidates.length > 1) {
+		throw new Error(
+			`The repository lists ${candidates.length} Claude Code plugins (${candidates.map((candidate) => candidate.name).join(", ")}); point the install at the directory of the one you want.`,
+		);
+	}
+	return candidates[0].root;
+}
+
+async function installClaudeCodePlugin(input: {
+	source: string;
+	sourceKey: string;
+	claudePluginRoot: string;
+	stagingRoot: string;
+	force: boolean;
+}): Promise<PluginInstallResult> {
+	const claudePluginRoot = await resolvePluginDirectory(input.claudePluginRoot);
+	const { manifest } = await readClaudePluginManifest(claudePluginRoot);
+	const installPath = join(
+		resolveClineClaudePluginInstallDir(),
+		`${sanitizeSegment(manifest.name)}-${hashSource(input.sourceKey)}`,
+	);
+	assertCanInstall(installPath, input.force);
+	const pluginStaging = `${input.stagingRoot}-plugin`;
+	await cp(claudePluginRoot, pluginStaging, {
+		recursive: true,
+		filter: (sourcePath) => basename(sourcePath) !== ".git",
+	});
+	rmSync(input.stagingRoot, { recursive: true, force: true });
+	replaceInstallPath(pluginStaging, installPath, input.force);
+	return {
+		source: input.source,
+		installPath,
+		entryPaths: [],
+		mcpSyncFailures: [],
+		mcpOAuthCandidates: [],
+		format: "claude-code",
+	};
 }
 
 function assertCanInstall(targetPath: string, force: boolean): void {
@@ -1148,7 +1244,7 @@ export async function installPlugin(
 		if (parsed.type === "npm") {
 			packageRoot = await installNpmPackage(parsed, stagingRoot, npmCommand);
 		} else if (parsed.type === "git") {
-			packageRoot = await installGitPackage(parsed, stagingRoot, npmCommand);
+			packageRoot = await installGitPackage(parsed, stagingRoot);
 		} else if (parsed.type === "official") {
 			packageRoot = await installOfficialPlugin(
 				parsed,
@@ -1159,12 +1255,21 @@ export async function installPlugin(
 		} else if (parsed.type === "remote") {
 			packageRoot = await installRemoteFile(parsed, stagingRoot);
 		} else {
-			packageRoot = await installLocalPackage(
-				parsed,
-				stagingRoot,
-				cwd,
-				npmCommand,
-			);
+			packageRoot = await installLocalPackage(parsed, stagingRoot, cwd);
+		}
+
+		if (parsed.type === "git" || parsed.type === "local") {
+			const claudePluginRoot = await locateClaudePluginRoot(packageRoot);
+			if (claudePluginRoot) {
+				return await installClaudeCodePlugin({
+					source,
+					sourceKey,
+					claudePluginRoot,
+					stagingRoot,
+					force,
+				});
+			}
+			await installPackageDependencies(packageRoot, npmCommand);
 		}
 
 		const entryPaths =
