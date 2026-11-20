@@ -15,10 +15,23 @@ const mocks = vi.hoisted(() => ({
 	getOrganizationCredits: vi.fn(),
 	getUserOrganizations: vi.fn(),
 	subscribeToAuthStatusUpdate: vi.fn(),
+	accountLoginClicked: vi.fn(),
+	shengSuanYunLoginClicked: vi.fn(),
+	shengSuanYunUserData: vi.fn(),
+	getPersonalProjects: vi.fn(),
+	getEnterpriseAccounts: vi.fn(),
+	userInfo: undefined as { uid: string; displayName: string; email: string; balance: number } | undefined,
+	setUserInfo: vi.fn(),
 }))
 
 vi.mock("@/context/ExtensionStateContext", () => ({
-	useExtensionState: () => ({ remoteConfigSettings: {}, environment: "production", cloudSessionsEnabled: false }),
+	useExtensionState: () => ({
+		remoteConfigSettings: {},
+		environment: "production",
+		cloudSessionsEnabled: false,
+		userInfo: mocks.userInfo,
+		setUserInfo: mocks.setUserInfo,
+	}),
 }))
 
 vi.mock("@/hooks/useClinePassPromo", () => ({
@@ -32,6 +45,11 @@ vi.mock("@/services/grpc-client", () => ({
 		getOrganizationCredits: mocks.getOrganizationCredits,
 		getUserOrganizations: mocks.getUserOrganizations,
 		subscribeToAuthStatusUpdate: mocks.subscribeToAuthStatusUpdate,
+		accountLoginClicked: mocks.accountLoginClicked,
+		shengSuanYunLoginClicked: mocks.shengSuanYunLoginClicked,
+		shengSuanYunUserData: mocks.shengSuanYunUserData,
+		getPersonalProjects: mocks.getPersonalProjects,
+		getEnterpriseAccounts: mocks.getEnterpriseAccounts,
 	},
 	StateServiceClient: { updateSettings: vi.fn() },
 }))
@@ -41,8 +59,8 @@ vi.mock("@vscode/webview-ui-toolkit/react", () => ({
 	VSCodeButton: ({ children, ...props }: any) => <button {...props}>{children}</button>,
 	VSCodeDivider: () => <hr />,
 	VSCodeTag: ({ children }: any) => <span>{children}</span>,
-	VSCodeDropdown: ({ currentValue, disabled, onChange, children }: any) => (
-		<select aria-label="Account" disabled={disabled} onChange={onChange} value={currentValue}>
+	VSCodeDropdown: ({ currentValue, disabled, onChange, children, ...props }: any) => (
+		<select aria-label={props["aria-label"]} disabled={disabled} onChange={onChange} value={currentValue}>
 			{children}
 		</select>
 	),
@@ -87,6 +105,7 @@ async function renderAccount() {
 describe("AccountView organization switch", () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
+		mocks.userInfo = undefined
 		mocks.getUserCredits.mockResolvedValue({ balance: { currentBalance: 1 }, usageTransactions: [], paymentTransactions: [] })
 		mocks.getOrganizationCredits.mockResolvedValue({ balance: { currentBalance: 2 }, usageTransactions: [] })
 		mocks.getUserOrganizations.mockResolvedValue({ organizations: [organization] })
@@ -192,5 +211,107 @@ describe("AccountView organization switch", () => {
 		await waitFor(() => expect(screen.getByLabelText("Account")).not.toBeDisabled())
 		expect(screen.getByLabelText("Account")).toHaveValue(organization.organizationId)
 		expect(screen.getByRole("alert")).toHaveTextContent("Could not confirm the active account")
+	})
+})
+
+const ssyUser = { uid: "ssy-1", displayName: "胜算用户", email: "ssy@example.com", balance: 12.5 }
+
+function ConnectedAccountSwitcher() {
+	const { clineUser, organizations, activeOrganization } = useClineAuth()
+	return (
+		<AccountView
+			activeOrganization={activeOrganization}
+			clineUser={clineUser}
+			onDone={vi.fn()}
+			organizations={organizations}
+		/>
+	)
+}
+
+function renderSwitcher() {
+	return render(
+		<ClineAuthProvider>
+			<ConnectedAccountSwitcher />
+		</ClineAuthProvider>,
+	)
+}
+
+describe("AccountView account type switcher", () => {
+	beforeEach(() => {
+		vi.clearAllMocks()
+		mocks.userInfo = undefined
+		mocks.getUserCredits.mockResolvedValue({ balance: { currentBalance: 1 }, usageTransactions: [], paymentTransactions: [] })
+		mocks.getOrganizationCredits.mockResolvedValue({ balance: { currentBalance: 2 }, usageTransactions: [] })
+		mocks.getUserOrganizations.mockResolvedValue({ organizations: [organization] })
+		mocks.subscribeToAuthStatusUpdate.mockImplementation((_request, callbacks) => {
+			callbacks.onResponse({ user })
+			return vi.fn()
+		})
+		mocks.shengSuanYunUserData.mockResolvedValue({ usageTransactions: [], paymentTransactions: [], user: undefined })
+		mocks.getPersonalProjects.mockResolvedValue({ projects: [] })
+		mocks.getEnterpriseAccounts.mockResolvedValue({ accounts: [] })
+		mocks.accountLoginClicked.mockResolvedValue({ value: "" })
+		mocks.shengSuanYunLoginClicked.mockResolvedValue({ value: "" })
+	})
+
+	it("shows the Cline account first and switches to a logged-in Shengsuanyun account without signing out", async () => {
+		mocks.userInfo = ssyUser
+		renderSwitcher()
+		await waitFor(() => expect(screen.getByRole("heading", { name: user.displayName })).toBeInTheDocument())
+		mocks.shengSuanYunUserData.mockClear()
+
+		fireEvent.change(screen.getByLabelText("Account type"), { target: { value: "ssy" } })
+
+		expect(await screen.findByRole("heading", { name: ssyUser.displayName })).toBeInTheDocument()
+		expect(screen.queryByRole("heading", { name: user.displayName })).toBeNull()
+		expect(mocks.shengSuanYunUserData).toHaveBeenCalledOnce()
+		expect(mocks.shengSuanYunLoginClicked).not.toHaveBeenCalled()
+		expect(mocks.accountLoginClicked).not.toHaveBeenCalled()
+		expect(mocks.setUserOrganization).not.toHaveBeenCalled()
+
+		fireEvent.change(screen.getByLabelText("Account type"), { target: { value: "cline" } })
+
+		expect(await screen.findByRole("heading", { name: user.displayName })).toBeInTheDocument()
+		expect(screen.queryByRole("heading", { name: ssyUser.displayName })).toBeNull()
+		expect(mocks.accountLoginClicked).not.toHaveBeenCalled()
+	})
+
+	it("starts Shengsuanyun sign-in and shows its login prompt when switching to a logged-out account", async () => {
+		renderSwitcher()
+		await waitFor(() => expect(screen.getByRole("heading", { name: user.displayName })).toBeInTheDocument())
+
+		fireEvent.change(screen.getByLabelText("Account type"), { target: { value: "ssy" } })
+
+		await waitFor(() => expect(mocks.shengSuanYunLoginClicked).toHaveBeenCalledOnce())
+		expect(mocks.accountLoginClicked).not.toHaveBeenCalled()
+		expect(screen.getByRole("button", { name: "登录 胜算云" })).toBeInTheDocument()
+		expect(screen.queryByRole("heading", { name: user.displayName })).toBeNull()
+		expect(screen.getByLabelText("Account type")).toHaveValue("ssy")
+	})
+
+	it("starts Cline sign-in and shows its login prompt when switching to a logged-out Cline account", async () => {
+		mocks.subscribeToAuthStatusUpdate.mockImplementation((_request, callbacks) => {
+			callbacks.onResponse({})
+			return vi.fn()
+		})
+		mocks.userInfo = ssyUser
+		renderSwitcher()
+		await waitFor(() => expect(screen.getByRole("heading", { name: ssyUser.displayName })).toBeInTheDocument())
+
+		fireEvent.change(screen.getByLabelText("Account type"), { target: { value: "cline" } })
+
+		await waitFor(() => expect(mocks.accountLoginClicked).toHaveBeenCalledOnce())
+		expect(mocks.shengSuanYunLoginClicked).not.toHaveBeenCalled()
+		expect(screen.getByRole("button", { name: "登录 Cline" })).toBeInTheDocument()
+		expect(screen.queryByRole("heading", { name: ssyUser.displayName })).toBeNull()
+	})
+
+	it("marks logged-out account types in the switcher options", async () => {
+		renderSwitcher()
+		await waitFor(() => expect(screen.getByRole("heading", { name: user.displayName })).toBeInTheDocument())
+
+		const options = Array.from(screen.getByLabelText("Account type").querySelectorAll("option")).map((o) => o.textContent)
+
+		expect(options).toEqual(["Cline", "胜算云（未登录）"])
 	})
 })

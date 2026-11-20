@@ -9,12 +9,14 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useInterval } from "react-use"
 import { CloudGitHubCard } from "@/components/cloud/CloudGitHubCard"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { type ClineUser, handleSignOut, useClineAuth } from "@/context/ClineAuthContext"
+import { type ClineUser, handleSignOut, useClineAuth, useClineSignIn } from "@/context/ClineAuthContext"
 import { useExtensionState } from "@/context/ExtensionStateContext"
+import { useSignIn as useShengSuanYunSignIn } from "@/context/ShengSuanYunAuthContext"
 import { AccountServiceClient } from "@/services/grpc-client"
 import ViewHeader from "../common/ViewHeader"
 import VSCodeButtonLink from "../common/VSCodeButtonLink"
 import { updateSetting } from "../settings/utils/settingsHandlers"
+import { ACCOUNT_LABELS, AccountLoginPrompt, type AccountType } from "./AccountLoginPrompt"
 import { AccountWelcomeView } from "./AccountWelcomeView"
 import { ClinePassCard } from "./ClinePassCard"
 import { CreditBalance } from "./CreditBalance"
@@ -47,26 +49,79 @@ type CachedData = {
 const ClineEnvOptions = ["Production", "Staging", "Local"] as const
 const AccountView = ({ onDone, clineUser, organizations, activeOrganization }: AccountViewProps) => {
 	const { environment, userInfo } = useExtensionState()
-	const isShengSuanYunUser = Boolean(userInfo?.uid)
+	const isClineLoggedIn = Boolean(clineUser?.uid)
+	const isShengSuanYunLoggedIn = Boolean(userInfo?.uid)
+	const loggedIn: Record<AccountType, boolean> = { cline: isClineLoggedIn, ssy: isShengSuanYunLoggedIn }
+
+	const [selectedAccount, setSelectedAccount] = useState<AccountType | null>(null)
+	const viewedAccount = selectedAccount ?? (isClineLoggedIn ? "cline" : isShengSuanYunLoggedIn ? "ssy" : null)
+
+	const { isLoginLoading: isClineLoginLoading, authStatusMessage, handleSignIn: handleClineSignIn } = useClineSignIn()
+	const { isLoginLoading: isShengSuanYunLoginLoading, handleSignIn: handleShengSuanYunSignIn } = useShengSuanYunSignIn()
+	const signIn: Record<AccountType, () => void> = { cline: handleClineSignIn, ssy: handleShengSuanYunSignIn }
+
+	const handleAccountChange = (event: { target: EventTarget | null }) => {
+		const account = (event.target as HTMLSelectElement | null)?.value as AccountType | undefined
+		if (!account || account === viewedAccount) return
+		setSelectedAccount(account)
+		if (!loggedIn[account]) signIn[account]()
+	}
+
+	const renderAccountBody = () => {
+		if (viewedAccount === "cline") {
+			return clineUser?.uid ? (
+				<ClineAccountView
+					activeOrganization={activeOrganization}
+					clineEnv={environment === "local" ? "Local" : environment === "staging" ? "Staging" : "Production"}
+					clineUser={clineUser}
+					key={clineUser.uid}
+					userOrganizations={organizations}
+				/>
+			) : (
+				<AccountLoginPrompt
+					account="cline"
+					isLoading={isClineLoginLoading}
+					onSignIn={handleClineSignIn}
+					statusMessage={authStatusMessage}
+				/>
+			)
+		}
+		if (viewedAccount === "ssy") {
+			return isShengSuanYunLoggedIn ? (
+				<SSYAccountView />
+			) : (
+				<AccountLoginPrompt
+					account="ssy"
+					isLoading={isShengSuanYunLoginLoading}
+					onSignIn={handleShengSuanYunSignIn}
+					statusMessage={null}
+				/>
+			)
+		}
+		return <AccountWelcomeView />
+	}
+
+	const headerTitle = (
+		<div className="w-40">
+			<VSCodeDropdown
+				aria-label="Account type"
+				className="w-full"
+				currentValue={viewedAccount ?? undefined}
+				onChange={handleAccountChange}>
+				{(Object.keys(ACCOUNT_LABELS) as AccountType[]).map((account) => (
+					<VSCodeOption key={account} value={account}>
+						{ACCOUNT_LABELS[account]}
+						{loggedIn[account] ? "" : "（未登录）"}
+					</VSCodeOption>
+				))}
+			</VSCodeDropdown>
+		</div>
+	)
 
 	return (
 		<div className="fixed inset-0 flex flex-col overflow-hidden">
-			<ViewHeader environment={environment} onDone={onDone} title="账户" />
-			<div className="grow flex flex-col px-5 overflow-y-auto">
-				{clineUser?.uid ? (
-					<ClineAccountView
-						activeOrganization={activeOrganization}
-						clineEnv={environment === "local" ? "Local" : environment === "staging" ? "Staging" : "Production"}
-						clineUser={clineUser}
-						key={clineUser.uid}
-						userOrganizations={organizations}
-					/>
-				) : isShengSuanYunUser ? (
-					<SSYAccountView />
-				) : (
-					<AccountWelcomeView />
-				)}
-			</div>
+			<ViewHeader environment={environment} onDone={onDone} title={headerTitle} />
+			<div className="grow flex flex-col px-5 overflow-y-auto">{renderAccountBody()}</div>
 		</div>
 	)
 }
@@ -162,6 +217,7 @@ const ClineAccountView = ({ clineUser, userOrganizations, activeOrganization, cl
 								<Tooltip>
 									<TooltipTrigger>
 										<VSCodeDropdown
+											aria-label="Account"
 											className="w-full"
 											currentValue={accountSwitch ? accountSwitch.organizationId || uid : dropdownValue}
 											disabled={!!accountSwitch || isLockedByRemoteConfig}

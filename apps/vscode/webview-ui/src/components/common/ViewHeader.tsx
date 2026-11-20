@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import { getEnvironmentColor } from "@/utils/environmentColors"
 import type { Environment } from "../../../../src/shared/config-types"
@@ -10,7 +11,7 @@ const ENV_DISPLAY_NAMES: Record<Environment, string> = {
 }
 
 type ViewHeaderProps = {
-	title: string
+	title: ReactNode
 	onDone: () => void
 	showEnvironmentSuffix?: boolean
 	environment?: Environment
