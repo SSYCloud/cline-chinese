@@ -21,12 +21,16 @@ export function isSlashSafeName(name: string): boolean {
 }
 
 export const BASE_SLASH_COMMANDS: SlashCommand[] = [
-	// SystemOne (决策模型) is a global service, so /pruneCtx is available with any
-	// provider. It runs the same precompact algorithm the automatic trigger uses,
-	// on demand.
+	// SystemOne (决策模型) is a global service, so /pruneCtx and /pruneTests are
+	// available with any provider.
 	{
 		name: "pruneCtx",
 		description: "Prune the current context now with the SystemOne decision model",
+		section: "default",
+	},
+	{
+		name: "pruneTests",
+		description: "Prune low-value unit tests in the workspace with the SystemOne decision model",
 		section: "default",
 	},
 	// `/newtask` is an alias of `/compact`: condensing achieves its goal
@@ -67,14 +71,7 @@ export const VSCODE_ONLY_COMMANDS: SlashCommand[] = []
 
 export const SHENGSUANYUN_PROVIDER_ID = "shengsuanyun"
 
-export const PROVIDER_SLASH_COMMANDS: SlashCommand[] = [
-	{
-		name: "pruneTests",
-		description: "Prune low-value unit tests in the workspace using the 胜算云 Typesafe model",
-		section: "default",
-		provider: SHENGSUANYUN_PROVIDER_ID,
-	},
-]
+export const PROVIDER_SLASH_COMMANDS: SlashCommand[] = []
 
 export function providerSlashCommands(provider: string | undefined): SlashCommand[] {
 	return PROVIDER_SLASH_COMMANDS.filter((cmd) => cmd.provider === provider)

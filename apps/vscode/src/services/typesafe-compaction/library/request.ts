@@ -2,6 +2,8 @@ import type { JevAnswer, JevQuestions, JevResponse, JevState } from "./types"
 
 export const TYPESAFE_BASE_URL = "https://router.shengsuanyun.com/api/v1/decisions"
 export const DEFAULT_MODEL = "jev-latest"
+// Upstream allows 60 requests/min; a small fan-out keeps bursts under that.
+export const JEV_MAX_CONCURRENT_REQUESTS = 3
 
 export interface JevRequest {
 	url: string

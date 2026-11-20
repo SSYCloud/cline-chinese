@@ -1,4 +1,5 @@
-import { noulAnswer } from "./request"
+import { mapWithConcurrency } from "./concurrency"
+import { JEV_MAX_CONCURRENT_REQUESTS, noulAnswer } from "./request"
 import { collectToolCalls, estimateTokens, fitState } from "./state"
 import type {
 	CallAnswer,
@@ -234,7 +235,9 @@ export async function compact(
 		const state = fitState(messages, calls, resolved)
 		fitted = state
 		batches = batchCalls(candidates, state.tokens, resolved)
-		const answered = await Promise.all(batches.map((batch) => askBatch(asker, state.state, batch)))
+		const answered = await mapWithConcurrency(batches, JEV_MAX_CONCURRENT_REQUESTS, (batch) =>
+			askBatch(asker, state.state, batch),
+		)
 		for (const map of answered) {
 			for (const [id, answer] of map) answers.set(id, answer)
 		}

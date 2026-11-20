@@ -1,4 +1,5 @@
-import { noulAnswer } from "./request"
+import { mapWithConcurrency } from "./concurrency"
+import { JEV_MAX_CONCURRENT_REQUESTS, noulAnswer } from "./request"
 import { estimateTokens } from "./state"
 import type { JevAsker, JevQuestions } from "./types"
 
@@ -503,20 +504,18 @@ export async function pruneTests(
 	}
 	const scores: PruneTestsResult["scores"] = []
 	const batches = batchTests(tests, maxRequestTokens, sourceChars)
-	const answered = await Promise.all(
-		batches.map(async (batch) => {
-			const state = {
-				context: TEST_STATE_CONTEXT,
-				goal: options.goal ?? "",
-				tests: batch.map((test) => testEntry(test, sourceChars)),
-			}
-			const { answers } = await asker.ask(state, testQuestions(batch))
-			return batch.map((test) => ({
-				test,
-				keepTest: noulAnswer(answers, `keep_${test.id}`),
-			}))
-		}),
-	)
+	const answered = await mapWithConcurrency(batches, JEV_MAX_CONCURRENT_REQUESTS, async (batch) => {
+		const state = {
+			context: TEST_STATE_CONTEXT,
+			goal: options.goal ?? "",
+			tests: batch.map((test) => testEntry(test, sourceChars)),
+		}
+		const { answers } = await asker.ask(state, testQuestions(batch))
+		return batch.map((test) => ({
+			test,
+			keepTest: noulAnswer(answers, `keep_${test.id}`),
+		}))
+	})
 	const deleted: TestDeletion[] = []
 	for (const { test, keepTest } of answered.flat()) {
 		scores.push({ id: test.id, file: test.file, name: test.name, keepTest })
