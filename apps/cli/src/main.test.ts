@@ -1583,6 +1583,7 @@ describe("runCli lightweight command dispatch", () => {
 		expect(runtimeMocks.runAgent).toHaveBeenCalledWith(
 			'<user_command slash="team">为以下任务启动一个代理团队: find the bug</user_command>',
 			expect.objectContaining({
+				mode: "act",
 				enableAgentTeams: true,
 				teamName: undefined,
 			}),
