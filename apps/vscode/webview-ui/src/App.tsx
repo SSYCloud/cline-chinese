@@ -59,6 +59,7 @@ const AppContent = () => {
 		showMarketplace,
 		showMcp,
 		mcpTab,
+		marketplaceInstallType,
 		showSettings,
 		settingsNavigationRequest,
 		showHistory,
@@ -124,7 +125,8 @@ const AppContent = () => {
 				{showHistory && <HistoryView onDone={hideHistory} />}
 				{showMarketplace && (
 					<MarketplaceView
-						initialType={skillBotMarket ? "skillbot" : mcpTab ? "mcp" : undefined}
+						initialSection={marketplaceInstallType ? "marketplace" : undefined}
+						initialType={skillBotMarket ? "skillbot" : (marketplaceInstallType ?? (mcpTab ? "mcp" : undefined))}
 						onDone={() => {
 							setSkillBotMarket(false)
 							closeMarketplaceView()

@@ -67,7 +67,31 @@ export const BASE_SLASH_COMMANDS: SlashCommand[] = [
 ]
 
 // VS Code-only slash commands
-export const VSCODE_ONLY_COMMANDS: SlashCommand[] = []
+export type MarketplaceInstallType = "skill" | "mcp" | "plugin"
+
+export const MARKETPLACE_INSTALL_COMMANDS: Record<string, MarketplaceInstallType> = {
+	"/skill:install": "skill",
+	"/mcp:install": "mcp",
+	"/plugin:install": "plugin",
+}
+
+export const VSCODE_ONLY_COMMANDS: SlashCommand[] = [
+	{
+		name: "skill:install",
+		description: "打开自定义页面，安装技能",
+		section: "default",
+	},
+	{
+		name: "mcp:install",
+		description: "打开自定义页面，安装 MCP 服务器",
+		section: "default",
+	},
+	{
+		name: "plugin:install",
+		description: "打开自定义页面，安装插件",
+		section: "default",
+	},
+]
 
 export const SHENGSUANYUN_PROVIDER_ID = "shengsuanyun"
 

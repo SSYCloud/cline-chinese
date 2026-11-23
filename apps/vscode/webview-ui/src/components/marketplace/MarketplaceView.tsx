@@ -35,6 +35,7 @@ type MarketplaceSectionType = "installed" | "marketplace"
 
 type MarketplaceViewProps = {
 	initialType?: PrimitiveType | "skillbot"
+	initialSection?: MarketplaceSectionType
 	onDone: () => void
 }
 
@@ -1131,10 +1132,10 @@ const CatalogEntryRow = ({
 	)
 }
 
-const MarketplaceView = ({ initialType = "skill", onDone }: MarketplaceViewProps) => {
+const MarketplaceView = ({ initialType = "skill", initialSection = "installed", onDone }: MarketplaceViewProps) => {
 	const { environment, remoteConfigSettings } = useExtensionState()
 	const [activeType, setActiveType] = useState<PrimitiveType | "skillbot">(initialType)
-	const [activeSection, setActiveSection] = useState<MarketplaceSectionType>("installed")
+	const [activeSection, setActiveSection] = useState<MarketplaceSectionType>(initialSection)
 	const [catalogEntries, setCatalogEntries] = useState<MarketplaceEntry[]>([])
 	const [localEntries, setLocalEntries] = useState<MarketplaceLocalInstalledEntry[]>([])
 	const [installedKeys, setInstalledKeys] = useState<Set<string>>(new Set())
@@ -1176,8 +1177,8 @@ const MarketplaceView = ({ initialType = "skill", onDone }: MarketplaceViewProps
 		setActiveType(initialType)
 		setQuery("")
 		setSelectedTag(null)
-		setActiveSection("installed")
-	}, [initialType])
+		setActiveSection(initialSection)
+	}, [initialType, initialSection])
 
 	const mcpMarketplaceDisabled = activeType === "mcp" && remoteConfigSettings?.mcpMarketplaceEnabled === false
 	const currentSection = mcpMarketplaceDisabled ? "installed" : activeSection

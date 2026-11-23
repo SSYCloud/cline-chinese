@@ -2,6 +2,7 @@ import type { ClineMessage } from "@shared/ExtensionMessage"
 import { EmptyRequest, StringRequest } from "@shared/proto/cline/common"
 import { AskResponseRequest, NewTaskRequest } from "@shared/proto/cline/task"
 import { IntentEvent } from "@shared/proto/cline/ui"
+import { MARKETPLACE_INSTALL_COMMANDS } from "@shared/slashCommands"
 import { useCallback, useRef, useState } from "react"
 import { useExtensionState } from "@/context/ExtensionStateContext"
 import { SlashServiceClient, TaskServiceClient, UiServiceClient } from "@/services/grpc-client"
@@ -38,7 +39,8 @@ function isPruneCtxCommand(text: string): boolean {
  * Handles sending messages, button clicks, and task management
  */
 export function useMessageHandlers(messages: ClineMessage[], chatState: ChatState): MessageHandlers {
-	const { backgroundCommandRunning, turnState, cloudSessionsEnabled, cloudTaskTarget } = useExtensionState()
+	const { backgroundCommandRunning, turnState, cloudSessionsEnabled, cloudTaskTarget, navigateToMarketplace } =
+		useExtensionState()
 	const {
 		setInputValue,
 		activeQuote,
@@ -135,6 +137,14 @@ export function useMessageHandlers(messages: ClineMessage[], chatState: ChatStat
 				if ("disableAutoScrollRef" in chatState) {
 					;(chatState as any).disableAutoScrollRef.current = false
 				}
+				return
+			}
+
+			const marketplaceInstallType = MARKETPLACE_INSTALL_COMMANDS[messageToSend]
+			if (marketplaceInstallType) {
+				setInputValue("")
+				setActiveQuote(null)
+				navigateToMarketplace(marketplaceInstallType)
 				return
 			}
 

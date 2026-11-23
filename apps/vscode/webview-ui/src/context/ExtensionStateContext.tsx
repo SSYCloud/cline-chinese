@@ -21,6 +21,7 @@ import {
 } from "../../../src/shared/api"
 import { Environment } from "../../../src/shared/config-types"
 import type { McpServer, McpViewTab } from "../../../src/shared/mcp"
+import type { MarketplaceInstallType } from "../../../src/shared/slashCommands"
 import {
 	createReplicaState,
 	type ReplicaState,
@@ -126,7 +127,8 @@ export interface ExtensionStateContextType extends ExtensionState {
 	setMcpTab: (tab?: McpViewTab) => void
 
 	// Navigation functions
-	navigateToMarketplace: () => void
+	navigateToMarketplace: (type?: MarketplaceInstallType) => void
+	marketplaceInstallType?: MarketplaceInstallType
 	navigateToMcp: (tab?: McpViewTab) => void
 	navigateToSettings: (targetSection?: SettingsNavigationTarget) => void
 	navigateToSettingsModelPicker: (opts: {
@@ -161,6 +163,7 @@ export const ExtensionStateContextProvider: React.FC<{
 }> = ({ children }) => {
 	// UI view state
 	const [showMarketplace, setShowMarketplace] = useState(false)
+	const [marketplaceInstallType, setMarketplaceInstallType] = useState<MarketplaceInstallType | undefined>(undefined)
 	const [showMcp, setShowMcp] = useState(false)
 	const [mcpTab, setMcpTab] = useState<McpViewTab | undefined>(undefined)
 	const [showSettings, setShowSettings] = useState(false)
@@ -180,6 +183,7 @@ export const ExtensionStateContextProvider: React.FC<{
 	}, [setShowMcp, setMcpTab])
 	const closeMarketplaceView = useCallback(() => {
 		setShowMarketplace(false)
+		setMarketplaceInstallType(undefined)
 	}, [])
 
 	// Hide functions
@@ -209,14 +213,18 @@ export const ExtensionStateContextProvider: React.FC<{
 		[closeMcpView, setMcpTab, setShowSettings, setShowHistory, setShowAccount, setShowWorktrees],
 	)
 
-	const navigateToMarketplace = useCallback(() => {
-		setShowSettings(false)
-		closeMcpView()
-		setShowHistory(false)
-		setShowAccount(false)
-		setShowWorktrees(false)
-		setShowMarketplace(true)
-	}, [closeMcpView])
+	const navigateToMarketplace = useCallback(
+		(type?: MarketplaceInstallType) => {
+			setMarketplaceInstallType(typeof type === "string" ? type : undefined)
+			setShowSettings(false)
+			closeMcpView()
+			setShowHistory(false)
+			setShowAccount(false)
+			setShowWorktrees(false)
+			setShowMarketplace(true)
+		},
+		[closeMcpView],
+	)
 
 	const navigateToSettings = useCallback(
 		(targetSection?: SettingsNavigationTarget) => {
@@ -839,6 +847,7 @@ export const ExtensionStateContextProvider: React.FC<{
 		totalTasksSize,
 		availableTerminalProfiles,
 		showMarketplace,
+		marketplaceInstallType,
 		showMcp,
 		mcpTab,
 		showSettings,

@@ -47,12 +47,14 @@ vi.mock("@shared/proto/cline/common", () => ({
 // useExtensionState supplies turnState (+ backgroundCommandRunning, cloud target) to the hook.
 let mockTurnState: TurnState | undefined
 let mockCloudTaskTarget: { target: "local" | "cloud"; repoUrl?: string; branch?: string } | undefined
+const navigateToMarketplace = vi.fn()
 vi.mock("@/context/ExtensionStateContext", () => ({
 	useExtensionState: () => ({
 		backgroundCommandRunning: false,
 		turnState: mockTurnState,
 		cloudSessionsEnabled: true,
 		cloudTaskTarget: mockCloudTaskTarget,
+		navigateToMarketplace,
 	}),
 }))
 
@@ -123,6 +125,7 @@ describe("useMessageHandlers — send routing", () => {
 		condense.mockResolvedValue(undefined)
 		trackIntent.mockReset()
 		trackIntent.mockResolvedValue(undefined)
+		navigateToMarketplace.mockReset()
 		mockTurnState = undefined
 		mockCloudTaskTarget = undefined
 	})
@@ -195,6 +198,25 @@ describe("useMessageHandlers — send routing", () => {
 		expect(newTask).not.toHaveBeenCalled()
 		expect(askResponse).not.toHaveBeenCalled()
 		expect(trackIntent).not.toHaveBeenCalled()
+	})
+
+	it.each([
+		["/skill:install", "skill"],
+		["/mcp:install", "mcp"],
+		["/plugin:install", "plugin"],
+	])("routes %s to the customize page's %s tab instead of sending it", async (command, type) => {
+		const chatState = makeChatState([])
+		const { result } = renderHook(() => useMessageHandlers([], chatState))
+
+		await act(async () => {
+			await result.current.handleSendMessage(command, [], [])
+		})
+
+		expect(navigateToMarketplace).toHaveBeenCalledTimes(1)
+		expect(navigateToMarketplace).toHaveBeenCalledWith(type)
+		expect(chatState.setInputValue).toHaveBeenCalledWith("")
+		expect(newTask).not.toHaveBeenCalled()
+		expect(askResponse).not.toHaveBeenCalled()
 	})
 
 	it("does not intercept /compact when there is no active task (starts a new task instead)", async () => {
