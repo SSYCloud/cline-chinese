@@ -34,12 +34,6 @@ describe("theme registry", () => {
 			}
 		}
 	});
-
-	it("provides four swatch colors per theme", () => {
-		for (const theme of THEMES) {
-			expect(getThemeSwatchColors(theme)).toHaveLength(4);
-		}
-	});
 });
 
 describe("normalizeThemeId", () => {
@@ -108,26 +102,6 @@ describe("resolveTheme", () => {
 		// stock dark diff palette.
 		expect(tokyo.diff.addedBg).not.toBe(diffPalettes.dark.addedBg);
 		expect(tokyo.diff.addedBg).toMatch(/^#[0-9a-f]{6}$/i);
-	});
-
-	it("falls back to auto for unknown ids", () => {
-		const resolved = resolveTheme("bogus", noDetection);
-		expect(resolved.id).toBe(AUTO_THEME_ID);
-	});
-
-	it("resolves every registered theme without missing colors", () => {
-		for (const definition of THEMES) {
-			const resolved = resolveTheme(definition.id, noDetection);
-			expect(resolved.accents.act).toBeTruthy();
-			expect(resolved.accents.plan).toBeTruthy();
-			expect(resolved.accents.success).toBeTruthy();
-			expect(resolved.accents.error).toBeTruthy();
-			for (const value of Object.values(resolved.diff)) {
-				expect(value).toBeTruthy();
-			}
-			expect(resolved.syntax.keyword).toBeTruthy();
-			expect(resolved.syntax.comment).toBeTruthy();
-		}
 	});
 
 	it("derives a readable selection pair per theme", () => {

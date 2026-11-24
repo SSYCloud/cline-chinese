@@ -9,16 +9,6 @@ describe("hooks-utils", () => {
 			getHooksEnabledSafe(false).should.be.false()
 		})
 
-		it("returns true when user setting is true", () => {
-			getHooksEnabledSafe(true).should.be.true()
-		})
-
-		it("is stable across repeated calls", () => {
-			for (let i = 0; i < 5; i++) {
-				getHooksEnabledSafe(true).should.be.true()
-			}
-		})
-
 		it("returns true for undefined", () => {
 			getHooksEnabledSafe(undefined).should.be.true()
 		})

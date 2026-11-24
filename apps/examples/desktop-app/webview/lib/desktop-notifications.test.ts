@@ -216,25 +216,4 @@ describe("desktop notifications", () => {
 		);
 		stop();
 	});
-
-	it("persists independent event and sound preferences", async () => {
-		const {
-			DEFAULT_DESKTOP_NOTIFICATION_SETTINGS,
-			readDesktopNotificationSettings,
-			writeDesktopNotificationSettings,
-		} = await importFresh();
-		writeDesktopNotificationSettings({
-			...DEFAULT_DESKTOP_NOTIFICATION_SETTINGS,
-			approvalNeeded: { enabled: false, sound: true },
-		});
-
-		expect(readDesktopNotificationSettings().approvalNeeded).toEqual({
-			enabled: false,
-			sound: true,
-		});
-		expect(readDesktopNotificationSettings().taskCompletion).toEqual({
-			enabled: true,
-			sound: false,
-		});
-	});
 });

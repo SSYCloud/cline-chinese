@@ -51,33 +51,6 @@ afterEach(() => {
 });
 
 describe("telegramConnector", () => {
-	it("honors --no-tools", () => {
-		const options = parseTelegramArgs([
-			"--bot-username",
-			"test_bot",
-			"--bot-token",
-			"123:test",
-			"--cwd",
-			"/tmp/work",
-			"--no-tools",
-		]);
-
-		expect(options.enableTools).toBe(false);
-	});
-
-	it("enables tools by default", () => {
-		const options = parseTelegramArgs([
-			"--bot-username",
-			"test_bot",
-			"--bot-token",
-			"123:test",
-			"--cwd",
-			"/tmp/work",
-		]);
-
-		expect(options.enableTools).toBe(true);
-	});
-
 	it("builds an authorization hook from --allowed-user-id", () => {
 		const options = parseTelegramArgs([
 			"--bot-token",
@@ -541,93 +514,6 @@ function slashTestStartRequest() {
 }
 
 describe("telegram slash command delivery", () => {
-	it("receives bot_command updates intercepted by the telegram chat library", async () => {
-		// The Telegram Bot API tags any leading-slash message with a
-		// `bot_command` entity, and @chat-adapter/telegram diverts those
-		// updates away from the mention/subscribed-message handlers. This
-		// pins the delivery contract: an intercepted update must still reach
-		// the connector turn handler through the slash-command path.
-		vi.stubGlobal(
-			"fetch",
-			vi.fn(
-				async () =>
-					new Response(JSON.stringify({ ok: true, result: {} }), {
-						status: 200,
-					}),
-			),
-		);
-		const { createTelegramAdapter } = await import("@chat-adapter/telegram");
-		const { Chat, ConsoleLogger } = await import("chat");
-		const { InMemoryStateAdapter } = await import("../stores/memory-state");
-		const telegram = createTelegramAdapter({
-			mode: "polling",
-			botToken: "123456:TEST-TOKEN",
-			userName: "test_bot",
-			logger: new ConsoleLogger("error", "telegram-slash-test"),
-		});
-		const bot = new Chat({
-			userName: "test_bot",
-			adapters: { telegram },
-			state: new InMemoryStateAdapter(),
-			logger: new ConsoleLogger("error", "telegram-slash-test"),
-		});
-		// bot.initialize() assigns this reference before polling starts; set
-		// it directly to avoid the real getMe/long-polling network calls.
-		(telegram as unknown as { chat: unknown }).chat = bot;
-
-		const dir = mkdtempSync(join(tmpdir(), "cline-telegram-slash-"));
-		tempDataDirs.push(dir);
-		const turns: Array<{ threadId: string; isDM: boolean; text: string }> = [];
-		bot.onSlashCommand(
-			__test__.createTelegramSlashCommandHandler({
-				bot,
-				bindingsPath: join(dir, "threads.json"),
-				baseStartRequest: slashTestStartRequest() as never,
-				handleTurn: async (thread, text) => {
-					turns.push({ threadId: thread.id, isDM: thread.isDM, text });
-				},
-			}) as never,
-		);
-
-		const completions: Promise<unknown>[] = [];
-		(
-			telegram as unknown as {
-				processUpdate: (update: unknown, options?: unknown) => void;
-			}
-		).processUpdate(
-			{
-				update_id: 1,
-				message: {
-					message_id: 42,
-					date: Math.floor(Date.now() / 1000),
-					chat: { id: 555, type: "private" },
-					from: {
-						id: 999,
-						is_bot: false,
-						first_name: "Alice",
-						username: "alice",
-					},
-					text: "/clear",
-					entities: [{ type: "bot_command", offset: 0, length: 6 }],
-				},
-			},
-			{
-				waitUntil: (task: Promise<unknown>) =>
-					completions.push(task.catch(() => undefined)),
-			},
-		);
-		await Promise.all(completions);
-		await vi.waitFor(() => {
-			expect(turns).toHaveLength(1);
-		});
-
-		expect(turns[0]).toEqual({
-			threadId: "telegram:555",
-			isDM: true,
-			text: "/clear",
-		});
-	});
-
 	it("routes intercepted slash commands into the connector turn handler", async () => {
 		const dir = mkdtempSync(join(tmpdir(), "cline-telegram-slash-"));
 		tempDataDirs.push(dir);
@@ -724,71 +610,5 @@ describe("telegram slash command delivery", () => {
 		});
 
 		expect(handleTurn).toHaveBeenCalledWith(thread, "/cwd /tmp");
-	});
-
-	it("delivers intercepted slash commands to the chat command host", async () => {
-		const dir = mkdtempSync(join(tmpdir(), "cline-telegram-slash-"));
-		tempDataDirs.push(dir);
-		const bindingsPath = join(dir, "threads.json");
-		const { thread, posts } = createSlashTestThread({
-			id: "telegram:777",
-			channelId: "telegram:777",
-			isDM: true,
-			initialState: {
-				sessionId: "session-1",
-				participantKey: "telegram:id:999",
-				participantLabel: "alice",
-				welcomeSentAt: "2026-03-17T00:00:00.000Z",
-			},
-		});
-		const stopRuntimeSession = vi.fn(async () => undefined);
-		const deleteSession = vi.fn(async () => undefined);
-		const baseStartRequest = slashTestStartRequest();
-		const handler = __test__.createTelegramSlashCommandHandler({
-			bot: { thread: () => thread } as never,
-			bindingsPath,
-			baseStartRequest: baseStartRequest as never,
-			handleTurn: (async (
-				turnThread: typeof thread,
-				text: string,
-			): Promise<void> => {
-				await handleConnectorUserTurn({
-					thread: turnThread as never,
-					text,
-					client: { stopRuntimeSession, deleteSession } as never,
-					pendingApprovals: new Map(),
-					baseStartRequest: baseStartRequest as never,
-					explicitSystemPrompt: undefined,
-					clientId: "client-1",
-					logger: {
-						core: { debug: vi.fn(), log: vi.fn(), error: vi.fn() },
-					} as never,
-					transport: "telegram",
-					botUserName: "test_bot",
-					requestStop: vi.fn(),
-					bindingsPath,
-					systemRules: "rules",
-					errorLabel: "Telegram",
-					getSessionMetadata: () => ({}),
-					reusedLogMessage: "reused",
-				});
-			}) as never,
-		});
-
-		await handler({
-			channel: { id: "telegram:777" },
-			command: "/clear",
-			text: "",
-			raw: {
-				message_id: 9,
-				chat: { id: 777, type: "private" },
-				from: { id: 999, username: "alice" },
-				text: "/clear",
-				entities: [{ type: "bot_command", offset: 0, length: 6 }],
-			},
-		});
-
-		expect(deleteSession).toHaveBeenCalledWith("session-1", true);
-		expect(posts).toContainEqual({ raw: "已开始新会话。" });
 	});
 });

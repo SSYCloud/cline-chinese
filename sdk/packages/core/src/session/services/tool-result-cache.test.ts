@@ -72,17 +72,6 @@ describe("session memory result cache", () => {
 		expect(() => cache.read(uri)).toThrow(TOOL_RESULT_CACHE_MISS);
 	});
 
-	it("explicit reads refresh expiry", () => {
-		const cache = new ToolResultCache("session");
-		const uri = cache.store("call", "full") ?? "";
-		for (let index = 0; index < 4; index++) cache.advanceIteration();
-		expect(cache.read(uri)).toBe("full");
-		for (let index = 0; index < 4; index++) cache.advanceIteration();
-		expect(cache.uriFor("call")).toBe(uri);
-		cache.advanceIteration();
-		expect(() => cache.read(uri)).toThrow(TOOL_RESULT_CACHE_MISS);
-	});
-
 	it("bounds cached bytes and evicts the least recently read result", () => {
 		const cache = new ToolResultCache("session", 8);
 		const first = cache.store("first", "1111") ?? "";

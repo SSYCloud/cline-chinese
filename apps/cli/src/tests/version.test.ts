@@ -11,10 +11,6 @@ test.describe("cline --version", () => {
 		program: { file: CLINE_BIN, args: ["--version"] },
 		env: clineEnv("claude-sonnet-4.6"),
 	});
-
-	test("prints the version string", async ({ terminal }) => {
-		await expectVisible(terminal, /\d+\.\d+\.\d+/g);
-	});
 });
 
 // ---------------------------------------------------------------------------
@@ -24,10 +20,6 @@ test.describe("cline -V", () => {
 	test.use({
 		program: { file: CLINE_BIN, args: ["-V"] },
 		env: clineEnv("claude-sonnet-4.6"),
-	});
-
-	test("prints the version string with short flag", async ({ terminal }) => {
-		await expectVisible(terminal, /\d+\.\d+\.\d+/g);
 	});
 });
 

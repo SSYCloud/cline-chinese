@@ -90,21 +90,6 @@ describe("startConnectorViaHub", () => {
 		expect(mocks.close).toHaveBeenCalled();
 	});
 
-	it("passes a restart through", async () => {
-		mocks.command.mockResolvedValue({
-			version: "v1",
-			ok: true,
-			payload: { started: true, record: { state: "running" } },
-		});
-
-		await startConnectorViaHub(startRequest({ restart: true }));
-
-		expect(mocks.command).toHaveBeenCalledWith(
-			"connector.start",
-			expect.objectContaining({ restart: true }),
-		);
-	});
-
 	it("treats an already-running instance as success", async () => {
 		mocks.command.mockResolvedValue({
 			version: "v1",

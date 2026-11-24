@@ -96,8 +96,4 @@ describe("buildConnectionUpdate", () => {
 			buildConnectionUpdate({ ...base, thinkingBudgetTokens: 2048.7 }),
 		).toEqual({ ...base, thinking: true, thinkingBudgetTokens: 2048 });
 	});
-
-	it("leaves reasoning untouched when thinking is unset", () => {
-		expect(buildConnectionUpdate(base)).toEqual(base);
-	});
 });

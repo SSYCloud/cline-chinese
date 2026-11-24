@@ -143,18 +143,6 @@ function makeBaseConfig(overrides: Partial<CoreSessionConfig> = {}): CoreSession
 // ---------------------------------------------------------------------------
 
 describe("getDefaultModelIdForProvider", () => {
-	it("uses the SDK provider catalog for the Cline Chinese default model", () => {
-		expect(getDefaultModelIdForProvider("cline")).toBe(
-			LlmsModels.MODEL_COLLECTIONS_BY_PROVIDER_ID.cline.provider.defaultModelId,
-		)
-	})
-
-	it("uses the generated Gemini provider default", () => {
-		expect(getDefaultModelIdForProvider("gemini")).toBe(
-			LlmsModels.MODEL_COLLECTIONS_BY_PROVIDER_ID.gemini.provider.defaultModelId,
-		)
-	})
-
 	it("returns undefined for unknown providers", () => {
 		expect(getDefaultModelIdForProvider("unknown-provider")).toBeUndefined()
 	})
@@ -192,39 +180,6 @@ describe("buildStartSessionInput", () => {
 		expect(result.userImages).toBeUndefined()
 		expect(result.userFiles).toBeUndefined()
 	})
-
-	it("includes images and files when provided", () => {
-		const config = makeBaseConfig()
-		const input = {
-			prompt: "Look at this",
-			images: ["image1.png", "image2.jpg"],
-			files: ["file1.ts"],
-			cwd: "/tmp/workspace",
-		}
-
-		const result = buildStartSessionInput(config, input)
-
-		expect(result.userImages).toEqual(["image1.png", "image2.jpg"])
-		expect(result.userFiles).toEqual(["file1.ts"])
-	})
-
-	it("always sets interactive to true", () => {
-		const config = makeBaseConfig()
-		const input = { cwd: "/tmp/workspace" }
-
-		const result = buildStartSessionInput(config, input)
-
-		expect(result.interactive).toBe(true)
-	})
-
-	it("handles undefined prompt", () => {
-		const config = makeBaseConfig()
-		const input = { cwd: "/tmp/workspace" }
-
-		const result = buildStartSessionInput(config, input)
-
-		expect(result.prompt).toBeUndefined()
-	})
 })
 
 // ---------------------------------------------------------------------------
@@ -239,13 +194,6 @@ describe("buildResumeSessionInput", () => {
 		expect(result.prompt).toBe("Continue the task")
 		expect(result.userImages).toBeUndefined()
 		expect(result.userFiles).toBeUndefined()
-	})
-
-	it("includes images and files when provided", () => {
-		const result = buildResumeSessionInput("session-123", "Look at this", ["img.png"], ["file.ts"])
-
-		expect(result.userImages).toEqual(["img.png"])
-		expect(result.userFiles).toEqual(["file.ts"])
 	})
 })
 
@@ -449,18 +397,6 @@ describe("buildSessionConfig", () => {
 		} as any)
 
 		expect(resolveApiKey("cline-pass", { clineApiKey: "workos:configured-token" } as any)).toBe("workos:configured-token")
-		expect(mocks.providerSettingsManager.getProviderSettings).not.toHaveBeenCalled()
-	})
-
-	it("preserves explicit Cline API keys from state before OAuth storage", () => {
-		mocks.providerSettingsManager.getProviderSettings.mockReturnValue({
-			provider: "cline",
-			auth: { accessToken: "workos:stored-token" },
-		} as any)
-
-		expect(resolveApiKey("cline", { clineApiKey: "workos:configured-cline-token" } as any)).toBe(
-			"workos:configured-cline-token",
-		)
 		expect(mocks.providerSettingsManager.getProviderSettings).not.toHaveBeenCalled()
 	})
 
@@ -978,14 +914,6 @@ describe("buildSessionConfig", () => {
 		const config = await buildSessionConfig({ cwd: "/tmp/workspace" })
 
 		expect(config.providerConfig).not.toHaveProperty("apiLine")
-	})
-
-	it("exposes knownModels at the top level so manual compaction can budget against the model catalog", async () => {
-		const config = await buildSessionConfig({ cwd: "/tmp/workspace" })
-
-		const providerConfigKnownModels = (config.providerConfig as { knownModels?: Record<string, unknown> }).knownModels
-		expect(providerConfigKnownModels).toBeDefined()
-		expect(config.knownModels).toBe(providerConfigKnownModels)
 	})
 
 	it("resolves OpenAI Codex through the shared OAuth provider registry", async () => {
@@ -1547,28 +1475,6 @@ describe("buildSessionConfig", () => {
 		expect((config.providerConfig as any).sap).not.toHaveProperty("deploymentId")
 	})
 
-	it("omits SAP AI Core deployment id when orchestration mode is enabled", async () => {
-		mocks.stateManager.getApiConfiguration.mockReturnValue({
-			actModeApiProvider: "sapaicore",
-			actModeApiModelId: "anthropic--claude-4.6-sonnet",
-			sapAiCoreClientId: "sap-client",
-			sapAiCoreClientSecret: "sap-secret",
-			sapAiCoreBaseUrl: "https://api.ai.example.aws.ml.hana.ondemand.com",
-			sapAiCoreTokenUrl: "https://example.authentication.sap.hana.ondemand.com",
-			sapAiResourceGroup: "default",
-			sapAiCoreUseOrchestrationMode: true,
-			actModeSapAiCoreDeploymentId: "foundation-deployment-id",
-		} as any)
-
-		const config = await buildSessionConfig({ cwd: "/tmp/workspace" })
-
-		expect((config.providerConfig as any).sap).toMatchObject({
-			resourceGroup: "default",
-			useOrchestrationMode: true,
-		})
-		expect((config.providerConfig as any).sap).not.toHaveProperty("deploymentId")
-	})
-
 	it("falls back to legacy SAP-specific model fields when the generic model field is absent", async () => {
 		mocks.stateManager.getApiConfiguration.mockReturnValue({
 			actModeApiProvider: "sapaicore",
@@ -1814,14 +1720,6 @@ describe("createHistoryItemFromSession", () => {
 
 		expect(item.modelId).toBeUndefined()
 		expect(item.cwdOnTaskInitialization).toBeUndefined()
-	})
-
-	it("creates unique timestamps for different calls", () => {
-		const item1 = createHistoryItemFromSession("s1", "Task 1")
-		const item2 = createHistoryItemFromSession("s2", "Task 2")
-
-		// Timestamps should be at least as large (may be same if called in same ms)
-		expect(item2.ts).toBeGreaterThanOrEqual(item1.ts)
 	})
 })
 

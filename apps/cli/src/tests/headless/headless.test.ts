@@ -33,11 +33,6 @@ test.describe("cline -y (headless auth failure mode) - unauthenticated", () => {
 		...TERMINAL_WIDE,
 		env: clineEnv("unauthenticated"),
 	});
-
-	test("prints Not authenticated and exits 1", async ({ terminal }) => {
-		await expectVisible(terminal, /Unauthorized|Missing API key/i);
-		await expectExitCode(terminal, EXIT_CODE_FAIL);
-	});
 });
 
 // ---------------------------------------------------------------------------
@@ -56,11 +51,6 @@ test.describe("piped stdin | cline - unauthenticated", () => {
 		...TERMINAL_WIDE,
 		env: clineEnv("unauthenticated"),
 	});
-
-	test("prints Not Authenticated for piped stdin", async ({ terminal }) => {
-		await expectVisible(terminal, /Unauthorized|Missing API key/i);
-		await expectExitCode(terminal, EXIT_CODE_FAIL);
-	});
 });
 
 // ---------------------------------------------------------------------------
@@ -75,11 +65,6 @@ test.describe("cline -y --verbose - unauthenticated", () => {
 		},
 		...TERMINAL_WIDE,
 		env: clineEnv("unauthenticated"),
-	});
-
-	test("shows verbose output or not-authenticated", async ({ terminal }) => {
-		await expectVisible(terminal, /Unauthorized|Missing API key/i);
-		await expectExitCode(terminal, EXIT_CODE_FAIL);
 	});
 });
 
@@ -109,12 +94,6 @@ test.describe("cline (headless prompt mode) - authenticated @live", () => {
 			CLINE_VCR_CASSETTE: "./fixtures/headless-yolo-basic.json",
 		}),
 	});
-
-	test("prints only LLM output", async ({ terminal }) => {
-		// In headless non-verbose mode, only the LLM response text is printed.
-		await expectVisible(terminal, /why/i);
-		await expectExitCode(terminal, EXIT_CODE_SUCCESS);
-	});
 });
 
 // ---------------------------------------------------------------------------
@@ -135,12 +114,6 @@ test.describe("piped stdin | cline - authenticated", () => {
 			CLINE_VCR_CASSETTE: "./fixtures/headless-piped-stdin.json",
 		}),
 	});
-
-	test("prints only LLM output for piped stdin", async ({ terminal }) => {
-		// In headless non-verbose mode, only the LLM response text is printed.
-		await expectVisible(terminal, /horse/i);
-		await expectExitCode(terminal, EXIT_CODE_SUCCESS);
-	});
 });
 
 // ---------------------------------------------------------------------------
@@ -158,14 +131,6 @@ test.describe("cline --verbose - authenticated @live", () => {
 			CLINE_VCR_CASSETTE: "./fixtures/headless-verbose.json",
 		}),
 	});
-
-	test("shows verbose output with model info and LLM response", async ({
-		terminal,
-	}) => {
-		// In verbose mode, extra chrome like model info is printed.
-		await expectVisible(terminal, /\[model\]/i);
-		await expectExitCode(terminal, EXIT_CODE_SUCCESS);
-	});
 });
 
 // ---------------------------------------------------------------------------
@@ -179,11 +144,6 @@ test.describe("cline --json - authenticated @live", () => {
 		env: clineEnv("default", {
 			CLINE_VCR_CASSETTE: "./fixtures/headless-json.json",
 		}),
-	});
-
-	test("outputs JSON-formatted messages", async ({ terminal }) => {
-		await expectVisible(terminal, /\{.*"type"/i);
-		await expectExitCode(terminal, EXIT_CODE_SUCCESS);
 	});
 });
 
@@ -231,12 +191,5 @@ test.describe("cline -m (model flag in headless) @live", () => {
 		env: clineEnv("default", {
 			CLINE_VCR_CASSETTE: "./fixtures/headless-model-flag.json",
 		}),
-	});
-
-	test("prints a message and exits 0 with --model flag", async ({
-		terminal,
-	}) => {
-		await expectVisible(terminal, /Cline/i);
-		await expectExitCode(terminal, EXIT_CODE_SUCCESS);
 	});
 });

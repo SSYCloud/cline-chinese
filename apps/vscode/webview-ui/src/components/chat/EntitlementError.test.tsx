@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { render, screen } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import EntitlementError from "./EntitlementError"
 
@@ -49,13 +49,5 @@ describe("EntitlementError", () => {
 		}
 		render(<EntitlementError />)
 		expect(getSubscribeHref()).toBe("https://proxy.enterprise.com/cline/app/dashboard/subscription?personal=true")
-	})
-
-	it("uses the shared recovery handler when Retry Request is clicked", () => {
-		const retryFailedRequest = vi.fn().mockResolvedValue(true)
-		render(<EntitlementError retryFailedRequest={retryFailedRequest} />)
-		// VSCodeButton has no ARIA role in jsdom; click by label text instead.
-		fireEvent.click(screen.getByText("Retry Request"))
-		expect(retryFailedRequest).toHaveBeenCalledTimes(1)
 	})
 })

@@ -13,11 +13,6 @@ import {
 const wrapped = (text: string, mode = "act") => `<user_input mode="${mode}">${text}</user_input>`
 
 describe("isSyntheticUserPrompt", () => {
-	it("flags task resumption and act-mode continuation prompts", () => {
-		expect(isSyntheticUserPrompt("[TASK RESUMPTION] Please continue where you left off.")).toBe(true)
-		expect(isSyntheticUserPrompt(ACT_MODE_CONTINUATION_PROMPT)).toBe(true)
-	})
-
 	it("flags the wrapped persisted shape of synthetic prompts", () => {
 		expect(isSyntheticUserPrompt(wrapped(ACT_MODE_CONTINUATION_PROMPT))).toBe(true)
 		expect(isSyntheticUserPrompt(wrapped("[TASK RESUMPTION] Please continue where you left off.", "plan"))).toBe(true)

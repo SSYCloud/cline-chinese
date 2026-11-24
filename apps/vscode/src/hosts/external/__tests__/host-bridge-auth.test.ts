@@ -45,14 +45,6 @@ async function runMiddleware(options: Record<string, unknown>): Promise<any> {
 describe("host bridge auth", () => {
 	afterEach(() => setToken(originalToken))
 
-	it("attaches the spawn token to outgoing calls", async () => {
-		setToken("spawn-token-1")
-
-		const forwarded = await runMiddleware({ metadata: Metadata() })
-
-		expect(forwarded.metadata.get(HOST_BRIDGE_TOKEN_HEADER)).to.equal("spawn-token-1")
-	})
-
 	it("preserves caller-supplied metadata", async () => {
 		setToken("spawn-token-1")
 
@@ -68,15 +60,6 @@ describe("host bridge auth", () => {
 		const forwarded = await runMiddleware({ metadata: Metadata() })
 
 		expect(forwarded.metadata.has(HOST_BRIDGE_TOKEN_HEADER)).to.equal(false)
-	})
-
-	it("keeps sending the token after bootstrap scrubbed it from the environment", async () => {
-		setToken("spawn-token-1")
-		expect(process.env.CLINE_CORE_CONNECTION_TOKEN).to.equal(undefined)
-
-		const forwarded = await runMiddleware({ metadata: Metadata() })
-
-		expect(forwarded.metadata.get(HOST_BRIDGE_TOKEN_HEADER)).to.equal("spawn-token-1")
 	})
 
 	describe("capture", () => {

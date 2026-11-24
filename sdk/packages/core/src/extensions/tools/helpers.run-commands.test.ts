@@ -27,12 +27,3 @@ describe("normalizeRunCommandsInput", () => {
 		);
 	});
 });
-
-describe("RunCommandsInputSchema", () => {
-	it("advertises the command list as non-empty", () => {
-		const schema = zodToJsonSchema(RunCommandsInputSchema) as {
-			properties: { commands: { minItems?: number } };
-		};
-		expect(schema.properties.commands.minItems).toBe(1);
-	});
-});

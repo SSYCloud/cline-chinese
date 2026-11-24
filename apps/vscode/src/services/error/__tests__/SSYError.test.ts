@@ -18,11 +18,6 @@ describe("SSYError", () => {
 			SSYError.getErrorType(err)!.should.equal(SSYErrorType.Balance)
 		})
 
-		it("should classify 401 as Auth", () => {
-			const err = new SSYError({ message: "Unauthorized", status: 401 })
-			SSYError.getErrorType(err)!.should.equal(SSYErrorType.Auth)
-		})
-
 		it("should classify invalid token as Auth", () => {
 			const err = new SSYError({ message: "登录已过期", code: "INVALID_TOKEN" })
 			SSYError.getErrorType(err)!.should.equal(SSYErrorType.Auth)

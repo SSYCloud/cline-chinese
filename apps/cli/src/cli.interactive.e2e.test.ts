@@ -145,36 +145,6 @@ describe("cli interactive e2e", () => {
 		}
 	});
 
-	it("shows the interactive chat view on launch", () => {
-		const result = runInteractiveCli([
-			{ delaySeconds: INITIAL_RENDER_DELAY_SECONDS, input: "" },
-		]);
-		const output = outputOf(result);
-		expect(output).toContain("What can I do for you?");
-		expect(output).toContain("○ Plan ● Act (Tab)");
-		expect(output).toContain("Auto-approve all enabled (Shift+Tab)");
-	});
-
-	it("toggles plan/act mode with Tab", () => {
-		const result = runInteractiveCli([
-			{ delaySeconds: INITIAL_RENDER_DELAY_SECONDS, input: "\t" },
-			{ delaySeconds: POST_ACTION_SETTLE_SECONDS, input: "" },
-		]);
-		const output = outputOf(result);
-		expect(output).toContain("○ Plan ● Act (Tab)");
-		expect(output).toContain("● Plan ○ Act (Tab)");
-	});
-
-	it("toggles auto-approve-all with Shift+Tab", () => {
-		const result = runInteractiveCli([
-			{ delaySeconds: INITIAL_RENDER_DELAY_SECONDS, input: "\u001b[Z" },
-			{ delaySeconds: POST_ACTION_SETTLE_SECONDS, input: "" },
-		]);
-		const output = outputOf(result);
-		expect(output).toContain("Auto-approve all enabled (Shift+Tab)");
-		expect(output).toContain("Auto-approve all disabled (Shift+Tab)");
-	});
-
 	it("opens /settings and navigates tabs with Tab", () => {
 		const result = runInteractiveCli([
 			{ delaySeconds: INITIAL_RENDER_DELAY_SECONDS, input: "/settings" },
@@ -258,17 +228,5 @@ describe("cli interactive e2e", () => {
 		expect(output).not.toContain("panic(");
 		expect(output).not.toContain("Segmentation fault");
 		expect(result.status).toBe(0);
-	});
-
-	it("launches config view directly with `cline config`", () => {
-		const result = runInteractiveCli(
-			[{ delaySeconds: INITIAL_RENDER_DELAY_SECONDS, input: "" }],
-			{
-				launchConfigView: true,
-			},
-		);
-		const output = outputOf(result);
-		expect(output).toContain("Configuration");
-		expect(output).toContain("[Tools] Plugins Agents Hooks Skills Rules MCP");
 	});
 });

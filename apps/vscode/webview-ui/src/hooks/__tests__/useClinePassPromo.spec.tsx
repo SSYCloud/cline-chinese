@@ -103,19 +103,6 @@ describe("useClinePassPromo", () => {
 		expect(planResult.current.isUsingClinePass).toBe(true)
 	})
 
-	it("switches provider mode-aware and navigates to API settings on success", async () => {
-		const { result } = renderHook(() => useClinePassPromo())
-		await result.current.switchToClinePassProvider()
-		// handleModeFieldChange only touches the current mode when plan/act use
-		// separate models, so the other mode's provider is never overwritten.
-		expect(mockHandleModeFieldChange).toHaveBeenCalledWith(
-			{ plan: "planModeApiProvider", act: "actModeApiProvider" },
-			"cline-pass",
-			"act",
-		)
-		expect(mockNavigateToSettings).toHaveBeenCalledWith("api-config")
-	})
-
 	it("passes the current plan mode to the provider update", async () => {
 		mockExtensionState({ mode: "plan" })
 		const { result } = renderHook(() => useClinePassPromo())

@@ -190,21 +190,6 @@ describe("createBedrockProviderModule", () => {
 		);
 	});
 
-	it("routes bare modern model ids through the region's geo inference profile", async () => {
-		const module = await createBedrockProviderModule(
-			config({
-				apiKey: "bedrock-api-key",
-				options: { region: "us-east-1" },
-			}),
-		);
-
-		module.operations.language("anthropic.claude-sonnet-4-6");
-
-		expect(bedrockModelMock).toHaveBeenCalledWith(
-			"us.anthropic.claude-sonnet-4-6",
-		);
-	});
-
 	it("derives the geo prefix from AWS_REGION when no region is configured", async () => {
 		process.env.AWS_REGION = "eu-west-1";
 

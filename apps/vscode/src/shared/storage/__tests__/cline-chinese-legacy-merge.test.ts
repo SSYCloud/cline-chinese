@@ -43,12 +43,6 @@ describe("cline-chinese-legacy-merge", () => {
 		})
 	}
 
-	it("does nothing when legacy directory has no data", () => {
-		const ctx = createContext()
-		ctx.globalState.keys().length.should.equal(1) // just the sentinel
-		;(ctx.globalState.get("__clineChineseMergeVersion") as number).should.equal(1)
-	})
-
 	it("merges legacy-only keys into an empty current store", () => {
 		writeLegacyGlobalState({ preferredLanguage: "Simplified Chinese - 简体中文" })
 

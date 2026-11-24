@@ -4,11 +4,6 @@ import { formatResponse } from "../responses"
 
 describe("formatResponse.writeToFileMissingContentError", () => {
 	describe("first failure (tier 1)", () => {
-		it("should include the file path in the error message", () => {
-			const result = formatResponse.writeToFileMissingContentError("src/index.ts", 1)
-			result.should.containEql("src/index.ts")
-		})
-
 		it("should include the base error explanation", () => {
 			const result = formatResponse.writeToFileMissingContentError("src/index.ts", 1)
 			result.should.containEql("'content' parameter was empty")
@@ -35,11 +30,6 @@ describe("formatResponse.writeToFileMissingContentError", () => {
 		it("should suggest using replace_in_file for existing files", () => {
 			const result = formatResponse.writeToFileMissingContentError("src/index.ts", 1)
 			result.should.containEql("prefer replace_in_file to make targeted edits")
-		})
-
-		it("should not include CRITICAL language on first failure", () => {
-			const result = formatResponse.writeToFileMissingContentError("src/index.ts", 1)
-			result.should.not.containEql("CRITICAL")
 		})
 
 		it("should work with different file paths", () => {

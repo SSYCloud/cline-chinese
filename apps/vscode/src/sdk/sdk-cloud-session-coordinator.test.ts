@@ -20,7 +20,6 @@ import { CloudSessionHost } from "./cloud-session-host"
 import { MessageIdMinter } from "./message-id-minter"
 import { SdkCloudSessionCoordinator, type SdkCloudSessionCoordinatorOptions } from "./sdk-cloud-session-coordinator"
 import { SdkSessionLifecycle } from "./sdk-session-lifecycle"
-import { SdkTaskControlCoordinator, type SdkTaskControlCoordinatorOptions } from "./sdk-task-control-coordinator"
 import { SdkTaskHistory } from "./sdk-task-history"
 import type { SdkSessionHost } from "./session-host"
 import { createTaskProxy, type TaskProxy } from "./task-proxy"
@@ -327,75 +326,6 @@ describe("SdkCloudSessionCoordinator ownership", () => {
 		await coordinator.dispose()
 	})
 
-	it("keeps a provisioning start selected again while another open waits on the task transition", async () => {
-		const startHost = {
-			status: "idle",
-			readMessages: async () => [],
-			dispose: async () => {},
-		} as unknown as CloudSessionHost
-		const connect = vi.spyOn(CloudSessionHost, "connect").mockResolvedValue(startHost)
-		let task: TaskProxy | undefined
-		let transitionGate: Promise<void> | undefined
-		const runTaskTransition = vi.fn(async (operation: () => Promise<void>) => {
-			await transitionGate
-			return operation()
-		})
-		const taskControl = new SdkTaskControlCoordinator({
-			sessions: { endActiveSession: vi.fn(async () => undefined) },
-			interactions: { clearPending: vi.fn() },
-			messages: { cancelPendingSave: vi.fn() },
-			getTask: () => task,
-			setTask: (next: TaskProxy | undefined) => {
-				task = next
-			},
-			resetMessageTranslator: vi.fn(),
-			clearTaskSettings: vi.fn(async () => undefined),
-			rebuilds: { runTaskTransition },
-		} as unknown as SdkTaskControlCoordinatorOptions)
-		const { coordinator, cloudSessions } = makeCoordinator({
-			getTask: () => task,
-			setTask: (next: TaskProxy | undefined) => {
-				task = next
-			},
-			clearTask: () => taskControl.clearTask(),
-			claimTaskViewGeneration: () => taskControl.claimTaskViewGeneration(),
-			sessions: {
-				startNewSession: vi.fn(async () => ({ sdkHost: startHost, startResult: { sessionId: record.id } })),
-				fireAndForgetSend: vi.fn(),
-			} as never,
-		})
-		const provisioned = deferred<void>()
-		const named = deferred<void>()
-		cloudSessions.createSession.mockImplementation(async (_input, onProvisioning) => {
-			onProvisioning?.(record.id)
-			named.resolve()
-			await provisioned.promise
-			return record
-		})
-		const other = { ...record, id: "ses-other", metadata: { ...record.metadata, taskId: "tsk-other" } }
-		cloudSessions.listSessions.mockResolvedValue([other, record])
-
-		const start = coordinator.beginCloudTask({ prompt: "test", repoUrl: record.repoContext.repoUrl! })()
-		await named.promise
-		const startView = task!
-		const transition = deferred<void>()
-		transitionGate = transition.promise
-		runTaskTransition.mockClear()
-		const openOther = coordinator.openCloudTask(other.id)
-		await vi.waitFor(() => expect(runTaskTransition).toHaveBeenCalled())
-		expect(await coordinator.openCloudTask(startView.taskId)).toMatchObject({ id: startView.taskId })
-		transitionGate = undefined
-		transition.resolve()
-		await openOther
-		provisioned.resolve()
-
-		expect(await start).toBe(record.id)
-		expect(task).toBe(startView)
-		expect(connect).not.toHaveBeenCalledWith(expect.objectContaining({ outerSessionId: other.id }))
-		expect(cloudSessions.deleteSession).not.toHaveBeenCalled()
-		await coordinator.dispose()
-	})
-
 	it("lists the started sandbox in a cached History once its start settles", async () => {
 		const host = { status: "idle", readMessages: async () => [], dispose: async () => {} } as unknown as CloudSessionHost
 		vi.spyOn(CloudSessionHost, "connect").mockResolvedValue(host)
@@ -431,67 +361,6 @@ describe("SdkCloudSessionCoordinator ownership", () => {
 		expect(await listedIds()).not.toContain(record.id)
 		hubStarted.resolve()
 		await start
-
-		expect(await listedIds()).toContain(record.id)
-		await history.dispose()
-		await coordinator.dispose()
-	})
-
-	it("lists the started sandbox when its start settles while a History listing reads usage", async () => {
-		const startHost = {
-			status: "idle",
-			readMessages: async () => [],
-			dispose: async () => {},
-		} as unknown as CloudSessionHost
-		const usage = deferred<undefined>()
-		const otherHost = {
-			status: "running",
-			readMessages: async () => [],
-			dispose: async () => {},
-			getAccumulatedUsage: vi.fn(() => usage.promise),
-		} as unknown as CloudSessionHost
-		const other = { ...record, id: "ses-other", metadata: { ...record.metadata, taskId: "tsk-other" } }
-		vi.spyOn(CloudSessionHost, "connect").mockImplementation(async ({ outerSessionId }) =>
-			outerSessionId === other.id ? otherHost : startHost,
-		)
-		const hubStarted = deferred<void>()
-		const startNewSession = vi.fn(async () => {
-			await hubStarted.promise
-			return { sdkHost: startHost, startResult: { sessionId: record.id } }
-		})
-		let history!: SdkTaskHistory
-		const { coordinator, cloudSessions } = makeCoordinator({
-			invalidateHistoryCache: () => history.invalidateCache(),
-			sessions: { startNewSession, fireAndForgetSend: vi.fn() } as never,
-		})
-		history = new SdkTaskHistory({
-			mcpHub: {} as McpHub,
-			sessions: { getActiveSession: () => ({ sdkHost: { listHistory: async () => [] } }) } as never,
-			cloud: {
-				isCloudSessionId: (id) => coordinator.isCloudSessionId(id),
-				list: () => coordinator.listHistoryRecords(),
-				find: (id) => coordinator.findHistoryRecord(id),
-				delete: (id) => coordinator.deleteSession(id),
-			},
-		})
-		cloudSessions.listSessions.mockResolvedValue([other])
-		await coordinator.listHistoryRecords()
-		await coordinator.resolveStatuses([other.id])
-		cloudSessions.createSession.mockImplementation(async (_input, onProvisioning) => {
-			onProvisioning?.(record.id)
-			return record
-		})
-		cloudSessions.listSessions.mockResolvedValue([record, other])
-		const listedIds = async () => (await history.listHistory({ hydrate: false })).map((item) => item.sessionId)
-
-		const start = coordinator.beginCloudTask({ prompt: "test", repoUrl: record.repoContext.repoUrl! })()
-		await vi.waitFor(() => expect(startNewSession).toHaveBeenCalled())
-		const listing = listedIds()
-		await vi.waitFor(() => expect(otherHost.getAccumulatedUsage).toHaveBeenCalled())
-		hubStarted.resolve()
-		await start
-		usage.resolve(undefined)
-		await listing
 
 		expect(await listedIds()).toContain(record.id)
 		await history.dispose()

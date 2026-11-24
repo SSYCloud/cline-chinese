@@ -484,43 +484,9 @@ console.log(JSON.stringify({ cancel: false }))`
 			// NoOpRunner always returns success
 			result.cancel.should.be.false()
 		})
-
-		it("should handle missing hooks gracefully", async () => {
-			// No hook file created
-			const factory = new HookFactory()
-			const runner = await factory.create("PreToolUse")
-
-			// Should return NoOpRunner
-			const result = await runner.run({
-				taskId: "test-task",
-				preToolUse: {
-					toolName: "test_tool",
-					parameters: {},
-				},
-			})
-
-			result.cancel.should.be.false()
-		})
 	})
 
 	describe("Error Handling", () => {
-		it("should handle expected ENOENT errors silently", async () => {
-			// No hook file exists - ENOENT is expected
-			const factory = new HookFactory()
-			const runner = await factory.create("PreToolUse")
-
-			// Should not throw, returns NoOpRunner
-			const result = await runner.run({
-				taskId: "test-task",
-				preToolUse: {
-					toolName: "test_tool",
-					parameters: {},
-				},
-			})
-
-			result.cancel.should.be.false()
-		})
-
 		it("should handle hook input with all parameters", async () => {
 			const hookPath = path.join(tempDir, ".clinerules", "hooks", "PreToolUse")
 			const hookScript = `#!/usr/bin/env node

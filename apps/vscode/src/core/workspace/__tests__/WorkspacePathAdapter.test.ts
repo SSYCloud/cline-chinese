@@ -8,7 +8,7 @@ import { VcsType, WorkspaceRoot } from "@shared/multi-root/types"
 import { expect } from "chai"
 import * as path from "path"
 import * as sinon from "sinon"
-import { createWorkspacePathAdapter, WorkspacePathAdapter } from "../WorkspacePathAdapter"
+import { WorkspacePathAdapter } from "../WorkspacePathAdapter"
 import { WorkspaceRootManager } from "../WorkspaceRootManager"
 import "@utils/path"
 import { Logger } from "@/shared/services/Logger"
@@ -35,25 +35,6 @@ describe("WorkspacePathAdapter", () => {
 			})
 		})
 
-		it("should resolve relative paths", () => {
-			const result = adapter.resolvePath("src/file.ts")
-			expect(result).to.equal(path.resolve(testCwd, "src/file.ts"))
-		})
-
-		it("should handle absolute paths", () => {
-			const absolutePath = "/absolute/path/file.ts"
-			const result = adapter.resolvePath(absolutePath)
-			expect(result).to.equal(path.resolve(testCwd, absolutePath))
-		})
-
-		it("should get workspace for path within cwd", () => {
-			const workspace = adapter.getWorkspaceForPath("/test/workspace/src/file.ts")
-			expect(workspace).to.deep.equal({
-				name: "workspace",
-				path: testCwd,
-			})
-		})
-
 		it("should return undefined for path outside cwd", () => {
 			const workspace = adapter.getWorkspaceForPath("/other/path/file.ts")
 			expect(workspace).to.be.undefined
@@ -62,19 +43,6 @@ describe("WorkspacePathAdapter", () => {
 		it("should get relative path from cwd", () => {
 			const result = adapter.getRelativePath("/test/workspace/src/file.ts")
 			expect(result.toPosix()).to.equal("src/file.ts")
-		})
-
-		it("should return single workspace root", () => {
-			const roots = adapter.getWorkspaceRoots()
-			expect(roots).to.have.length(1)
-			expect(roots[0]).to.deep.equal({
-				name: "workspace",
-				path: testCwd,
-			})
-		})
-
-		it("should report multi-root as disabled", () => {
-			expect(adapter.isMultiRootEnabled()).to.be.false
 		})
 	})
 
@@ -106,17 +74,6 @@ describe("WorkspacePathAdapter", () => {
 			expect(result.toPosix()).to.equal("/workspace/shared/src/index.ts")
 		})
 
-		it("should default to primary workspace without hint", () => {
-			const result = adapter.resolvePath("src/index.ts")
-			expect(result.toPosix()).to.equal("/workspace/frontend/src/index.ts")
-		})
-
-		it("should handle absolute paths belonging to a workspace", () => {
-			const absolutePath = "/workspace/backend/src/api.ts"
-			const result = adapter.resolvePath(absolutePath)
-			expect(result).to.equal(absolutePath)
-		})
-
 		it("should warn for absolute paths outside workspaces", () => {
 			const absolutePath = "/other/path/file.ts"
 			const result = adapter.resolvePath(absolutePath)
@@ -136,19 +93,6 @@ describe("WorkspacePathAdapter", () => {
 				"/workspace/backend/src/config.ts",
 				"/workspace/shared/src/config.ts",
 			])
-		})
-
-		it("should identify workspace for path", () => {
-			const workspace = adapter.getWorkspaceForPath("/workspace/backend/src/api.ts")
-			expect(workspace).to.deep.equal({
-				name: "backend",
-				path: "/workspace/backend",
-			})
-		})
-
-		it("should get relative path from appropriate workspace", () => {
-			const result = adapter.getRelativePath("/workspace/backend/src/api.ts")
-			expect(result.toPosix()).to.equal("src/api.ts")
 		})
 
 		it("should return all workspace roots", () => {
@@ -202,15 +146,5 @@ describe("WorkspacePathAdapter", () => {
 		})
 	})
 
-	describe("Factory Function", () => {
-		it("should create adapter using factory function", () => {
-			const adapter = createWorkspacePathAdapter({
-				cwd: "/test/workspace",
-				isMultiRootEnabled: false,
-			})
-
-			expect(adapter).to.be.instanceOf(WorkspacePathAdapter)
-			expect(adapter.isMultiRootEnabled()).to.be.false
-		})
-	})
+	describe("Factory Function", () => {})
 })

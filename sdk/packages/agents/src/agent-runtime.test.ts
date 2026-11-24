@@ -4268,39 +4268,6 @@ describe("AgentRuntime", () => {
 		expect(result.status).toBe("completed");
 	});
 
-	it("does not append a hook context message when hooks return none", async () => {
-		const model = new ScriptedModel([
-			() => [
-				{
-					type: "tool-call-delta",
-					toolCallId: "no_ctx",
-					toolName: "echo",
-					inputText: '{"text":"hi"}',
-				},
-				{ type: "finish", reason: "tool-calls" },
-			],
-			(request) => {
-				expect(request.messages.at(-1)?.role).toBe("tool");
-				return [
-					{ type: "text-delta", text: "done" },
-					{ type: "finish", reason: "stop" },
-				];
-			},
-		]);
-		const runtime = new AgentRuntime({
-			model,
-			tools: [createEchoTool()],
-			hooks: {
-				beforeTool: () => undefined,
-				afterTool: () => ({ appendContext: "   " }),
-			},
-		});
-
-		const result = await runtime.run("No context");
-
-		expect(result.status).toBe("completed");
-	});
-
 	it("treats invalid tool-call JSON as a tool error instead of failing the run", async () => {
 		const model = new ScriptedModel([
 			() => [

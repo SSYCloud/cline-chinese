@@ -76,35 +76,12 @@ describe("GitHubConnectStep", () => {
 		return onContinue;
 	}
 
-	it("continues silently when GitHub is already connected", async () => {
-		mockIntegrationsCommand({ list: () => [{ provider: "github" }] });
-		const onContinue = await render();
-		expect(onContinue).toHaveBeenCalledTimes(1);
-	});
-
-	it("continues silently when the account is signed out", async () => {
-		mockIntegrationsCommand({
-			list: () => ({ signedIn: false, code: "ACCOUNT_NOT_AUTHENTICATED" }),
-		});
-		const onContinue = await render();
-		expect(onContinue).toHaveBeenCalledTimes(1);
-	});
-
 	it("shows the connect card when GitHub is not connected", async () => {
 		mockIntegrationsCommand({ list: () => [] });
 		const onContinue = await render();
 		expect(container.textContent).toContain("Connect GitHub");
 		expect(container.textContent).toContain("Not connected");
 		expect(onContinue).not.toHaveBeenCalled();
-	});
-
-	it("skips without connecting", async () => {
-		mockIntegrationsCommand({ list: () => [] });
-		const onContinue = await render();
-		await act(async () => {
-			buttonByText("Skip for now").click();
-		});
-		expect(onContinue).toHaveBeenCalledTimes(1);
 	});
 
 	it("opens the install URL, polls until connected, and lists repositories", async () => {

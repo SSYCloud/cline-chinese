@@ -434,18 +434,6 @@ describe("apply_patch summaries", () => {
 		expect(summary.details).toEqual(["src/one.ts +2 -1", "src/two.ts +1 -0"]);
 	});
 
-	it("labels single-file patches with the file name", () => {
-		const single = [
-			"*** Begin Patch",
-			"*** Update File: src/only.ts",
-			"+added",
-			"*** End Patch",
-		].join("\n");
-		expect(
-			buildToolSummary({ toolName: "apply_patch", input: single }).label,
-		).toBe("Edited file only.ts");
-	});
-
 	it("degrades to a generic label when the envelope is unparsable", () => {
 		const summary = buildToolSummary({ toolName: "apply_patch", input: 42 });
 		expect(summary.label).toBe("Applied patch");

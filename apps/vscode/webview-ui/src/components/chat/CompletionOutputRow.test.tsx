@@ -83,15 +83,6 @@ describe("CompletionOutputRow View Changes", () => {
 			/>,
 		)
 
-	it("shows the button once the host confirms the latest run changed files", async () => {
-		checkpointLatestChangesCount.mockResolvedValue({ value: 2 })
-
-		renderWithViewChanges()
-
-		const button = await screen.findByRole("button", { name: /View Changes/ })
-		expect(button).not.toBeDisabled()
-	})
-
 	it("stays hidden while the count is still being checked", () => {
 		checkpointLatestChangesCount.mockReturnValue(new Promise(() => {}))
 

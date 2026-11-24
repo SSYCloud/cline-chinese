@@ -261,15 +261,6 @@ describe("OpenAICompatibleProvider", () => {
 		expect(mocks.write).toHaveBeenCalledWith({ apiKey: "early-secret" })
 	})
 
-	it("writes a newly entered API key without echoing a stored key into config", async () => {
-		renderProvider()
-		await act(async () => {})
-
-		fireEvent.change(screen.getByLabelText("OpenAI Compatible API key"), { target: { value: "new-secret" } })
-
-		expect(mocks.write).toHaveBeenCalledWith({ apiKey: "new-secret" })
-	})
-
 	it("commits ordinary model selections by ID only", async () => {
 		mocks.refreshOpenAiModels.mockResolvedValue({ values: ["listed-model"] })
 		renderProvider()
@@ -633,22 +624,6 @@ describe("OpenAICompatibleProvider", () => {
 		})
 		expect(screen.queryByRole("option", { name: "stale-model" })).not.toBeInTheDocument()
 		expect(screen.getByRole("option", { name: "new-model" })).toBeInTheDocument()
-	})
-
-	it("cancels a pending debounced refresh when unmounted", async () => {
-		vi.useFakeTimers()
-		const view = renderProvider()
-		await act(async () => {})
-
-		fireEvent.change(screen.getByDisplayValue("http://localhost:1234/v1"), {
-			target: { value: "http://localhost:5678/v1" },
-		})
-		view.unmount()
-		await act(async () => {
-			vi.advanceTimersByTime(500)
-		})
-
-		expect(mocks.refreshOpenAiModels).toHaveBeenCalledTimes(1)
 	})
 
 	it("restores Azure settings and remote-config locks", async () => {

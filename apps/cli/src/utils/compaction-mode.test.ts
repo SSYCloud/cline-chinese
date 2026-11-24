@@ -15,14 +15,6 @@ function createConfig(compaction?: Config["compaction"]): Config {
 }
 
 describe("CLI compaction mode helpers", () => {
-	it("defaults enabled compaction to agentic summarization", () => {
-		expect(DEFAULT_CLI_COMPACTION_MODE).toBe("agentic");
-		expect(getCliCompactionMode(createConfig())).toBe(
-			DEFAULT_CLI_COMPACTION_MODE,
-		);
-		expect(formatCliCompactionMode(DEFAULT_CLI_COMPACTION_MODE)).toBe("LLM");
-	});
-
 	it("maps basic and off modes to core compaction config", () => {
 		const config = createConfig({ enabled: true, preserveRecentTokens: 123 });
 

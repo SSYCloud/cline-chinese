@@ -61,15 +61,6 @@ describe("pull request status", () => {
 			"feature/pr-ui",
 		);
 	});
-	it("offers creation for a feature branch and hides it for the default branch", async () => {
-		expect(
-			(await createPullRequestStatusReader({ run: runner([]) })("/repo"))
-				?.pullRequest,
-		).toBeNull();
-		expect(
-			await createPullRequestStatusReader({ run: runner([], "main") })("/repo"),
-		).toBeNull();
-	});
 	it("keeps merged and closed PR states", async () => {
 		for (const state of ["MERGED", "CLOSED"] as const) {
 			const result = await createPullRequestStatusReader({

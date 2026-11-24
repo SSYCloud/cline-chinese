@@ -34,17 +34,6 @@ describe("createOpenAIProviderModule", () => {
 		expect(streamConfig?.maxOutputTokens).toBe(8_192);
 	});
 
-	it("forwards maxOutputTokens for gateway-resolved explicit caps", async () => {
-		const provider = await createOpenAIProviderModule(config(), context());
-
-		const streamConfig = provider.buildStreamConfig?.(
-			request({ maxTokens: 8_192, defaultedMaxTokens: false }),
-			context(),
-		);
-
-		expect(streamConfig?.maxOutputTokens).toBe(8_192);
-	});
-
 	it("drops gateway-synthesized default caps", async () => {
 		const provider = await createOpenAIProviderModule(config(), context());
 

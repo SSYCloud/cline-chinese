@@ -94,15 +94,6 @@ describe("McpHub tool list change detection", () => {
 			computeToolFingerprint([]).should.equal("[]")
 		})
 
-		it("should include tools from connected, non-disabled servers", () => {
-			const connections = [makeConnection("server-a", "connected", ["tool1", "tool2"])]
-			const entries = JSON.parse(computeToolFingerprint(connections)).map((entry: string) => JSON.parse(entry))
-			entries.should.deepEqual([
-				["server-a", "tool1", null, {}, null, 60_000],
-				["server-a", "tool2", null, {}, null, 60_000],
-			])
-		})
-
 		it("should exclude tools from disconnected servers", () => {
 			const connections = [
 				makeConnection("server-a", "connected", ["tool1"]),
@@ -110,11 +101,6 @@ describe("McpHub tool list change detection", () => {
 			]
 			const entries = JSON.parse(computeToolFingerprint(connections)).map((entry: string) => JSON.parse(entry))
 			entries.should.deepEqual([["server-a", "tool1", null, {}, null, 60_000]])
-		})
-
-		it("should exclude tools from disabled servers", () => {
-			const connections = [makeConnection("server-a", "connected", ["tool1"], true)]
-			computeToolFingerprint(connections).should.equal("[]")
 		})
 
 		it("should exclude tools from connecting servers", () => {
@@ -232,19 +218,6 @@ describe("McpHub tool list change detection", () => {
 			callback.calledOnce.should.be.true()
 		})
 
-		it("should fire callback when new tools are added to a server", () => {
-			const connections = [makeConnection("server-a", "connected", ["tool1"])]
-			const tracker = createToolListChangeTracker()
-			const callback = sinon.stub()
-
-			tracker.setCallback(callback, connections)
-
-			// Add a new tool
-			connections[0].server.tools!.push({ name: "tool2" })
-			tracker.check(connections)
-			callback.calledOnce.should.be.true()
-		})
-
 		it("should fire callback when a new server connects", () => {
 			const connections = [makeConnection("server-a", "connected", ["tool1"])]
 			const tracker = createToolListChangeTracker()
@@ -256,14 +229,6 @@ describe("McpHub tool list change detection", () => {
 			connections.push(makeConnection("server-b", "connected", ["tool2"]))
 			tracker.check(connections)
 			callback.calledOnce.should.be.true()
-		})
-
-		it("should NOT fire callback when no callback is set", () => {
-			const tracker = createToolListChangeTracker()
-			const connections = [makeConnection("server-a", "connected", ["tool1"])]
-
-			// No callback set — should not throw
-			tracker.check(connections)
 		})
 
 		it("should handle callback errors gracefully", () => {

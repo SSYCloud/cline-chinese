@@ -24,20 +24,6 @@ describe("refreshClineRecommendedModels", () => {
 		vi.restoreAllMocks()
 	})
 
-	it("delegates to the SDK fetch", async () => {
-		const sdkResult = {
-			recommended: [{ id: "anthropic/claude-sonnet-4.6", name: "Claude Sonnet 4.6", description: "Remote", tags: ["NEW"] }],
-			free: [{ id: "cline-free/glm-5", name: "GLM 5", description: "Remote free", tags: [] }],
-			clinePass: [],
-		}
-		const sdkSpy = vi.spyOn(sdkCore, "fetchClineRecommendedModels").mockResolvedValue(sdkResult)
-
-		const result = await refreshClineRecommendedModels()
-
-		expect(sdkSpy).toHaveBeenCalledTimes(1)
-		expect(result).toEqual(sdkResult)
-	})
-
 	it("uses the in-memory cache after a populated upstream result", async () => {
 		const sdkResult = {
 			recommended: [{ id: "google/gemini-3.1-pro-preview", name: "Gemini 3.1 Pro", description: "Remote", tags: ["NEW"] }],

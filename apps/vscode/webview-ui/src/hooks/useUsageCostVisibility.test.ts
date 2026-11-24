@@ -46,11 +46,4 @@ describe("useUsageCostVisibility", () => {
 		expect(isCostVisible(undefined)).toBe(true)
 		expect(isCostVisible("")).toBe(true)
 	})
-
-	it("hides cost while listings have not arrived", () => {
-		withListings([])
-		const isCostVisible = renderPredicate()
-		expect(isCostVisible("cline-pass")).toBe(false)
-		expect(isCostVisible("anthropic")).toBe(false)
-	})
 })

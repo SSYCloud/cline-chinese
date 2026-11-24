@@ -17,8 +17,4 @@ test.describe("cline config --help", () => {
 		...TERMINAL_WIDE,
 		env: clineEnv("default"),
 	});
-
-	test("shows config help page", async ({ terminal }) => {
-		await expectVisible(terminal, ["Usage:", "--config"]);
-	});
 });

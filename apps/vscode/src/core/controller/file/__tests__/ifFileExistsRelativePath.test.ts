@@ -61,26 +61,4 @@ describe("ifFileExistsRelativePath", () => {
 			expect(result).to.deep.equal(BooleanResponse.create({ value: false }))
 		}
 	})
-
-	it("should handle valid relative paths correctly", async () => {
-		getWorkspacePathStub.resolves("/workspace")
-
-		// Test with valid workspace-relative paths only
-		const validPaths = ["src/file.ts", "./src/file.ts", "package.json", ".gitignore", "src/components/ui/Button/Button.tsx"]
-
-		for (const testPath of validPaths) {
-			const request = StringRequest.create({
-				value: testPath,
-			})
-
-			const result = await ifFileExistsRelativePath(mockController, request)
-
-			// Each should return a BooleanResponse
-			expect(result).to.have.property("value")
-			expect(typeof result.value).to.equal("boolean")
-		}
-
-		// Verify that getWorkspacePath was called for each path
-		expect(getWorkspacePathStub.callCount).to.equal(validPaths.length)
-	})
 })

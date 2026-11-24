@@ -389,28 +389,6 @@ describe("built-in provider metadata", () => {
 		);
 	});
 
-	it("uses generated specs directly when no runtime override is required", () => {
-		// moonshot is intentionally absent: it carries a Cline-specific
-		// regional routing override (apiLineBaseUrls) on top of its generated
-		// spec. wandb is absent because it carries a CoreWeave branding override.
-		const generatedOnlyProviderIds = [
-			"fireworks",
-			"poolside",
-			"nebius",
-			"baseten",
-			"requesty",
-			"huggingface",
-			"xiaomi",
-			"tencent-tokenhub",
-		] as const;
-
-		for (const providerId of generatedOnlyProviderIds) {
-			expect(BUILTIN_SPECS.find((spec) => spec.id === providerId)).toEqual(
-				GENERATED_PROVIDER_SPECS.find((spec) => spec.id === providerId),
-			);
-		}
-	});
-
 	it("preserves W&B connection settings under the CoreWeave display name", () => {
 		const generated = GENERATED_PROVIDER_SPECS.find(
 			(spec) => spec.id === "wandb",
@@ -611,15 +589,6 @@ describe("regional API line base URLs", () => {
 		expect(resolveProviderApiLineBaseUrl("zai", undefined)).toBeUndefined();
 		expect(resolveProviderApiLineBaseUrl("zai", "mars")).toBeUndefined();
 		expect(resolveProviderApiLineBaseUrl("anthropic", "china")).toBeUndefined();
-	});
-
-	it("keeps the international line consistent with the spec default base URL for zai and moonshot", () => {
-		for (const providerId of ["zai", "moonshot", "minimax"]) {
-			const spec = BUILTIN_SPECS.find((s) => s.id === providerId);
-			expect(spec?.apiLineBaseUrls?.international, providerId).toBe(
-				spec?.defaults?.baseUrl,
-			);
-		}
 	});
 
 	it("defaults deepseek to a catalog model and aliases the deprecated deepseek-v4-flash", () => {

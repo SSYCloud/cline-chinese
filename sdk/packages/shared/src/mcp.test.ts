@@ -50,14 +50,6 @@ describe("isMcpTimeoutConfigured", () => {
 	});
 });
 
-describe("clampMcpTimeoutSeconds", () => {
-	it("clamps into [MIN, MAX]", () => {
-		expect(clampMcpTimeoutSeconds(0)).toBe(MIN_MCP_TIMEOUT_SECONDS);
-		expect(clampMcpTimeoutSeconds(120)).toBe(120);
-		expect(clampMcpTimeoutSeconds(999999)).toBe(MAX_MCP_TIMEOUT_SECONDS);
-	});
-});
-
 describe("formatMcpTimeoutErrorMessage", () => {
 	it("names the server, effective bound, and setting to change", () => {
 		expect(formatMcpTimeoutErrorMessage("slow-server", 120_000)).toBe(

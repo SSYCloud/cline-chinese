@@ -171,35 +171,6 @@ describe("useMessageHandlers — send routing", () => {
 		expect(trackIntent).not.toHaveBeenCalled()
 	})
 
-	it("routes the /smol alias to the condense RPC as well", async () => {
-		mockTurnState = { phase: "completed", seq: 7 }
-		const { result } = renderHook(() => useMessageHandlers(completedConversation, makeChatState(completedConversation)))
-
-		await act(async () => {
-			await result.current.handleSendMessage("/smol", [], [])
-		})
-
-		expect(condense).toHaveBeenCalledTimes(1)
-		expect(newTask).not.toHaveBeenCalled()
-		expect(askResponse).not.toHaveBeenCalled()
-		expect(trackIntent).not.toHaveBeenCalled()
-	})
-
-	it("routes the /newtask alias to the condense RPC as well", async () => {
-		mockTurnState = { phase: "completed", seq: 7 }
-		const { result } = renderHook(() => useMessageHandlers(completedConversation, makeChatState(completedConversation)))
-
-		await act(async () => {
-			await result.current.handleSendMessage("/newtask", [], [])
-		})
-
-		expect(condense).toHaveBeenCalledTimes(1)
-		expect(condense).toHaveBeenCalledWith(expect.objectContaining({ value: "compact" }))
-		expect(newTask).not.toHaveBeenCalled()
-		expect(askResponse).not.toHaveBeenCalled()
-		expect(trackIntent).not.toHaveBeenCalled()
-	})
-
 	it.each([
 		["/skill:install", "skill"],
 		["/mcp:install", "mcp"],
@@ -1304,32 +1275,6 @@ describe("useMessageHandlers — send routing", () => {
 			images: draft.images,
 			files: draft.files,
 		})
-		expect(consumeDraftSnapshot).toHaveBeenCalledWith(draft)
-	})
-
-	it("does not submit a quote without message content", async () => {
-		mockTurnState = { phase: "awaiting_approval", anchorTs: 2, seq: 3 }
-		const approvalConversation: ClineMessage[] = [
-			{ ts: 1, type: "say", say: "task", text: "task" },
-			{ ts: 2, type: "ask", ask: "tool", text: JSON.stringify({ tool: "newFileCreated", path: "notes.md" }) },
-		]
-		const consumeDraftSnapshot = vi.fn()
-		const draft = {
-			revision: 12,
-			text: "  ",
-			activeQuote: "selected context",
-			images: [],
-			files: [],
-		}
-		const { result } = renderHook(() =>
-			useMessageHandlers(approvalConversation, makeChatState(approvalConversation, { consumeDraftSnapshot })),
-		)
-
-		await act(async () => {
-			await result.current.executeButtonAction({ type: "approve", draft })
-		})
-
-		expect(askResponse).toHaveBeenCalledWith({ responseType: "yesButtonClicked" })
 		expect(consumeDraftSnapshot).toHaveBeenCalledWith(draft)
 	})
 

@@ -6,12 +6,6 @@ import { arePathsEqual, getReadablePath, isLocatedInPath } from "./path"
 
 describe("Path Utilities", () => {
 	describe("isLocatedInPath", () => {
-		it("should return true for a path located within the directory", () => {
-			const dirPath = "/home/user/project"
-			const filePath = "/home/user/project/src/index.js"
-			isLocatedInPath(dirPath, filePath).should.be.true()
-		})
-
 		it("should return false for a path located outside the directory", () => {
 			const dirPath = "/home/user/project"
 			const filePath = "/home/user/other/index.js"

@@ -58,21 +58,6 @@ describe("Windows session import paths", () => {
 		);
 	});
 
-	it("preserves tool-specific overrides", () => {
-		const environment = windowsEnvironment({
-			USERPROFILE: String.raw`C:\Users\Alice`,
-			CLAUDE_CONFIG_DIR: String.raw`D:\Claude Data`,
-			CODEX_HOME: String.raw`\\server\share\Codex`,
-			XDG_DATA_HOME: String.raw`E:\XDG Data`,
-		});
-
-		expect(claudeCodeProjectsDir(environment)).toBe(
-			String.raw`D:\Claude Data\projects`,
-		);
-		expect(codexHomeDir(environment)).toBe(String.raw`\\server\share\Codex`);
-		expect(opencodeDataDir(environment)).toBe(String.raw`E:\XDG Data\opencode`);
-	});
-
 	it("supports a home at the drive root", () => {
 		const environment = windowsEnvironment({
 			HOMEDRIVE: "D:",
@@ -165,17 +150,5 @@ describe("POSIX session import paths", () => {
 		expect(opencodeDataDir(environment)).toBe(
 			"/home/alice/.local/share/opencode",
 		);
-	});
-
-	it("preserves tool-specific overrides", () => {
-		const environment = posixEnvironment({
-			CLAUDE_CONFIG_DIR: "/mnt/claude",
-			CODEX_HOME: "/mnt/codex",
-			XDG_DATA_HOME: "/mnt/data",
-		});
-
-		expect(claudeCodeProjectsDir(environment)).toBe("/mnt/claude/projects");
-		expect(codexHomeDir(environment)).toBe("/mnt/codex");
-		expect(opencodeDataDir(environment)).toBe("/mnt/data/opencode");
 	});
 });

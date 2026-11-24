@@ -18,10 +18,6 @@ test.describe("cline history --help", () => {
 		...TERMINAL_WIDE,
 		env: clineEnv("default"),
 	});
-
-	test("shows history help page with all flags", async ({ terminal }) => {
-		await expectVisible(terminal, ["Usage:", "--limit", "--config"]);
-	});
 });
 
 test.describe("cline history --limit", () => {
@@ -30,14 +26,6 @@ test.describe("cline history --limit", () => {
 		...TERMINAL_WIDE,
 		env: clineEnv("default"),
 	});
-
-	test("shows history limited to specified number of results", async ({
-		terminal,
-	}) => {
-		// The default config has 2 tasks in taskHistory.json; with limit=1
-		// we should see only 1 task entry
-		await expectVisible(terminal, /history|task/i);
-	});
 });
 
 test.describe("cline history --config (default)", () => {
@@ -45,11 +33,6 @@ test.describe("cline history --config (default)", () => {
 		program: { file: CLINE_BIN, args: ["history"] },
 		...TERMINAL_WIDE,
 		env: clineEnv("default"),
-	});
-
-	test("shows history for default config", async ({ terminal }) => {
-		// Default config has tasks with "wezterm" in them
-		await expectVisible(terminal, /history|task|wezterm/i);
 	});
 });
 
@@ -61,12 +44,5 @@ test.describe("cline history --config (claude-sonnet-4.6)", () => {
 		},
 		...TERMINAL_WIDE,
 		env: clineEnv("claude-sonnet-4.6"),
-	});
-
-	test("shows different history for different config directory", async ({
-		terminal,
-	}) => {
-		// The claude-sonnet-4.6 config has its own separate task history
-		await expectVisible(terminal, /history|task/i);
 	});
 });

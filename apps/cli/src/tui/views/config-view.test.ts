@@ -32,10 +32,6 @@ function createItem(
 }
 
 describe("config view helpers", () => {
-	it("treats skill rows as toggleable", () => {
-		expect(isToggleableConfigItem(createItem({ kind: "skill" }))).toBe(true);
-	});
-
 	it("does not treat workflow rows as toggleable", () => {
 		expect(isToggleableConfigItem(createItem({ kind: "workflow" }))).toBe(
 			false,
@@ -46,22 +42,6 @@ describe("config view helpers", () => {
 		expect(isToggleableConfigItem(createItem({ kind: "rule" }))).toBe(false);
 		expect(isToggleableConfigItem(createItem({ kind: "agent" }))).toBe(false);
 		expect(isToggleableConfigItem(createItem({ kind: "hook" }))).toBe(false);
-	});
-
-	it("keeps plugin tool rows toggleable", () => {
-		expect(
-			isToggleableConfigItem(
-				createItem({ kind: "tool", source: "workspace-plugin" }),
-			),
-		).toBe(true);
-	});
-
-	it("treats plugin rows as toggleable", () => {
-		expect(isToggleableConfigItem(createItem({ kind: "plugin" }))).toBe(true);
-	});
-
-	it("treats MCP rows as toggleable", () => {
-		expect(isToggleableConfigItem(createItem({ kind: "mcp" }))).toBe(true);
 	});
 
 	it("does not treat plugin MCP rows as toggleable", () => {

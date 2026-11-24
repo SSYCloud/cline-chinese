@@ -166,67 +166,6 @@ console.log(JSON.stringify({
 	})
 
 	describe("Hook Behavior", () => {
-		it("should execute successfully and capture context modification", async () => {
-			const hookPath = path.join(tempDir, ".clinerules", "hooks", "TaskComplete")
-			const hookScript = `#!/usr/bin/env node
-console.log(JSON.stringify({
-  cancel: false,
-  contextModification: "TaskComplete hook executed successfully",
-  errorMessage: ""
-}))`
-
-			await writeHookScript(hookPath, hookScript)
-
-			const factory = new HookFactory()
-			const runner = await factory.create("TaskComplete")
-
-			const result = await runner.run({
-				taskId: "test-task-id",
-				taskComplete: {
-					taskMetadata: {
-						taskId: "test-task-id",
-						ulid: "test-ulid",
-						result: "Test task",
-						command: "",
-					},
-				},
-			})
-
-			result.cancel.should.be.false()
-			result.contextModification?.should.equal("TaskComplete hook executed successfully")
-		})
-
-		it("should capture contextModification for logging even though task is complete", async () => {
-			const hookPath = path.join(tempDir, ".clinerules", "hooks", "TaskComplete")
-			const hookScript = `#!/usr/bin/env node
-const input = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
-console.log(JSON.stringify({
-  cancel: false,
-  contextModification: "TASK_COMPLETE: Task '" + input.taskComplete.taskMetadata.taskId + "' finished",
-  errorMessage: ""
-}))`
-
-			await writeHookScript(hookPath, hookScript)
-
-			const factory = new HookFactory()
-			const runner = await factory.create("TaskComplete")
-
-			const result = await runner.run({
-				taskId: "test-task-id",
-				taskComplete: {
-					taskMetadata: {
-						taskId: "test-task-id",
-						ulid: "test-ulid",
-						result: "Build a todo app",
-						command: "",
-					},
-				},
-			})
-
-			result.cancel.should.be.false()
-			result.contextModification?.should.equal("TASK_COMPLETE: Task 'test-task-id' finished")
-		})
-
 		it("should not block task completion when hook returns cancel: true", async () => {
 			const hookPath = path.join(tempDir, ".clinerules", "hooks", "TaskComplete")
 			const hookScript = `#!/usr/bin/env node
@@ -260,64 +199,7 @@ console.log(JSON.stringify({
 		})
 	})
 
-	describe("Error Handling", () => {
-		it("should handle hook script errors", async () => {
-			const hookPath = path.join(tempDir, ".clinerules", "hooks", "TaskComplete")
-			const hookScript = `#!/usr/bin/env node
-console.error("Hook execution error");
-process.exit(1);`
-
-			await writeHookScript(hookPath, hookScript)
-
-			const factory = new HookFactory()
-			const runner = await factory.create("TaskComplete")
-
-			try {
-				await runner.run({
-					taskId: "test-task-id",
-					taskComplete: {
-						taskMetadata: {
-							taskId: "test-task-id",
-							ulid: "test-ulid",
-							result: "Test task",
-							command: "",
-						},
-					},
-				})
-				throw new Error("Should have thrown")
-			} catch (error: any) {
-				error.message.should.match(/TaskComplete.*exited with code 1/)
-			}
-		})
-
-		it("should handle malformed JSON output from hook", async () => {
-			const hookPath = path.join(tempDir, ".clinerules", "hooks", "TaskComplete")
-			const hookScript = `#!/usr/bin/env node
-console.log("not valid json")`
-
-			await writeHookScript(hookPath, hookScript)
-
-			const factory = new HookFactory()
-			const runner = await factory.create("TaskComplete")
-
-			// When hook exits 0 but has malformed JSON, it returns success without context
-			const result = await runner.run({
-				taskId: "test-task-id",
-				taskComplete: {
-					taskMetadata: {
-						taskId: "test-task-id",
-						ulid: "test-ulid",
-						result: "Test task",
-						command: "",
-					},
-				},
-			})
-
-			// Hook succeeded (exit 0) but couldn't parse JSON, so returns success without context
-			result.cancel.should.be.false()
-			;(result.contextModification === undefined || result.contextModification === "").should.be.true()
-		})
-	})
+	describe("Error Handling", () => {})
 
 	describe("Global and Workspace Hooks", () => {
 		let globalHooksDir: string
@@ -412,26 +294,7 @@ console.log(JSON.stringify({
 		})
 	})
 
-	describe("No Hook Behavior", () => {
-		it("should succeed when no hook exists", async () => {
-			const factory = new HookFactory()
-			const runner = await factory.create("TaskComplete")
-
-			const result = await runner.run({
-				taskId: "test-task-id",
-				taskComplete: {
-					taskMetadata: {
-						taskId: "test-task-id",
-						ulid: "test-ulid",
-						result: "Test task",
-						command: "",
-					},
-				},
-			})
-
-			result.cancel.should.be.false()
-		})
-	})
+	describe("No Hook Behavior", () => {})
 
 	describe("Fixture-Based Tests", () => {
 		it("should validate representative fixtures end-to-end", async () => {

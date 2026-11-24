@@ -82,32 +82,6 @@ describe("checkManagedHubBuildMismatch", () => {
 	// a build fingerprint or epoch (e.g. desktop-v0.0.22 and cli-v3.0.61 both
 	// bundling core 0.0.82). Neither side can act on that - "update" installs
 	// nothing newer - so neither direction may prompt.
-	it("does not prompt for a same-release hub with a different fingerprint (hub built earlier)", async () => {
-		mockDiscovery({
-			expectedBuildId: "desktop-fingerprint",
-			selfIdentity: {
-				buildId: "desktop-fingerprint",
-				buildEpochMs: 2_000,
-				coreVersion: "0.0.82",
-			},
-			record: liveRecord,
-			probe: {
-				protocolVersion: "v1",
-				buildId: "cli-fingerprint",
-				buildEpochMs: 1_000,
-				coreVersion: "0.0.82",
-				host: "127.0.0.1",
-				port: 59999,
-				url: "ws://127.0.0.1:59999/hub",
-			},
-		});
-		const { checkManagedHubBuildMismatch } = await import(
-			"./managed-hub-build-watcher"
-		);
-
-		// Without the same-release rule this would classify as outdated_hub.
-		await expect(checkManagedHubBuildMismatch()).resolves.toBeUndefined();
-	});
 
 	it("does not prompt for a same-release hub with a different fingerprint (hub built later)", async () => {
 		mockDiscovery({

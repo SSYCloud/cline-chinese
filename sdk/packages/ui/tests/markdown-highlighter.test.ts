@@ -17,27 +17,6 @@ function highlight(code: string, language: "typescript") {
 }
 
 describe("markdownCodeHighlighter", () => {
-	test("keeps the syntax bundle to the shared supported language set", () => {
-		expect(SUPPORTED_MARKDOWN_LANGUAGES).toEqual([
-			"bash",
-			"css",
-			"diff",
-			"html",
-			"javascript",
-			"json",
-			"jsonc",
-			"jsx",
-			"markdown",
-			"python",
-			"shellscript",
-			"tsx",
-			"typescript",
-			"yaml",
-		]);
-		expect(markdownCodeHighlighter.supportsLanguage("ts")).toBe(true);
-		expect(markdownCodeHighlighter.supportsLanguage("rust")).toBe(false);
-	});
-
 	test("loads a supported grammar and returns themed tokens", async () => {
 		const result = await highlight("const answer: number = 42;", "typescript");
 

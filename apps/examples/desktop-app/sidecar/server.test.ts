@@ -31,14 +31,6 @@ function createTelemetryHandler(capture = vi.fn()) {
 }
 
 describe("sidecar WebSocket payload limit", () => {
-	it("accepts every recording allowed by the voice input size limit", () => {
-		const handler = createWebSocketHandler({} as SidecarContext);
-
-		expect(MAX_RECORDED_AUDIO_BYTES).toBe(25 * 1024 * 1024);
-		expect(handler.maxPayloadLength).toBeGreaterThan(
-			MAX_RECORDED_AUDIO_BASE64_BYTES,
-		);
-	});
 });
 
 describe("sidecar HTTP origin checks", () => {

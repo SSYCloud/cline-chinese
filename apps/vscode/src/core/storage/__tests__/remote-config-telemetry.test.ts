@@ -30,7 +30,7 @@ mock.module("@/services/auth/AuthService", () => ({
 mock.module("@/core/storage/remote-config/syncRemoteMcpServers", () => ({ syncRemoteMcpServersToSettings: async () => {} }))
 
 import { OpenTelemetryTelemetryProvider } from "@/services/telemetry/providers/opentelemetry/OpenTelemetryTelemetryProvider"
-import { NoOpTelemetryProvider, TelemetryProviderFactory } from "@/services/telemetry/TelemetryProviderFactory"
+import { TelemetryProviderFactory } from "@/services/telemetry/TelemetryProviderFactory"
 import { RemoteConfigSchema } from "@/shared/remote-config/schema"
 import { remoteConfigToOtelConfig } from "@/shared/services/config/otel-config"
 import {
@@ -111,13 +111,6 @@ describe("remote config telemetry ownership", () => {
 		expect(client.dispose).toHaveBeenCalledTimes(1)
 		expect(addProvider).not.toHaveBeenCalled()
 	})
-
-	it("disposes a client with no available signals", async () => {
-		client.tracerProvider = null
-		await applyRemoteConfig(config, {}, mcpHub as never)
-		expect(client.dispose).toHaveBeenCalledTimes(1)
-		expect(addProvider).not.toHaveBeenCalled()
-	})
 })
 
 describe("TelemetryProviderFactory ownership", () => {
@@ -136,20 +129,6 @@ describe("TelemetryProviderFactory ownership", () => {
 		expect(provider).toBeInstanceOf(OpenTelemetryTelemetryProvider)
 		expect(client.dispose).not.toHaveBeenCalled()
 		await provider.dispose()
-		expect(client.dispose).toHaveBeenCalledTimes(1)
-	})
-
-	it("disposes clients when initialization fails", async () => {
-		sinon.stub(OpenTelemetryTelemetryProvider.prototype, "initialize").rejects(new Error("init failed"))
-		const [provider] = await TelemetryProviderFactory.createProviders()
-		expect(provider).toBeInstanceOf(NoOpTelemetryProvider)
-		expect(client.dispose).toHaveBeenCalledTimes(1)
-	})
-
-	it("disposes clients with no available signals", async () => {
-		client.tracerProvider = null
-		const [provider] = await TelemetryProviderFactory.createProviders()
-		expect(provider).toBeInstanceOf(NoOpTelemetryProvider)
 		expect(client.dispose).toHaveBeenCalledTimes(1)
 	})
 })

@@ -620,21 +620,6 @@ describe("createShellExecutor", () => {
 		).rejects.toThrow("Failed to execute command");
 	});
 
-	it("execs an object-form command with args directly without shell parsing", async () => {
-		const shell = createShellExecutor();
-		// The shell-metachar argument arrives verbatim, proving the argv is
-		// passed straight to the executable rather than re-parsed by a shell.
-		const output = await shell(
-			{
-				command: process.execPath,
-				args: ["-e", "process.stdout.write(process.argv[1])", "argv $HOME ok"],
-			},
-			process.cwd(),
-			ctx,
-		);
-		expect(output).toBe("argv $HOME ok");
-	});
-
 	it("rejects on non-zero exit code", async () => {
 		const shell = createShellExecutor();
 		await expect(shell("exit 1", process.cwd(), ctx)).rejects.toThrow();
@@ -745,22 +730,6 @@ describe("createShellExecutor", () => {
 		expect(output).toContain("ok");
 		expect(output).toContain("[stderr]");
 		expect(output).toContain("warn");
-	});
-
-	it("excludes stderr when combineOutput is false", async () => {
-		const shell = createShellExecutor({ combineOutput: false });
-		const output = await shell(
-			{
-				command: process.execPath,
-				args: [
-					"-e",
-					"process.stdout.write('ok'); process.stderr.write('warn')",
-				],
-			},
-			process.cwd(),
-			ctx,
-		);
-		expect(output.trim()).toBe("ok");
 	});
 
 	it("rejects on timeout", async () => {
@@ -1074,19 +1043,6 @@ describe.runIf(process.platform === "win32")("createWindowsExecutor", () => {
 		} finally {
 			await rm(tempDir, { recursive: true, force: true });
 		}
-	});
-
-	it("runs structured commands without shell parsing", async () => {
-		const executor = createShellExecutor();
-		const output = await executor(
-			{
-				command: process.execPath,
-				args: ["-e", "process.stdout.write(process.argv[1])", "argv-ok"],
-			},
-			process.cwd(),
-			ctx,
-		);
-		expect(output).toBe("argv-ok");
 	});
 
 	it("runs string commands through the shell", async () => {

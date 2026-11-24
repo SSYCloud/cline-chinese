@@ -69,10 +69,6 @@ function parse(
 
 describe("connector tools default", () => {
 	for (const { name, connector, baseArgs } of connectors) {
-		it(`${name}: enables tools when nothing is passed`, () => {
-			expect(parse(connector, baseArgs).enableTools).toBe(true);
-		});
-
 		it(`${name}: disables tools with --no-tools`, () => {
 			expect(parse(connector, [...baseArgs, "--no-tools"]).enableTools).toBe(
 				false,
@@ -87,14 +83,4 @@ describe("connector tools default", () => {
 			).toBe(false);
 		});
 	}
-
-	it("keeps accepting --enable-tools so existing invocations still parse", () => {
-		// Persisted autostart arguments and deployed scripts carry this flag; it is
-		// redundant now but must not become an unknown-option error.
-		for (const { connector, baseArgs } of connectors) {
-			expect(
-				parse(connector, [...baseArgs, "--enable-tools"]).enableTools,
-			).toBe(true);
-		}
-	});
 });

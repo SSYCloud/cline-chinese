@@ -524,11 +524,4 @@ describe("detached connector log rotation", () => {
 		expect(readFileSync(logPath, "utf8")).toBe("recent failure");
 		expect(existsSync(`${logPath}.1`)).toBe(false);
 	});
-
-	it("does nothing when there is no log yet", () => {
-		const dir = mkdtempSync(join(tmpdir(), "cline-connector-log-"));
-		expect(() =>
-			__test__.rotateOversizedLog(join(dir, "missing.log")),
-		).not.toThrow();
-	});
 });

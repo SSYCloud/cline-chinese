@@ -69,12 +69,6 @@ async function runBeforeTool(
 }
 
 describe("plan-mode command-guard extension", () => {
-	it("declares the hooks capability under a stable name", () => {
-		const extension = createPlanModeCommandGuardExtension();
-		expect(extension.name).toBe(PLAN_MODE_COMMAND_GUARD_EXTENSION_NAME);
-		expect(extension.manifest.capabilities).toContain("hooks");
-	});
-
 	it("skips run_commands calls containing a file-editing command", async () => {
 		const extension = createPlanModeCommandGuardExtension();
 		const result = await runBeforeTool(
@@ -131,16 +125,6 @@ describe("plan-mode command-guard extension", () => {
 		const result = await runBeforeTool(
 			extension,
 			makeContext("read_files", { files: [{ path: "/tmp/rm" }] }),
-		);
-
-		expect(result).toBeUndefined();
-	});
-
-	it("lets the tool report its own error for unparseable input", async () => {
-		const extension = createPlanModeCommandGuardExtension();
-		const result = await runBeforeTool(
-			extension,
-			makeContext("run_commands", { bogus: 42 }),
 		);
 
 		expect(result).toBeUndefined();

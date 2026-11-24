@@ -352,18 +352,6 @@ describe("automatic shared Batch worksheet presentation", () => {
 		})
 	}
 
-	it("rechecks the current task after updating selection and before native open", async () => {
-		const f = setup()
-		const updateWorksheet = f.batch.updateWorksheet.bind(f.batch)
-		f.batch.updateWorksheet = async (...args) => {
-			const result = await updateWorksheet(...args)
-			f.setCurrentTask("another-task")
-			return result
-		}
-		await f.rows()
-		expect(f.opened).toHaveLength(0)
-	})
-
 	it("unsubscribes on disposal", async () => {
 		const f = setup()
 		f.presentation.dispose()

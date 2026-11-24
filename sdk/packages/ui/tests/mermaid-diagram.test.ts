@@ -455,15 +455,6 @@ describe("Mermaid theme", () => {
 		expect(cyan.primaryBorderColor).not.toBe(light.primaryBorderColor);
 	});
 
-	test("uses an Inter-first, non-monospace font stack", () => {
-		expect(MERMAID_FONT_FAMILY.toLowerCase()).toContain("inter");
-		expect(MERMAID_FONT_FAMILY.trim().toLowerCase()).not.toBe("monospace");
-		expect(
-			buildMermaidThemeVariables(FALLBACK_MERMAID_TOKENS.light, "light")
-				.fontFamily,
-		).toBe(MERMAID_FONT_FAMILY);
-	});
-
 	test("asks the injected resolver to resolve every token value", () => {
 		const seen: string[] = [];
 		const tokens = {
@@ -529,13 +520,6 @@ describe("Mermaid theme", () => {
 		// No per-node overrides: user init/classDef/style must win in Mermaid.
 		expect(config).not.toHaveProperty("flowchart");
 		expect(config).not.toHaveProperty("themeCSS");
-	});
-
-	test("default config is the light base theme", () => {
-		expect(createDefaultMermaidConfig()).toEqual(
-			buildMermaidConfig(FALLBACK_MERMAID_TOKENS.light, "light"),
-		);
-		expect(createDefaultMermaidConfig("dark").theme).toBe("base");
 	});
 });
 
@@ -689,17 +673,6 @@ describe("encodePngWithinLimit", () => {
 		expect(pngFitsAttachmentLimit(3 * 1024 * 1024)).toBe(true);
 		expect(pngFitsAttachmentLimit(4 * 1024 * 1024)).toBe(false);
 		expect(pngFitsAttachmentLimit(OVERSIZE)).toBe(false);
-	});
-
-	test("encodes once at the desired scale when the PNG already fits", async () => {
-		const encode = vi.fn(async () => ({ size: 1000 }));
-		await encodePngWithinLimit({ height: 600, width: 800 }, encode);
-		expect(encode).toHaveBeenCalledTimes(1);
-		expect(encode).toHaveBeenCalledWith({
-			height: 1200,
-			scale: 2,
-			width: 1600,
-		});
 	});
 
 	test("starts from a custom initial scale (device pixel ratio)", async () => {

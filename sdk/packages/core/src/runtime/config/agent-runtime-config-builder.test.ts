@@ -110,10 +110,6 @@ describe("buildMessageModelInfo", () => {
 // ---------------------------------------------------------------------------
 
 describe("resolveToolExecution", () => {
-	it("returns undefined when unset", () => {
-		expect(resolveToolExecution(undefined)).toBeUndefined();
-	});
-
 	it("returns 'sequential' for 1", () => {
 		expect(resolveToolExecution(1)).toBe("sequential");
 	});

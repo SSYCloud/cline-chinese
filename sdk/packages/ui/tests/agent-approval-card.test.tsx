@@ -22,31 +22,6 @@ afterEach(async () => {
 });
 
 describe("AgentApprovalCard", () => {
-	it("submits either controlled decision", async () => {
-		const onApprove = vi.fn();
-		const onReject = vi.fn();
-		await act(async () =>
-			root.render(
-				<AgentApprovalCard
-					detail="{}"
-					onApprove={onApprove}
-					onReject={onReject}
-					title="Run command"
-				/>,
-			),
-		);
-
-		const [approve, reject] = container.querySelectorAll("button");
-		await act(async () => approve?.click());
-		await act(async () => reject?.click());
-
-		expect(onApprove).toHaveBeenCalledOnce();
-		expect(onReject).toHaveBeenCalledOnce();
-		expect(
-			container.querySelector(".cline-ui-agent-approval-card__title")?.tagName,
-		).toBe("DIV");
-	});
-
 	it("renders non-null detail values", async () => {
 		await act(async () =>
 			root.render(

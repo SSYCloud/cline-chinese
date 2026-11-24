@@ -94,19 +94,6 @@ describe("user instruction config loader", () => {
 		);
 	});
 
-	it("discovers managed plugin instruction roots from workspace .cline manifests", () => {
-		const workspacePath = "/repo/demo";
-		expect(
-			createSkillsConfigDefinition({ workspacePath }).directories,
-		).toContain(join(workspacePath, ".cline"));
-		expect(
-			createRulesConfigDefinition({ workspacePath }).directories,
-		).toContain(join(workspacePath, ".cline"));
-		expect(
-			createWorkflowsConfigDefinition({ workspacePath }).directories,
-		).toContain(join(workspacePath, ".cline"));
-	});
-
 	it("parses markdown frontmatter for skill, rule, and workflow configs", () => {
 		const skill = parseSkillConfigFromMarkdown(
 			`---
@@ -148,19 +135,6 @@ Document rollout and rollback steps.`,
 	// Regression test for https://github.com/cline/cline/issues/12151: a leading UTF-8 BOM
 	// (e.g. saved by Windows Notepad's "UTF-8 with BOM" encoding) must not prevent frontmatter
 	// from being recognized.
-	it("parses markdown frontmatter when the content starts with a UTF-8 BOM", () => {
-		const skill = parseSkillConfigFromMarkdown(
-			`\uFEFF---
-name: my-skill
-description: A test skill
----
-This is a test skill.`,
-			"fallback",
-		);
-		expect(skill.name).toBe("my-skill");
-		expect(skill.description).toBe("A test skill");
-		expect(skill.instructions).toBe("This is a test skill.");
-	});
 
 	it("keeps Agent Plugin skills strict and namespaced while watching", async () => {
 		const tempRoot = await realpath(

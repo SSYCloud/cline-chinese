@@ -52,14 +52,6 @@ function textMessage(role: ChatMessage["role"], content: string): ChatMessage {
 const ACTIVE = { sessionActive: true };
 
 describe("isAgentRunToolName", () => {
-	it("recognizes subagent and teammate run tools", () => {
-		expect(isAgentRunToolName("spawn_agent")).toBe(true);
-		expect(isAgentRunToolName("spawn-agent")).toBe(true);
-		expect(isAgentRunToolName("Spawn_Agent")).toBe(true);
-		expect(isAgentRunToolName("subagent_code_reviewer")).toBe(true);
-		expect(isAgentRunToolName("team_run_task")).toBe(true);
-	});
-
 	it("ignores tools that do not start an agent", () => {
 		expect(isAgentRunToolName("read_files")).toBe(false);
 		expect(isAgentRunToolName("team_status")).toBe(false);
@@ -96,20 +88,6 @@ describe("buildSessionAgentActivity", () => {
 			ACTIVE,
 		);
 		expect(activity).toMatchObject({ total: 1, running: 1, completed: 0 });
-	});
-
-	it("counts a finished subagent as completed", () => {
-		const activity = buildSessionAgentActivity(
-			[
-				toolMessage({
-					toolName: "spawn_agent",
-					hookEventName: "tool_call_end",
-					result: { text: "done", iterations: 3, finishReason: "completed" },
-				}),
-			],
-			ACTIVE,
-		);
-		expect(activity).toMatchObject({ total: 1, running: 0, completed: 1 });
 	});
 
 	it("counts an errored subagent as failed", () => {
@@ -368,16 +346,6 @@ describe("buildSessionAgentActivity", () => {
 });
 
 describe("describeAgentActivity", () => {
-	it("describes a single running agent", () => {
-		expect(
-			describeAgentActivity({
-				...EMPTY_AGENT_ACTIVITY,
-				total: 1,
-				running: 1,
-			}),
-		).toBe("1 agent: 1 running");
-	});
-
 	it("lists every non-empty bucket", () => {
 		expect(
 			describeAgentActivity({

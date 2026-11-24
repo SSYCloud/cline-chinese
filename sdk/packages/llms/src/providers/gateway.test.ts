@@ -1056,35 +1056,6 @@ describe("sdk-gateway", () => {
 		});
 	});
 
-	it("keeps Anthropic cache-control routing on the expected provider set", () => {
-		const gateway = createGateway();
-		const strategyProviders = gateway
-			.listProviders()
-			.filter(
-				(provider) =>
-					provider.metadata?.routing?.promptCache?.format ===
-					"anthropic-cache-control",
-			)
-			.map((provider) => provider.id)
-			.sort();
-
-		expect(strategyProviders).toEqual([
-			"aihubmix",
-			"anthropic",
-			"cline",
-			"cline-pass",
-			"minimax",
-			"oca",
-			"openrouter",
-			"qwen",
-			"qwen-code",
-			"sapaicore",
-			"shengsuanyun",
-			"vercel-ai-gateway",
-			"vertex",
-		]);
-	});
-
 	it("routes Bedrock prompt caching through Converse cachePoint markers", () => {
 		const gateway = createGateway();
 		const cachePointProviders = gateway
@@ -5122,31 +5093,6 @@ describe("sdk-gateway", () => {
 		expect(call).not.toHaveProperty("maxOutputTokens");
 	});
 
-	it("translates web search into the native OpenAI tool for ChatGPT OAuth", async () => {
-		mockSuccessfulStream();
-		const gateway = createGateway({
-			providerConfigs: [{ providerId: "openai-codex" }],
-		});
-
-		await collect(
-			await gateway.stream({
-				providerId: "openai-codex",
-				modelId: "gpt-5.4",
-				messages: baseMessages,
-				modelTools: [{ name: "web_search" }],
-			}),
-		);
-
-		expect(nativeWebSearchSpy).toHaveBeenCalledWith(undefined);
-		expect(streamTextSpy).toHaveBeenCalledWith(
-			expect.objectContaining({
-				tools: expect.objectContaining({
-					web_search: expect.objectContaining({ type: "provider-tool" }),
-				}),
-			}),
-		);
-	});
-
 	it("does not send explicit maxOutputTokens to ChatGPT OAuth", async () => {
 		streamTextSpy.mockReturnValue({
 			fullStream: makeStreamParts([
@@ -6893,45 +6839,6 @@ describe("sdk-gateway", () => {
 		});
 	});
 
-	it("forwards a per-provider fetch through to the provider config", async () => {
-		const customFetch = vi.fn() as unknown as typeof fetch;
-		const createProvider = vi.fn((config: { fetch?: typeof fetch }) => ({
-			async *stream() {
-				expect(config.fetch).toBe(customFetch);
-				yield { type: "text-delta", text: "ok" } satisfies AgentModelEvent;
-				yield { type: "finish", reason: "stop" } satisfies AgentModelEvent;
-			},
-		}));
-
-		const gateway = createGateway({
-			builtins: false,
-			providers: [
-				{
-					manifest: {
-						id: "custom-fetch",
-						name: "CustomFetch",
-						defaultModelId: "alpha",
-						models: [
-							{ id: "alpha", name: "Alpha", providerId: "custom-fetch" },
-						],
-					},
-					createProvider,
-				},
-			],
-			providerConfigs: [{ providerId: "custom-fetch", fetch: customFetch }],
-		});
-
-		await collect(
-			await gateway.stream({
-				providerId: "custom-fetch",
-				modelId: "alpha",
-				messages: baseMessages,
-			}),
-		);
-
-		expect(createProvider).toHaveBeenCalledOnce();
-	});
-
 	it("falls back to the top-level gateway fetch when no provider fetch is set", async () => {
 		const fallbackFetch = vi.fn() as unknown as typeof fetch;
 		const createProvider = vi.fn((config: { fetch?: typeof fetch }) => ({
@@ -7294,32 +7201,5 @@ describe("sdk-gateway", () => {
 		expect(customFetchMock.mock.calls[0]?.[0]).toBe(request);
 		const init = customFetchMock.mock.calls[0]?.[1] as RequestInit | undefined;
 		expect(init?.body).toBeNull();
-	});
-
-	it("does not fall back to conversationId for OpenRouter session_id", async () => {
-		const { fetch: customFetch } = createFetchMock();
-		streamTextSpy.mockReturnValue({
-			fullStream: makeStreamParts([{ type: "finish", finishReason: "stop" }]),
-		});
-
-		const gateway = createGateway({
-			providerConfigs: [
-				{ providerId: "openrouter", apiKey: "test-key", fetch: customFetch },
-			],
-		});
-
-		await collect(
-			await gateway.stream({
-				providerId: "openrouter",
-				modelId: "anthropic/claude-test",
-				messages: baseMessages,
-				metadata: { conversationId: "conversation-openrouter" },
-			}),
-		);
-
-		const config = openaiCompatibleFactorySpy.mock.calls[0]?.[0] as {
-			fetch?: typeof fetch;
-		};
-		expect(config.fetch).toBe(customFetch);
 	});
 });

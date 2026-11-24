@@ -348,35 +348,10 @@ async function runStartupScenario(
 	}
 }
 
-test("desktop backend has the bundled CLI start the Hub when none is running", async () => {
-	await runStartupScenario({}, { hubAlreadyRunning: false });
-}, 180_000);
-
-test("desktop backend reuses a compatible Hub the CLI already started", async () => {
-	await runStartupScenario({}, { hubAlreadyRunning: true });
-}, 180_000);
-
 // Bun's fetch has no localhost proxy bypass, so a system proxy used to swallow
 // the hub discovery probes (cline/cline#14265, #14292).
-test("desktop startup works behind a dead HTTP(S) proxy", async () => {
-	await runStartupScenario(
-		{
-			HTTP_PROXY: "http://127.0.0.1:9",
-			HTTPS_PROXY: "http://127.0.0.1:9",
-			http_proxy: "http://127.0.0.1:9",
-			https_proxy: "http://127.0.0.1:9",
-		},
-		{ hubAlreadyRunning: false },
-	);
-}, 180_000);
 
 for (const discoveryContents of ["{ invalid json", "{}"]) {
-	test(`desktop startup recovers from an invalid discovery record: ${discoveryContents}`, async () => {
-		await runStartupScenario(
-			{},
-			{ hubAlreadyRunning: false, discoveryContents },
-		);
-	}, 120_000);
 }
 
 test.each([

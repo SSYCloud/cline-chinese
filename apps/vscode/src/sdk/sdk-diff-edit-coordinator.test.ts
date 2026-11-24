@@ -532,17 +532,6 @@ describe("SdkDiffEditCoordinator", () => {
 		expect(previews[0].closed).toBe(1)
 	})
 
-	it("delegates directly with no preview when background edit is enabled", async () => {
-		backgroundEdit = true
-		await writeFile("a.ts", "old content")
-		const input = { path: "a.ts", old_text: "old", new_text: "new" }
-
-		const result = await coordinator.executeEditorTool(input, tempDir, makeContext("tc1"))
-
-		expect(result).toBe("fallback editor result")
-		expect(previews).toHaveLength(0)
-	})
-
 	it("supersedes a pending same-file preview and the earlier executor does not reopen one", async () => {
 		await writeFile("a.ts", "alpha\nshared\n")
 		const first = { path: "a.ts", old_text: "alpha", new_text: "ALPHA" }

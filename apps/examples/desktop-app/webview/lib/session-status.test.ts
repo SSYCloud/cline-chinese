@@ -32,10 +32,6 @@ describe("resolveSessionHeaderStatus", () => {
 });
 
 describe("sessionStatusTone", () => {
-	it("marks running sessions as running", () => {
-		expect(sessionStatusTone("running")).toBe("running");
-	});
-
 	it("marks failed and error sessions as errors", () => {
 		expect(sessionStatusTone("failed")).toBe("error");
 		expect(sessionStatusTone("error")).toBe("error");

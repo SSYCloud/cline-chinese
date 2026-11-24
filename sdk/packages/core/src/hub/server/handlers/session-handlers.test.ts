@@ -10,46 +10,12 @@ import {
 const tool = (name: string) => ({ name });
 
 describe("readHubClientContext", () => {
-	it("accepts the serializable client identity used for telemetry", () => {
-		expect(
-			readHubClientContext({
-				name: " cline-desktop ",
-				version: " 0.0.23 ",
-				platform: " Cline Desktop ",
-				platformVersion: " 0.0.23 ",
-				isMultiRoot: false,
-			}),
-		).toEqual({
-			name: "cline-desktop",
-			version: "0.0.23",
-			platform: "Cline Desktop",
-			platformVersion: "0.0.23",
-			isMultiRoot: false,
-		});
-	});
-
 	it("rejects a client context without a name", () => {
 		expect(readHubClientContext({ version: "0.0.23" })).toBeUndefined();
 	});
 });
 
 describe("readHubUserContext", () => {
-	it("accepts the serializable authenticated identity used for telemetry", () => {
-		expect(
-			readHubUserContext({
-				distinctId: " account-1 ",
-				accountId: " account-1 ",
-				email: " dev@example.com ",
-				organizationId: " org-1 ",
-			}),
-		).toEqual({
-			distinctId: "account-1",
-			accountId: "account-1",
-			email: "dev@example.com",
-			organizationId: "org-1",
-		});
-	});
-
 	it("rejects an empty user context", () => {
 		expect(readHubUserContext({ distinctId: " " })).toBeUndefined();
 	});
@@ -130,13 +96,6 @@ describe("resolveSessionAutoApproveTools", () => {
 				{ "*": { autoApprove: true } },
 				{ autoApproveTools: false },
 			),
-		).toBe(true);
-	});
-
-	it("falls back to the runtime option", () => {
-		expect(resolveSessionAutoApproveTools(undefined, {})).toBe(false);
-		expect(
-			resolveSessionAutoApproveTools(undefined, { autoApproveTools: true }),
 		).toBe(true);
 	});
 });

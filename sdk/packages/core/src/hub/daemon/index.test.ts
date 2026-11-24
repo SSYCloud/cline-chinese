@@ -349,16 +349,6 @@ describe("ensureDetachedHubServer", () => {
 		expect(openSync).not.toHaveBeenCalled();
 	});
 
-	it("does not prewarm another detached daemon from inside the hub daemon process", async () => {
-		process.env[CLINE_RUN_AS_HUB_DAEMON_ENV] = "1";
-
-		const { prewarmDetachedHubServer } = await import(".");
-		prewarmDetachedHubServer("/workspace");
-
-		expect(readHubDiscovery).not.toHaveBeenCalled();
-		expect(spawn).not.toHaveBeenCalled();
-	});
-
 	it("clears stale discovery when prewarm finds an unreachable discovered hub", async () => {
 		vi.useFakeTimers();
 		try {

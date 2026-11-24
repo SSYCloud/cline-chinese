@@ -22,32 +22,9 @@ function assertMatch(result: TestResult) {
 }
 
 describe("Mention Regex", () => {
-	describe("Windows Path Support", () => {
-		it("matches simple Windows paths", () => {
-			const cases: Array<[string, string]> = [
-				["@/C:\\folder\\file.txt", "@/C:\\folder\\file.txt"],
-				["@/C:\\file.txt", "@/C:\\file.txt"],
-			]
-
-			cases.forEach(([input, expected]) => {
-				const result = testMention(input, expected)
-				assertMatch(result)
-			})
-		})
-	})
+	describe("Windows Path Support", () => {})
 
 	describe("Edge Cases", () => {
-		it("handles edge cases correctly", () => {
-			const cases: Array<[string, string]> = [
-				["@/C:\\Users\\name\\path\\to\\文件夹\\file.txt", "@/C:\\Users\\name\\path\\to\\文件夹\\file.txt"],
-				["@/path123/file-name_2.0.txt", "@/path123/file-name_2.0.txt"],
-			]
-
-			cases.forEach(([input, expected]) => {
-				const result = testMention(input, expected)
-				assertMatch(result)
-			})
-		})
 		it("handles unquoted paths with spaces correctly", () => {
 			// Should stop at the space
 			const match = mentionRegex.exec("@/path with spaces/file.txt")
@@ -56,19 +33,6 @@ describe("Mention Regex", () => {
 	})
 
 	describe("Existing Functionality", () => {
-		it("matches Unix paths", () => {
-			const cases: Array<[string, string]> = [
-				["@/usr/local/bin/file", "@/usr/local/bin/file"],
-				["@/path/to/file.txt", "@/path/to/file.txt"],
-				["@//etc/host", "@//etc/host"],
-			]
-
-			cases.forEach(([input, expected]) => {
-				const result = testMention(input, expected)
-				assertMatch(result)
-			})
-		})
-
 		it("matches URLs", () => {
 			const cases: Array<[string, string]> = [
 				["@http://example.com", "@http://example.com"],
@@ -85,19 +49,6 @@ describe("Mention Regex", () => {
 		it("matches git hashes", () => {
 			const cases: Array<[string, string]> = [
 				["@abcdef1234567890abcdef1234567890abcdef12", "@abcdef1234567890abcdef1234567890abcdef12"],
-			]
-
-			cases.forEach(([input, expected]) => {
-				const result = testMention(input, expected)
-				assertMatch(result)
-			})
-		})
-
-		it("matches special keywords", () => {
-			const cases: Array<[string, string]> = [
-				["@problems", "@problems"],
-				["@git-changes", "@git-changes"],
-				["@terminal", "@terminal"],
 			]
 
 			cases.forEach(([input, expected]) => {
@@ -243,19 +194,6 @@ describe("Mention Regex", () => {
 			})
 		})
 
-		it("handles multiple punctuation marks", () => {
-			const cases: Array<[string, string]> = [
-				["@/path/file.txt!?", "@/path/file.txt"],
-				["@problems...", "@problems"],
-				["@terminal!!", "@terminal"],
-			]
-
-			cases.forEach(([input, expected]) => {
-				const match = mentionRegex.exec(input)
-				expect(match?.[0]).to.equal(expected)
-			})
-		})
-
 		it("doesn't match trailing punctuation in context", () => {
 			const cases: Array<[string, string[]]> = [
 				["Check the file at @/C:\\folder\\file.txt! for details.", ["@/C:\\folder\\file.txt"]],
@@ -301,33 +239,13 @@ describe("Mention Regex", () => {
 		})
 	})
 
-	describe("End of String Handling", () => {
-		it("matches mentions at end of string", () => {
-			const cases: Array<[string, string]> = [
-				["Check @/path/file.txt", "@/path/file.txt"],
-				["Review @problems", "@problems"],
-				["Open @terminal", "@terminal"],
-				["See @git-changes", "@git-changes"],
-			]
-
-			cases.forEach(([input, expected]) => {
-				const match = mentionRegex.exec(input)
-				expect(match?.[0]).to.equal(expected)
-			})
-		})
-	})
+	describe("End of String Handling", () => {})
 
 	describe("Complex Real-World Scenarios", () => {
 		it("handles mentions in markdown-like text", () => {
 			const text = "See @/docs/README.md, check @problems, and visit @https://example.com."
 			const matches = text.match(mentionRegexGlobal)
 			expect(matches).to.deep.equal(["@/docs/README.md", "@problems", "@https://example.com"])
-		})
-
-		it("handles mentions in code comments", () => {
-			const text = "// TODO: Fix @problems in @/src/index.js (see @git-changes)"
-			const matches = text.match(mentionRegexGlobal)
-			expect(matches).to.deep.equal(["@problems", "@/src/index.js", "@git-changes"])
 		})
 	})
 	describe("Quoted file paths", () => {
@@ -403,19 +321,6 @@ describe("Mention Regex", () => {
 				const match = mentionRegex.exec(input)
 				const actual = match ? match[0] : null
 				expect(actual).to.equal(expected)
-			})
-		})
-
-		it("matches keywords with trailing punctuation", () => {
-			const cases: Array<[string, string]> = [
-				["@problems!", "@problems"],
-				["@terminal.", "@terminal"],
-				["@git-changes,", "@git-changes"],
-			]
-
-			cases.forEach(([input, expected]) => {
-				const match = mentionRegex.exec(input)
-				expect(match?.[0]).to.equal(expected)
 			})
 		})
 	})

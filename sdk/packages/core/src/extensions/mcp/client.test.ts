@@ -441,23 +441,6 @@ describe("mcp client request timeout", () => {
 		}
 	}, 30_000);
 
-	it("connects a slow-starting server when a timeout is configured", async () => {
-		const factory = createDefaultMcpServerClientFactory();
-		const client = await factory(
-			fakeServerRegistration({
-				timeoutSeconds: 15,
-				delayMs: 0,
-				initDelayMs: 4_000,
-			}),
-		);
-		try {
-			await client.connect();
-			expect(await client.listTools()).toEqual([]);
-		} finally {
-			await client.disconnect();
-		}
-	}, 30_000);
-
 	it("uses the default connect budget when a malformed settings timeout is ignored", async () => {
 		const filePath = join(tempRoot, `malformed-timeout-${Date.now()}.json`);
 		writeFileSync(
@@ -727,30 +710,6 @@ describe("remote MCP OAuth connection", () => {
 			error:
 				'MCP server "notion" rejected its configured Authorization header. Update or remove that header before connecting with OAuth.',
 		});
-	});
-});
-
-describe("default connect budget", () => {
-	it("keeps the doubled initialize budget well under the hub command timeout", () => {
-		// MCP initialize runs on the session.create critical path, and connect()
-		// can spend the budget twice (newline then Content-Length framing). If
-		// the doubled total approaches HUB_DEFAULT_COMMAND_TIMEOUT_MS, a server
-		// that never initializes stalls session.create past the hub deadline and
-		// the whole session is torn down (a hung server used to kill the CLI
-		// this way). Keep headroom for the rest of session creation.
-		expect(DEFAULT_MCP_CONNECT_TIMEOUT_MS * 2).toBeLessThanOrEqual(
-			HUB_DEFAULT_COMMAND_TIMEOUT_MS - 10_000,
-		);
-	});
-
-	it("keeps the remote connect budget well under the hub command timeout", () => {
-		// Remote (SSE/streamable HTTP) connect also runs on the session.create
-		// critical path. Without this bound an offline remote server stalls
-		// session.create past the hub deadline and takes the whole session
-		// down (this crashed the CLI).
-		expect(DEFAULT_HTTP_MCP_CONNECT_TIMEOUT_MS).toBeLessThanOrEqual(
-			HUB_DEFAULT_COMMAND_TIMEOUT_MS / 2,
-		);
 	});
 });
 

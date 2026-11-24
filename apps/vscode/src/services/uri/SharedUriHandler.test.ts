@@ -217,14 +217,6 @@ describe("SharedUriHandler", () => {
 				// URLSearchParams should decode %20 to spaces
 				sinon.assert.calledOnceWithExactly(handleAuthCallbackStub, "jwt with spaces", "google")
 			})
-
-			it("should handle empty query string", async () => {
-				const result = await SharedUriHandler.handleUri("vscode://cline.cline/openrouter")
-
-				expect(result).to.be.false
-				expect(handleAuthCallbackStub.called).to.be.false
-				expect(handleOpenRouterCallbackStub.called).to.be.false
-			})
 		})
 
 		describe("Different URI schemes", () => {

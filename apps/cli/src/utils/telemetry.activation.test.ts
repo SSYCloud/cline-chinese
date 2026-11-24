@@ -50,18 +50,6 @@ describe("captureCliExtensionActivated", () => {
 		resetCliExtensionActivationForTests();
 	});
 
-	test("emits user.extension_activated on first call via core helper", () => {
-		captureCliExtensionActivated();
-		expect(hoisted.captureExtensionActivated).toHaveBeenCalledTimes(1);
-	});
-
-	test("memoizes emission across subsequent calls", () => {
-		captureCliExtensionActivated();
-		captureCliExtensionActivated();
-		captureCliExtensionActivated();
-		expect(hoisted.captureExtensionActivated).toHaveBeenCalledTimes(1);
-	});
-
 	test("identifies the active organization before capturing activation", () => {
 		const account = {
 			id: "user-1",

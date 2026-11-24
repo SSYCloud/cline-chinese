@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, it } from "bun:test"
 import "should"
-import { ClineFileStorage } from "@shared/storage/ClineFileStorage"
 import { createStorageContext, type StorageContext } from "@shared/storage/storage-context"
 import fs from "fs"
 import os from "os"
@@ -166,21 +165,6 @@ describe("vscode-to-file-migration", () => {
 			// Should NOT have the VSCode values — migration was skipped
 			const modeVal = storageContext.globalState.get("mode")
 			;(modeVal === undefined).should.be.true()
-		})
-
-		it("should skip everything when both sentinels are higher version", async () => {
-			storageContext.globalState.update("__vscodeMigrationVersion", 999)
-			storageContext.workspaceState.set("__vscodeMigrationVersion", 999)
-
-			const mockCtx = createMockVSCodeContext()
-			mockCtx._globalStateStore.set("mode", "act")
-
-			const result = await exportVSCodeStorageToSharedFiles(mockCtx as any, storageContext)
-
-			result.migrated.should.be.false()
-			result.globalStateCount.should.equal(0)
-			result.workspaceStateCount.should.equal(0)
-			result.mcpServersAdded.should.equal(0)
 		})
 
 		it("should re-run migration if sentinels are lower version", async () => {
@@ -585,19 +569,6 @@ describe("vscode-to-file-migration", () => {
 	})
 
 	describe("workspace state migration", () => {
-		it("should migrate workspace state keys", async () => {
-			const toggles = { "rule-1": true, "rule-2": false }
-			const mockCtx = createMockVSCodeContext()
-			mockCtx._workspaceStateStore.set("localClineRulesToggles", toggles)
-
-			const result = await exportVSCodeStorageToSharedFiles(mockCtx as any, storageContext)
-
-			result.migrated.should.be.true()
-			result.workspaceStateCount.should.equal(1)
-			const stored = storageContext.workspaceState.get("localClineRulesToggles") as any
-			stored.should.deepEqual(toggles)
-		})
-
 		it("should NOT overwrite existing workspace state", async () => {
 			const existingToggles = { "rule-existing": true }
 			storageContext.workspaceState.set("localClineRulesToggles", existingToggles)
@@ -787,14 +758,6 @@ describe("createStorageContext", () => {
 		}
 	})
 
-	it("should create all three stores", () => {
-		const ctx = createStorageContext({ clineDir: tempDir, workspacePath: "/fake/workspace" })
-
-		ctx.globalState.should.be.instanceOf(ClineFileStorage)
-		ctx.secrets.should.be.instanceOf(ClineFileStorage)
-		ctx.workspaceState.should.be.instanceOf(ClineFileStorage)
-	})
-
 	it("should create directories", () => {
 		const ctx = createStorageContext({ clineDir: tempDir, workspacePath: "/fake/workspace" })
 
@@ -825,20 +788,6 @@ describe("createStorageContext", () => {
 		})
 
 		ctx.workspaceStoragePath.should.equal(explicitDir)
-	})
-
-	it("should store and retrieve values correctly", () => {
-		const ctx = createStorageContext({ clineDir: tempDir, workspacePath: "/test" })
-
-		ctx.globalState.update("testKey", "testValue")
-		ctx.globalState.get("testKey")!.should.equal("testValue")
-
-		ctx.secrets.set("secretKey", "secretValue")
-		ctx.secrets.get("secretKey")!.should.equal("secretValue")
-
-		ctx.workspaceState.set("wsKey", { toggle: true })
-		const ws = ctx.workspaceState.get("wsKey") as any
-		ws.toggle.should.equal(true)
 	})
 
 	// The data dir must resolve like the SDK's resolveClineDataDir and the

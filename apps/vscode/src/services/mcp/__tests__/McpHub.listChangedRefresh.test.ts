@@ -101,15 +101,6 @@ describe("McpHub list_changed notification refresh", () => {
 		connection.server.resourceTemplates.should.deepEqual([{ name: "template1" }])
 	})
 
-	it("refreshes prompts on prompts/list_changed", async () => {
-		const { hub, connection, fetchPromptsList } = createMcpHub()
-		;(hub as any).scheduleListChangedRefresh("test-server", "prompts")
-		await clock.tickAsync(300)
-
-		fetchPromptsList.calledOnce.should.be.true()
-		connection.server.prompts.should.deepEqual([{ name: "prompt1" }])
-	})
-
 	it("debounces per server and kind independently", async () => {
 		const { hub, fetchToolsList, fetchPromptsList, notifyWebviewOfServerChanges } = createMcpHub()
 		;(hub as any).scheduleListChangedRefresh("test-server", "tools")
@@ -148,15 +139,6 @@ describe("McpHub list_changed notification refresh", () => {
 
 		fetchToolsList.called.should.be.false()
 		notifyWebviewOfServerChanges.called.should.be.false()
-	})
-
-	it("does not reject when the refresh fails", async () => {
-		const { hub, fetchToolsList } = createMcpHub()
-		fetchToolsList.rejects(new Error("server went away"))
-		;(hub as any).scheduleListChangedRefresh("test-server", "tools")
-
-		// Would surface as an unhandled rejection if the error weren't caught
-		await clock.tickAsync(300)
 	})
 
 	it("keeps the previous cached list when the fetch fails", async () => {

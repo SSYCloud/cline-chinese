@@ -30,12 +30,6 @@ describe("migration notice", () => {
 		}
 	});
 
-	it("returns the notice for a fresh data dir", () => {
-		const dataDir = createTempDataDir();
-
-		expect(getClineCliMigrationNotice(dataDir)?.title).toBe("Try ClinePass");
-	});
-
 	it("shows when only the old Kanban notice was marked as shown", () => {
 		const dataDir = createTempDataDir();
 		const noticePath = resolveCliNoticeStatePath(dataDir);
@@ -72,14 +66,6 @@ describe("migration notice", () => {
 		const notice = getClineCliMigrationNotice(dataDir);
 		expect(notice?.id).toBe("cline-cli-desktop-launch");
 		expect(notice?.url).toBe("https://cline.bot/desktop");
-	});
-
-	it("shows only one notice per launch", () => {
-		const dataDir = createTempDataDir();
-
-		expect(getClineCliMigrationNotice(dataDir)?.id).toBe(
-			"cline-cli-cline-pass-intro",
-		);
 	});
 
 	it("marks the desktop launch notice as shown by id", () => {

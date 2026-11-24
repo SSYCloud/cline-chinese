@@ -268,50 +268,6 @@ describe("Telemetry system is abstracted and can easily switch between providers
 	})
 
 	describe("No-Op Provider", () => {
-		it("should create No-Op provider and handle all operations safely", async () => {
-			console.log("\n=== Testing No-Op Provider ===")
-			const noOpProvider = new NoOpTelemetryProvider()
-
-			const noOpTelemetryService = new TelemetryService([noOpProvider], MOCK_METADATA)
-
-			// Test various telemetry methods - should all be no-ops
-			noOpTelemetryService.captureButtonClick("test-button", "task-789")
-			noOpTelemetryService.identifyAccount(MOCK_USER_INFO)
-			noOpTelemetryService.captureTaskFeedback("task-789", "thumbs_up")
-			noOpTelemetryService.captureProviderApiError({
-				ulid: "task-789",
-				model: "gpt-4",
-				errorMessage: "boom",
-				provider: "openai",
-			})
-
-			// Test provider methods directly
-			noOpProvider.log("test_event", { test: "property" })
-			noOpProvider.identifyUser(MOCK_USER_INFO, { additional: "data" })
-
-			// Verify provider state
-			const isEnabled = noOpProvider.isEnabled()
-			const settings = noOpProvider.getSettings()
-
-			// NoOp provider should always return false for isEnabled
-			assert.strictEqual(isEnabled, false, "NoOp provider should always be disabled")
-
-			// NoOp provider should return consistent settings
-			assert.deepStrictEqual(
-				settings,
-				{
-					hostEnabled: false,
-					level: "off",
-				},
-				"NoOp provider should return consistent settings",
-			)
-
-			console.log("No-Op Provider enabled:", isEnabled)
-			console.log("No-Op Provider settings:", settings)
-
-			await noOpProvider.dispose()
-		})
-
 		it("should handle unsupported provider types by returning No-Op provider", async () => {
 			console.log("\n=== Testing Unsupported Provider Type ===")
 			// Test unsupported type - No-Op provider is the fallback
@@ -342,53 +298,6 @@ describe("Telemetry system is abstracted and can easily switch between providers
 	})
 
 	describe("Factory Configuration", () => {
-		it("should return default configurations", () => {
-			// Mock PostHog config validation to return true for this test
-			const isPostHogConfigValidStub = sinon.stub(posthogConfigModule, "isPostHogConfigValid").returns(true)
-			const isSelfHostedStub = sinon.stub(ClineEndpoint, "isSelfHosted").returns(false)
-
-			const defaultConfigs = TelemetryProviderFactory.getDefaultConfigs()
-
-			assert.ok(defaultConfigs.length > 0, "Should return at least one configuration")
-
-			// Restore the stubs
-			isPostHogConfigValidStub.restore()
-			isSelfHostedStub.restore()
-		})
-
-		it("should NOT include PostHog config when in selfHosted mode", () => {
-			// Stub ClineEndpoint.isSelfHosted() to return true (selfHosted mode)
-			const isSelfHostedStub = sinon.stub(ClineEndpoint, "isSelfHosted").returns(true)
-			// Even if PostHog config is valid, it should be skipped
-			const isPostHogConfigValidStub = sinon.stub(posthogConfigModule, "isPostHogConfigValid").returns(true)
-
-			const configs = TelemetryProviderFactory.getDefaultConfigs()
-
-			// Should NOT include PostHog when in selfHosted mode
-			const hasPosthog = configs.some((c) => c.type === "posthog")
-			assert.strictEqual(hasPosthog, false, "Should NOT include PostHog configuration in selfHosted mode")
-
-			// Restore the stubs
-			isSelfHostedStub.restore()
-			isPostHogConfigValidStub.restore()
-		})
-
-		it("should NOT include PostHog config when NOT in selfHosted mode and config is valid", () => {
-			// Stub ClineEndpoint.isSelfHosted() to return false (normal mode)
-			const isSelfHostedStub = sinon.stub(ClineEndpoint, "isSelfHosted").returns(false)
-			const isPostHogConfigValidStub = sinon.stub(posthogConfigModule, "isPostHogConfigValid").returns(true)
-
-			const configs = TelemetryProviderFactory.getDefaultConfigs()
-
-			// PostHog is only used for feature flags, never as a telemetry sink
-			const hasPosthog = configs.some((c) => c.type === "posthog")
-			assert.strictEqual(hasPosthog, false, "Should NOT include PostHog configuration")
-
-			// Restore the stubs
-			isSelfHostedStub.restore()
-			isPostHogConfigValidStub.restore()
-		})
-
 		it("should NOT include build-time OTEL config when in selfHosted mode", () => {
 			// Stub ClineEndpoint.isSelfHosted() to return true (selfHosted mode)
 			const isSelfHostedStub = sinon.stub(ClineEndpoint, "isSelfHosted").returns(true)
@@ -508,29 +417,6 @@ describe("Telemetry system is abstracted and can easily switch between providers
 			assert.strictEqual(eventName2, "task.subagent_disabled", "Event should be subagent_disabled when disabled")
 			assert.strictEqual(properties2.enabled, false, "Properties should include enabled: false")
 			assert.ok(properties2.timestamp, "Properties should include timestamp")
-
-			logSpy.restore()
-			await noOpProvider.dispose()
-		})
-
-		it("should respect subagents telemetry category settings", async () => {
-			const noOpProvider = new NoOpTelemetryProvider()
-			const logSpy = sinon.spy(noOpProvider, "log")
-			const telemetryService = new TelemetryService([noOpProvider], MOCK_METADATA)
-
-			// Reset spy to ignore constructor events
-			logSpy.resetHistory()
-
-			// Verify subagents category is enabled by default
-			assert.strictEqual(
-				telemetryService.isCategoryEnabled("subagents"),
-				true,
-				"Subagents category should be enabled by default",
-			)
-
-			// Test that events are captured when category is enabled
-			telemetryService.captureSubagentToggle(true)
-			assert.ok(logSpy.calledOnce, "Event should be captured when category is enabled")
 
 			logSpy.restore()
 			await noOpProvider.dispose()

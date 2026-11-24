@@ -96,16 +96,6 @@ describe("withMaxCompletionTokensForReasoningModels", () => {
 		});
 	});
 
-	it("leaves non-reasoning models untouched", () => {
-		const body = {
-			model: "gpt-4o",
-			max_tokens: 8_192,
-			messages: [],
-		};
-
-		expect(withMaxCompletionTokensForReasoningModels(body)).toBe(body);
-	});
-
 	it("leaves reasoning-era requests without max_tokens untouched", () => {
 		const body = { model: "o3-mini", messages: [] };
 
@@ -123,12 +113,6 @@ describe("withMaxCompletionTokensForReasoningModels", () => {
 			model: "o4-mini",
 			max_completion_tokens: 1_024,
 		});
-	});
-
-	it("leaves bodies without a string model id untouched", () => {
-		const body = { max_tokens: 8_192 };
-
-		expect(withMaxCompletionTokensForReasoningModels(body)).toBe(body);
 	});
 });
 

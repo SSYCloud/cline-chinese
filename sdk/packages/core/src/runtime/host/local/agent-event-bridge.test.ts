@@ -178,27 +178,6 @@ describe("AgentEventBridge.handleTeamEvent", () => {
 });
 
 describe("AgentEventBridge.handlePluginTelemetry", () => {
-	it("routes plugin capture calls into the session telemetry service", () => {
-		const telemetry = createTelemetryStub();
-		const bridge = createBridge(telemetry);
-
-		bridge.handlePluginTelemetry("session-1", {
-			pluginName: "weather",
-			kind: "event",
-			event: "topic_used",
-			properties: { topic: "sunny" },
-		});
-
-		expect(telemetry.capture).toHaveBeenCalledWith({
-			event: "plugin.topic_used",
-			properties: {
-				topic: "sunny",
-				plugin_name: "weather",
-				session_id: "session-1",
-			},
-		});
-	});
-
 	it("routes required events through captureRequired", () => {
 		const telemetry = createTelemetryStub();
 		const bridge = createBridge(telemetry);

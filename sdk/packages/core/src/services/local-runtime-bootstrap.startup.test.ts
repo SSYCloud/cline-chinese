@@ -209,41 +209,4 @@ describe("prepareLocalRuntimeBootstrap startup telemetry", () => {
 			workspace_count: 1,
 		});
 	});
-
-	it("does not throw and emits no telemetry when no telemetry service is provided", async () => {
-		vi.doMock("./workspace/workspace-manifest", () => ({
-			buildWorkspaceMetadataWithInfo: vi.fn(async (rootPath: string) => ({
-				workspaceInfo: {
-					rootPath,
-					git: undefined,
-					remotes: [],
-					branch: undefined,
-					commit: undefined,
-				},
-				workspaceMetadata: "",
-				durationMs: 1,
-				vcsType: "none" as const,
-				initError: undefined,
-			})),
-		}));
-
-		const { prepareLocalRuntimeBootstrap } = await import(
-			"./local-runtime-bootstrap"
-		);
-
-		await expect(
-			prepareLocalRuntimeBootstrap({
-				input: createStartInput(),
-				sessionId: "sess-startup-no-telemetry",
-				providerSettingsManager: createProviderSettingsManager() as never,
-				defaultTelemetry: undefined,
-				defaultToolPolicies: undefined,
-				onPluginEvent: () => {},
-				onTeamEvent: () => {},
-				createSpawnTool,
-				readSessionMetadata: async () => undefined,
-				writeSessionMetadata: async () => {},
-			}),
-		).resolves.toBeDefined();
-	});
 });

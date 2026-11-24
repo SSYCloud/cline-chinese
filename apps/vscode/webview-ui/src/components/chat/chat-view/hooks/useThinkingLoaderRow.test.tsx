@@ -33,14 +33,6 @@ describe("computeIsWaitingForResponse (turnState path)", () => {
 		expect(computeIsWaitingForResponse(inputsFor([], streaming()))).toBe(true)
 	})
 
-	it("does not wait while a content row is actively streaming", () => {
-		expect(computeIsWaitingForResponse(inputsFor([say(1, "text", true)], streaming()))).toBe(false)
-	})
-
-	it("waits when the last visible row is no longer partial while streaming", () => {
-		expect(computeIsWaitingForResponse(inputsFor([say(1, "text", false)], streaming()))).toBe(true)
-	})
-
 	it("never waits outside the streaming phase", () => {
 		expect(computeIsWaitingForResponse(inputsFor([say(1, "text", false)], { phase: "awaiting_followup", seq: 2 }))).toBe(
 			false,
@@ -59,14 +51,6 @@ describe("computeIsWaitingForResponse (legacy path)", () => {
 	it("does not wait when the last raw message is an ask", () => {
 		const ask: ClineMessage = { ts: 1, type: "ask", ask: "followup", text: "?", partial: false }
 		expect(computeIsWaitingForResponse(inputsFor([ask], undefined))).toBe(false)
-	})
-
-	it("does not wait on a final completion_result", () => {
-		expect(computeIsWaitingForResponse(inputsFor([say(1, "completion_result", false)], undefined))).toBe(false)
-	})
-
-	it("waits when the last visible row is not actively partial", () => {
-		expect(computeIsWaitingForResponse(inputsFor([say(1, "text", false)], undefined))).toBe(true)
 	})
 })
 

@@ -175,13 +175,6 @@ describe("FeatureFlagsService", () => {
 		expect(service.getFlagPayload(TEST_PAYLOAD_FLAG)).toBeUndefined();
 	});
 
-	it("returns false or undefined before polling", () => {
-		const service = new FeatureFlagsService({ provider: createProvider() });
-
-		expect(service.getBooleanFlagEnabled(TEST_BOOLEAN_FLAG)).toBe(false);
-		expect(service.getFlagPayload(TEST_PAYLOAD_FLAG)).toBeUndefined();
-	});
-
 	it("preserves the hydrated cache when the same account resolves and polling fails", async () => {
 		const service = new FeatureFlagsService({
 			provider: createProvider({

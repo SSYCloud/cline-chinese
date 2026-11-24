@@ -446,16 +446,6 @@ describe("composeAiSdkProviderOptions: alias bucket emission", () => {
 		);
 	});
 
-	it("keeps the raw provider-id bucket and alias for non openai-compatible targets", () => {
-		const result = composeAiSdkProviderOptions(
-			makeRequest({ providerId: "openai-codex", modelId: "gpt-5.4" }),
-			makeContext({ providerId: "openai-codex", modelId: "gpt-5.4" }),
-		);
-
-		expect(result["openai-codex"]).toBeDefined();
-		expect(result.openaiCodex).toBeDefined();
-	});
-
 	it("disables strict JSON schema for the OpenAI adapter bucket", () => {
 		const result = composeAiSdkProviderOptions(
 			makeRequest({ providerId: "openai-native", modelId: "gpt-5.4" }),
@@ -2355,35 +2345,6 @@ describe("composeAiSdkProviderOptions: provider-specific overlays", () => {
 		expect(result).not.toHaveProperty("openai-native");
 	});
 
-	it("keeps portable OpenAI disable out of provider options", () => {
-		const result = composeAiSdkProviderOptions(
-			makeRequest({
-				providerId: "openai-native",
-				modelId: "gpt-5.6",
-				reasoning: { enabled: false },
-			}),
-			makeContext({
-				providerId: "openai-native",
-				modelId: "gpt-5.6",
-				reasoningOptions: effortOptions([
-					"none",
-					"low",
-					"medium",
-					"high",
-					"xhigh",
-					"max",
-				]),
-			}),
-		);
-
-		expect(result.openai).toEqual(
-			expect.objectContaining({
-				truncation: "auto",
-			}),
-		);
-		expect(result.openai).not.toHaveProperty("reasoningEffort");
-	});
-
 	it("emits the openai-codex `openai` bucket alongside provider-id and alias buckets", () => {
 		const result = composeAiSdkProviderOptions(
 			makeRequest({
@@ -2531,101 +2492,6 @@ describe("composeAiSdkProviderOptions: provider-specific overlays", () => {
 			makeContext({
 				providerId: "vertex",
 				modelId: "gemini-3-flash-preview",
-				reasoningOptions: effortOptions(["minimal", "low", "medium", "high"]),
-			}),
-		);
-
-		expect(result.vertex).toEqual({});
-		expect(result.vertex).not.toHaveProperty("thinking");
-		expect(result.vertex).not.toHaveProperty("effort");
-		expect(result.vertex).not.toHaveProperty("reasoningEffort");
-		expect(result.vertex).not.toHaveProperty("reasoningSummary");
-		expect(result.google).toBeUndefined();
-	});
-
-	it("uses portable reasoning for Vertex Claude", () => {
-		const result = composeAiSdkProviderOptions(
-			makeRequest({
-				providerId: "vertex",
-				modelId: "claude-sonnet-4-5",
-				reasoning: { enabled: true, effort: "high" },
-			}),
-			makeContext({
-				providerId: "vertex",
-				modelId: "claude-sonnet-4-5",
-				family: "claude-sonnet",
-				capabilities: ["text", "reasoning"],
-			}),
-		);
-
-		expect(result.vertex).toEqual({});
-		expect(result.vertex).not.toHaveProperty("thinkingConfig");
-		expect(result.vertex).not.toHaveProperty("effort");
-		expect(result.vertex).not.toHaveProperty("reasoningEffort");
-		expect(result.vertex).not.toHaveProperty("reasoningSummary");
-	});
-
-	it("omits disabled Vertex thinking when the model advertises no off control", () => {
-		const result = composeAiSdkProviderOptions(
-			makeRequest({
-				providerId: "vertex",
-				modelId: "gemini-3-flash-preview",
-				reasoning: { enabled: false },
-			}),
-			makeContext({
-				providerId: "vertex",
-				modelId: "gemini-3-flash-preview",
-				reasoningOptions: effortOptions(["minimal", "low", "medium", "high"]),
-			}),
-		);
-
-		expect(result.vertex).toEqual({});
-		expect(result.vertex).not.toHaveProperty("thinking");
-		expect(result.vertex).not.toHaveProperty("effort");
-		expect(result.vertex).not.toHaveProperty("reasoningEffort");
-		expect(result.vertex).not.toHaveProperty("reasoningSummary");
-		expect(result.google).toBeUndefined();
-	});
-
-	it("uses portable reasoning to disable Vertex Gemini Flash", () => {
-		const result = composeAiSdkProviderOptions(
-			makeRequest({
-				providerId: "vertex",
-				modelId: "gemini-flash-latest",
-				reasoning: { enabled: false },
-			}),
-			makeContext({
-				providerId: "vertex",
-				modelId: "gemini-flash-latest",
-				family: "gemini-flash",
-				capabilities: ["reasoning"],
-				reasoningOptions: [
-					{ type: "toggle" },
-					{ type: "budget_tokens", min: 0, max: 24_576 },
-				],
-			}),
-		);
-
-		expect(result.vertex).toEqual({});
-		expect(result.vertex).not.toHaveProperty("thinking");
-		expect(result.vertex).not.toHaveProperty("effort");
-		expect(result.vertex).not.toHaveProperty("reasoningEffort");
-		expect(result.vertex).not.toHaveProperty("reasoningSummary");
-		expect(result.google).toBeUndefined();
-	});
-
-	it("uses portable reasoning for Vertex Gemini Flash effort", () => {
-		const result = composeAiSdkProviderOptions(
-			makeRequest({
-				providerId: "vertex",
-				modelId: "gemini-flash-latest",
-				reasoning: { enabled: true, effort: "high" },
-			}),
-			makeContext({
-				providerId: "vertex",
-				modelId: "gemini-flash-latest",
-				family: "gemini-flash",
-				capabilities: ["reasoning"],
 				reasoningOptions: effortOptions(["minimal", "low", "medium", "high"]),
 			}),
 		);

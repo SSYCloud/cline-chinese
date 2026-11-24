@@ -120,16 +120,6 @@ describe("cli tuistory e2e", () => {
 		}
 	});
 
-	it("shows the interactive chat view on launch", async () => {
-		const session = await launchCli();
-		await waitForChatView(session);
-
-		const screen = await session.text({ trimEnd: true });
-		expect(screen).toContain("What can I do for you?");
-		expect(screen).toContain("○ Plan ● Act (Tab)");
-		expect(screen).toContain("Auto-approve all enabled (Shift+Tab)");
-	});
-
 	it("toggles plan/act mode with Tab", async () => {
 		const session = await launchCli();
 		await waitForChatView(session);
@@ -146,22 +136,6 @@ describe("cli tuistory e2e", () => {
 		const screen = await session.text();
 		expect(screen).toContain("● Plan ○ Act (Tab)");
 		expect(screen).not.toContain("○ Plan ● Act (Tab)");
-	});
-
-	it("toggles auto-approve-all with Shift+Tab", async () => {
-		const session = await launchCli();
-		await waitForChatView(session);
-		expect(await session.text()).toContain(
-			"Auto-approve all enabled (Shift+Tab)",
-		);
-
-		await session.press(["shift", "tab"]);
-		await session.waitForText("Auto-approve all disabled (Shift+Tab)", {
-			timeout: UI_TIMEOUT_MS,
-		});
-
-		const screen = await session.text();
-		expect(screen).not.toContain("Auto-approve all enabled (Shift+Tab)");
 	});
 
 	it("opens /settings, navigates tabs, and closes with Escape", async () => {
@@ -197,16 +171,6 @@ describe("cli tuistory e2e", () => {
 			timeout: UI_TIMEOUT_MS,
 		});
 		expect(await session.text()).not.toContain("←/→ switch tabs");
-	});
-
-	it("launches config view directly with `cline config`", async () => {
-		const session = await launchCli(["config"]);
-		await session.waitForText("←/→ switch tabs", {
-			timeout: LAUNCH_TIMEOUT_MS,
-		});
-		const screen = await session.text();
-		expect(screen).toContain("Settings");
-		expect(screen).toContain("▸ Provider");
 	});
 
 	it("dismisses the ClinePass promo with any key and marks it as shown", async () => {

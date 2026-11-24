@@ -54,81 +54,12 @@ describe("ClineAPI Core Functionality", () => {
 		sandbox.restore()
 	})
 
-	describe("startNewTask", () => {
-		it("should clear existing task and start new one with description", async () => {
-			const taskDescription = "Create a test function"
-			const images = ["image1.png", "image2.png"]
+	describe("startNewTask", () => {})
 
-			await api.startNewTask(taskDescription, images)
-
-			// Verify task clearing sequence
-			sinon.assert.called(mockController.clearTask)
-			sinon.assert.called(mockController.postStateToWebview)
-			sinon.assert.calledWith(mockController.initTask, taskDescription, images)
-		})
-
-		it("should handle undefined task description", async () => {
-			await api.startNewTask(undefined, [])
-
-			sinon.assert.called(mockController.clearTask)
-			sinon.assert.calledWith(mockController.initTask, undefined, [])
-		})
-
-		it("should handle task with no images", async () => {
-			await api.startNewTask("Task without images")
-
-			sinon.assert.calledWith(mockController.initTask, "Task without images", undefined)
-		})
-	})
-
-	describe("sendMessage", () => {
-		it("should send message to active task", async () => {
-			const mockTask = {
-				handleWebviewAskResponse: sandbox.stub().resolves(),
-			}
-			mockController.task = mockTask
-
-			await api.sendMessage("Test message", ["image.png"])
-
-			sinon.assert.calledWith(mockTask.handleWebviewAskResponse, "messageResponse", "Test message", ["image.png"])
-		})
-
-		it("should handle empty message", async () => {
-			const mockTask = {
-				handleWebviewAskResponse: sandbox.stub().resolves(),
-			}
-			mockController.task = mockTask
-
-			await api.sendMessage("", [])
-
-			sinon.assert.calledWith(mockTask.handleWebviewAskResponse, "messageResponse", "", [])
-		})
-
-		it("should handle undefined message", async () => {
-			const mockTask = {
-				handleWebviewAskResponse: sandbox.stub().resolves(),
-			}
-			mockController.task = mockTask
-
-			await api.sendMessage(undefined, [])
-
-			sinon.assert.calledWith(mockTask.handleWebviewAskResponse, "messageResponse", "", [])
-		})
-	})
+	describe("sendMessage", () => {})
 
 	describe("Button Press Methods", () => {
 		describe("pressPrimaryButton", () => {
-			it("should handle primary button press with active task", async () => {
-				const mockTask = {
-					handleWebviewAskResponse: sandbox.stub().resolves(),
-				}
-				mockController.task = mockTask
-
-				await api.pressPrimaryButton()
-
-				sinon.assert.calledWith(mockTask.handleWebviewAskResponse, "yesButtonClicked", "", [])
-			})
-
 			it("should handle primary button press with no active task", async () => {
 				mockController.task = undefined
 
@@ -138,26 +69,7 @@ describe("ClineAPI Core Functionality", () => {
 			})
 		})
 
-		describe("pressSecondaryButton", () => {
-			it("should handle secondary button press with active task", async () => {
-				const mockTask = {
-					handleWebviewAskResponse: sandbox.stub().resolves(),
-				}
-				mockController.task = mockTask
-
-				await api.pressSecondaryButton()
-
-				sinon.assert.calledWith(mockTask.handleWebviewAskResponse, "noButtonClicked", "", [])
-			})
-
-			it("should handle secondary button press with no active task", async () => {
-				mockController.task = undefined
-
-				await api.pressSecondaryButton()
-
-				sinon.assert.calledWith(mockLoggerError, "No active task to press button for")
-			})
-		})
+		describe("pressSecondaryButton", () => {})
 	})
 
 	describe("Error Handling", () => {

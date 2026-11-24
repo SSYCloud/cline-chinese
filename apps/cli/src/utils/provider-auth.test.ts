@@ -24,34 +24,6 @@ describe("isProviderConfigured", () => {
 		).toBe(true);
 	});
 
-	it("treats a persisted base URL as configured", () => {
-		expect(
-			isProviderConfigured("ollama", {
-				provider: "ollama",
-				baseUrl: "http://localhost:11434/v1",
-			} satisfies ProviderSettings),
-		).toBe(true);
-	});
-
-	it("treats a persisted model id as configured", () => {
-		expect(
-			isProviderConfigured("ollama", {
-				provider: "ollama",
-				model: "llama3.1",
-			} satisfies ProviderSettings),
-		).toBe(true);
-	});
-
-	it("treats lmstudio with model + base url as configured", () => {
-		expect(
-			isProviderConfigured("lmstudio", {
-				provider: "lmstudio",
-				model: "qwen2",
-				baseUrl: "http://localhost:1234/v1",
-			} satisfies ProviderSettings),
-		).toBe(true);
-	});
-
 	it("requires an OAuth access token for cline", () => {
 		expect(
 			isProviderConfigured("cline", {

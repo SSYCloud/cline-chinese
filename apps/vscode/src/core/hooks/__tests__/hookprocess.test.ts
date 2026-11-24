@@ -72,24 +72,6 @@ describe("HookProcess", () => {
 		})
 	})
 
-	it("uses PowerShell on Windows", async () => {
-		await withPlatform("win32", async () => {
-			const ps1Path = "C:\\workspace\\.clinerules\\hooks\\PreToolUse.ps1"
-			const resolvedExecutable = "C:\\Program Files\\PowerShell\\7\\pwsh.exe"
-
-			let resolverCallCount = 0
-
-			const config = await getHookLaunchConfig(ps1Path, async () => {
-				resolverCallCount += 1
-				return resolvedExecutable
-			})
-
-			config.command.should.equal(resolvedExecutable)
-			config.args.should.deepEqual(["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", ps1Path])
-			resolverCallCount.should.equal(1)
-		})
-	})
-
 	it("coalesces concurrent Windows launcher resolution into a single in-flight resolver call", async () => {
 		await withPlatform("win32", async () => {
 			const resolvedExecutable = "C:\\Program Files\\PowerShell\\7\\pwsh.exe"

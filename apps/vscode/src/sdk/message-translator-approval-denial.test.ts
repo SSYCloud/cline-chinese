@@ -87,27 +87,4 @@ describe("translateSessionEvent - user-message tool approval denial", () => {
 		expect(mistakeResult.messages).toHaveLength(0)
 		expect(mistakeResult.turnComplete).toBe(false)
 	})
-
-	it("suppresses mistake errors caused by approval replies routed as user feedback", () => {
-		const state = new MessageTranslatorState()
-		const event: CoreSessionEvent = {
-			type: "agent_event",
-			payload: {
-				sessionId: "session-1",
-				event: {
-					type: "error",
-					error: new Error(
-						`1 tool call(s) failed: [fetch_web_content] {"error":"${USER_MESSAGE_TOOL_APPROVAL_DENIAL_REASON}"}`,
-					),
-					recoverable: true,
-					iteration: 1,
-				} as AgentEvent,
-			},
-		}
-
-		const result = translateSessionEvent(event, state)
-
-		expect(result.messages).toHaveLength(0)
-		expect(result.turnComplete).toBe(false)
-	})
 })

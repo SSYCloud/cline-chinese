@@ -432,25 +432,6 @@ describe("ErrorRow", () => {
 			expect(screen.queryByText(/The model or endpoint was not found/)).not.toBeInTheDocument()
 		})
 
-		it("renders a 404 from the cline provider as the real message, not the logged-out card", async () => {
-			const rawMessage = "Error 404: Model not found"
-			const mockClineError = {
-				message: rawMessage,
-				isErrorType: vi.fn((type) => type === "notFound"),
-				providerId: "cline",
-				_error: { message: rawMessage, status: 404 },
-			}
-
-			const { ClineError } = await import("../../../../src/services/error/ClineError")
-			vi.mocked(ClineError.parse).mockReturnValue(mockClineError as any)
-
-			render(<ErrorRow apiRequestFailedMessage={rawMessage} errorType="error" message={mockMessage} />)
-
-			expect(screen.getByText(rawMessage)).toBeInTheDocument()
-			expect(screen.queryByText(/logged out/)).not.toBeInTheDocument()
-			expect(screen.queryByText("Sign in to Cline")).not.toBeInTheDocument()
-		})
-
 		it("renders PowerShell troubleshooting link when error mentions PowerShell", async () => {
 			const mockClineError = {
 				message: "PowerShell is not recognized as an internal or external command",

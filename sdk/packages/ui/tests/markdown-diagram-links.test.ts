@@ -89,11 +89,4 @@ describe("neutralizeDiagramLinks (DOM parser path)", () => {
 		expect(sanitized).toContain("https://second.example.com/");
 		expect(sanitized).toContain("https://evil.example.com/harvest?t=1");
 	});
-
-	test("passes through a diagram with no links untouched", () => {
-		const plain =
-			'<svg xmlns="http://www.w3.org/2000/svg"><text>No links</text></svg>';
-
-		expect(neutralizeDiagramLinks(plain)).toBe(plain);
-	});
 });

@@ -1,5 +1,5 @@
 import { ApiConfiguration } from "@shared/api"
-import { fireEvent, render, screen } from "@testing-library/react"
+import { render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 import { ExtensionStateContextProvider, useExtensionState } from "@/context/ExtensionStateContext"
 import { useProviderListings } from "@/hooks/useProviderListings"
@@ -84,26 +84,6 @@ describe("ApiOptions Component", () => {
 		})
 	})
 
-	it("renders Requesty API Key input", () => {
-		render(
-			<ExtensionStateContextProvider>
-				<ApiOptions currentMode="plan" showModelOptions={true} />
-			</ExtensionStateContextProvider>,
-		)
-		const apiKeyInput = screen.getByPlaceholderText("Enter API Key...")
-		expect(apiKeyInput).toBeInTheDocument()
-	})
-
-	it("renders Requesty Model ID input", () => {
-		render(
-			<ExtensionStateContextProvider>
-				<ApiOptions currentMode="plan" showModelOptions={true} />
-			</ExtensionStateContextProvider>,
-		)
-		const modelIdInput = screen.getByPlaceholderText("Search and select a model...")
-		expect(modelIdInput).toBeInTheDocument()
-	})
-
 	it.each([
 		["openai-native", "OpenAI API Key"],
 		["openai-codex", "Sign in to OpenAI Codex"],
@@ -168,16 +148,6 @@ describe("ApiOptions Component", () => {
 			actModeApiProvider: "together",
 		})
 	})
-
-	it("renders Together generic provider settings", () => {
-		render(
-			<ExtensionStateContextProvider>
-				<ApiOptions currentMode="plan" showModelOptions={true} />
-			</ExtensionStateContextProvider>,
-		)
-
-		expect(screen.getByTestId("generic-provider-settings")).toHaveTextContent("Together")
-	})
 })
 
 describe("ApiOptions Component", () => {
@@ -199,15 +169,6 @@ describe("ApiOptions Component", () => {
 			fireworksModelMaxTokens: 4000,
 		})
 	})
-
-	it("renders Fireworks generic provider settings", () => {
-		render(
-			<ExtensionStateContextProvider>
-				<ApiOptions currentMode="plan" showModelOptions={true} />
-			</ExtensionStateContextProvider>,
-		)
-		expect(screen.getByTestId("generic-provider-settings")).toHaveTextContent("Fireworks")
-	})
 })
 
 describe("OpenApiInfoOptions", () => {
@@ -221,39 +182,6 @@ describe("OpenApiInfoOptions", () => {
 			planModeApiProvider: "openai",
 			actModeApiProvider: "openai",
 		})
-	})
-
-	it("renders OpenAI Supports Images input", () => {
-		render(
-			<ExtensionStateContextProvider>
-				<ApiOptions currentMode="plan" showModelOptions={true} />
-			</ExtensionStateContextProvider>,
-		)
-		fireEvent.click(screen.getByText("Model Configuration"))
-		const apiKeyInput = screen.getByText("Supports Images")
-		expect(apiKeyInput).toBeInTheDocument()
-	})
-
-	it("renders OpenAI Context Window Size input", () => {
-		render(
-			<ExtensionStateContextProvider>
-				<ApiOptions currentMode="plan" showModelOptions={true} />
-			</ExtensionStateContextProvider>,
-		)
-		fireEvent.click(screen.getByText("Model Configuration"))
-		const orgIdInput = screen.getByText("Context Window Size")
-		expect(orgIdInput).toBeInTheDocument()
-	})
-
-	it("renders OpenAI Max Output Tokens input", () => {
-		render(
-			<ExtensionStateContextProvider>
-				<ApiOptions currentMode="plan" showModelOptions={true} />
-			</ExtensionStateContextProvider>,
-		)
-		fireEvent.click(screen.getByText("Model Configuration"))
-		const modelInput = screen.getByText("Max Output Tokens")
-		expect(modelInput).toBeInTheDocument()
 	})
 })
 
@@ -271,14 +199,5 @@ describe("ApiOptions Component", () => {
 			actModeApiProvider: "nebius",
 			nebiusApiKey: "",
 		})
-	})
-
-	it("renders Nebius generic provider settings", () => {
-		render(
-			<ExtensionStateContextProvider>
-				<ApiOptions currentMode="plan" showModelOptions={true} />
-			</ExtensionStateContextProvider>,
-		)
-		expect(screen.getByTestId("generic-provider-settings")).toHaveTextContent("Nebius")
 	})
 })

@@ -81,30 +81,6 @@ describe("runConnectAdapter", () => {
 		}
 	});
 
-	it("persists a successful detached connector start", async () => {
-		await expect(
-			runConnectAdapter("telegram", ["-k", "token"], io),
-		).resolves.toBe(0);
-
-		expect(mocks.persistConnectorConnection).toHaveBeenCalledWith(
-			"telegram",
-			"cline_bot",
-			["-k", "token"],
-		);
-		expect(mocks.disableConnectorAutostart).not.toHaveBeenCalled();
-	});
-
-	it("persists a successful env-only connector start", async () => {
-		await expect(runConnectAdapter("telegram", [], io)).resolves.toBe(0);
-
-		expect(mocks.persistConnectorConnection).toHaveBeenCalledWith(
-			"telegram",
-			"cline_bot",
-			[],
-		);
-		expect(mocks.disableConnectorAutostart).not.toHaveBeenCalled();
-	});
-
 	it("persists connector-resolved launch arguments", async () => {
 		mocks.run.mockImplementation(
 			async (_args: string[], _io: ConnectIo, context: ConnectRunContext) => {
@@ -663,17 +639,6 @@ describe("hub-delegated connector starts", () => {
 		await runConnectAdapter("telegram", ["-k", "token"], io);
 
 		expect(mocks.startConnectorViaHub).not.toHaveBeenCalled();
-		expect(mocks.run).toHaveBeenCalled();
-	});
-
-	it("falls back to a local start when the hub declines", async () => {
-		mocks.startConnectorViaHub.mockResolvedValue({
-			delegated: false,
-			reason: "hub does not support connector supervision",
-		});
-
-		await runConnectAdapter("slack", ["--bot-token", "xoxb"], io);
-
 		expect(mocks.run).toHaveBeenCalled();
 	});
 

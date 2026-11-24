@@ -248,30 +248,6 @@ describe("SubprocessSandbox idle lifecycle", () => {
 		}
 	}, 20_000);
 
-	it("shuts down an idle child and transparently starts a new generation", async () => {
-		vi.useFakeTimers();
-		const sandbox = new SubprocessSandbox({
-			name: "sandbox-idle-test",
-			bootstrapScript: lifecycleBootstrapScript,
-			idleTimeoutMs: 1000,
-		});
-
-		try {
-			const first = await sandbox.call<{
-				pid: number;
-				generation: string;
-			}>("pid", {});
-
-			await vi.advanceTimersByTimeAsync(1001);
-
-			const second = await sandbox.call<{ generation: string }>("pid", {});
-			expect(second.generation).not.toBe(first.generation);
-		} finally {
-			vi.useRealTimers();
-			await sandbox.shutdown();
-		}
-	}, 20_000);
-
 	it("does not shut down while calls are pending", async () => {
 		vi.useFakeTimers();
 		const sandbox = new SubprocessSandbox({

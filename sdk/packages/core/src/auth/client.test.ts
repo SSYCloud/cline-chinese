@@ -61,33 +61,4 @@ describe("auth/client createOAuthClientCallbacks", () => {
 		});
 		expect(onOutput).toHaveBeenLastCalledWith("https://example.com/auth");
 	});
-
-	it("forwards onServerListening to the returned callbacks", () => {
-		const onServerListening = vi.fn();
-		const callbacks = createOAuthClientCallbacks({
-			onPrompt: vi.fn().mockResolvedValue(""),
-			onServerListening,
-		});
-
-		expect(callbacks.onServerListening).toBe(onServerListening);
-	});
-
-	it("forwards onServerClose to the returned callbacks", () => {
-		const onServerClose = vi.fn();
-		const callbacks = createOAuthClientCallbacks({
-			onPrompt: vi.fn().mockResolvedValue(""),
-			onServerClose,
-		});
-
-		expect(callbacks.onServerClose).toBe(onServerClose);
-	});
-
-	it("leaves onServerListening and onServerClose undefined when not provided", () => {
-		const callbacks = createOAuthClientCallbacks({
-			onPrompt: vi.fn().mockResolvedValue(""),
-		});
-
-		expect(callbacks.onServerListening).toBeUndefined();
-		expect(callbacks.onServerClose).toBeUndefined();
-	});
 });

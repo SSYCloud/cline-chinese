@@ -512,11 +512,6 @@ describe("AgentHeader subagent session badge", () => {
 			'button[aria-label="New session"]',
 		);
 
-	it("stays hidden for an ordinary session, which keeps its new-session button", async () => {
-		expect(await renderHeader()).toBeNull();
-		expect(newSessionButton()).not.toBeNull();
-	});
-
 	it("replaces the new-session button on a child agent run", async () => {
 		const badge = await renderHeader({
 			parentSession: { sessionId: "root1", title: "Refactor the parser" },

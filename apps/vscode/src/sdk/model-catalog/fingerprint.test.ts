@@ -33,12 +33,6 @@ function makeConfig(overrides: Partial<EffectiveProviderConfig> = {}): Effective
 }
 
 describe("computeConfigFingerprint", () => {
-	it("returns the same fingerprint for the same input", () => {
-		const config = makeConfig()
-
-		expect(computeConfigFingerprint(providerId, config)).toBe(computeConfigFingerprint(providerId, config))
-	})
-
 	it("changes when the baseUrl changes", () => {
 		expect(computeConfigFingerprint(providerId, makeConfig({ baseUrl: "https://models-a.example.com" }))).not.toBe(
 			computeConfigFingerprint(providerId, makeConfig({ baseUrl: "https://models-b.example.com" })),

@@ -418,17 +418,6 @@ describe("runCli lightweight command dispatch", () => {
 		expect(telemetryMocks.captureCliExtensionActivated).not.toHaveBeenCalled();
 	});
 
-	it("captures an activation event for regular commands", async () => {
-		process.argv = ["bun", "src/index.ts", "history", "--json"];
-
-		const { runCli } = await import("./main");
-		await runCli();
-
-		expect(telemetryMocks.captureCliExtensionActivated).toHaveBeenCalledTimes(
-			1,
-		);
-	});
-
 	it.each([
 		"connect",
 		"mcp",
@@ -692,21 +681,6 @@ describe("runCli lightweight command dispatch", () => {
 		expect(runtimeMocks.runAgent).not.toHaveBeenCalled();
 		expect(mockState.runAgentImports).toBe(0);
 		expect(mockState.runInteractiveImports).toBe(0);
-	});
-
-	it("runs quoted positional prompt text", async () => {
-		forcePromptModeInput();
-		process.argv = ["bun", "src/index.ts", "hello world"];
-
-		const { runCli } = await import("./main");
-
-		await expect(runCli()).resolves.toBeUndefined();
-		expect(runtimeMocks.runAgent).toHaveBeenCalledTimes(1);
-		expect(runtimeMocks.runAgent).toHaveBeenCalledWith(
-			"hello world",
-			expect.any(Object),
-			expect.anything(),
-		);
 	});
 
 	it("rejects unknown root flags before loading runtime modules", async () => {

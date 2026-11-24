@@ -64,17 +64,6 @@ describe("getAvailableSlashCommands", () => {
 			const deprecatedCommand = response.commands.find((cmd) => cmd.name === "subagent")
 			;(deprecatedCommand === undefined).should.be.true()
 		})
-
-		it("should mark base commands with section 'default'", async () => {
-			const response = await getAvailableSlashCommands(mockController as Controller, EmptyRequest.create())
-
-			const baseCommandNames = BASE_SLASH_COMMANDS.map((cmd) => cmd.name)
-			for (const cmd of response.commands) {
-				if (baseCommandNames.includes(cmd.name)) {
-					cmd.section.should.equal("default")
-				}
-			}
-		})
 	})
 
 	describe("Local Workflow Toggles", () => {

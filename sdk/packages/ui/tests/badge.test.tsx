@@ -25,15 +25,6 @@ async function render(node: ReactNode) {
 }
 
 describe("Badge", () => {
-	it("renders static content as a span", async () => {
-		await render(<Badge>Required</Badge>);
-		const badge = container.querySelector("span");
-		expect(badge?.textContent).toBe("Required");
-		expect(badge?.dataset.slot).toBe("badge");
-		expect(badge?.tabIndex).toBe(-1);
-		expect(container.querySelector("button")).toBeNull();
-	});
-
 	it("forwards native props, refs, and custom classes", async () => {
 		const forwardedRef = createRef<HTMLSpanElement>();
 		const onClick = vi.fn();

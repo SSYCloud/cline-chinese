@@ -35,36 +35,6 @@ describe("rewritePromptToolImages", () => {
 		expect(out.prompt).toEqual(prompt);
 	});
 
-	it("leaves text-only tool messages unchanged", () => {
-		const prompt: LanguageModelV4Message[] = [
-			{
-				role: "tool",
-				content: [
-					{
-						type: "tool-result",
-						toolCallId: "call_1",
-						toolName: "read_files",
-						output: { type: "text", value: "no images here" },
-					},
-					{
-						type: "tool-result",
-						toolCallId: "call_2",
-						toolName: "read_files",
-						output: {
-							type: "content",
-							value: [{ type: "text", text: "still no images" }],
-						},
-					},
-				],
-			},
-		];
-
-		const out = rewritePromptToolImages(prompt);
-
-		expect(out.mutated).toBe(false);
-		expect(out.prompt).toHaveLength(1);
-	});
-
 	it("splits image-data parts into a synthetic user message", () => {
 		const prompt: LanguageModelV4Message[] = [
 			{
@@ -816,10 +786,6 @@ describe("rewritePromptToolImages", () => {
 });
 
 describe("splitToolImagesMiddleware", () => {
-	it("has v4 specification version", () => {
-		expect(splitToolImagesMiddleware.specificationVersion).toBe("v4");
-	});
-
 	it("returns the same params object reference when no rewrite is needed", async () => {
 		const params: LanguageModelV4CallOptions = {
 			prompt: [

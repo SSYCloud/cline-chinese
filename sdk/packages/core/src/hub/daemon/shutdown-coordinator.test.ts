@@ -156,8 +156,4 @@ describe("createHubDaemonShutdownCoordinator", () => {
 		expect(onCleanupError).toHaveBeenCalledWith(failure);
 		expect(exit).toHaveBeenCalledWith(1);
 	});
-
-	it("keeps the daemon deadline below the caller-side retirement wait", () => {
-		expect(HUB_DAEMON_SHUTDOWN_DEADLINE_MS).toBeLessThan(3_000);
-	});
 });

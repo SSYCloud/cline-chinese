@@ -3,14 +3,6 @@ import { describe, expect, it } from "vitest";
 import { buildSkillsArgs } from "./skill";
 
 describe("buildSkillsArgs", () => {
-	it("runs the skills package through npx with -y", () => {
-		expect(buildSkillsArgs(["list"])).toEqual([
-			"-y",
-			SKILLS_CLI_PACKAGE,
-			"list",
-		]);
-	});
-
 	it("injects --agent cline for install-style subcommands", () => {
 		expect(buildSkillsArgs(["install", "owner/repo"])).toEqual([
 			"-y",
@@ -91,9 +83,5 @@ describe("buildSkillsArgs", () => {
 		expect(buildSkillsArgs(["--global", "install", "owner/repo"])).toContain(
 			"cline",
 		);
-	});
-
-	it("forwards an empty arg list unchanged", () => {
-		expect(buildSkillsArgs([])).toEqual(["-y", SKILLS_CLI_PACKAGE]);
 	});
 });

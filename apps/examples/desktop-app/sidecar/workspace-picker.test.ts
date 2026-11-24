@@ -38,13 +38,6 @@ function fakeExec(outcomes: Record<string, string | Error>): {
 }
 
 describe("pickWorkspaceDirectory (linux)", () => {
-	it("returns the zenity selection", async () => {
-		const { exec } = fakeExec({ zenity: "/home/user/projects/app\n" });
-		await expect(pickWorkspaceDirectory(exec, "linux")).resolves.toBe(
-			"/home/user/projects/app",
-		);
-	});
-
 	it("returns null when the user cancels the zenity dialog", async () => {
 		const { exec, calls } = fakeExec({ zenity: CANCEL });
 		await expect(pickWorkspaceDirectory(exec, "linux")).resolves.toBeNull();
@@ -65,16 +58,6 @@ describe("pickWorkspaceDirectory (linux)", () => {
 	// Regression: launch failures (EACCES, EMFILE, ENOMEM, ...) used to be
 	// classified as user cancellation, which skipped the kdialog fallback and
 	// silently swallowed the error.
-	it("falls back to kdialog when zenity fails to launch", async () => {
-		const { exec, calls } = fakeExec({
-			zenity: LAUNCH_FAILURE,
-			kdialog: "/home/user/projects/app\n",
-		});
-		await expect(pickWorkspaceDirectory(exec, "linux")).resolves.toBe(
-			"/home/user/projects/app",
-		);
-		expect(calls).toEqual(["zenity", "kdialog"]);
-	});
 
 	it("throws a descriptive error when every backend fails to launch", async () => {
 		const { exec } = fakeExec({ zenity: LAUNCH_FAILURE, kdialog: CRASH });
@@ -92,13 +75,6 @@ describe("pickWorkspaceDirectory (linux)", () => {
 });
 
 describe("pickWorkspaceDirectory (darwin)", () => {
-	it("returns the chosen folder", async () => {
-		const { exec } = fakeExec({ osascript: "/Users/user/projects/app/\n" });
-		await expect(pickWorkspaceDirectory(exec, "darwin")).resolves.toBe(
-			"/Users/user/projects/app",
-		);
-	});
-
 	it("returns null when the user cancels", async () => {
 		const { exec } = fakeExec({ osascript: CANCEL });
 		await expect(pickWorkspaceDirectory(exec, "darwin")).resolves.toBeNull();

@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { handleSessionHookEvent } from "../session/session";
 import {
 	appendHookAudit,
-	parseCliHookPayload,
 	readStdinUtf8,
 	writeHookJson,
 } from "../utils/helpers";
@@ -49,11 +48,6 @@ afterEach(() => {
 });
 
 describe("runHookCommand", () => {
-	it("accepts the schema-valid agent_error payload", async () => {
-		const payload = await parseCliHookPayload(AGENT_ERROR_PAYLOAD);
-		expect(payload?.hookName).toBe("agent_error");
-	});
-
 	it("exits 0 with a JSON response for an agent_error event", async () => {
 		mockStdin(AGENT_ERROR_PAYLOAD);
 		const io = { writeln: vi.fn(), writeErr: vi.fn() };

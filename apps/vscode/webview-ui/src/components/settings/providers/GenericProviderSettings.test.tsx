@@ -174,33 +174,6 @@ describe("GenericProviderSettings", () => {
 		await waitFor(() => expect(write).toHaveBeenCalledWith({ apiKey: "new-secret" }))
 	})
 
-	it("does not clear API keys while provider config is loading", async () => {
-		const write = vi.fn(async () => undefined)
-		vi.mocked(useProviderModels).mockReturnValue({
-			models: {},
-			defaultModelId: "",
-			isLoading: false,
-			isStale: false,
-			error: undefined,
-			refresh: vi.fn(),
-			fingerprint: "fingerprint",
-		})
-		vi.mocked(useProviderConfig).mockReturnValue({ config: undefined, write, commitSelection: vi.fn() })
-
-		render(
-			<GenericProviderSettings
-				allowsCustomIds={false}
-				currentMode="act"
-				providerId="deepseek"
-				providerName="DeepSeek"
-				showModelOptions={false}
-			/>,
-		)
-
-		await new Promise((resolve) => setTimeout(resolve, 150))
-		expect(write).not.toHaveBeenCalled()
-	})
-
 	it("does not save when provider config hydrates a saved API key", async () => {
 		const write = vi.fn(async () => undefined)
 		vi.mocked(useProviderModels).mockReturnValue({

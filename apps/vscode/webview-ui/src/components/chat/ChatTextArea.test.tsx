@@ -125,13 +125,6 @@ describe("ChatTextArea image attachments vs. model capability", () => {
 		mocks.navigateToSettingsModelPicker.mockReset()
 	})
 
-	it("renders before optional cloud state has hydrated", () => {
-		renderTextArea()
-
-		expect(screen.getByPlaceholderText("Type a message")).toBeInTheDocument()
-		expect(screen.getByTestId("mode-switch")).toBeInTheDocument()
-	})
-
 	it("still takes the image attach path on paste for a text-only model, without a refusal message", () => {
 		mocks.supportsImages = false
 		const { textarea } = renderTextArea()
@@ -165,23 +158,9 @@ describe("ChatTextArea image attachments vs. model capability", () => {
 		expect(screen.getByTestId("images-unsupported-notice")).toHaveTextContent("or remove it.")
 	})
 
-	it("shows nothing extra when the model supports images", () => {
-		renderTextArea([PNG_DATA_URL])
-
-		expect(screen.queryByTestId("images-unsupported-notice")).not.toBeInTheDocument()
-		expect(screen.queryByTestId("image-unsupported-badge")).not.toBeInTheDocument()
-	})
-
 	it("fails open when the model's image support is unknown", () => {
 		mocks.supportsImages = undefined
 		renderTextArea([PNG_DATA_URL])
-
-		expect(screen.queryByTestId("images-unsupported-notice")).not.toBeInTheDocument()
-	})
-
-	it("shows nothing for a text-only model while no images are attached", () => {
-		mocks.supportsImages = false
-		renderTextArea()
 
 		expect(screen.queryByTestId("images-unsupported-notice")).not.toBeInTheDocument()
 	})

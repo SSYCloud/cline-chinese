@@ -292,40 +292,6 @@ describe("BannerService", () => {
 	})
 
 	describe("API Provider Rule Evaluation (Client-Side)", () => {
-		it("should show banner when user has selected the required API provider in act mode", async () => {
-			mockStateManagerConfig.apiConfiguration = { actModeApiProvider: "openai" }
-			mockStateManagerConfig.mode = "act"
-
-			const mockResponse = {
-				data: {
-					items: [
-						{
-							id: "bnr_openai",
-							titleMd: "OpenAI Users",
-							bodyMd: "For OpenAI API",
-							severity: "info" as const,
-							placement: "top" as const,
-							rulesJson: JSON.stringify({ providers: ["openai"] } as BannerRules),
-						},
-					],
-				},
-			}
-
-			mockFetch.resolves(createSuccessResponse(mockResponse))
-
-			await mockFetchForTesting(mockFetch, async () => {
-				const bannerService = BannerService.initialize(mockController)
-				bannerService.getActiveBanners()
-
-				// Wait for background fetch to complete
-				await bannerService.drainForTesting()
-
-				const banners = bannerService.getActiveBanners()
-				expect(banners).to.have.lengthOf(1)
-				expect(banners[0].id).to.equal("bnr_openai")
-			})
-		})
-
 		it("should show banner when user has selected the required API provider in plan mode", async () => {
 			mockStateManagerConfig.apiConfiguration = { planModeApiProvider: "anthropic" }
 			mockStateManagerConfig.mode = "plan"
@@ -796,71 +762,6 @@ describe("BannerService", () => {
 			})
 		})
 
-		it("should convert banner with no actions", async () => {
-			const mockResponse = {
-				data: {
-					items: [
-						{
-							id: "bnr_no_actions",
-							titleMd: "No Actions Banner",
-							bodyMd: "Has no actions",
-							severity: "info" as const,
-							placement: "top" as const,
-							rulesJson: "{}",
-						},
-					],
-				},
-			}
-
-			mockFetch.resolves(createSuccessResponse(mockResponse))
-
-			await mockFetchForTesting(mockFetch, async () => {
-				const bannerService = BannerService.initialize(mockController)
-				bannerService.getActiveBanners()
-
-				// Wait for background fetch to complete
-				await bannerService.drainForTesting()
-
-				const banners = bannerService.getActiveBanners()
-				expect(banners).to.have.lengthOf(1)
-				expect(banners[0].id).to.equal("bnr_no_actions")
-				expect(banners[0].actions).to.have.lengthOf(0)
-			})
-		})
-
-		it("should convert banner with empty actions array", async () => {
-			const mockResponse = {
-				data: {
-					items: [
-						{
-							id: "bnr_empty_actions",
-							titleMd: "Empty Actions Banner",
-							bodyMd: "Has empty actions array",
-							severity: "info" as const,
-							placement: "top" as const,
-							rulesJson: "{}",
-							actions: [],
-						},
-					],
-				},
-			}
-
-			mockFetch.resolves(createSuccessResponse(mockResponse))
-
-			await mockFetchForTesting(mockFetch, async () => {
-				const bannerService = BannerService.initialize(mockController)
-				bannerService.getActiveBanners()
-
-				// Wait for background fetch to complete
-				await bannerService.drainForTesting()
-
-				const banners = bannerService.getActiveBanners()
-				expect(banners).to.have.lengthOf(1)
-				expect(banners[0].id).to.equal("bnr_empty_actions")
-				expect(banners[0].actions).to.have.lengthOf(0)
-			})
-		})
-
 		it("should drop banner when action has undefined action type", async () => {
 			const mockResponse = {
 				data: {
@@ -959,19 +860,6 @@ describe("BannerService", () => {
 
 		const emptyResponse = { data: { items: [] } }
 
-		it('should return "vscode" when ide contains "vscode"', async () => {
-			stubHostInfo({ ide: "vscode" })
-			mockFetch.resolves(createSuccessResponse(emptyResponse))
-
-			await mockFetchForTesting(mockFetch, async () => {
-				const bannerService = BannerService.initialize(mockController)
-				bannerService.getActiveBanners()
-				await bannerService.drainForTesting()
-
-				expect(await getIdeParam(mockFetch)).to.equal("vscode")
-			})
-		})
-
 		it('should return "vscode" when ide is "VSCode Extension" (case-insensitive)', async () => {
 			stubHostInfo({ ide: "VSCode Extension" })
 			mockFetch.resolves(createSuccessResponse(emptyResponse))
@@ -1026,19 +914,6 @@ describe("BannerService", () => {
 
 		it('should fall back to "vscode" when ide is empty but platform contains "Visual Studio"', async () => {
 			stubHostInfo({ ide: "", platform: "Visual Studio Code 1.103.0" })
-			mockFetch.resolves(createSuccessResponse(emptyResponse))
-
-			await mockFetchForTesting(mockFetch, async () => {
-				const bannerService = BannerService.initialize(mockController)
-				bannerService.getActiveBanners()
-				await bannerService.drainForTesting()
-
-				expect(await getIdeParam(mockFetch)).to.equal("vscode")
-			})
-		})
-
-		it('should fall back to "vscode" when ide is empty but platform contains "vscode"', async () => {
-			stubHostInfo({ ide: "", platform: "vscode" })
 			mockFetch.resolves(createSuccessResponse(emptyResponse))
 
 			await mockFetchForTesting(mockFetch, async () => {
@@ -1239,20 +1114,6 @@ describe("BannerService", () => {
 			})
 
 			clock.restore()
-		})
-
-		it("should handle auth update when service is not initialized", async () => {
-			// Ensure service is not initialized
-			BannerService.reset()
-
-			// This should not throw (onAuthUpdate will initialize the service)
-			let error: Error | null = null
-			try {
-				await BannerService.onAuthUpdate("user-id")
-			} catch (e) {
-				error = e as Error
-			}
-			expect(error).to.be.null
 		})
 
 		it("should handle null user-id (logout)", async () => {

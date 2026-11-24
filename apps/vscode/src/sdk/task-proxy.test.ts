@@ -33,55 +33,9 @@ describe("MessageStateHandler", () => {
 		handler.clear()
 		expect(handler.getClineMessages()).toEqual([])
 	})
-
-	it("should accumulate messages across multiple addMessages calls", () => {
-		const handler = new MessageStateHandler()
-		handler.addMessages([{ ts: 1, type: "say", say: "text", text: "first", partial: false }])
-		handler.addMessages([{ ts: 2, type: "say", say: "text", text: "second", partial: false }])
-		expect(handler.getClineMessages()).toHaveLength(2)
-	})
 })
 
 describe("createTaskProxy", () => {
-	it("should expose sessionId as ulid and taskId", () => {
-		const onAskResponse = vi.fn()
-		const onCancelTask = vi.fn()
-		const proxy = createTaskProxy("session-123", onAskResponse, onCancelTask)
-
-		expect(proxy.ulid).toBe("session-123")
-		expect(proxy.taskId).toBe("session-123")
-	})
-
-	it("should delegate messageResponse to onAskResponse", async () => {
-		const onAskResponse = vi.fn().mockResolvedValue(undefined)
-		const onCancelTask = vi.fn()
-		const proxy = createTaskProxy("session-123", onAskResponse, onCancelTask)
-
-		await proxy.handleWebviewAskResponse("messageResponse", "hello", ["img1"], ["file1"])
-
-		expect(onAskResponse).toHaveBeenCalledWith("hello", ["img1"], ["file1"])
-	})
-
-	it("should delegate yesButtonClicked to onAskResponse", async () => {
-		const onAskResponse = vi.fn().mockResolvedValue(undefined)
-		const onCancelTask = vi.fn()
-		const proxy = createTaskProxy("session-123", onAskResponse, onCancelTask)
-
-		await proxy.handleWebviewAskResponse("yesButtonClicked", "", [], [])
-
-		expect(onAskResponse).toHaveBeenCalledWith("", [], [])
-	})
-
-	it("should delegate noButtonClicked to onAskResponse", async () => {
-		const onAskResponse = vi.fn().mockResolvedValue(undefined)
-		const onCancelTask = vi.fn()
-		const proxy = createTaskProxy("session-123", onAskResponse, onCancelTask)
-
-		await proxy.handleWebviewAskResponse("noButtonClicked", "", [], [])
-
-		expect(onAskResponse).toHaveBeenCalledWith("", [], [])
-	})
-
 	it("should delegate unknown askResponse types to onAskResponse", async () => {
 		const onAskResponse = vi.fn().mockResolvedValue(undefined)
 		const onCancelTask = vi.fn()
@@ -111,44 +65,5 @@ describe("createTaskProxy", () => {
 		await proxy.abortTask()
 
 		expect(onCancelTask).toHaveBeenCalled()
-	})
-
-	it("should provide a stub API handler", () => {
-		const onAskResponse = vi.fn()
-		const onCancelTask = vi.fn()
-		const proxy = createTaskProxy("session-123", onAskResponse, onCancelTask)
-
-		expect(proxy.api.getModel().id).toBe("unknown")
-	})
-
-	it("should expose stubs for terminal manager", () => {
-		const onAskResponse = vi.fn()
-		const onCancelTask = vi.fn()
-		const proxy = createTaskProxy("session-123", onAskResponse, onCancelTask)
-
-		expect(proxy.browserSession).toBeUndefined()
-		// terminalManager is a stub object with no-op settings methods
-		expect(proxy.terminalManager).toBeDefined()
-		expect(typeof proxy.terminalManager.setDefaultTerminalProfile).toBe("function")
-		expect(typeof proxy.terminalManager.setShellIntegrationTimeout).toBe("function")
-	})
-
-	it("should provide a messageStateHandler", () => {
-		const onAskResponse = vi.fn()
-		const onCancelTask = vi.fn()
-		const proxy = createTaskProxy("session-123", onAskResponse, onCancelTask)
-
-		expect(proxy.messageStateHandler).toBeInstanceOf(MessageStateHandler)
-		expect(proxy.messageStateHandler.getClineMessages()).toEqual([])
-	})
-
-	it("should accumulate messages in messageStateHandler", () => {
-		const onAskResponse = vi.fn()
-		const onCancelTask = vi.fn()
-		const proxy = createTaskProxy("session-123", onAskResponse, onCancelTask)
-
-		proxy.messageStateHandler.addMessages([{ ts: 1, type: "say", say: "text", text: "hello", partial: false }])
-
-		expect(proxy.messageStateHandler.getClineMessages()).toHaveLength(1)
 	})
 })

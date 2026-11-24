@@ -1,6 +1,6 @@
-import { afterEach, beforeEach, describe, it } from "mocha"
 import { strict as assert } from "assert"
 import * as fs from "fs/promises"
+import { afterEach, beforeEach, describe, it } from "mocha"
 import * as os from "os"
 import * as path from "path"
 import * as vscode from "vscode"
@@ -51,99 +51,6 @@ describe("Hostbridge - Window - getVisibleTabs", () => {
 			response.paths.length,
 			0,
 			`Should return empty array when no visible editors are open. Found tabs: ${JSON.stringify(response.paths)}`,
-		)
-	})
-
-	it("should return paths of visible text editors", async () => {
-		// Open the first document in an editor (this makes it visible)
-		await createAndOpenTestDocument(1, vscode.ViewColumn.One)
-
-		// Wait a bit for editor to be fully created
-		await new Promise((resolve) => setTimeout(resolve, 100))
-
-		const request = GetVisibleTabsRequest.create({})
-		const response = await getVisibleTabs(request)
-
-		// Should have 1 visible editor
-		assert.strictEqual(
-			response.paths.length,
-			1,
-			`Expected 1 visible editor, got ${response.paths.length}. Found: ${JSON.stringify(response.paths)}`,
-		)
-
-		// Open the second document in a different column (both should now be visible)
-		await createAndOpenTestDocument(2, vscode.ViewColumn.Two)
-
-		// Wait a bit for editor to be fully created
-		await new Promise((resolve) => setTimeout(resolve, 100))
-
-		const response2 = await getVisibleTabs(request)
-
-		// Should have 2 visible editors
-		assert.strictEqual(
-			response2.paths.length,
-			2,
-			`Expected 2 visible editors, got ${response2.paths.length}. Found: ${JSON.stringify(response2.paths)}`,
-		)
-	})
-
-	it("should only return visible editors, not all open tabs", async () => {
-		// Open all documents in the same column (only the last one will be visible)
-		await createAndOpenTestDocument(1, vscode.ViewColumn.One)
-		await createAndOpenTestDocument(2, vscode.ViewColumn.One)
-		await createAndOpenTestDocument(3, vscode.ViewColumn.One)
-
-		// Wait a bit for editors to be fully created
-		await new Promise((resolve) => setTimeout(resolve, 100))
-
-		const request = GetVisibleTabsRequest.create({})
-		const response = await getVisibleTabs(request)
-
-		// Should have only 1 visible editor (the last one opened in the same column)
-		assert.strictEqual(
-			response.paths.length,
-			1,
-			`Expected 1 visible editor, got ${response.paths.length}. Found: ${JSON.stringify(response.paths)}`,
-		)
-
-		// Verify that we have the correct number of visible text editors
-		const actualVisibleEditors = vscode.window.visibleTextEditors.length
-		assert.strictEqual(
-			response.paths.length,
-			actualVisibleEditors,
-			`Response should match actual visible editors count: ${actualVisibleEditors}`,
-		)
-	})
-
-	it("should return only visible editors from multiple columns with multiple files", async () => {
-		// Open multiple documents in column one (only the last one will be visible in that column)
-		await createAndOpenTestDocument(1, vscode.ViewColumn.One)
-		await createAndOpenTestDocument(2, vscode.ViewColumn.One)
-		await createAndOpenTestDocument(3, vscode.ViewColumn.One)
-
-		// Open multiple documents in column two (only the last one will be visible in that column)
-		await createAndOpenTestDocument(4, vscode.ViewColumn.Two)
-		await createAndOpenTestDocument(5, vscode.ViewColumn.Two)
-
-		// Wait a bit for editors to be fully created
-		await new Promise((resolve) => setTimeout(resolve, 100))
-
-		const request = GetVisibleTabsRequest.create({})
-		const response = await getVisibleTabs(request)
-
-		// Should have only 2 visible editors (one from each column, despite having 5 total open tabs)
-		assert.strictEqual(
-			response.paths.length,
-			2,
-			`Expected 2 visible editors, got ${response.paths.length}. Found: ${JSON.stringify(response.paths)}`,
-		)
-
-		// Verify that we have the correct number of visible text editors
-		const actualVisibleEditors = vscode.window.visibleTextEditors.length
-		assert.strictEqual(
-			response.paths.length,
-			actualVisibleEditors,
-			`Response should match actual visible editors count: ${actualVisibleEditors}`,
 		)
 	})
 

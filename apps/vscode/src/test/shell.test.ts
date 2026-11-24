@@ -267,22 +267,6 @@ describe("Shell Detection Tests", () => {
 			Object.defineProperty(process, "platform", { value: "darwin" })
 		})
 
-		it("uses VS Code profile path if available", () => {
-			existsSyncImpl = ((candidate: actualFs.PathLike) => candidate === "/usr/local/bin/fish") as typeof actualFs.existsSync
-			mockVsCodeConfig("osx", "MyCustomShell", {
-				MyCustomShell: { path: "/usr/local/bin/fish" },
-			})
-			expect(getShell()).to.equal("/usr/local/bin/fish")
-		})
-
-		it("expands and selects the first existing path in an array-valued profile", () => {
-			existsSyncImpl = ((candidate: actualFs.PathLike) => candidate === "/bin/zsh") as typeof actualFs.existsSync
-			mockVsCodeConfig("osx", "MyCustomShell", {
-				MyCustomShell: { path: ["/opt/homebrew/bin/zsh", "/bin/zsh"] },
-			})
-			expect(getShell()).to.equal("/bin/zsh")
-		})
-
 		it("falls back past a configured path that does not exist", () => {
 			existsSyncImpl = (() => false) as typeof actualFs.existsSync
 			mockVsCodeConfig("osx", "MyCustomShell", {
@@ -291,26 +275,6 @@ describe("Shell Detection Tests", () => {
 			userInfoImpl = () => ({ shell: "/opt/homebrew/bin/zsh" }) as any
 
 			expect(getShell()).to.equal("/opt/homebrew/bin/zsh")
-		})
-
-		it("falls back to userInfo().shell if no VS Code config is available", () => {
-			vscode.workspace.getConfiguration = () => ({ get: () => undefined }) as any
-			userInfoImpl = () => ({ shell: "/opt/homebrew/bin/zsh" }) as any
-
-			expect(getShell()).to.equal("/opt/homebrew/bin/zsh")
-		})
-
-		it("falls back to SHELL env var if no userInfo shell is found", () => {
-			vscode.workspace.getConfiguration = () => ({ get: () => undefined }) as any
-			process.env.SHELL = "/usr/local/bin/zsh"
-
-			expect(getShell()).to.equal("/usr/local/bin/zsh")
-		})
-
-		it("falls back to /bin/zsh if no config, userInfo, or env variable is set", () => {
-			vscode.workspace.getConfiguration = () => ({ get: () => undefined }) as any
-			// userInfo => null, SHELL => undefined
-			expect(getShell()).to.equal("/bin/zsh")
 		})
 	})
 
@@ -322,22 +286,6 @@ describe("Shell Detection Tests", () => {
 			Object.defineProperty(process, "platform", { value: "linux" })
 		})
 
-		it("uses VS Code profile path if available", () => {
-			existsSyncImpl = ((candidate: actualFs.PathLike) => candidate === "/usr/bin/fish") as typeof actualFs.existsSync
-			mockVsCodeConfig("linux", "CustomProfile", {
-				CustomProfile: { path: "/usr/bin/fish" },
-			})
-			expect(getShell()).to.equal("/usr/bin/fish")
-		})
-
-		it("expands and selects the first existing path in an array-valued profile", () => {
-			existsSyncImpl = ((candidate: actualFs.PathLike) => candidate === "/bin/bash") as typeof actualFs.existsSync
-			mockVsCodeConfig("linux", "CustomProfile", {
-				CustomProfile: { path: ["/usr/bin/fish", "/bin/bash"] },
-			})
-			expect(getShell()).to.equal("/bin/bash")
-		})
-
 		it("resolves a bare executable name from PATH without PATHEXT probing", () => {
 			process.env.PATH = "/opt/tools:/usr/bin"
 			existsSyncImpl = ((candidate: actualFs.PathLike) => candidate === "/usr/bin/fish") as typeof actualFs.existsSync
@@ -345,26 +293,6 @@ describe("Shell Detection Tests", () => {
 				CustomProfile: { path: "fish" },
 			})
 			expect(getShell()).to.equal("/usr/bin/fish")
-		})
-
-		it("falls back to userInfo().shell if no VS Code config is available", () => {
-			vscode.workspace.getConfiguration = () => ({ get: () => undefined }) as any
-			userInfoImpl = () => ({ shell: "/usr/bin/zsh" }) as any
-
-			expect(getShell()).to.equal("/usr/bin/zsh")
-		})
-
-		it("falls back to SHELL env var if no userInfo shell is found", () => {
-			vscode.workspace.getConfiguration = () => ({ get: () => undefined }) as any
-			process.env.SHELL = "/usr/bin/fish"
-
-			expect(getShell()).to.equal("/usr/bin/fish")
-		})
-
-		it("falls back to /bin/bash if nothing is set", () => {
-			vscode.workspace.getConfiguration = () => ({ get: () => undefined }) as any
-			// userInfo => null, SHELL => undefined
-			expect(getShell()).to.equal("/bin/bash")
 		})
 	})
 

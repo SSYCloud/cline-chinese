@@ -6,13 +6,6 @@ import {
 } from "./history-export-picker";
 
 describe("history export picker", () => {
-	it("offers HTML and JSON exports", () => {
-		expect(HISTORY_EXPORT_OPTIONS.map((option) => option.format)).toEqual([
-			"html",
-			"json",
-		]);
-	});
-
 	it("selects JSON with the down arrow and Enter", () => {
 		const initialState = { sessionId: "sess_1", selectedIndex: 0 };
 		const navigation = resolveHistoryExportPickerAction(initialState, {

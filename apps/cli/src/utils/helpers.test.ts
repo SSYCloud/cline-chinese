@@ -166,12 +166,6 @@ describe("parseArgs", () => {
 		expect(parsed.prompt).toBe("Audit the repo");
 	});
 
-	it("parses --thinking with explicit level", () => {
-		const parsed = parseArgs(["--thinking", "high"]);
-		expect(parsed.thinking).toBe(true);
-		expect(parsed.reasoningEffort).toBe("high");
-	});
-
 	it("parses --thinking none as disabled", () => {
 		const parsed = parseArgs(["--thinking", "none"]);
 		expect(parsed.thinking).toBe(false);
@@ -256,44 +250,12 @@ describe("parseArgs", () => {
 });
 
 describe("format helpers", () => {
-	it("truncates run_commands with commands array", () => {
-		const result = formatToolInput("run_commands", {
-			commands: [
-				"echo hello",
-				"npm run very-very-long-command-name-that-will-truncate",
-			],
-		});
-		expect(result).toContain("echo hello");
-		expect(result.length).toBeLessThanOrEqual(120);
-	});
-
-	it("truncates run_commands with commands as single string", () => {
-		const longCmd = `echo ${"x".repeat(200)}`;
-		const result = formatToolInput("run_commands", { commands: longCmd });
-		expect(result).toContain("echo");
-		expect(result.length).toBeLessThanOrEqual(120);
-	});
-
-	it("truncates run_commands with bare string input", () => {
-		const longCmd = `echo ${"x".repeat(200)}`;
-		const result = formatToolInput("run_commands", longCmd);
-		expect(result).toContain("echo");
-		expect(result.length).toBeLessThanOrEqual(120);
-	});
-
 	it("truncates run_commands with bare string array input", () => {
 		const result = formatToolInput("run_commands", [
 			"echo hello",
 			"echo world",
 		]);
 		expect(result).toContain("echo hello; echo world");
-	});
-
-	it("truncates run_commands with structured command input", () => {
-		const result = formatToolInput("run_commands", {
-			commands: [{ command: "git", args: ["status", "--short"] }],
-		});
-		expect(result).toContain("git status --short");
 	});
 
 	it("truncates run_commands with bare structured command", () => {

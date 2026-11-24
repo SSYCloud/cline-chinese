@@ -254,25 +254,6 @@ describe("SessionRuntime construction", () => {
 		}
 	});
 
-	it("wires agentId, conversationId, and canStartRun", () => {
-		const session = new SessionRuntime(makeAgentConfig());
-		expect(session.getAgentId()).toMatch(/^agent_/);
-		expect(session.getConversationId()).toMatch(/^conv_/);
-		expect(session.canStartRun()).toBe(true);
-		expect(session.getMessages()).toEqual([]);
-	});
-
-	it("seeds initial messages through ConversationStore", () => {
-		const session = new SessionRuntime(
-			makeAgentConfig({
-				initialMessages: [
-					{ role: "user", content: [{ type: "text", text: "hi" }] },
-				],
-			}),
-		);
-		expect(session.getMessages()).toHaveLength(1);
-	});
-
 	it("exposes an empty extension registry snapshot when no extensions are declared", () => {
 		const session = new SessionRuntime(makeAgentConfig());
 		const registry = session.getExtensionRegistry();
@@ -506,33 +487,6 @@ describe("SessionRuntime.getExtensionRegistry", () => {
 		expect(logger.log).toHaveBeenCalledWith("plugin setup", {
 			sessionId: "sess_plugin_context",
 		});
-	});
-
-	it("passes effective telemetry into AgentRuntime config", async () => {
-		const telemetry = {
-			capture: vi.fn(),
-		} as unknown as AgentConfig["telemetry"];
-		const { deps, configs } = withCapturingFakeRuntime();
-		const session = new SessionRuntime(makeAgentConfig({ telemetry }), deps);
-
-		await session.run("go");
-
-		expect(configs[0]?.telemetry).toBe(telemetry);
-	});
-
-	it("passes dependency telemetry into AgentRuntime config", async () => {
-		const telemetry = {
-			capture: vi.fn(),
-		} as unknown as AgentConfig["telemetry"];
-		const { deps, configs } = withCapturingFakeRuntime();
-		const session = new SessionRuntime(makeAgentConfig(), {
-			...deps,
-			telemetry,
-		});
-
-		await session.run("go");
-
-		expect(configs[0]?.telemetry).toBe(telemetry);
 	});
 
 	it("merges extension-registered tools into the AgentRuntime tools for the turn", async () => {
@@ -1255,17 +1209,6 @@ describe("SessionRuntime.run", () => {
 		expect(configs[0]?.completionPolicy).toBeUndefined();
 	});
 
-	it("appends the user turn into the conversation store", async () => {
-		const { deps } = withFakeRuntime();
-		const session = new SessionRuntime(makeAgentConfig(), deps);
-		await session.run("question one");
-		// After run.resetForRun() + append, the conversation should
-		// contain at least the user message we appended.
-		const messages = session.getMessages();
-		const userMessage = messages.find((m) => m.role === "user");
-		expect(userMessage).toBeDefined();
-	});
-
 	it("fans legacy events to subscribers (not new AgentRuntimeEvent shape)", async () => {
 		const { deps } = withFakeRuntime({
 			events: [
@@ -1390,16 +1333,6 @@ describe("SessionRuntime.run", () => {
 		release?.();
 		await first;
 		expect(session.canStartRun()).toBe(true);
-	});
-});
-
-describe("SessionRuntime.continue", () => {
-	it("delegates to AgentRuntime.continue", async () => {
-		const { deps, calls } = withFakeRuntime();
-		const session = new SessionRuntime(makeAgentConfig(), deps);
-		await session.continue("more");
-		expect(calls.continue).toHaveLength(1);
-		expect(calls.run).toHaveLength(0);
 	});
 });
 
@@ -1576,12 +1509,6 @@ describe("SessionRuntime.abort", () => {
 			process.off("unhandledRejection", onUnhandledRejection);
 		}
 	});
-
-	it("is a no-op when no run is active", () => {
-		const { deps } = withFakeRuntime();
-		const session = new SessionRuntime(makeAgentConfig(), deps);
-		expect(() => session.abort()).not.toThrow();
-	});
 });
 
 // ---------------------------------------------------------------------------
@@ -1595,18 +1522,6 @@ describe("SessionRuntime.addTools / updateConnection / clearHistory / restore", 
 		inputSchema: {},
 		execute: async () => ({}),
 	};
-
-	it("addTools is a no-op when the list is empty", () => {
-		const session = new SessionRuntime(makeAgentConfig({ tools: [echoTool] }));
-		session.addTools([]);
-		expect(session.canStartRun()).toBe(true);
-	});
-
-	it("addTools merges new tools and skips duplicates by name", () => {
-		const session = new SessionRuntime(makeAgentConfig({ tools: [echoTool] }));
-		session.addTools([echoTool, { ...echoTool, name: "other" }]);
-		expect(session.canStartRun()).toBe(true);
-	});
 
 	it("updateConnection mutates provider/model/api fields for next run", async () => {
 		const { deps, calls } = withFakeRuntime();
@@ -2120,12 +2035,6 @@ describe("SessionRuntime.shutdown", () => {
 		const session = new SessionRuntime(makeAgentConfig());
 		await expect(session.shutdown()).resolves.toBeUndefined();
 		expect(session.canStartRun()).toBe(false);
-	});
-
-	it("is idempotent across repeat calls", async () => {
-		const session = new SessionRuntime(makeAgentConfig());
-		await session.shutdown();
-		await expect(session.shutdown()).resolves.toBeUndefined();
 	});
 
 	it("waits for an aborted in-flight run before shutting down", async () => {

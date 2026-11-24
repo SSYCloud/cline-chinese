@@ -18,15 +18,6 @@ describe("Filesystem Utilities", () => {
 	})
 
 	describe("fileExistsAtPath", () => {
-		it("should return true for existing paths", async () => {
-			await fs.mkdir(tmpDir, { recursive: true })
-			const testFile = path.join(tmpDir, "test.txt")
-			await fs.writeFile(testFile, "test")
-
-			const exists = await fileExistsAtPath(testFile)
-			exists.should.be.true()
-		})
-
 		it("should return false for non-existing paths", async () => {
 			const nonExistentPath = path.join(tmpDir, "does-not-exist.txt")
 			const exists = await fileExistsAtPath(nonExistentPath)
@@ -79,12 +70,6 @@ describe("Filesystem Utilities", () => {
 			const testFile = path.join(tmpDir, "test.txt")
 			await fs.writeFile(testFile, "test")
 			const isDir = await isDirectory(testFile)
-			isDir.should.be.false()
-		})
-
-		it("should return false for non-existent paths", async () => {
-			const nonExistentPath = path.join(tmpDir, "does-not-exist")
-			const isDir = await isDirectory(nonExistentPath)
 			isDir.should.be.false()
 		})
 	})

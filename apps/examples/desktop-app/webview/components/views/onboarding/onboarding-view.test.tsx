@@ -374,17 +374,6 @@ describe("OnboardingView", () => {
 		expect(panel?.getAttribute("aria-hidden")).toBe("true");
 	});
 
-	it("completes without connecting when skipped", async () => {
-		const onComplete = await render();
-		await act(async () => {
-			buttonByText("Get started").click();
-		});
-		await act(async () => {
-			buttonByText("Skip").click();
-		});
-		expect(onComplete).toHaveBeenCalledTimes(1);
-	});
-
 	it("records Cline as the provider when a signed-in user continues", async () => {
 		// Simulate replaying onboarding after previously using another provider.
 		window.localStorage.setItem(

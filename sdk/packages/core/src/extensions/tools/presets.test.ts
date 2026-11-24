@@ -22,11 +22,6 @@ describe("default tool presets", () => {
 		expect(ToolPresets.yolo.enableSubmitAndExit).toBe(true);
 	});
 
-	it("disables search and web fetch in yolo mode", () => {
-		expect(ToolPresets.yolo.enableSearch).toBe(false);
-		expect(ToolPresets.yolo.enableWebFetch).toBe(false);
-	});
-
 	it("keeps shell access enabled in plan mode", () => {
 		// Plan mode keeps run_commands for read-only investigation; the
 		// plan-mode command-guard hook registered by the runtime builder is

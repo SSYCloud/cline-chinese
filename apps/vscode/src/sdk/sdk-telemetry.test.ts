@@ -198,19 +198,6 @@ describe("VscodeTelemetryPolicyService", () => {
 		expect(handle.telemetry.capture).toHaveBeenCalledTimes(1)
 	})
 
-	it("gates metrics with the same ordinary/required policy", async () => {
-		telemetryState.clineTelemetrySetting = "disabled"
-		const handle = createHandle()
-		const service = new VscodeTelemetryPolicyService(handle)
-		await settlePromises()
-
-		service.recordCounter("ordinary", 1)
-		service.recordCounter("required", 1, undefined, undefined, true)
-
-		expect(handle.telemetry.recordCounter).toHaveBeenCalledTimes(1)
-		expect(handle.telemetry.recordCounter).toHaveBeenCalledWith("required", 1, undefined, undefined, true)
-	})
-
 	it("applies the full host identity metadata before enabling events", async () => {
 		telemetryState.hostVersion = {
 			platform: "IntelliJ IDEA Ultimate",

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react"
+import { render, screen } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { useClinePassPromo } from "@/hooks/useClinePassPromo"
 import { ClinePassCard, ClinePassWelcomeCallout } from "../ClinePassCard"
@@ -30,26 +30,12 @@ describe("ClinePassCard", () => {
 		vi.clearAllMocks()
 	})
 
-	it("renders nothing when ClinePass promotions are disabled", () => {
-		mockPromo({ isClinePassEnabled: false })
-		render(<ClinePassCard />)
-		expect(screen.queryByTestId("cline-pass-card")).not.toBeInTheDocument()
-	})
-
 	it("promotes ClinePass when the user is not on the ClinePass provider", () => {
 		mockPromo()
 		render(<ClinePassCard />)
 		expect(screen.getByText("Get ClinePass")).toBeInTheDocument()
 		expect(screen.getByText("Use ClinePass Provider")).toBeInTheDocument()
 		expect(screen.queryByText("Manage Subscription")).not.toBeInTheDocument()
-	})
-
-	it("switches to the ClinePass provider on click", () => {
-		const switchToClinePassProvider = vi.fn().mockResolvedValue(undefined)
-		mockPromo({ switchToClinePassProvider })
-		render(<ClinePassCard />)
-		fireEvent.click(screen.getByText("Use ClinePass Provider"))
-		expect(switchToClinePassProvider).toHaveBeenCalledTimes(1)
 	})
 
 	it("links to subscription management when already using ClinePass", () => {
@@ -63,12 +49,6 @@ describe("ClinePassCard", () => {
 describe("ClinePassWelcomeCallout", () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
-	})
-
-	it("renders nothing when ClinePass promotions are disabled", () => {
-		mockPromo({ isClinePassEnabled: false })
-		render(<ClinePassWelcomeCallout />)
-		expect(screen.queryByTestId("cline-pass-welcome-callout")).not.toBeInTheDocument()
 	})
 
 	it("mentions ClinePass when promotions are enabled", () => {

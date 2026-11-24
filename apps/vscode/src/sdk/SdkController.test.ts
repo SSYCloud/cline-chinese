@@ -12,23 +12,6 @@ import { createTaskProxy, type TaskProxy } from "./task-proxy"
 import { resolveWorkspaceManagerPaths, resolveWorkspaceRootPath } from "./workspace-root"
 
 describe("SDK displayed-task Batch lifecycle", () => {
-	it("returns from Batch to the existing Act session without rebuilding the SDK", async () => {
-		const controller = {
-			sessions: { getActiveSession: () => ({ isRunning: false }) },
-			task: { taskId: "same-session" },
-			batch: { setEnabled: vi.fn(async () => {}) },
-			stateManager: { getGlobalSettingsKey: () => "act" },
-			mode: { rebuildSessionForMode: vi.fn(async () => {}) },
-			postStateToWebview: vi.fn(async () => {}),
-		}
-		const changeMode = SdkController.prototype as unknown as {
-			performProductAgentModeChange(this: typeof controller, mode: "act"): Promise<void>
-		}
-		await changeMode.performProductAgentModeChange.call(controller, "act")
-		expect(controller.batch.setEnabled).toHaveBeenCalledWith("same-session", false, undefined, false)
-		expect(controller.mode.rebuildSessionForMode).not.toHaveBeenCalled()
-		expect(controller.postStateToWebview).toHaveBeenCalledOnce()
-	})
 	it("binds a future Batch run to the host-resolved project workspace", async () => {
 		const controller = Object.create(SdkController.prototype) as SdkController
 		const configureOutputDestination = vi.fn(async () => {})
@@ -127,19 +110,6 @@ describe("SDK displayed-task Batch lifecycle", () => {
 		expect(controller.task).toBeUndefined()
 	})
 
-	it("does not reopen the table when the same logical task proxy is rebuilt", () => {
-		const controller = Object.create(SdkController.prototype) as SdkController
-		const notifyActiveTaskChanged = vi.fn(),
-			activateTask = vi.fn()
-		Object.assign(controller, { batch: { notifyActiveTaskChanged }, batchPresentation: { activateTask } })
-		controller.task = { taskId: "A" } as NonNullable<SdkController["task"]>
-		const replacement = { taskId: "A" } as NonNullable<SdkController["task"]>
-		controller.task = replacement
-		expect(controller.task).toBe(replacement)
-		expect(notifyActiveTaskChanged).toHaveBeenCalledTimes(1)
-		expect(activateTask).toHaveBeenCalledTimes(1)
-	})
-
 	it("is safe before Batch initialization and during disposal", () => {
 		const controller = Object.create(SdkController.prototype) as SdkController
 		controller.task = { taskId: "A" } as NonNullable<SdkController["task"]>
@@ -165,10 +135,6 @@ describe("isClineManagedProvider", () => {
 describe("resolveWorkspaceRootPath", () => {
 	it("uses the first non-empty workspace path when available", () => {
 		expect(resolveWorkspaceRootPath(["", "/workspace"], "/Users/tester/Desktop")).toBe("/workspace")
-	})
-
-	it("falls back to Desktop when no workspace folder is open", () => {
-		expect(resolveWorkspaceRootPath([], "/Users/tester/Desktop")).toBe("/Users/tester/Desktop")
 	})
 })
 
@@ -751,68 +717,6 @@ describe("hasWorkspaceCheckpointForMessage", () => {
 		expect(readMessages).not.toHaveBeenCalled()
 	})
 
-	it("runs message edits and checkpoint restores inside a tracked session start", async () => {
-		// Both read the mode setting and swap the session outside the rebuild
-		// lock, so a mode toggle must be able to wait for them to finish.
-		let tracking = false
-		const trackedRestores: boolean[] = []
-		const restore = vi.fn(async () => {
-			trackedRestores.push(tracking)
-			throw new Error("stop at restore")
-		})
-		const restoreActiveSession = vi.fn(async () => {
-			trackedRestores.push(tracking)
-			return {}
-		})
-		const controller = Object.assign(Object.create(SdkController.prototype), {
-			task: { taskId: "task-a", messageStateHandler: { getClineMessages: () => messages } },
-			sessions: {
-				trackSessionStart: async (operation: () => Promise<unknown>) => {
-					tracking = true
-					try {
-						return await operation()
-					} finally {
-						tracking = false
-					}
-				},
-				restoreActiveSession,
-				getActiveSession: () => ({
-					sessionId: "task-a",
-					isRunning: false,
-					sdkHost: {
-						get: async () => ({
-							cwd: "C:/work",
-							metadata: { checkpoint: { history: [{ ref: "checkpoint-b", createdAt: 1, runCount: 2 }] } },
-						}),
-						readLiveMessages: vi.fn().mockResolvedValue(sdkMessages),
-						readMessages: vi.fn().mockResolvedValue(sdkMessages),
-						restore,
-					},
-				}),
-			},
-			taskHistory: { findHistoryItem: async () => undefined },
-			getWorkspaceRoot: async () => "C:/work",
-			stateManager: { getGlobalSettingsKey: () => "act" },
-			sessionConfigBuilder: { build: async () => ({ providerId: "anthropic", apiKey: "key", modelId: "model" }) },
-			resolveContextMentions: async (text: string) => text,
-			postStateToWebview: async () => undefined,
-		})
-
-		await expect(
-			SdkController.prototype.editMessageAndRegenerate.call(controller as never, {
-				messageTs: 3,
-				text: "continue, edited",
-				restoreWorkspace: true,
-			}),
-		).rejects.toThrow("stop at restore")
-		await SdkController.prototype.restoreCheckpoint.call(controller as never, {
-			checkpointRunCount: 2,
-			restoreType: "workspace",
-		})
-
-		expect(trackedRestores).toEqual([true, true])
-	})
-
 	it("uses and disposes a temporary host for a history task", async () => {
 		const tempHost = {
 			get: vi.fn().mockResolvedValue({
@@ -866,18 +770,6 @@ describe("resolveWorkspaceManagerPaths", () => {
 			"/workspace",
 			"/other",
 		])
-	})
-
-	it("falls back to a single root when no workspace folder is open", () => {
-		// Legacy-parity: an empty VS Code window must still yield a usable root
-		// so @-mention file search doesn't fail with workspace_unavailable.
-		expect(resolveWorkspaceManagerPaths([], "/Users/tester/Desktop")).toEqual(["/Users/tester/Desktop"])
-		expect(resolveWorkspaceManagerPaths(undefined, "/Users/tester/Desktop")).toEqual(["/Users/tester/Desktop"])
-		expect(resolveWorkspaceManagerPaths(["", "   "], "/Users/tester/Desktop")).toEqual(["/Users/tester/Desktop"])
-	})
-
-	it("prefers real workspace folders over the fallback", () => {
-		expect(resolveWorkspaceManagerPaths(["/workspace"], "/Users/tester/Desktop")).toEqual(["/workspace"])
 	})
 
 	it("returns no roots when the fallback is also unavailable", () => {

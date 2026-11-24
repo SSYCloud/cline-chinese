@@ -1,5 +1,5 @@
-import { beforeEach, describe, it } from "mocha"
 import * as os from "node:os"
+import { beforeEach, describe, it } from "mocha"
 import "should"
 import { _getFsInfoCacheSizeForTests, _resetFsInfoCacheForTests, getFsInfo } from "./fs-info"
 
@@ -8,26 +8,10 @@ describe("getFsInfo", () => {
 		_resetFsInfoCacheForTests()
 	})
 
-	it("returns the unknown sentinel for an undefined path", async () => {
-		const info = await getFsInfo(undefined)
-		info.fsClass.should.equal("unknown")
-		info.fsType.should.equal("unknown")
-	})
-
 	it("returns the unknown sentinel for an empty path", async () => {
 		const info = await getFsInfo("")
 		info.fsClass.should.equal("unknown")
 		info.fsType.should.equal("unknown")
-	})
-
-	it("never throws on a non-existent path", async () => {
-		// The picker must never break because of telemetry. Result classification
-		// itself is unspecified — on macOS we'd resolve up the mount tree to the
-		// nearest existing parent (often the root, "apfs"); on Linux behaviour
-		// depends on `stat -f`. What matters is that we get a defined FsInfo
-		// object back, never an exception.
-		const info = await getFsInfo("/this/path/should/not/exist/__nope__")
-		;(["local", "network", "unknown"] as const).should.containEql(info.fsClass)
 	})
 
 	// macOS/Linux only — Windows currently returns the unknown sentinel

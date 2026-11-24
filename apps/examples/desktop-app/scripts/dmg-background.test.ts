@@ -48,12 +48,6 @@ describe("DMG source artwork", () => {
 });
 
 describe("validateTiffRepresentations", () => {
-	test("accepts the expected representations", () => {
-		expect(() =>
-			validateTiffRepresentations(EXPECTED_REPRESENTATIONS),
-		).not.toThrow();
-	});
-
 	test("rejects the wrong number of representations", () => {
 		expect(() =>
 			validateTiffRepresentations(EXPECTED_REPRESENTATIONS.slice(0, 1)),

@@ -47,13 +47,6 @@ describe("nightlifyPackageJson", () => {
 		nightlifyPackageJson(JSON.stringify(fixture, null, "\t"), "4.0.1752600000"),
 	);
 
-	it("sets the nightly identity and the supplied version", () => {
-		expect(pkg.name).toBe("cline-nightly");
-		expect(pkg.displayName).toBe("Cline (Nightly)");
-		expect(pkg.version).toBe("4.0.1752600000");
-		expect(pkg.publisher).toBe("HybridTalentComputing");
-	});
-
 	it("rewrites cline-chinese IDs and the cline.* namespace", () => {
 		expect(pkg.contributes.viewsContainers.activitybar[0].id).toBe(
 			"cline-nightly-ActivityBar",

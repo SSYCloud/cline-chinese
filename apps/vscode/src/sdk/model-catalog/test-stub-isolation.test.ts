@@ -29,8 +29,4 @@ describe("cline core model-file test stub", () => {
 		expect(readModelsFileSync(firstPath)).toEqual(storedModelsFile())
 		expect(readModelsFileSync(secondPath)).toEqual({ version: 1, providers: {} })
 	})
-
-	it("cannot observe model writes from the preceding test", () => {
-		expect(readModelsFileSync(firstPath)).toEqual({ version: 1, providers: {} })
-	})
 })

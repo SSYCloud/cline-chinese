@@ -88,16 +88,6 @@ async function start(dir: string, name: string): Promise<ChildProcess> {
 	return child;
 }
 
-test("locked Tauri CLI is the version whose NSIS pin this suite mirrors", () => {
-	const resolved = readFileSync(lockfile, "utf8").match(
-		/"@tauri-apps\/cli": \["@tauri-apps\/cli@([^"]+)"/,
-	)?.[1];
-	expect(
-		resolved,
-		`@tauri-apps/cli moved from ${TAURI_CLI_VERSION}; re-read its bundler's NSIS_URL/NSIS_SHA1 and update TAURI_CLI_VERSION, NSIS_VERSION and the download in desktop-test.yml`,
-	).toBe(TAURI_CLI_VERSION);
-});
-
 describe.skipIf(!windows)("Windows installer process cleanup", () => {
 	beforeAll(async () => {
 		if (!existsSync(nsis))

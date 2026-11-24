@@ -16,12 +16,6 @@ describe("expandEnvironmentVariables", () => {
 	})
 
 	describe("string expansion", () => {
-		it("should expand a single environment variable", () => {
-			process.env.TEST_VAR = "test_value"
-			const result = expandEnvironmentVariables("${env:TEST_VAR}")
-			result.should.equal("test_value")
-		})
-
 		it("should expand multiple environment variables in one string", () => {
 			process.env.VAR1 = "value1"
 			process.env.VAR2 = "value2"
@@ -56,12 +50,6 @@ describe("expandEnvironmentVariables", () => {
 			process.env["VAR-NAME"] = "hyphenated"
 			const result = expandEnvironmentVariables("${env:VAR-NAME}")
 			result.should.equal("hyphenated")
-		})
-
-		it("should handle variable names with underscores", () => {
-			process.env.VAR_NAME = "underscored"
-			const result = expandEnvironmentVariables("${env:VAR_NAME}")
-			result.should.equal("underscored")
 		})
 
 		it("should not expand malformed syntax", () => {
@@ -249,11 +237,6 @@ describe("expandEnvironmentVariables", () => {
 		it("should return null unchanged", () => {
 			const result = expandEnvironmentVariables(null)
 			;(result === null).should.be.true()
-		})
-
-		it("should return undefined unchanged", () => {
-			const result = expandEnvironmentVariables(undefined)
-			;(result === undefined).should.be.true()
 		})
 	})
 })

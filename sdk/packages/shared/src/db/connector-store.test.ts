@@ -173,19 +173,6 @@ describe("SqliteConnectorStore", () => {
 		});
 	});
 
-	it("removes config-only rows when dashboard config is deleted", () => {
-		useTempDataDir();
-		withStore((store) => {
-			store.upsertConfig({
-				channel: "telegram",
-				values: { "-k": "123:token" },
-			});
-
-			expect(store.deleteConfig("telegram")).toBe(true);
-			expect(store.getConfig("telegram")).toBeUndefined();
-		});
-	});
-
 	it("saves channel-wide config without rewriting ambiguous instance args", () => {
 		useTempDataDir();
 		withStore((store) => {

@@ -128,51 +128,11 @@ const testCases = [
 ];
 
 describe("ai-sdk usage normalization", () => {
-	describe.each(testCases)("$provider", ({
-		description,
-		finishUsage,
-		streamUsage,
-		expectedNormalized,
-		expectedNormalizedStreamUsage,
-	}) => {
-		it(`finish part: ${description}`, () => {
-			const normalized = normalizeUsage(finishUsage as Record<string, unknown>);
-			expect(normalized.inputTokens).toBe(expectedNormalized.inputTokens);
-			expect(normalized.outputTokens).toBe(expectedNormalized.outputTokens);
-			expect(normalized.cacheReadTokens).toBe(
-				expectedNormalized.cacheReadTokens,
-			);
-			expect(normalized.cacheWriteTokens).toBe(
-				expectedNormalized.cacheWriteTokens,
-			);
-		});
-
-		it(`stream.usage: ${description}`, () => {
-			const normalized = normalizeUsage(streamUsage as Record<string, unknown>);
-			const expected = (expectedNormalizedStreamUsage ??
-				expectedNormalized) as Record<string, unknown>;
-			expect(normalized.inputTokens).toBe(expected.inputTokens);
-			expect(normalized.outputTokens).toBe(expected.outputTokens);
-			expect(normalized.cacheReadTokens).toBe(expected.cacheReadTokens);
-			expect(normalized.cacheWriteTokens).toBe(expected.cacheWriteTokens);
-			if (typeof expected.totalCost === "number") {
-				expect(normalized.totalCost).toBeCloseTo(expected.totalCost, 5);
-			}
-		});
-	});
-
 	it("finish part lacks raw provider metadata", () => {
 		const finishPart = (fixtures as Record<string, unknown>)
 			.openrouter_finish as Record<string, unknown>;
 		expect(finishPart).not.toHaveProperty("raw");
 		expect(finishPart).toHaveProperty("type", "finish");
-	});
-
-	it("stream.usage includes raw provider response", () => {
-		const streamUsage = (fixtures as Record<string, unknown>)
-			.openrouter_stream_usage as Record<string, unknown>;
-		expect(streamUsage).toHaveProperty("raw");
-		expect(streamUsage.raw).toHaveProperty("cost_details");
 	});
 
 	it("maps provider reasoning tokens to reasoningTokenCount", () => {

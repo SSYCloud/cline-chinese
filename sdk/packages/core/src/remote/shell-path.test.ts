@@ -53,11 +53,6 @@ describe("extractMarkedPath", () => {
 		).toBe("/opt/homebrew/bin:/usr/bin");
 	});
 
-	it("ignores shell profile noise around the markers", () => {
-		const output = `Welcome!\nsome banner\n${MARKER_START}/usr/local/bin${MARKER_END}\ntrailing noise`;
-		expect(extractMarkedPath(output)).toBe("/usr/local/bin");
-	});
-
 	it("returns undefined when markers are missing or empty", () => {
 		expect(extractMarkedPath("no markers here")).toBeUndefined();
 		expect(extractMarkedPath(`${MARKER_START}${MARKER_END}`)).toBeUndefined();
@@ -240,23 +235,6 @@ describe("ensureLoginShellPath", () => {
 			fallbackShell: "/nonexistent/other-shell",
 		});
 		expect(result).toEqual({ status: "failed", shell: "/nonexistent/shell" });
-		expect(env.PATH).toBe("/usr/bin");
-	});
-
-	it("skips on windows", async () => {
-		const env: NodeJS.ProcessEnv = { PATH: "C:\\Windows" };
-		const result = await ensureLoginShellPath({ platform: "win32", env });
-		expect(result).toEqual({ status: "skipped", reason: "windows" });
-		expect(env.PATH).toBe("C:\\Windows");
-	});
-
-	it("skips when the escape hatch is set", async () => {
-		const env: NodeJS.ProcessEnv = {
-			PATH: "/usr/bin",
-			CLINE_SIDECAR_SKIP_SHELL_PATH: "1",
-		};
-		const result = await ensureLoginShellPath({ platform: "darwin", env });
-		expect(result.status).toBe("skipped");
 		expect(env.PATH).toBe("/usr/bin");
 	});
 

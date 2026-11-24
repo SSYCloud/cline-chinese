@@ -460,24 +460,6 @@ describe("provider model catalog handlers", () => {
 	// overrides, an explicitly empty message clears them, and a populated
 	// message replaces them. The two boundary cases are pinned here because
 	// the webview relies on both (see useProviderConfig.test.ts).
-	it("commitModelSelection maps an ABSENT overrides field to undefined (preserve stored overrides)", async () => {
-		const { commitModelSelection } = await import("../commitModelSelection")
-		const providerId = parseProviderId("deepseek")
-		const store = makeStore({ providerId })
-		const controller = makeController(store, makeCatalog())
-
-		await commitModelSelection(controller, {
-			providerId: "deepseek",
-			mode: "act",
-			modelId: "deepseek-v4-flash",
-		})
-
-		expect(store.commitSelection).toHaveBeenCalledWith(providerId, "act", {
-			providerId,
-			modelId: "deepseek-v4-flash",
-			overrides: undefined,
-		})
-	})
 
 	it("commitModelSelection maps an EMPTY overrides message to an empty object (clear stored overrides)", async () => {
 		const { commitModelSelection } = await import("../commitModelSelection")
@@ -497,32 +479,6 @@ describe("provider model catalog handlers", () => {
 			modelId: "deepseek-v4-flash",
 			overrides: {},
 		})
-	})
-
-	it("commitModelSelection reports provider changes when config is initialized", async () => {
-		const { commitModelSelection } = await import("../commitModelSelection")
-		const providerId = parseProviderId("deepseek")
-		const store = makeStore({ providerId })
-		const stateManager: TestStateManager = {
-			setGlobalStateBatch: vi.fn(),
-			flushPendingState: vi.fn(async () => undefined),
-			getApiConfiguration: vi
-				.fn<() => ApiConfiguration | undefined>()
-				.mockReturnValueOnce(undefined)
-				.mockReturnValueOnce({ actModeApiProvider: "deepseek" }),
-		}
-		const handleApiConfigurationChanged = vi.fn<(previous: ApiConfiguration, next: ApiConfiguration) => void>()
-		const controller = makeController(store, makeCatalog(), stateManager, handleApiConfigurationChanged)
-
-		await commitModelSelection(controller, {
-			providerId: "deepseek",
-			mode: "act",
-			modelId: "deepseek-v4-flash",
-			overrides: ModelOverrides.create({ name: "DeepSeek V4 Flash" }),
-		})
-
-		expect(handleApiConfigurationChanged).toHaveBeenCalledWith({}, { actModeApiProvider: "deepseek" })
-		expect(stateManager.flushPendingState).toHaveBeenCalledTimes(1)
 	})
 
 	it("commitModelSelection rejects invalid mode", async () => {

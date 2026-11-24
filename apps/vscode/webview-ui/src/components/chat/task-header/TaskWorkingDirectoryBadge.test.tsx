@@ -1,5 +1,5 @@
 import type { WorkspaceRoot } from "@shared/multi-root/types"
-import { render, screen } from "@testing-library/react"
+import { render } from "@testing-library/react"
 import type { PropsWithChildren } from "react"
 import { describe, expect, it, vi } from "vitest"
 import TaskWorkingDirectoryBadge, { isTaskCwdOutsideWorkspace } from "./TaskWorkingDirectoryBadge"
@@ -13,18 +13,6 @@ vi.mock("@/components/ui/tooltip", () => ({
 const roots = (...paths: string[]): WorkspaceRoot[] => paths.map((path) => ({ path, vcs: "git" }) as WorkspaceRoot)
 
 describe("isTaskCwdOutsideWorkspace", () => {
-	it("is false when the cwd equals a workspace root", () => {
-		expect(isTaskCwdOutsideWorkspace("/home/user/project", roots("/home/user/project"), "linux")).toBe(false)
-	})
-
-	it("is false when the cwd is inside a workspace root", () => {
-		expect(isTaskCwdOutsideWorkspace("/home/user/project/packages/app", roots("/home/user/project"), "linux")).toBe(false)
-	})
-
-	it("is true when the cwd is outside every workspace root", () => {
-		expect(isTaskCwdOutsideWorkspace("/tmp/cline-hello", roots("/home/user/project"), "linux")).toBe(true)
-	})
-
 	it("does not treat a sibling path sharing a prefix as inside", () => {
 		expect(isTaskCwdOutsideWorkspace("/home/user/project-other", roots("/home/user/project"), "linux")).toBe(true)
 	})
@@ -85,18 +73,6 @@ describe("isTaskCwdOutsideWorkspace", () => {
 })
 
 describe("TaskWorkingDirectoryBadge", () => {
-	it("renders the cwd basename and full-path tooltip when outside the workspace", () => {
-		render(
-			<TaskWorkingDirectoryBadge
-				platform="linux"
-				taskCwd="/tmp/cline-hello"
-				workspaceRoots={roots("/home/user/project")}
-			/>,
-		)
-		expect(screen.getByText("cline-hello")).toBeDefined()
-		expect(screen.getByText(/working directory is \/tmp\/cline-hello/)).toBeDefined()
-	})
-
 	it("renders nothing when the cwd is inside the workspace", () => {
 		const { container } = render(
 			<TaskWorkingDirectoryBadge

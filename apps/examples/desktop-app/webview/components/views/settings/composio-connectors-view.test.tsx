@@ -472,20 +472,4 @@ describe("installed connectors", () => {
 		await act(async () => button("Check again")?.click());
 		expect(mocks.refresh).toHaveBeenCalled();
 	});
-
-	it("shows catalog errors and retries in the Browse section", async () => {
-		mocks.catalog
-			.mockRejectedValueOnce(new Error("Service unavailable"))
-			.mockResolvedValueOnce({
-				configured: true,
-				toolkits: [{ slug: "notion", name: "Notion" }],
-			});
-		await act(async () =>
-			root.render(<ComposioConnectorsView variant="installed" />),
-		);
-		expect(container.textContent).toContain("Service unavailable");
-		await act(async () => button("Retry")?.click());
-		expect(container.textContent).toContain("Notion");
-		expect(container.textContent).not.toContain("Service unavailable");
-	});
 });

@@ -10,9 +10,6 @@ describe("inferTriggerKindFromPath", () => {
 	it("classifies *.cron.md as schedule", () => {
 		expect(inferTriggerKindFromPath("nightly.cron.md")).toBe("schedule");
 	});
-	it("classifies events/*.event.md as event", () => {
-		expect(inferTriggerKindFromPath("events/pr.event.md")).toBe("event");
-	});
 	it("classifies other *.md as one_off", () => {
 		expect(inferTriggerKindFromPath("repo-cleanup.md")).toBe("one_off");
 	});

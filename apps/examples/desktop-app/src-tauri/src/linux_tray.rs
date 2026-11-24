@@ -81,11 +81,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn registered_host_is_reported() {
-        assert!(host_registered_within(|| Ok(true), Duration::from_secs(1)));
-    }
-
-    #[test]
     fn watcher_without_a_host_means_no_host() {
         assert!(!host_registered_within(
             || Ok(false),

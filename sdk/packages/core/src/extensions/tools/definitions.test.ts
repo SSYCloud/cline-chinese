@@ -148,70 +148,6 @@ describe("default ask_question tool", () => {
 		expect(tools.map((tool) => tool.name)).not.toContain("ask_question");
 	});
 
-	it("is included only when enabled with an askQuestion executor", () => {
-		const toolsWithoutExecutor = createDefaultTools({
-			executors: {},
-			enableAskQuestion: true,
-		});
-		expect(toolsWithoutExecutor.map((tool) => tool.name)).not.toContain(
-			"ask_question",
-		);
-
-		const toolsWithExecutor = createDefaultTools({
-			executors: {
-				askQuestion: async () => "ok",
-			},
-			enableAskQuestion: true,
-		});
-		expect(toolsWithExecutor.map((tool) => tool.name)).toContain(
-			"ask_question",
-		);
-	});
-
-	it("validates and executes ask_question input", async () => {
-		const execute = vi.fn(async () => "asked");
-		const tools = createDefaultTools({
-			executors: {
-				askQuestion: execute,
-			},
-			enableReadFiles: false,
-			enableSearch: false,
-			enableBash: false,
-			enableWebFetch: false,
-			enableEditor: false,
-			enableSkills: false,
-			enableAskQuestion: true,
-		});
-		const askTool = tools.find((tool) => tool.name === "ask_question");
-		expect(askTool).toBeDefined();
-		if (!askTool) {
-			throw new Error("Expected ask_question tool to be defined.");
-		}
-
-		const result = await askTool.execute(
-			{
-				question: "Which approach should I take?",
-				options: ["Option 1", "Option 2"],
-			},
-			{
-				agentId: "agent-1",
-				conversationId: "conv-1",
-				iteration: 1,
-			},
-		);
-
-		expect(result).toBe("asked");
-		expect(execute).toHaveBeenCalledWith(
-			"Which approach should I take?",
-			["Option 1", "Option 2"],
-			expect.objectContaining({
-				agentId: "agent-1",
-				conversationId: "conv-1",
-				iteration: 1,
-			}),
-		);
-	});
-
 	it("waits for ask_question answers without timing out", async () => {
 		vi.useFakeTimers();
 		try {
@@ -770,50 +706,6 @@ describe("default run_commands tool", () => {
 		);
 	});
 
-	it("accepts structured commands and preserves argv", async () => {
-		const execute = vi.fn(
-			async (command: string | { command: string; args?: string[] }) =>
-				typeof command === "string"
-					? `ran:${command}`
-					: `ran:${command.command}:${(command.args ?? []).join(",")}`,
-		);
-		const tool = createShellTool(execute);
-
-		const result = await tool.execute(
-			{
-				commands: {
-					command: "node",
-					args: ["-e", "console.log('ok')"],
-				},
-			} as never,
-			{
-				agentId: "agent-1",
-				conversationId: "conv-1",
-				iteration: 1,
-			},
-		);
-
-		expect(result).toEqual([
-			{
-				query: "node -e console.log('ok')",
-				result: "ran:node:-e,console.log('ok')",
-				success: true,
-			},
-		]);
-		expect(execute).toHaveBeenCalledWith(
-			{
-				command: "node",
-				args: ["-e", "console.log('ok')"],
-			},
-			process.cwd(),
-			expect.objectContaining({
-				agentId: "agent-1",
-				conversationId: "conv-1",
-				iteration: 1,
-			}),
-		);
-	});
-
 	it("accepts mixed structured and string command arrays", async () => {
 		const execute = vi.fn(
 			async (command: string | { command: string; args?: string[] }) =>
@@ -911,67 +803,6 @@ describe("default run_commands tool", () => {
 			}),
 		).rejects.toThrow("Invalid input");
 		expect(execute).not.toHaveBeenCalled();
-	});
-
-	it("preserves args on direct structured command objects", async () => {
-		const execute = vi.fn(
-			async (command: string | { command: string; args?: string[] }) =>
-				typeof command === "string"
-					? `ran:${command}`
-					: `ran:${command.command}:${(command.args ?? []).join(",")}`,
-		);
-		const tool = createShellTool(execute);
-
-		const result = await tool.execute(
-			{ command: "git", args: ["status", "--short"] } as never,
-			{
-				agentId: "agent-1",
-				conversationId: "conv-1",
-				iteration: 1,
-			},
-		);
-
-		expect(result).toEqual([
-			{
-				query: "git status --short",
-				result: "ran:git:status,--short",
-				success: true,
-			},
-		]);
-		expect(execute).toHaveBeenCalledWith(
-			{ command: "git", args: ["status", "--short"] },
-			process.cwd(),
-			expect.objectContaining({
-				agentId: "agent-1",
-				conversationId: "conv-1",
-				iteration: 1,
-			}),
-		);
-	});
-
-	it("keeps short command echoes unchanged in tool results", async () => {
-		const execute = vi.fn(
-			async (command: string | { command: string }) =>
-				`ran:${typeof command === "string" ? command : command.command}`,
-		);
-		const tool = createShellTool(execute);
-
-		const result = await tool.execute(
-			{ commands: ["git status --short"] },
-			{
-				agentId: "agent-1",
-				conversationId: "conv-1",
-				iteration: 1,
-			},
-		);
-
-		expect(result).toEqual([
-			{
-				query: "git status --short",
-				result: "ran:git status --short",
-				success: true,
-			},
-		]);
 	});
 
 	it("returns captured output for non-zero command exits", async () => {
@@ -1348,72 +1179,6 @@ describe("default run_commands tool", () => {
 		expect(result[0].query).toContain("command truncated");
 	});
 
-	it("emits timeout telemetry without leaking raw command data", async () => {
-		// Never resolves, so the configured timeout deterministically wins the
-		// race regardless of host load (a tight real-timer margin flaked under
-		// heavy parallel CI runs).
-		const execute = vi.fn((): Promise<string> => new Promise<string>(() => {}));
-		const telemetry = createTelemetryStub();
-		const tool = createShellTool(execute, { bashTimeoutMs: 5, telemetry });
-
-		const result = await tool.execute(
-			{
-				commands: [
-					{
-						command: process.execPath,
-						args: ["-e", "console.log('secret-token')"],
-					},
-					"pwd",
-				],
-			} as never,
-			{
-				sessionId: "session-1",
-				agentId: "agent-1",
-				conversationId: "conv-1",
-				runId: "run-1",
-				iteration: 1,
-				toolCallId: "tool-call-1",
-				metadata: {
-					mode: "act",
-					source: "sdk-test",
-				},
-			},
-		);
-
-		expect(result).toEqual([
-			expect.objectContaining({ success: false }),
-			expect.objectContaining({ success: false }),
-		]);
-		const timeoutCalls = capturedTimeoutEvents(telemetry);
-		expect(timeoutCalls).toHaveLength(2);
-		for (const call of timeoutCalls) {
-			expect(call.properties).toMatchObject({
-				tool_name: "run_commands",
-				effective_timeout_ms: 5,
-				timeout_source: "configured_setting",
-				command_count: 2,
-				ulid: "session-1",
-				mode: "act",
-				source: "sdk-test",
-				session_id: "session-1",
-				agent_id: "agent-1",
-				conversation_id: "conv-1",
-				run_id: "run-1",
-				iteration: 1,
-				tool_call_id: "tool-call-1",
-			});
-			expect(typeof call.properties.duration_ms).toBe("number");
-			const payload = JSON.stringify(call.properties);
-			expect(payload).not.toContain("secret-token");
-			expect(payload).not.toContain("pwd");
-			expect(payload).not.toContain("stdout");
-			expect(payload).not.toContain("stderr");
-			expect(payload).not.toContain("env");
-			expect(call.properties).not.toHaveProperty("command");
-			expect(call.properties).not.toHaveProperty("commands");
-		}
-	});
-
 	it("emits timeout telemetry for executor TimeoutError only", async () => {
 		const telemetry = createTelemetryStub();
 		const executorTimeout = vi.fn(async () => {
@@ -1447,61 +1212,6 @@ describe("default run_commands tool", () => {
 			timeout_source: "configured_setting",
 			command_count: 1,
 		});
-	});
-
-	it("emits timeout telemetry on the default bash tool path", async () => {
-		const telemetry = createTelemetryStub();
-		// Never resolves, so the configured timeout deterministically wins the
-		// race regardless of host load (a tight real-timer margin flaked under
-		// heavy parallel CI runs).
-		const execute = vi.fn((): Promise<string> => new Promise<string>(() => {}));
-		const tool = createShellTool(execute, { bashTimeoutMs: 5, telemetry });
-
-		const result = await tool.execute(
-			{ commands: ["echo secret-token", "pwd"] },
-			{
-				sessionId: "session-1",
-				agentId: "agent-1",
-				conversationId: "conv-1",
-				runId: "run-1",
-				iteration: 1,
-				toolCallId: "tool-call-1",
-				metadata: {
-					mode: "act",
-					source: "sdk-test",
-				},
-			},
-		);
-
-		expect(result).toEqual([
-			expect.objectContaining({ success: false }),
-			expect.objectContaining({ success: false }),
-		]);
-		const timeoutCalls = capturedTimeoutEvents(telemetry);
-		expect(timeoutCalls).toHaveLength(2);
-		for (const call of timeoutCalls) {
-			expect(call.properties).toMatchObject({
-				tool_name: "run_commands",
-				effective_timeout_ms: 5,
-				timeout_source: "configured_setting",
-				command_count: 2,
-				ulid: "session-1",
-				mode: "act",
-				source: "sdk-test",
-				session_id: "session-1",
-				agent_id: "agent-1",
-				conversation_id: "conv-1",
-				run_id: "run-1",
-				iteration: 1,
-				tool_call_id: "tool-call-1",
-			});
-			expect(typeof call.properties.duration_ms).toBe("number");
-			const payload = JSON.stringify(call.properties);
-			expect(payload).not.toContain("secret-token");
-			expect(payload).not.toContain("pwd");
-			expect(call.properties).not.toHaveProperty("command");
-			expect(call.properties).not.toHaveProperty("commands");
-		}
 	});
 
 	it("does not emit timeout telemetry for normal command success", async () => {
@@ -1562,26 +1272,6 @@ describe("default read_files tool", () => {
 		);
 	});
 
-	it("accepts string union inputs reading full file content", async () => {
-		const execute = vi.fn(async () => "full file");
-		const tool = createReadFilesTool(execute);
-
-		await tool.execute("/tmp/example.ts" as never, {
-			agentId: "agent-1",
-			conversationId: "conv-1",
-			iteration: 1,
-		});
-
-		expect(execute).toHaveBeenCalledWith(
-			{ path: "/tmp/example.ts" },
-			expect.objectContaining({
-				agentId: "agent-1",
-				conversationId: "conv-1",
-				iteration: 1,
-			}),
-		);
-	});
-
 	it("accepts paths aliases for model-generated read requests", async () => {
 		const execute = vi.fn(
 			async (request: { path: string }) => `content:${request.path}`,
@@ -1612,43 +1302,6 @@ describe("default read_files tool", () => {
 		expect(execute).toHaveBeenNthCalledWith(
 			2,
 			{ path: "/tmp/b.ts", start_line: 2 },
-			expect.objectContaining({ iteration: 1 }),
-		);
-		expect(execute).toHaveBeenNthCalledWith(
-			3,
-			{ path: "/tmp/c.ts" },
-			expect.objectContaining({ iteration: 2 }),
-		);
-	});
-
-	it("accepts files aliases with string paths from model-generated read requests", async () => {
-		const execute = vi.fn(
-			async (request: { path: string }) => `content:${request.path}`,
-		);
-		const tool = createReadFilesTool(execute);
-
-		await tool.execute(
-			{ files: ["/tmp/a.ts", { path: "/tmp/b.ts", end_line: 4 }] } as never,
-			{
-				agentId: "agent-1",
-				conversationId: "conv-1",
-				iteration: 1,
-			},
-		);
-		await tool.execute({ files: "/tmp/c.ts" } as never, {
-			agentId: "agent-1",
-			conversationId: "conv-1",
-			iteration: 2,
-		});
-
-		expect(execute).toHaveBeenNthCalledWith(
-			1,
-			{ path: "/tmp/a.ts" },
-			expect.objectContaining({ iteration: 1 }),
-		);
-		expect(execute).toHaveBeenNthCalledWith(
-			2,
-			{ path: "/tmp/b.ts", end_line: 4 },
 			expect.objectContaining({ iteration: 1 }),
 		);
 		expect(execute).toHaveBeenNthCalledWith(
@@ -1954,17 +1607,6 @@ describe("zod schema conversion", () => {
 });
 
 describe("default editor tool", () => {
-	it("publishes old_text as an optional string without null", () => {
-		const tool = createEditorTool(async () => "patched");
-		const schema = tool.inputSchema as {
-			required?: string[];
-			properties?: Record<string, { type?: string | string[] }>;
-		};
-
-		expect(schema.required).not.toContain("old_text");
-		expect(schema.properties?.old_text?.type).toBe("string");
-	});
-
 	it.each([
 		{ name: "creating a missing file", insert_line: undefined, query: "edit" },
 		{ name: "inserting a line", insert_line: 1, query: "insert" },

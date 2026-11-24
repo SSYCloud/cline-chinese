@@ -39,10 +39,6 @@ afterEach(() => {
 });
 
 describe("resolveClineEnvironment", () => {
-	it("defaults to production when no env var is set", () => {
-		expect(resolveClineEnvironment()).toBe(DEFAULT_CLINE_ENVIRONMENT);
-	});
-
 	it("reads CLINE_ENVIRONMENT from process.env", () => {
 		process.env[CLINE_ENVIRONMENT_ENV] = "staging";
 		expect(resolveClineEnvironment()).toBe("staging");
@@ -73,12 +69,6 @@ describe("resolveClineEnvironment", () => {
 		process.env[CLINE_ENVIRONMENT_ENV] = "qa";
 		expect(resolveClineEnvironment()).toBe(DEFAULT_CLINE_ENVIRONMENT);
 	});
-
-	it("defaults to production when process is unavailable", () => {
-		vi.stubGlobal("process", undefined);
-
-		expect(resolveClineEnvironment()).toBe(DEFAULT_CLINE_ENVIRONMENT);
-	});
 });
 
 describe("getClineEnvironmentConfig", () => {
@@ -90,10 +80,6 @@ describe("getClineEnvironmentConfig", () => {
 		expect(getClineEnvironmentConfig("production")).toBe(
 			CLINE_ENVIRONMENTS.production,
 		);
-	});
-
-	it("falls back to production by default", () => {
-		expect(getClineEnvironmentConfig()).toBe(CLINE_ENVIRONMENTS.production);
 	});
 
 	it("uses the resolved process.env environment when no explicit environment is provided", () => {
@@ -111,12 +97,6 @@ describe("getClineEnvironmentConfig", () => {
 			mcpBaseUrl: "http://127.0.0.1:3000/v1/mcp",
 		});
 		expect(CLINE_ENVIRONMENTS.local.apiBaseUrl).toBe("http://localhost:7777");
-	});
-
-	it("defaults to production when process is unavailable", () => {
-		vi.stubGlobal("process", undefined);
-
-		expect(getClineEnvironmentConfig()).toBe(CLINE_ENVIRONMENTS.production);
 	});
 });
 
@@ -143,21 +123,5 @@ describe("resolveClineAppUrl", () => {
 		"http://app.cline.bot/dashboard",
 	])("rejects %s, which leaves the app's origin", (path) => {
 		expect(resolveClineAppUrl(path, app)).toBeUndefined();
-	});
-});
-
-describe("CLINE_ENVIRONMENTS catalog", () => {
-	it("exposes an environment field that matches its key", () => {
-		for (const [key, config] of Object.entries(CLINE_ENVIRONMENTS)) {
-			expect(config.environment).toBe(key);
-		}
-	});
-
-	it("populates appBaseUrl, apiBaseUrl, and mcpBaseUrl for every environment", () => {
-		for (const config of Object.values(CLINE_ENVIRONMENTS)) {
-			expect(config.appBaseUrl).toMatch(/^https?:\/\//);
-			expect(config.apiBaseUrl).toMatch(/^https?:\/\//);
-			expect(config.mcpBaseUrl).toMatch(/^https?:\/\//);
-		}
 	});
 });

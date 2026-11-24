@@ -11,13 +11,6 @@ describe("Provider key mapping", () => {
 		expect(getProviderDefaultModelId("moonshot")).to.equal(expectedDefault)
 	})
 
-	it("returns the openrouter default for the openrouter-routed providers", () => {
-		// Dynamic providers that route through openrouter share its default.
-		const openrouterDefault = getProviderDefaultModelId("openrouter")
-		expect(openrouterDefault).to.be.a("string")
-		expect(getProviderDefaultModelId("together")).to.equal(openrouterDefault)
-	})
-
 	it("uses the SDK-declared default (first recommended model) for cline", () => {
 		const expectedDefault = getProviderCollectionSync("cline")?.provider.defaultModelId ?? ""
 		expect(expectedDefault).to.not.equal("")

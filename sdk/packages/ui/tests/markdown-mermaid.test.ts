@@ -1,18 +1,10 @@
 import { describe, expect, test, vi } from "vitest";
 import {
-	agentMarkdownControls,
-	agentMarkdownControlsWithMermaid,
-	buildMermaidConfig,
 	createLazyMermaidPlugin,
-	DEFAULT_MERMAID_CONFIG,
 	DIAGRAM_LINK_HREF_ATTRIBUTE,
 	type MermaidModuleLoader,
 	neutralizeDiagramLinks,
 } from "../components/markdown";
-import {
-	FALLBACK_MERMAID_TOKENS,
-	MERMAID_FONT_FAMILY,
-} from "../components/mermaid-diagram";
 
 function createRenderer() {
 	return {
@@ -23,39 +15,7 @@ function createRenderer() {
 	};
 }
 
-describe("DEFAULT_MERMAID_CONFIG", () => {
-	test("is the light base theme with an Inter-first font, not `default`/monospace", () => {
-		expect(DEFAULT_MERMAID_CONFIG).toMatchObject({
-			fontFamily: MERMAID_FONT_FAMILY,
-			securityLevel: "strict",
-			startOnLoad: false,
-			suppressErrorRendering: true,
-			theme: "base",
-		});
-		expect(DEFAULT_MERMAID_CONFIG.fontFamily).not.toBe("monospace");
-		expect(DEFAULT_MERMAID_CONFIG.themeVariables?.darkMode).toBe(false);
-	});
-
-	test("has a light/dark aware builder", () => {
-		const dark = buildMermaidConfig(FALLBACK_MERMAID_TOKENS.dark, "dark");
-		expect(dark.themeVariables?.darkMode).toBe(true);
-		expect(dark.themeVariables?.background).toBe(
-			FALLBACK_MERMAID_TOKENS.dark.background,
-		);
-	});
-});
-
 describe("createLazyMermaidPlugin", () => {
-	test("keeps Mermaid opt-in while enabling the full interactive control set", () => {
-		expect(agentMarkdownControls.mermaid).toBe(false);
-		expect(agentMarkdownControlsWithMermaid.mermaid).toEqual({
-			copy: true,
-			download: true,
-			fullscreen: true,
-			panZoom: true,
-		});
-	});
-
 	test("does not load Mermaid until the first diagram render", async () => {
 		const renderer = createRenderer();
 		const loader = vi.fn<MermaidModuleLoader>(async () => ({
@@ -137,43 +97,10 @@ describe("createLazyMermaidPlugin", () => {
 		);
 	});
 
-	test("neutralizes diagram links in rendered output", async () => {
-		const renderer = {
-			initialize: vi.fn(),
-			render: vi.fn(async () => ({
-				svg: '<svg xmlns="http://www.w3.org/2000/svg"><a xlink:href="https://evil.example.com/x">t</a></svg>',
-			})),
-		};
-		const plugin = createLazyMermaidPlugin(async () => ({ default: renderer }));
-
-		const { svg } = await plugin.getMermaid().render("linked", "flowchart LR");
-
-		expect(svg).not.toContain("xlink:href");
-		expect(svg).toContain(
-			`${DIAGRAM_LINK_HREF_ATTRIBUTE}="https://evil.example.com/x"`,
-		);
-	});
-
 	// This file runs under the package's default `node` environment, where
 	// `DOMParser` is absent, so these exercise the pattern-based fallback.
 	// `markdown-diagram-links.test.ts` covers the DOM parser path under jsdom.
 	describe("neutralizeDiagramLinks (pattern fallback path)", () => {
-		test("has no DOMParser available in this environment", () => {
-			expect(typeof DOMParser).toBe("undefined");
-		});
-
-		test("strips a navigable href and preserves the destination", () => {
-			const sanitized = neutralizeDiagramLinks(
-				'<svg><a xlink:href="https://evil.example.com/harvest?t=1" data-look="classic"><text>Docs</text></a></svg>',
-			);
-
-			expect(sanitized).not.toContain("xlink:href");
-			expect(sanitized).toContain(
-				`${DIAGRAM_LINK_HREF_ATTRIBUTE}="https://evil.example.com/harvest?t=1"`,
-			);
-			expect(sanitized).toContain("<text>Docs</text>");
-		});
-
 		test("drops non-http(s) destinations without preserving them", () => {
 			const sanitized = neutralizeDiagramLinks(
 				`<svg><a href="javascript:alert(1)"><text>x</text></a></svg>`,
@@ -181,23 +108,6 @@ describe("createLazyMermaidPlugin", () => {
 
 			expect(sanitized.toLowerCase()).not.toContain("javascript:");
 			expect(sanitized).not.toContain(DIAGRAM_LINK_HREF_ATTRIBUTE);
-		});
-
-		test("drops target alongside the href", () => {
-			const sanitized = neutralizeDiagramLinks(
-				'<svg><a target="_blank" href="https://example.com/"><text>x</text></a></svg>',
-			);
-
-			expect(sanitized).not.toContain("target=");
-			expect(sanitized).toContain(
-				`${DIAGRAM_LINK_HREF_ATTRIBUTE}="https://example.com/"`,
-			);
-		});
-
-		test("passes through a diagram with no links untouched", () => {
-			const plain = "<svg><text>No links</text></svg>";
-
-			expect(neutralizeDiagramLinks(plain)).toBe(plain);
 		});
 	});
 

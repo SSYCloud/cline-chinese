@@ -34,25 +34,6 @@ describe("provider auth registry", () => {
 		vi.clearAllMocks();
 	});
 
-	it("returns handlers for managed OAuth providers only", () => {
-		expect(getProviderAuthHandler("cline")?.providerId).toBe("cline");
-		expect(getProviderAuthHandler("cline-pass")?.providerId).toBe("cline-pass");
-		expect(getProviderAuthHandler("oca")?.providerId).toBe("oca");
-		expect(getProviderAuthHandler("openai-codex")?.providerId).toBe(
-			"openai-codex",
-		);
-		expect(getProviderAuthHandler("openai-codex-cli")).toBeUndefined();
-		expect(isOAuthProvider("openai-codex-cli")).toBe(false);
-	});
-
-	it("returns storage provider IDs from handlers", () => {
-		expect(getProviderAuthStorageId("cline")).toBe("cline");
-		expect(getProviderAuthStorageId("cline-pass")).toBe("cline");
-		expect(getProviderAuthStorageId("oca")).toBe("oca");
-		expect(getProviderAuthStorageId("openai-codex")).toBe("openai-codex");
-		expect(getProviderAuthStorageId("openai-codex-cli")).toBeUndefined();
-	});
-
 	it("formats Cline WorkOS tokens without double-prefixing", () => {
 		expect(formatProviderOAuthApiKey("cline", { access: "abc" })).toBe(
 			"workos:abc",

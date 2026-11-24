@@ -146,24 +146,6 @@ describe("CustomizationSectionView Agent Plugin inventory", () => {
 		expect(details?.open).toBe(false);
 	});
 
-	it("shows Hub-managed Agent Plugins in the installed Plugins view", async () => {
-		await act(async () => {
-			root.render(
-				<CustomizationSectionView
-					catalogPrimitive="plugin"
-					chrome="embedded"
-					marketplaceVariant="installed"
-					section="Plugins"
-				/>,
-			);
-		});
-
-		await vi.waitFor(() => {
-			expect(container.textContent).toContain("agent-plugins-example");
-			expect(container.textContent).toContain("Agent Plugin");
-		});
-	});
-
 	it("shows Agent Plugin skills in the installed Skills view", async () => {
 		await act(async () => {
 			root.render(

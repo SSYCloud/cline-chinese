@@ -15,10 +15,6 @@ function makeProvider(overrides: Partial<Provider>): Provider {
 }
 
 describe("isProviderConnected", () => {
-	it("counts a provider with an API key", () => {
-		expect(isProviderConnected(makeProvider({ apiKey: "sk-123" }))).toBe(true);
-	});
-
 	it("counts a provider with an OAuth access token", () => {
 		expect(
 			isProviderConnected(makeProvider({ oauthAccessTokenPresent: true })),

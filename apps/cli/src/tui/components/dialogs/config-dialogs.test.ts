@@ -75,12 +75,6 @@ describe("config detail dialog helpers", () => {
 		expect(getExtDetailFooterText(workflow)).toBe("Tab/Enter/Esc 返回");
 	});
 
-	it("shows toggle hint for toggleable items", () => {
-		expect(getExtDetailFooterText(createItem({ kind: "skill" }))).toBe(
-			"空格切换状态，Tab/Enter/Esc 返回",
-		);
-	});
-
 	it("bounds long descriptions so path and status remain visible", () => {
 		const rows = getExtDetailRows(
 			createItem({

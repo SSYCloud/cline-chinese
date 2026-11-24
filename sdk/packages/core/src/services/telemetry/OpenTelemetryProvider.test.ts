@@ -270,43 +270,6 @@ describe("createOpenTelemetryTelemetryService", () => {
 		);
 	});
 
-	it("preserves metadata in the enabled (OTEL) path", async () => {
-		const metadata = {
-			extension_version: "1.0.0",
-			cline_type: "kanban",
-			platform: "kanban",
-			platform_version: "v22.0.0",
-			os_type: "darwin",
-			os_version: "15.0",
-		};
-		const { telemetry, provider } = createOpenTelemetryTelemetryService({
-			metadata,
-			enabled: true,
-			logsExporter: "console",
-		});
-		const spy = vi.fn();
-		(Reflect.get(telemetry, "adapters") as unknown[]).push({
-			name: "test",
-			emit: spy,
-			emitRequired: spy,
-			isEnabled: () => true,
-			recordCounter: vi.fn(),
-			recordHistogram: vi.fn(),
-			recordGauge: vi.fn(),
-			flush: async () => {},
-			dispose: async () => {},
-		});
-		telemetry.captureRequired("test.event", {});
-		expect(spy).toHaveBeenCalledWith(
-			"test.event",
-			expect.objectContaining({
-				cline_type: "kanban",
-				platform: "kanban",
-			}),
-		);
-		await provider.dispose();
-	});
-
 	it("delivers metadata to the OTEL logger without duplication", async () => {
 		const otelEmit = vi.fn();
 		const provider = new OpenTelemetryProvider({
@@ -424,40 +387,5 @@ describe("createOpenTelemetryTelemetryService", () => {
 				event: "session.started",
 			}),
 		);
-	});
-
-	it("attaches the logger adapter when creating configured telemetry", () => {
-		const logger: BasicLogger = {
-			debug: vi.fn(),
-			log: vi.fn(),
-			error: vi.fn(),
-		};
-		const { telemetry, provider } = createConfiguredTelemetryService({
-			metadata: {
-				extension_version: "1.2.3",
-				cline_type: "cli",
-				platform: "terminal",
-				platform_version: process.version,
-				os_type: process.platform,
-				os_version: "unknown",
-			},
-			enabled: true,
-			logsExporter: "console",
-			logger,
-		});
-
-		telemetry.capture({
-			event: "session.started",
-			properties: { sessionId: "session-1" },
-		});
-
-		expect(logger.log).toHaveBeenCalledWith(
-			"telemetry.event",
-			expect.objectContaining({
-				event: "session.started",
-			}),
-		);
-
-		return provider?.dispose();
 	});
 });

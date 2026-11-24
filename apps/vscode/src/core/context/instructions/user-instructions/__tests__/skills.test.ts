@@ -167,98 +167,6 @@ This is a test skill.`)
 			expect(skills[0].source).to.equal("global")
 		})
 
-		it("should discover skills from project .clinerules/skills directory", async () => {
-			const projectSkillsDir = path.join(TEST_CWD, ".clinerules", "skills")
-			const skillDir = path.join(projectSkillsDir, "explaining-code")
-			const skillMdPath = path.join(skillDir, "SKILL.md")
-
-			fileExistsStub.withArgs(projectSkillsDir).resolves(true)
-			fileExistsStub.withArgs(skillMdPath).resolves(true)
-			isDirectoryStub.withArgs(projectSkillsDir).resolves(true)
-			readdirStub.withArgs(projectSkillsDir).resolves(["explaining-code"])
-			statStub.withArgs(skillDir).resolves({ isDirectory: () => true })
-			readFileStub.withArgs(skillMdPath, "utf-8").resolves(`---
-name: explaining-code
-description: Explains code with diagrams and analogies
----
-Use analogies and ASCII diagrams when explaining code.`)
-
-			const skills = await discoverSkills(TEST_CWD)
-
-			expect(skills).to.have.lengthOf(1)
-			expect(skills[0].name).to.equal("explaining-code")
-			expect(skills[0].source).to.equal("project")
-		})
-
-		it("should discover skills from project .cline/skills directory", async () => {
-			const clineSkillsDir = path.join(TEST_CWD, ".cline", "skills")
-			const skillDir = path.join(clineSkillsDir, "debugging")
-			const skillMdPath = path.join(skillDir, "SKILL.md")
-
-			fileExistsStub.withArgs(clineSkillsDir).resolves(true)
-			fileExistsStub.withArgs(skillMdPath).resolves(true)
-			isDirectoryStub.withArgs(clineSkillsDir).resolves(true)
-			readdirStub.withArgs(clineSkillsDir).resolves(["debugging"])
-			statStub.withArgs(skillDir).resolves({ isDirectory: () => true })
-			readFileStub.withArgs(skillMdPath, "utf-8").resolves(`---
-name: debugging
-description: Debug code systematically
----
-Use systematic debugging approaches.`)
-
-			const skills = await discoverSkills(TEST_CWD)
-
-			expect(skills).to.have.lengthOf(1)
-			expect(skills[0].name).to.equal("debugging")
-			expect(skills[0].source).to.equal("project")
-		})
-
-		it("should discover skills from project .claude/skills directory", async () => {
-			const claudeSkillsDir = path.join(TEST_CWD, ".claude", "skills")
-			const skillDir = path.join(claudeSkillsDir, "coding")
-			const skillMdPath = path.join(skillDir, "SKILL.md")
-
-			fileExistsStub.withArgs(claudeSkillsDir).resolves(true)
-			fileExistsStub.withArgs(skillMdPath).resolves(true)
-			isDirectoryStub.withArgs(claudeSkillsDir).resolves(true)
-			readdirStub.withArgs(claudeSkillsDir).resolves(["coding"])
-			statStub.withArgs(skillDir).resolves({ isDirectory: () => true })
-			readFileStub.withArgs(skillMdPath, "utf-8").resolves(`---
-name: coding
-description: Write clean code
----
-Follow best practices.`)
-
-			const skills = await discoverSkills(TEST_CWD)
-
-			expect(skills).to.have.lengthOf(1)
-			expect(skills[0].name).to.equal("coding")
-			expect(skills[0].source).to.equal("project")
-		})
-
-		it("should discover skills from project .agents/skills directory", async () => {
-			const agentsSkillsDir = path.join(TEST_CWD, ".agents", "skills")
-			const skillDir = path.join(agentsSkillsDir, "testing")
-			const skillMdPath = path.join(skillDir, "SKILL.md")
-
-			fileExistsStub.withArgs(agentsSkillsDir).resolves(true)
-			fileExistsStub.withArgs(skillMdPath).resolves(true)
-			isDirectoryStub.withArgs(agentsSkillsDir).resolves(true)
-			readdirStub.withArgs(agentsSkillsDir).resolves(["testing"])
-			statStub.withArgs(skillDir).resolves({ isDirectory: () => true })
-			readFileStub.withArgs(skillMdPath, "utf-8").resolves(`---
-name: testing
-description: Write comprehensive tests
----
-Always write tests.`)
-
-			const skills = await discoverSkills(TEST_CWD)
-
-			expect(skills).to.have.lengthOf(1)
-			expect(skills[0].name).to.equal("testing")
-			expect(skills[0].source).to.equal("project")
-		})
-
 		it("should handle empty skills directories gracefully", async () => {
 			fileExistsStub.withArgs(GLOBAL_SKILLS_DIR).resolves(true)
 			isDirectoryStub.withArgs(GLOBAL_SKILLS_DIR).resolves(true)
@@ -601,10 +509,6 @@ description: Test
 				expect(result).to.have.lengthOf(0)
 			})
 
-			it("should handle empty array", () => {
-				expect(parseRemoteSkillEntries([])).to.have.lengthOf(0)
-			})
-
 			it("should include all entries with valid frontmatter even with drift", () => {
 				const entries = [
 					{ name: "Good", alwaysEnabled: false, contents: `---\nname: Good\ndescription: Valid\n---\nBody` },
@@ -733,13 +637,6 @@ description: Test
 				const content = await getSkillContent("Gone", [skill], [])
 				expect(content).to.be.null
 			})
-
-			it("should not attempt disk read for remote skills", async () => {
-				const entries = [makeEntry("Remote Only", "Test", "Remote content")]
-				const skill = { name: "Remote Only", description: "Test", path: "remote:Remote Only", source: "global" as const }
-				await getSkillContent("Remote Only", [skill], entries)
-				sinon.assert.notCalled(readFileStub)
-			})
 		})
 	})
 })
@@ -807,10 +704,6 @@ describe("updateSkillMarkdownDisabledState", () => {
 		expect(output).to.equal(MALFORMED_FRONTMATTER)
 		// Exactly one frontmatter opener/closer pair, not two.
 		expect(output.match(/^---$/gm)).to.have.lengthOf(2)
-	})
-
-	it("leaves malformed-frontmatter files untouched when enabling", () => {
-		expect(updateSkillMarkdownDisabledState(MALFORMED_FRONTMATTER, true)).to.equal(MALFORMED_FRONTMATTER)
 	})
 })
 

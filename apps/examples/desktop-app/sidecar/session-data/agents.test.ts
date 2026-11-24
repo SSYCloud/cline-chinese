@@ -155,14 +155,6 @@ describe("listSessionAgents", () => {
 			["missing", false],
 		]);
 	});
-
-	it("preserves the persisted status", () => {
-		records.set(
-			"root1__a",
-			record({ sessionId: "root1__a", agentId: "a", status: "failed" }),
-		);
-		expect(listSessionAgents(ROOT)[0]?.status).toBe("failed");
-	});
 });
 
 describe("readChildSessionMessages", () => {

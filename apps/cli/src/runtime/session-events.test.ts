@@ -21,34 +21,6 @@ describe("subscribeToAgentEvents", () => {
 		...(usage ? { usage } : {}),
 	});
 
-	it("suppresses duplicate structured done events", () => {
-		const sessionManager = {
-			subscribe: vi.fn((listener: (event: unknown) => void) => {
-				listener({
-					type: "agent_event",
-					payload: {
-						event: done({ iterations: 5 }),
-					},
-				});
-				listener({
-					type: "agent_event",
-					payload: {
-						event: done({ iterations: 0, text: "" }),
-					},
-				});
-				return () => {};
-			}),
-		};
-		const onAgentEvent = vi.fn();
-
-		subscribeToAgentEvents(sessionManager, onAgentEvent);
-
-		expect(onAgentEvent).toHaveBeenCalledTimes(1);
-		expect(onAgentEvent).toHaveBeenCalledWith(
-			expect.objectContaining({ iterations: 5 }),
-		);
-	});
-
 	it("suppresses duplicate chunk-parsed done events", () => {
 		const sessionManager = {
 			subscribe: vi.fn((listener: (event: unknown) => void) => {

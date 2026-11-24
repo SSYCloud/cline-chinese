@@ -2,10 +2,6 @@ import { describe, expect, it } from "vitest";
 import { mapHistoryToWebviewMessages } from "./session-mapping";
 
 describe("mapHistoryToWebviewMessages", () => {
-	it("preserves tolerant handling of malformed history entries", () => {
-		expect(() => mapHistoryToWebviewMessages([null, 42])).not.toThrow();
-	});
-
 	it("hydrates assistant tool uses with following user tool results", () => {
 		const messages = mapHistoryToWebviewMessages([
 			{

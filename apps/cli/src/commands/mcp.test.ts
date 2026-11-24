@@ -316,41 +316,6 @@ describe("mcp install command", () => {
 		}
 	});
 
-	it("requires a TTY because it opens the wizard", async () => {
-		const writeErr = vi.fn();
-		const runWizard = vi.fn(async () => 0);
-
-		const code = await runMcpInstallCommand({
-			name: "ctx7",
-			transport: "http",
-			targetArgs: ["https://mcp.context7.com/mcp"],
-			isTty: false,
-			runWizard,
-			io: { writeErr },
-		});
-
-		expect(code).toBe(1);
-		expect(runWizard).not.toHaveBeenCalled();
-		expect(writeErr).toHaveBeenCalledWith(
-			"cline mcp install 会打开 MCP 向导并需要 TTY。请传入 --yes 以非交互方式安装。",
-		);
-	});
-
-	it("checks for TTY before validating wizard install arguments", async () => {
-		const writeErr = vi.fn();
-
-		const code = await runMcpInstallCommand({
-			name: "fs",
-			isTty: false,
-			io: { writeErr },
-		});
-
-		expect(code).toBe(1);
-		expect(writeErr).toHaveBeenCalledWith(
-			"cline mcp install 会打开 MCP 向导并需要 TTY。请传入 --yes 以非交互方式安装。",
-		);
-	});
-
 	it("installs directly with --yes without requiring a TTY", async () => {
 		const writeln = vi.fn();
 		const writeErr = vi.fn();

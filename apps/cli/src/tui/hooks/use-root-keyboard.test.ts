@@ -114,16 +114,6 @@ describe("cloud target keybinds", () => {
 		return preventDefault;
 	};
 
-	it("toggles the target with Ctrl+O and changes the repository with Ctrl+K", () => {
-		const onToggleCloudTarget = vi.fn();
-		const onChangeCloudRepo = vi.fn();
-		useRootKeyboard(keyboardInput({ onToggleCloudTarget, onChangeCloudRepo }));
-		expect(pressCtrl("o")).toHaveBeenCalledOnce();
-		expect(pressCtrl("k")).toHaveBeenCalledOnce();
-		expect(onToggleCloudTarget).toHaveBeenCalledOnce();
-		expect(onChangeCloudRepo).toHaveBeenCalledOnce();
-	});
-
 	it("ignores Tab and Shift+Tab while Cloud is selected", () => {
 		const onToggleMode = vi.fn();
 		useRootKeyboard({

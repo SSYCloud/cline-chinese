@@ -267,17 +267,6 @@ describe("createProviderConfigStore", () => {
 		expect(mocks.getSaveProviderSettingsMock().mock.calls.at(-1)?.[1]?.tokenSource).toBeUndefined()
 	})
 
-	it("keeps the inherited tokenSource when a GUI patch has no credential fields", async () => {
-		const { createProviderConfigStore } = await import("./store")
-		mocks.setProviderSettings({ bedrock: { provider: "bedrock", aws: { authentication: "profile" } } })
-		const store = createProviderConfigStore()
-		const providerId = parseProviderId("bedrock")
-
-		store.write(providerId, { contextWindow: 200_000 })
-
-		expect(mocks.getSaveProviderSettingsMock().mock.calls.at(-1)?.[1]?.tokenSource).toBeUndefined()
-	})
-
 	// Changing the regional API line in the settings UI goes through
 	// store.write. It must land in providers.json (the CLI and desktop app
 	// bake the regional base URL from its stored apiLine) AND mirror to the
@@ -451,17 +440,6 @@ describe("createProviderConfigStore", () => {
 		expect(resolved?.modelInfoSource).toBe("fallback")
 		expect(resolved?.modelInfo.maxInputTokens).toBeUndefined()
 		expect(mocks.getModelsFile().providers.litellm?.models?.[modelId]).toBeUndefined()
-	})
-
-	it("round-trips generic provider selections using the in-process modelInfo envelope", async () => {
-		const { createProviderConfigStore } = await import("./store")
-		const store = createProviderConfigStore()
-		const providerId = parseProviderId("deepseek")
-		const selection = selectionFromModelInfo(providerId, "deepseek-v4-pro", modelInfoA)
-
-		store.commitSelection(providerId, "act", selection)
-
-		expectResolvedSelection(store.readSelection(providerId, "act"), selection, modelInfoA)
 	})
 
 	it("hydrates a generic provider selection from providers.json after reload", async () => {

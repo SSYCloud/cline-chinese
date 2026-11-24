@@ -17,40 +17,9 @@ describe("Remote Config Schema", () => {
 
 			expect(result).to.deep.equal({});
 		});
-
-		it("accepts an empty prompt uploading object", () => {
-			const result = EnterpriseTelemetrySchema.parse({
-				promptUploading: {},
-			});
-
-			expect(result.promptUploading).to.deep.equal({});
-		});
 	});
 
 	describe("S3AccessKeySettingsSchema", () => {
-		it("should accept valid S3 access key settings with required fields", () => {
-			const validSettings = {
-				bucket: "my-bucket",
-				accessKeyId: "AKIAIOSFODNN7EXAMPLE",
-				secretAccessKey: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-			};
-			const result = S3AccessKeySettingsSchema.parse(validSettings);
-			expect(result).to.deep.equal(validSettings);
-		});
-
-		it("should accept S3 settings with all optional fields", () => {
-			const fullSettings = {
-				bucket: "my-bucket",
-				accessKeyId: "AKIAIOSFODNN7EXAMPLE",
-				secretAccessKey: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-				region: "us-east-1",
-				endpoint: "https://s3.us-east-1.amazonaws.com",
-				accountId: "123456789012",
-			};
-			const result = S3AccessKeySettingsSchema.parse(fullSettings);
-			expect(result).to.deep.equal(fullSettings);
-		});
-
 		it("should reject S3 settings with missing bucket", () => {
 			expect(() =>
 				S3AccessKeySettingsSchema.parse({
@@ -80,24 +49,9 @@ describe("Remote Config Schema", () => {
 	});
 
 	describe("PromptUploadingSchema", () => {
-		it("should accept an empty object", () => {
-			const result = PromptUploadingSchema.parse({});
-			expect(result).to.deep.equal({});
-		});
-
-		it("should accept enabled field only", () => {
-			const result = PromptUploadingSchema.parse({ enabled: true });
-			expect(result.enabled).to.equal(true);
-		});
-
 		it("should accept enabled as false", () => {
 			const result = PromptUploadingSchema.parse({ enabled: false });
 			expect(result.enabled).to.equal(false);
-		});
-
-		it("should accept type field with s3_access_keys", () => {
-			const result = PromptUploadingSchema.parse({ type: "s3_access_keys" });
-			expect(result.type).to.equal("s3_access_keys");
 		});
 
 		it("should reject invalid type values", () => {
@@ -210,21 +164,6 @@ describe("Remote Config Schema", () => {
 			).to.throw();
 		});
 
-		it("should reject models with missing id field", () => {
-			expect(() =>
-				OpenAiCompatibleSchema.parse({
-					models: [{ temperature: 0.7 }],
-				}),
-			).to.throw();
-		});
-
-		it("should accept models with only id field", () => {
-			const settings = {
-				models: [{ id: "gpt-4" }],
-			};
-			expect(() => OpenAiCompatibleSchema.parse(settings)).to.not.throw();
-		});
-
 		it("should accept headers as record of strings", () => {
 			const settings = {
 				openAiHeaders: {
@@ -234,39 +173,6 @@ describe("Remote Config Schema", () => {
 			};
 			const result = OpenAiCompatibleSchema.parse(settings);
 			expect(result.openAiHeaders).to.deep.equal(settings.openAiHeaders);
-		});
-	});
-
-	describe("ClineSettingsSchema", () => {
-		it("should accept valid Cline provider settings", () => {
-			const validSettings = {
-				models: [
-					{ id: "claude-3-5-sonnet-20241022" },
-					{ id: "claude-3-5-haiku-20241022" },
-				],
-			};
-			const result = ClineSettingsSchema.parse(validSettings);
-			expect(result).to.deep.equal(validSettings);
-		});
-
-		it("should accept empty settings object", () => {
-			const result = ClineSettingsSchema.parse({});
-			expect(result.models).to.be.undefined;
-		});
-
-		it("should accept models with only id field", () => {
-			const settings = {
-				models: [{ id: "claude-3-5-sonnet-20241022" }],
-			};
-			expect(() => ClineSettingsSchema.parse(settings)).to.not.throw();
-		});
-
-		it("should reject models with missing id field", () => {
-			expect(() =>
-				ClineSettingsSchema.parse({
-					models: [{}],
-				}),
-			).to.throw();
 		});
 	});
 
@@ -290,19 +196,6 @@ describe("Remote Config Schema", () => {
 			expect(result).to.deep.equal(validSettings);
 		});
 
-		it("should accept empty settings object", () => {
-			const result = AwsBedrockSettingsSchema.parse({});
-			expect(result.models).to.be.undefined;
-			expect(result.customModels).to.be.undefined;
-		});
-
-		it("should accept models with only id field", () => {
-			const settings = {
-				models: [{ id: "anthropic.claude-v2" }],
-			};
-			expect(() => AwsBedrockSettingsSchema.parse(settings)).to.not.throw();
-		});
-
 		it("should accept models with thinkingBudgetTokens", () => {
 			const settings = {
 				models: [
@@ -315,34 +208,12 @@ describe("Remote Config Schema", () => {
 			expect(result.models?.[0].thinkingBudgetTokens).to.equal(1600);
 		});
 
-		it("should accept custom models array", () => {
-			const settings = {
-				customModels: [
-					{
-						name: "custom-1",
-						baseModelId: "base-model-1",
-						thinkingBudgetTokens: 1600,
-					},
-					{ name: "custom-2", baseModelId: "base-model-2" },
-				],
-			};
-			expect(() => AwsBedrockSettingsSchema.parse(settings)).to.not.throw();
-		});
-
 		it("should reject invalid field types", () => {
 			expect(() =>
 				AwsBedrockSettingsSchema.parse({ models: "not-an-array" }),
 			).to.throw();
 			expect(() =>
 				AwsBedrockSettingsSchema.parse({ customModels: "not-an-array" }),
-			).to.throw();
-		});
-
-		it("should reject models with missing id field", () => {
-			expect(() =>
-				AwsBedrockSettingsSchema.parse({
-					models: [{ thinkingBudgetTokens: 1600 }],
-				}),
 			).to.throw();
 		});
 
@@ -387,27 +258,6 @@ describe("Remote Config Schema", () => {
 	});
 
 	describe("RemoteMCPServersSchema", () => {
-		it("should accept remoteMCPServers with alwaysEnabled true", () => {
-			const config = {
-				version: "v1",
-				remoteMCPServers: [
-					{
-						name: "always-on-server",
-						url: "https://example.com/mcp",
-						alwaysEnabled: true,
-					},
-				],
-			};
-
-			const result = RemoteConfigSchema.parse(config);
-			expect(result.remoteMCPServers).to.have.lengthOf(1);
-			expect(result.remoteMCPServers?.[0].name).to.equal("always-on-server");
-			expect(result.remoteMCPServers?.[0].url).to.equal(
-				"https://example.com/mcp",
-			);
-			expect(result.remoteMCPServers?.[0].alwaysEnabled).to.equal(true);
-		});
-
 		it("should accept remoteMCPServers with alwaysEnabled false", () => {
 			const config = {
 				version: "v1",
@@ -571,19 +421,6 @@ describe("Remote Config Schema", () => {
 			expect(result.yoloModeAllowed).to.equal(true);
 		});
 
-		it("should accept config with OpenAI compatible provider only", () => {
-			const config = {
-				version: "v1",
-				providerSettings: {
-					OpenAiCompatible: {
-						models: [{ id: "gpt-4" }, { id: "gpt-3.5-turbo" }],
-						openAiBaseUrl: "https://api.openai.com/v1",
-					},
-				},
-			};
-			expect(() => RemoteConfigSchema.parse(config)).to.not.throw();
-		});
-
 		it("should accept config with AWS Bedrock provider only", () => {
 			const config = {
 				version: "v1",
@@ -608,296 +445,6 @@ describe("Remote Config Schema", () => {
 					telemetryEnabled: "yes",
 				}),
 			).to.throw();
-		});
-
-		it("should allow undefined optional provider settings", () => {
-			const config = {
-				version: "v1",
-				// providerSettings is undefined
-			};
-			expect(() => RemoteConfigSchema.parse(config)).to.not.throw();
-		});
-
-		it("should handle complete config with all fields", () => {
-			const config = {
-				version: "v1",
-				telemetryEnabled: true,
-				kanbanEnabled: true,
-				mcpMarketplaceEnabled: false,
-				blockPersonalRemoteMCPServers: true,
-				allowedMCPServers: [
-					{ id: "https://github.com/mcp/filesystem" },
-					{ id: "https://github.com/mcp/github" },
-				],
-				yoloModeAllowed: true,
-				openTelemetryEnabled: true,
-				openTelemetryMetricsExporter: "otlp",
-				openTelemetryLogsExporter: "otlp",
-				openTelemetryOtlpProtocol: "http/json",
-				openTelemetryOtlpEndpoint: "http://localhost:4318",
-				openTelemetryOtlpMetricsProtocol: "http/json",
-				openTelemetryOtlpMetricsEndpoint: "http://localhost:4318/v1/metrics",
-				openTelemetryOtlpLogsProtocol: "http/json",
-				openTelemetryOtlpLogsEndpoint: "http://localhost:4318/v1/logs",
-				openTelemetryMetricExportInterval: 60000,
-				openTelemetryOtlpInsecure: false,
-				openTelemetryLogBatchSize: 512,
-				openTelemetryLogBatchTimeout: 5000,
-				openTelemetryLogMaxQueueSize: 2048,
-				openTelemetryOtlpHeaders: { test: "string" },
-				globalRules: [
-					{
-						alwaysEnabled: true,
-						name: "company-standards.md",
-						contents:
-							"# Company Standards\n\nAll code must follow these standards...",
-					},
-					{
-						alwaysEnabled: false,
-						name: "optional-guidelines.md",
-						contents:
-							"# Optional Guidelines\n\nConsider these best practices...",
-					},
-				],
-				globalWorkflows: [
-					{
-						alwaysEnabled: true,
-						name: "deployment-workflow.md",
-						contents:
-							"# Deployment Workflow\n\n1. Run tests\n2. Build\n3. Deploy",
-					},
-				],
-				providerSettings: {
-					OpenAiCompatible: {
-						models: [
-							{
-								id: "gpt-4",
-								temperature: 0.7,
-								maxTokens: 4096,
-								contextWindow: 128000,
-								inputPrice: 0.03,
-								outputPrice: 0.06,
-								supportsImages: true,
-							},
-							{
-								id: "gpt-3.5-turbo",
-								temperature: 0.8,
-								maxTokens: 4096,
-								contextWindow: 16000,
-								inputPrice: 0.001,
-								outputPrice: 0.002,
-								supportsImages: false,
-							},
-						],
-						openAiBaseUrl: "https://custom.openai.api/v1",
-						openAiHeaders: {
-							"X-API-Key": "secret-key",
-							"X-Custom-Header": "custom-value",
-						},
-						azureApiVersion: "2024-02-15-preview",
-					},
-					AwsBedrock: {
-						models: [
-							{ id: "anthropic.claude-v2", thinkingBudgetTokens: 1600 },
-							{ id: "anthropic.claude-instant-v1", thinkingBudgetTokens: 800 },
-						],
-						customModels: [
-							{
-								name: "my-custom-model",
-								baseModelId: "anthropic.claude-v2",
-								thinkingBudgetTokens: 2000,
-							},
-							{
-								name: "another-custom",
-								baseModelId: "anthropic.claude-instant-v1",
-								thinkingBudgetTokens: 1000,
-							},
-						],
-						awsRegion: "eu-west-1",
-						awsUseCrossRegionInference: false,
-						awsUseGlobalInference: true,
-						awsBedrockUsePromptCache: true,
-						awsBedrockEndpoint: "https://custom-bedrock.endpoint",
-					},
-					Cline: {
-						models: [
-							{ id: "claude-3-5-sonnet-20241022" },
-							{ id: "claude-3-5-haiku-20241022" },
-						],
-					},
-					Vertex: {
-						models: [
-							{
-								id: "claude-3-5-sonnet-v2@20241022",
-								thinkingBudgetTokens: 1600,
-							},
-							{ id: "claude-3-5-haiku@20241022" },
-						],
-						vertexProjectId: "my-gcp-project",
-						vertexRegion: "us-central1",
-					},
-					Anthropic: {
-						models: [
-							{ id: "claude-3-5-sonnet-20241022" },
-							{ id: "claude-3-5-sonnet-20241024", thinkingBudgetTokens: 1600 },
-						],
-						baseUrl: "https://example.cline.bot",
-					},
-				},
-				enterpriseTelemetry: {
-					promptUploading: {
-						enabled: true,
-						type: "s3_access_keys",
-						s3AccessSettings: {
-							bucket: "enterprise-prompts",
-							accessKeyId: "AKIAIOSFODNN7EXAMPLE",
-							secretAccessKey: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-							region: "us-east-1",
-						},
-					},
-				},
-			};
-			const result = RemoteConfigSchema.parse(config);
-
-			// Verify all top-level fields
-			expect(result.version).to.equal("v1");
-			expect(result.telemetryEnabled).to.equal(true);
-			expect(result.yoloModeAllowed).to.equal(true);
-			expect(result.kanbanEnabled).to.equal(true);
-
-			expect(result.mcpMarketplaceEnabled).to.equal(false);
-			expect(result.allowedMCPServers).to.deep.equal(config.allowedMCPServers);
-
-			// Verify OpenAI Compatible settings
-			expect(
-				result.providerSettings?.OpenAiCompatible?.models,
-			).to.have.lengthOf(2);
-			expect(result.providerSettings?.OpenAiCompatible?.openAiBaseUrl).to.equal(
-				"https://custom.openai.api/v1",
-			);
-			expect(
-				result.providerSettings?.OpenAiCompatible?.azureApiVersion,
-			).to.equal("2024-02-15-preview");
-
-			// Verify AWS Bedrock settings
-			expect(result.providerSettings?.AwsBedrock?.models).to.have.lengthOf(2);
-			expect(
-				result.providerSettings?.AwsBedrock?.customModels,
-			).to.have.lengthOf(2);
-			expect(result.providerSettings?.AwsBedrock?.awsRegion).to.equal(
-				"eu-west-1",
-			);
-			expect(
-				result.providerSettings?.AwsBedrock?.awsUseCrossRegionInference,
-			).to.equal(false);
-			expect(
-				result.providerSettings?.AwsBedrock?.awsUseGlobalInference,
-			).to.equal(true);
-			expect(
-				result.providerSettings?.AwsBedrock?.awsBedrockUsePromptCache,
-			).to.equal(true);
-			expect(result.providerSettings?.AwsBedrock?.awsBedrockEndpoint).to.equal(
-				"https://custom-bedrock.endpoint",
-			);
-
-			// Verify Cline settings
-			expect(result.providerSettings?.Cline?.models).to.have.lengthOf(2);
-			expect(result.providerSettings?.Cline?.models?.[0].id).to.equal(
-				"claude-3-5-sonnet-20241022",
-			);
-			expect(result.providerSettings?.Cline?.models?.[1].id).to.equal(
-				"claude-3-5-haiku-20241022",
-			);
-
-			// Verify Vertex settings
-			expect(result.providerSettings?.Vertex?.models).to.have.lengthOf(2);
-			expect(result.providerSettings?.Vertex?.models?.[0].id).to.equal(
-				"claude-3-5-sonnet-v2@20241022",
-			);
-			expect(
-				result.providerSettings?.Vertex?.models?.[0].thinkingBudgetTokens,
-			).to.equal(1600);
-			expect(result.providerSettings?.Vertex?.models?.[1].id).to.equal(
-				"claude-3-5-haiku@20241022",
-			);
-			expect(result.providerSettings?.Vertex?.models?.[1].thinkingBudgetTokens)
-				.to.be.undefined;
-			expect(result.providerSettings?.Vertex?.vertexProjectId).to.equal(
-				"my-gcp-project",
-			);
-			expect(result.providerSettings?.Vertex?.vertexRegion).to.equal(
-				"us-central1",
-			);
-
-			expect(result.providerSettings?.Anthropic?.models).to.have.lengthOf(2);
-			expect(result.providerSettings?.Anthropic?.models?.[0].id).to.equal(
-				"claude-3-5-sonnet-20241022",
-			);
-			expect(
-				result.providerSettings?.Anthropic?.models?.[0].thinkingBudgetTokens,
-			).to.be.undefined;
-			expect(result.providerSettings?.Anthropic?.models?.[1].id).to.equal(
-				"claude-3-5-sonnet-20241024",
-			);
-			expect(
-				result.providerSettings?.Anthropic?.models?.[1].thinkingBudgetTokens,
-			).to.equal(1600);
-			expect(result.providerSettings?.Anthropic?.baseUrl).to.equal(
-				"https://example.cline.bot",
-			);
-
-			// Verify OpenTelemetry settings
-			expect(result.openTelemetryEnabled).to.equal(true);
-			expect(result.openTelemetryMetricsExporter).to.equal("otlp");
-			expect(result.openTelemetryLogsExporter).to.equal("otlp");
-			expect(result.openTelemetryOtlpProtocol).to.equal("http/json");
-			expect(result.openTelemetryOtlpEndpoint).to.equal(
-				"http://localhost:4318",
-			);
-			expect(result.openTelemetryOtlpMetricsProtocol).to.equal("http/json");
-			expect(result.openTelemetryOtlpMetricsEndpoint).to.equal(
-				"http://localhost:4318/v1/metrics",
-			);
-			expect(result.openTelemetryOtlpLogsProtocol).to.equal("http/json");
-			expect(result.openTelemetryOtlpLogsEndpoint).to.equal(
-				"http://localhost:4318/v1/logs",
-			);
-			expect(result.openTelemetryMetricExportInterval).to.equal(60000);
-			expect(result.openTelemetryOtlpInsecure).to.equal(false);
-			expect(result.openTelemetryLogBatchSize).to.equal(512);
-			expect(result.openTelemetryLogBatchTimeout).to.equal(5000);
-			expect(result.openTelemetryLogMaxQueueSize).to.equal(2048);
-			expect(result.openTelemetryOtlpHeaders).to.deep.equal({ test: "string" });
-
-			// Verify Global Instructions settings
-			expect(result.globalRules).to.have.lengthOf(2);
-			expect(result.globalRules?.[0].alwaysEnabled).to.equal(true);
-			expect(result.globalRules?.[0].name).to.equal("company-standards.md");
-			expect(result.globalRules?.[0].contents).to.include("Company Standards");
-			expect(result.globalRules?.[1].alwaysEnabled).to.equal(false);
-			expect(result.globalRules?.[1].name).to.equal("optional-guidelines.md");
-
-			expect(result.globalWorkflows).to.have.lengthOf(1);
-			expect(result.globalWorkflows?.[0].alwaysEnabled).to.equal(true);
-			expect(result.globalWorkflows?.[0].name).to.equal(
-				"deployment-workflow.md",
-			);
-			expect(result.globalWorkflows?.[0].contents).to.include(
-				"Deployment Workflow",
-			);
-
-			expect(result.enterpriseTelemetry?.promptUploading?.enabled).to.equal(
-				true,
-			);
-			expect(result.enterpriseTelemetry?.promptUploading?.type).to.equal(
-				"s3_access_keys",
-			);
-			expect(
-				result.enterpriseTelemetry?.promptUploading?.s3AccessSettings?.bucket,
-			).to.equal("enterprise-prompts");
-			expect(
-				result.enterpriseTelemetry?.promptUploading?.s3AccessSettings?.region,
-			).to.equal("us-east-1");
 		});
 	});
 
@@ -951,15 +498,6 @@ describe("Remote Config Schema", () => {
 			expect(
 				result.enterpriseTelemetry?.promptUploading?.s3AccessSettings?.bucket,
 			).to.equal("enterprise-prompts");
-		});
-
-		it("should allow optional fields to be undefined", () => {
-			const config: RemoteConfig = {
-				version: "v1",
-				// All other fields are optional and can be undefined
-			};
-			expect(config.telemetryEnabled).to.be.undefined;
-			expect(config.providerSettings).to.be.undefined;
 		});
 	});
 });

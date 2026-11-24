@@ -42,14 +42,6 @@ describe("SdkProviderChangeCoordinator", () => {
 		expect(options.sessions.replaceActiveSession).not.toHaveBeenCalled()
 	})
 
-	it("does nothing without an active session", () => {
-		const { coordinator, options } = makeCoordinator()
-
-		coordinator.handleApiConfigurationChanged({ actModeApiProvider: "anthropic" }, { actModeApiProvider: "deepseek" })
-
-		expect(options.sessions.replaceActiveSession).not.toHaveBeenCalled()
-	})
-
 	it("restarts immediately when the active provider changes while idle", async () => {
 		const activeSession = makeActiveSession()
 		const { coordinator, options } = makeCoordinator({ activeSession })

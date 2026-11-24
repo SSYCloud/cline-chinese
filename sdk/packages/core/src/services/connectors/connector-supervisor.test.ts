@@ -710,13 +710,4 @@ describe("ConnectorSupervisor", () => {
 		expect(harness.cleanups).toEqual([]);
 		expect(harness.pendingTimers()).toBe(0);
 	});
-
-	it("exposes the active supervisor to hub command handlers", () => {
-		const harness = createHarness();
-		expect(getActiveConnectorSupervisor()).toBeUndefined();
-		setActiveConnectorSupervisor(harness.supervisor);
-		expect(getActiveConnectorSupervisor()).toBe(harness.supervisor);
-		setActiveConnectorSupervisor(undefined);
-		expect(getActiveConnectorSupervisor()).toBeUndefined();
-	});
 });

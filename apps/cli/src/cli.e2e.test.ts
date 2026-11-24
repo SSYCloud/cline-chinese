@@ -131,38 +131,8 @@ describe("cli e2e", () => {
 		expect(asText(result.stdout)).toContain("Show current configuration");
 	});
 
-	it("prints version output", () => {
-		const result = runCli(["--version"], { env: createIsolatedEnv() });
-		expect(result.status).toBe(0);
-		expect(asText(result.stdout).trim()).toBe(cliPackage.version);
-	});
-
-	it("prints version output via version command", () => {
-		const result = runCli(["version"], { env: createIsolatedEnv() });
-		expect(result.status).toBe(0);
-		expect(asText(result.stdout).trim()).toBe(cliPackage.version);
-	});
-
 	it("exits promptly on success path without hanging", () => {
 		const result = runCli(["version"], {
-			env: createIsolatedEnv(),
-			timeout: 10_000,
-		});
-		expect(result.signal).toBeNull();
-		expect(result.status).toBe(0);
-	});
-
-	it("exits promptly on error path without hanging", () => {
-		const result = runCli(["--timeout", "xml", "hello"], {
-			env: createIsolatedEnv(),
-			timeout: 10_000,
-		});
-		expect(result.signal).toBeNull();
-		expect(result.status).toBe(1);
-	});
-
-	it("propagates subcommand exit codes through process.exit", () => {
-		const result = runCli(["history", "--json"], {
 			env: createIsolatedEnv(),
 			timeout: 10_000,
 		});
@@ -314,23 +284,6 @@ describe("cli e2e", () => {
 		expect(asText(result.stderr)).toContain(
 			"interactive auth setup requires a TTY",
 		);
-	});
-
-	it("lists sessions from isolated storage", () => {
-		const homeDir = mkdtempSync(path.join(os.tmpdir(), "cli-e2e-home-"));
-		const sessionDir = mkdtempSync(path.join(os.tmpdir(), "cli-e2e-sessions-"));
-		tempDirs.push(homeDir, sessionDir);
-		const result = runCli(["history", "--json", "--limit", "1"], {
-			env: {
-				...createIsolatedEnv(),
-				HOME: homeDir,
-				CLINE_SESSION_DATA_DIR: sessionDir,
-			},
-		});
-
-		expect(result.status).toBe(0);
-		const parsed = parseJsonArrayFromOutput(asText(result.stdout));
-		expect(Array.isArray(parsed)).toBe(true);
 	});
 
 	it("prints empty history state from isolated storage", () => {

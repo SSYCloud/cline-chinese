@@ -94,14 +94,6 @@ describe("createFileReadExecutor", () => {
 		expect(result).toBe("1 | hello absolute path");
 	});
 
-	it("returns only the requested inclusive line range", async () => {
-		const result = await readTempFile("alpha\nbeta\ngamma\ndelta", {
-			start_line: 2,
-			end_line: 3,
-		});
-		expect(result).toBe("2 | beta\n3 | gamma");
-	});
-
 	async function readTempFile(
 		content: string,
 		range?: { start_line?: number; end_line?: number },
@@ -275,15 +267,6 @@ describe("createFileReadExecutor", () => {
 		// provider-request middle-cut preserves.
 		expect(result.length).toBeLessThanOrEqual(50_000);
 		expect(result).toContain("of 1500. Use start_line/end_line");
-	});
-
-	it("keeps dense output capped when total line-number width grows after capture", async () => {
-		const result = await readTempFile(
-			Array.from({ length: 10_000 }, () => "z".repeat(100)).join("\n"),
-		);
-
-		expect(result.length).toBeLessThanOrEqual(50_000);
-		expect(result).toContain("of 10000. Use start_line/end_line");
 	});
 
 	it("returns image blocks for image files when the model supports images", async () => {

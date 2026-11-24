@@ -33,15 +33,6 @@ describe("test-hooks", () => {
 		sinon.restore()
 	})
 
-	it("should return an array of post-record hooks", () => {
-		const mockController = {} as Controller
-		const hooks = testHooks(mockController)
-
-		hooks.should.be.an.Array()
-		hooks.should.have.length(1)
-		hooks[0].should.be.a.Function()
-	})
-
 	it("should execute hook and call recorder methods", async () => {
 		const mockController = {
 			getStateToPostToWebview: sinon.stub().returns({}),

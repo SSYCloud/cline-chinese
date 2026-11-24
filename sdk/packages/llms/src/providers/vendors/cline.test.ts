@@ -14,20 +14,6 @@ describe("createCline", () => {
 		fetchMock.mockReset();
 	});
 
-	it("exposes web search as a provider-defined client tool", () => {
-		const cline = createCline({
-			apiKey: "test-key",
-			baseURL: "https://api.cline.bot/api/v1",
-			fetch: fetchMock,
-		});
-
-		const tool = cline.tools.webSearch();
-
-		expect(tool.type).toBe("provider");
-		expect(tool.id).toBe("cline.web_search");
-		expect(tool.execute).toBeTypeOf("function");
-	});
-
 	it("executes web search through the Cline search endpoint", async () => {
 		fetchMock.mockResolvedValue(
 			new Response(

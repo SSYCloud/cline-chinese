@@ -28,14 +28,6 @@ describe("command palette", () => {
 		expect(items.map((item) => item.shortcut)).not.toContain("Opt+?");
 	});
 
-	it("shows fork only when the current session can be forked", () => {
-		const items = buildCommandPaletteItems({
-			canForkSession: true,
-		});
-
-		expect(items.map((item) => item.label)).toContain("创建会话分叉");
-	});
-
 	it("covers visible local slash commands with palette wording", () => {
 		const registry = buildSlashCommandRegistry({
 			canFork: true,

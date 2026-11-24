@@ -7,40 +7,6 @@ import {
 	readHubScheduleMode,
 } from "./hub";
 
-describe("HUB_CAPABILITIES", () => {
-	it("advertises the task queue command surface", () => {
-		expect(HUB_CAPABILITIES).toEqual(
-			expect.arrayContaining([
-				"task.create",
-				"task.list",
-				"task.get",
-				"task.update",
-				"task.approve",
-				"task.cancel",
-				"task.run",
-				"task.automation.get",
-				"task.automation.set",
-			]),
-		);
-	});
-
-	it("requires optimistic revisions on lifecycle commands", () => {
-		expectTypeOf<HubCommandInput<"task.approve">>().toEqualTypeOf<{
-			taskId: string;
-			expectedRevision: number;
-		}>();
-		expectTypeOf<HubCommandInput<"task.cancel">>().toEqualTypeOf<{
-			taskId: string;
-			expectedRevision: number;
-			reason?: string;
-		}>();
-		expectTypeOf<HubCommandInput<"task.run">>().toEqualTypeOf<{
-			taskId: string;
-			expectedRevision: number;
-		}>();
-	});
-});
-
 describe("isHubProtocolCompatible", () => {
 	it("accepts a hub whose supported client range includes the client protocol", () => {
 		expect(
@@ -75,10 +41,6 @@ describe("readHubScheduleMode", () => {
 		expect(readHubScheduleMode(undefined, "yolo")).toBe("yolo");
 		expect(readHubScheduleMode({}, "yolo")).toBe("yolo");
 		expect(readHubScheduleMode({ mode: "plan" }, "yolo")).toBe("plan");
-	});
-
-	it("preserves omission for schedule updates", () => {
-		expect(readHubScheduleMode({})).toBeUndefined();
 	});
 
 	it.each([

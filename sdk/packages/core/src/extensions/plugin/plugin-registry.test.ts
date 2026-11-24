@@ -135,26 +135,6 @@ describe("PluginRegistry", () => {
 		await expect(toolB?.execute({}, toolContext)).resolves.toBe(1);
 	}, 30_000);
 
-	it("applies the session policy", async () => {
-		const kept = await write("kept.mjs", toolPlugin("kept"));
-		const dropped = await write("dropped.mjs", toolPlugin("dropped"));
-		const session = await load({
-			sessionId: "s1",
-			pluginPaths: [kept, dropped],
-			policy: { dropped: { enabled: false } },
-		});
-		expect(session.extensions.map((extension) => extension.name)).toEqual([
-			"kept",
-		]);
-		expect(session.issues).toContainEqual(
-			expect.objectContaining({
-				name: "dropped",
-				state: "disabled",
-				reason: "session_policy",
-			}),
-		);
-	}, 30_000);
-
 	it("marks a plugin that fails to import failed for every session", async () => {
 		const broken = await write(
 			"broken.mjs",

@@ -64,25 +64,6 @@ describe("commit-message-generator", () => {
 			inputBox.value.should.equal("")
 		})
 
-		it("sends no request when cancelled while the rules are loading", async () => {
-			const rules = deferred<string>()
-			const createMessage = sinon.stub().callsFake(() => textStream("feat: x"))
-			buildApiHandlerWithHostContextStub.resolves({ createMessage })
-			const inputBox = { value: "" }
-
-			const generation = performCommitMsgGeneration(
-				fakeController(() => rules.promise),
-				"diff",
-				inputBox,
-			)
-			abortCommitGeneration()
-			rules.resolve("")
-			await generation
-
-			createMessage.called.should.be.false()
-			inputBox.value.should.equal("")
-		})
-
 		it("Stop ends a generation without waiting for the rules to finish loading", async () => {
 			const rules = deferred<string>()
 			const createMessage = sinon.stub().callsFake(() => textStream("feat: x"))

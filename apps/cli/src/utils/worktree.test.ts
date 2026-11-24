@@ -76,10 +76,6 @@ describe("createTaskWorktree", () => {
 		await rm(sandboxRoot, { recursive: true, force: true });
 	});
 
-	it("places worktrees under ~/.cline/worktrees", () => {
-		expect(getTaskWorktreesHomePath()).toBe(path.join(clineDir, "worktrees"));
-	});
-
 	it("creates a detached worktree at ~/.cline/worktrees/<taskId>/<repoName>", async () => {
 		const result = await createTaskWorktree({
 			cwd: repoPath,

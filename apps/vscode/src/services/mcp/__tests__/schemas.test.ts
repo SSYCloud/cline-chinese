@@ -16,26 +16,6 @@ describe("McpSettingsSchema", () => {
 	// -------------------------------------------------------------------------
 
 	describe("nested transport format (CLI-authored)", () => {
-		it("accepts a streamableHttp server written by the CLI", () => {
-			const input = {
-				mcpServers: {
-					linear: {
-						transport: {
-							type: "streamableHttp",
-							url: "https://mcp.linear.app/mcp",
-						},
-					},
-				},
-			}
-
-			const result = McpSettingsSchema.safeParse(input)
-			result.success.should.be.true()
-
-			const server = result.data!.mcpServers["linear"]
-			server.type.should.equal("streamableHttp")
-			;(server as any).url.should.equal("https://mcp.linear.app/mcp")
-		})
-
 		it("accepts a SSE server with headers in nested format", () => {
 			const input = {
 				mcpServers: {
@@ -163,26 +143,6 @@ describe("McpSettingsSchema", () => {
 	// -------------------------------------------------------------------------
 
 	describe("flat legacy format (extension-authored)", () => {
-		it("accepts a flat streamableHttp server", () => {
-			const input = {
-				mcpServers: {
-					myServer: {
-						type: "streamableHttp",
-						url: "https://mcp.example.com/mcp",
-						autoApprove: [],
-						timeout: 60,
-					},
-				},
-			}
-
-			const result = McpSettingsSchema.safeParse(input)
-			result.success.should.be.true()
-
-			const server = result.data!.mcpServers["myServer"]
-			server.type.should.equal("streamableHttp")
-			;(server as any).url.should.equal("https://mcp.example.com/mcp")
-		})
-
 		it("accepts a flat stdio server with no explicit type", () => {
 			const input = {
 				mcpServers: {

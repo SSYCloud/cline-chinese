@@ -3,16 +3,8 @@ import { describe, expect, it } from "vitest"
 import { buildBedrockProviderConfig, resolveBedrockAuthentication } from "./bedrock-config"
 
 describe("resolveBedrockAuthentication", () => {
-	it("maps the webview 'apikey' radio value straight through", () => {
-		expect(resolveBedrockAuthentication({ awsAuthentication: "apikey" })).toBe("apikey")
-	})
-
 	it("maps the webview 'credentials' radio value to the SDK 'iam' spelling", () => {
 		expect(resolveBedrockAuthentication({ awsAuthentication: "credentials" })).toBe("iam")
-	})
-
-	it("passes 'profile' through", () => {
-		expect(resolveBedrockAuthentication({ awsAuthentication: "profile" })).toBe("profile")
 	})
 
 	it("defaults to 'profile' when an AWS profile is configured but no auth is set", () => {

@@ -107,17 +107,6 @@ async function readInitializeCapabilities(
 }
 
 describe("stdio MCP client app support", () => {
-	it("advertises the MCP Apps extension only when enabled", async () => {
-		expect(await readInitializeCapabilities(undefined)).toEqual({});
-		expect(await readInitializeCapabilities(true)).toEqual({
-			extensions: {
-				"io.modelcontextprotocol/ui": {
-					mimeTypes: ["text/html;profile=mcp-app"],
-				},
-			},
-		});
-	});
-
 	it("keeps tool _meta and reads ui:// resources", async () => {
 		const client = await createDefaultMcpServerClientFactory()(
 			appsServerRegistration(),

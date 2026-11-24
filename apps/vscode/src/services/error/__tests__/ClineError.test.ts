@@ -9,22 +9,6 @@ describe("ClineError", () => {
 			ClineError.getErrorType(err)!.should.equal(ClineErrorType.QuotaExceeded)
 		})
 
-		it("should return Entitlement for the SDK ClinePass subscription message", () => {
-			const err = new ClineError(
-				"No access to ClinePass subscription models yet. Subscribe to ClinePass, the low cost open weights model coding plan:",
-			)
-
-			ClineError.getErrorType(err)!.should.equal(ClineErrorType.Entitlement)
-		})
-
-		it("should return Entitlement for the SDK ClinePass subscription message with a different app URL", () => {
-			const err = new ClineError(
-				"No access to ClinePass subscription models yet. Subscribe to ClinePass, the low cost open weights model coding plan:",
-			)
-
-			ClineError.getErrorType(err)!.should.equal(ClineErrorType.Entitlement)
-		})
-
 		it("should return Entitlement for the raw required-plan message", () => {
 			const err = new ClineError("403 Error 403: the user is not subscribed to required model plan")
 

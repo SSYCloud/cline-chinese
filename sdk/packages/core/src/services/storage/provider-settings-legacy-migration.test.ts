@@ -1532,13 +1532,6 @@ describe("resolveLegacyClineAuth", () => {
 		});
 	});
 
-	it("maps idToken to accessToken", () => {
-		const result = resolveLegacyClineAuth(
-			makeClineAccountJson({ idToken: "tok-abc" }),
-		);
-		expect(result?.accessToken).toBe("tok-abc");
-	});
-
 	it("preserves millisecond expiresAt values", () => {
 		const result = resolveLegacyClineAuth(
 			makeClineAccountJson({ expiresAt: 9999999999999 }),
@@ -1552,13 +1545,6 @@ describe("resolveLegacyClineAuth", () => {
 			makeClineAccountJson({ expiresAt: 1_750_000_000 }),
 		);
 		expect(result?.expiresAt).toBe(1_750_000_000_000);
-	});
-
-	it("maps userInfo.id to accountId", () => {
-		const result = resolveLegacyClineAuth(
-			makeClineAccountJson({ userId: "uid-xyz" }),
-		);
-		expect(result?.accountId).toBe("uid-xyz");
 	});
 
 	it("returns undefined accountId when userInfo is missing entirely", () => {

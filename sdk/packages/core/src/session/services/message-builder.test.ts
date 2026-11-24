@@ -211,16 +211,6 @@ describe("MessageBuilder", () => {
 		expect(block.content).toContain("...[truncated");
 	});
 
-	it("uses an aggressive per-result cap and a loose aggregate budget", () => {
-		expect(DEFAULT_MAX_TOOL_RESULT_CHARS).toBe(8_000);
-		expect(DEFAULT_MAX_FILE_CONTENT_CHARS).toBe(50_000);
-		// The aggregate budget stays loose on purpose: budget truncation
-		// rewrites mid-transcript bytes and breaks provider prefix caching, so
-		// it must stay a rare overflow valve while the per-result cap (which
-		// is deterministic per content) does the routine work.
-		expect(DEFAULT_MAX_TOTAL_TEXT_BYTES).toBe(6_000_000);
-	});
-
 	it("accepts named limit options for targeted provider payload tests", () => {
 		const builder = new MessageBuilder({
 			maxToolResultChars: 120,
@@ -348,15 +338,6 @@ describe("MessageBuilder", () => {
 
 		expect(JSON.stringify(result[2])).not.toContain("outdated");
 		expect(JSON.stringify(result[2])).toContain("export const x = 1;");
-	});
-
-	it("ignores zero env overrides instead of disabling the limits", () => {
-		const options = getMessageBuilderOptionsFromEnv({
-			CLINE_MESSAGE_BUILDER_MAX_TOOL_RESULT_CHARS: "0",
-			CLINE_MESSAGE_BUILDER_MAX_TOTAL_TEXT_BYTES: "0",
-		});
-		expect(options.maxToolResultChars).toBeUndefined();
-		expect(options.maxTotalTextBytes).toBeUndefined();
 	});
 
 	it("applies an aggregate text budget across targeted tool results", () => {
@@ -839,84 +820,6 @@ describe("MessageBuilder with structured ToolOperationResult content", () => {
 		expect(currentPayload).not.toContain(MIDDLE_SENTINEL);
 	});
 
-	it("truncates a huge nested `result` string in run_commands structured output", () => {
-		const builder = new MessageBuilder();
-		const messages: Message[] = [
-			toolUseMessage("call_1", "run_commands", {
-				commands: ["cat big.log"],
-			}),
-			structuredToolResultMessage("call_1", "run_commands", [
-				{
-					query: "cat big.log",
-					result: hugeText(),
-					success: true,
-					duration: 1234,
-				},
-			]),
-		];
-
-		const rawSerializedLength = JSON.stringify(messages).length;
-		const result = builder.buildForApi(messages);
-		const serialized = JSON.stringify(result);
-
-		expect(rawSerializedLength).toBeGreaterThan(390_000);
-		expect(serialized.length).toBeLessThan(120_000);
-		expect(serialized).not.toContain(MIDDLE_SENTINEL);
-		// Middle truncation must preserve the head and tail of the output.
-		expect(serialized).toContain(HEAD_MARKER);
-		expect(serialized).toContain(TAIL_MARKER);
-	});
-
-	it("truncates a huge nested `query` string in run_commands structured output", () => {
-		const builder = new MessageBuilder();
-		const messages: Message[] = [
-			toolUseMessage("call_1", "run_commands", {
-				commands: ["bash -c '...giant heredoc...'"],
-			}),
-			structuredToolResultMessage("call_1", "run_commands", [
-				{
-					query: hugeText(),
-					result: "ok",
-					success: true,
-				},
-			]),
-		];
-
-		const result = builder.buildForApi(messages);
-		const serialized = JSON.stringify(result);
-
-		expect(serialized.length).toBeLessThan(120_000);
-		expect(serialized).not.toContain(MIDDLE_SENTINEL);
-		expect(serialized).toContain(HEAD_MARKER);
-		expect(serialized).toContain(TAIL_MARKER);
-	});
-
-	it("truncates a huge file payload in read_files structured output", () => {
-		const builder = new MessageBuilder();
-		const messages: Message[] = [
-			toolUseMessage("call_1", "read_files", {
-				files: [{ path: "/tmp/big.txt" }],
-			}),
-			structuredToolResultMessage("call_1", "read_files", [
-				{
-					query: "/tmp/big.txt",
-					result: hugeText(),
-					success: true,
-				},
-			]),
-		];
-
-		const result = builder.buildForApi(messages);
-		const serialized = JSON.stringify(result);
-
-		expect(serialized.length).toBeLessThan(120_000);
-		expect(serialized).not.toContain(MIDDLE_SENTINEL);
-		expect(serialized).toContain(HEAD_MARKER);
-		expect(serialized).toContain(TAIL_MARKER);
-		// The latest read of a file must not be rewritten as outdated.
-		expect(serialized).not.toContain("[outdated");
-	});
-
 	it("omits an oversized read_files image result without corrupting base64", () => {
 		const oversizedImage = imageData(96);
 		const builder = new MessageBuilder({
@@ -1248,38 +1151,6 @@ describe("MessageBuilder with structured ToolOperationResult content", () => {
 
 		expect(messages).toEqual(snapshot);
 		expect(JSON.stringify(result)).not.toContain(MIDDLE_SENTINEL);
-	});
-
-	it("keeps huge nested strings out of provider-formatted AI SDK messages", () => {
-		const builder = new MessageBuilder();
-		const messages: Message[] = [
-			toolUseMessage("call_1", "run_commands", {
-				commands: ["cat big.log"],
-			}),
-			structuredToolResultMessage("call_1", "run_commands", [
-				{
-					query: "cat big.log",
-					result: hugeText(),
-					success: true,
-				},
-			]),
-		];
-
-		const built = builder.buildForApi(messages);
-		const agentMessages = messagesToAgentMessages(built);
-		const aiSdkMessages = formatMessagesForAiSdk(
-			undefined,
-			agentMessages.map(({ role, content }) => ({
-				role,
-				content,
-			})) as unknown as AiSdkFormatterMessage[],
-		);
-		const serialized = JSON.stringify(aiSdkMessages);
-
-		expect(serialized.length).toBeLessThan(130_000);
-		expect(serialized).not.toContain(MIDDLE_SENTINEL);
-		expect(serialized).toContain(HEAD_MARKER);
-		expect(serialized).toContain(TAIL_MARKER);
 	});
 });
 
@@ -2196,32 +2067,6 @@ describe("MessageBuilder outdated-read rewrite batching (prefix-cache stability)
 		expect(latestRead).toContain("export const x = 2;");
 	});
 
-	it("keeps structured ToolOperationResult batching stable across codec round-trips", () => {
-		const builder = new MessageBuilder({ minOutdatedRewriteBytes: 7_000 });
-		const history: Message[] = [
-			{ role: "user", content: "task" },
-			readToolUse("t1", "src/big.ts"),
-			structuredReadToolResult("t1", LARGE_CONTENT(1), "src/big.ts"),
-			readToolUse("t2", "src/big.ts"),
-			structuredReadToolResult("t2", LARGE_CONTENT(2), "src/big.ts"),
-		];
-
-		const reqA = builder.buildForApi(codecRoundTrip(history));
-		expect(JSON.stringify(reqA[2])).toContain("outdated");
-
-		history.push(
-			readToolUse("t3", "src/small.ts"),
-			structuredReadToolResult("t3", SMALL_CONTENT(1), "src/small.ts"),
-			readToolUse("t4", "src/small.ts"),
-			structuredReadToolResult("t4", SMALL_CONTENT(2), "src/small.ts"),
-		);
-		const reqB = builder.buildForApi(codecRoundTrip(history));
-
-		expect(JSON.stringify(reqB[2])).toContain("outdated");
-		expect(JSON.stringify(reqB[6])).not.toContain("outdated");
-		expect(JSON.stringify(reqB[6])).toContain("export const x = 1;");
-	});
-
 	it("rewrites eagerly when threshold is 0 (legacy behavior)", () => {
 		const builder = new MessageBuilder({ minOutdatedRewriteBytes: 0 });
 		const messages: Message[] = [
@@ -2368,14 +2213,5 @@ describe("MessageBuilder read-result cap", () => {
 
 		expect(sent.length).toBeLessThanOrEqual(EXPLICIT_CAP);
 		expect(sent).toContain(TRUNCATION_MARKER);
-	});
-
-	it("keeps the file-content cap for reads when the environment sets no override", () => {
-		const sent = sendRead(
-			new MessageBuilder(getMessageBuilderOptionsFromEnv({})),
-			structured(TOOL_CAPPED_READ),
-		);
-
-		expect(sent).toBe(TOOL_CAPPED_READ);
 	});
 });

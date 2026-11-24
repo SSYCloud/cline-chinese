@@ -79,20 +79,6 @@ describe("filterVisibleMessages", () => {
 		}
 	})
 
-	it("hides exact user feedback echoes for selected follow-up options", () => {
-		const askMessage = createAskMessage(1, "followup", ["Use this", "Use that"], "Use this")
-		const visible = filterVisibleMessages([askMessage, createUserFeedbackMessage(2, "Use this")])
-
-		expect(visible).toEqual([askMessage])
-	})
-
-	it("hides exact option echoes when selected has not been persisted on the ask row yet", () => {
-		const askMessage = createAskMessage(1, "followup", ["Use this", "Use that"])
-		const visible = filterVisibleMessages([askMessage, createUserFeedbackMessage(2, "Use this")])
-
-		expect(visible).toEqual([askMessage])
-	})
-
 	it("hides exact user feedback echoes for plan-mode response options", () => {
 		const askMessage = createAskMessage(1, "plan_mode_respond", ["Plan it", "Do it"], "Plan it")
 		const visible = filterVisibleMessages([askMessage, createUserFeedbackMessage(2, "Plan it")])

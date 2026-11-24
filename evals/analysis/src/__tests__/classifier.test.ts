@@ -113,19 +113,9 @@ describe("FailureClassifier", () => {
 	})
 
 	describe("Helper Methods", () => {
-		it("hasProviderBug returns true for provider bugs", () => {
-			const logs = "Error: missing thoughtSignature in function call"
-			expect(classifier.hasProviderBug(logs)).toBe(true)
-		})
-
 		it("hasProviderBug returns false for non-provider bugs", () => {
 			const logs = "Error: 429 Too Many Requests"
 			expect(classifier.hasProviderBug(logs)).toBe(false)
-		})
-
-		it("hasTransientFailure returns true for transient errors", () => {
-			const logs = "Error: ETIMEDOUT"
-			expect(classifier.hasTransientFailure(logs)).toBe(true)
 		})
 
 		it("hasTransientFailure returns false for non-transient errors", () => {

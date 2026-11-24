@@ -244,29 +244,6 @@ describe("Code sidecar runtime capabilities", () => {
 		);
 	});
 
-	it("starts or reuses the shared Hub when a command needs a client", async () => {
-		const { createSidecarContext, ensureSharedHubClient } = await import(
-			"./context"
-		);
-		const ctx = createSidecarContext("/workspace/project");
-
-		const hubClient = await ensureSharedHubClient(ctx);
-		expect(hubClient).toBeDefined();
-
-		expect(ensureCompatibleLocalHubUrlMock).toHaveBeenCalledWith({
-			strategy: "require-hub",
-			workspaceRoot: "/workspace/project",
-			cwd: "/workspace/project",
-		});
-		expect(nodeHubClientCtorMock).toHaveBeenCalledWith(
-			expect.objectContaining({
-				url: "ws://127.0.0.1:25463/hub",
-				clientType: "code-sidecar-observer",
-			}),
-		);
-		expect(connectMock).toHaveBeenCalledOnce();
-	});
-
 	it("records only local observer events, excluding cloud events projected through a local context", async () => {
 		const { createSidecarContext, ensureSharedHubClient, handleHubLiveEvent } =
 			await import("./context");

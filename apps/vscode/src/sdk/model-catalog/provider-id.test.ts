@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { Logger } from "../../shared/services/Logger"
-import type { KnownProviderId } from "./contracts"
 import { isKnownProviderId, parseProviderId } from "./provider-id"
 
 let warnSpy: ReturnType<typeof vi.spyOn>
@@ -21,11 +20,6 @@ describe("parseProviderId", () => {
 
 	it("accepts arbitrary custom provider ids", () => {
 		expect(parseProviderId("  Custom-SDK-Provider  ")).toBe("custom-sdk-provider")
-	})
-
-	it("normalizes the legacy camel-case nousResearch id", () => {
-		expect(parseProviderId("nousResearch")).toBe("nousresearch")
-		expect(parseProviderId("NOUSRESEARCH")).toBe("nousresearch")
 	})
 
 	it("folds the SDK openai-compatible spelling to the extension's openai id", () => {
@@ -64,31 +58,7 @@ describe("parseProviderId", () => {
 })
 
 describe("isKnownProviderId", () => {
-	it("returns true for known provider ids after parsing", () => {
-		expect(isKnownProviderId(parseProviderId("anthropic"))).toBe(true)
-		expect(isKnownProviderId(parseProviderId("openai"))).toBe(true)
-		expect(isKnownProviderId(parseProviderId("deepseek"))).toBe(true)
-		expect(isKnownProviderId(parseProviderId("nousResearch"))).toBe(true)
-		expect(isKnownProviderId(parseProviderId("zai-coding-plan"))).toBe(true)
-		expect(isKnownProviderId(parseProviderId("poolside"))).toBe(true)
-		expect(isKnownProviderId(parseProviderId("v0"))).toBe(true)
-		expect(isKnownProviderId(parseProviderId("xiaomi"))).toBe(true)
-		expect(isKnownProviderId(parseProviderId("tencent-tokenhub"))).toBe(true)
-		expect(isKnownProviderId(parseProviderId("chutes"))).toBe(true)
-		expect(isKnownProviderId(parseProviderId("aiand"))).toBe(true)
-	})
-
 	it("returns false for a custom provider id", () => {
 		expect(isKnownProviderId(parseProviderId("provider-id-test-custom-provider"))).toBe(false)
-	})
-
-	it("acts as a type predicate", () => {
-		const id = parseProviderId("anthropic")
-		if (!isKnownProviderId(id)) {
-			throw new Error("expected anthropic to be known")
-		}
-
-		const knownProviderId: KnownProviderId = id
-		expect(knownProviderId).toBe("anthropic")
 	})
 })

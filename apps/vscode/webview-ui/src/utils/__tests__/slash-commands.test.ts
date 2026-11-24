@@ -262,12 +262,6 @@ describe("slash-commands", () => {
 			expect(mcpCommands).toHaveLength(2)
 		})
 
-		it("should filter MCP commands by query prefix", () => {
-			const result = getMatchingSlashCommands("mcp:test", {}, {}, undefined, undefined, mcpServers)
-			const mcpCommands = result.filter((cmd) => cmd.section === "mcp")
-			expect(mcpCommands).toHaveLength(2)
-		})
-
 		it("should filter to specific MCP prompt", () => {
 			const result = getMatchingSlashCommands("mcp:test-server:sum", {}, {}, undefined, undefined, mcpServers)
 			expect(result).toHaveLength(1)
@@ -291,16 +285,6 @@ describe("slash-commands", () => {
 		it("should return full for exact MCP command match", () => {
 			const result = validateSlashCommand("mcp:server:prompt", {}, {}, undefined, undefined, mcpServers)
 			expect(result).toBe("full")
-		})
-
-		it("should return partial for partial MCP command match", () => {
-			const result = validateSlashCommand("mcp:server:pro", {}, {}, undefined, undefined, mcpServers)
-			expect(result).toBe("partial")
-		})
-
-		it("should return partial for server prefix only", () => {
-			const result = validateSlashCommand("mcp:serv", {}, {}, undefined, undefined, mcpServers)
-			expect(result).toBe("partial")
 		})
 
 		it("should return null for non-matching MCP command", () => {

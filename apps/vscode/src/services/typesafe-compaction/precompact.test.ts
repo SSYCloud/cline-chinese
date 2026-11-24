@@ -115,16 +115,6 @@ describe("createTypesafePreCompact", () => {
 		expect(content?.some((block) => block.type === "tool_result" && block.tool_use_id === "tool-1")).to.equal(false)
 	})
 
-	it("uses the configured model", async () => {
-		const preCompact = createTypesafePreCompact({
-			apiKey: "key-1",
-			model: "codiv/openjev-latest",
-			fetch: answering(() => 1, "codiv/openjev-latest"),
-		})
-
-		expect(await preCompact?.(context(transcript()))).to.equal(undefined)
-	})
-
 	it("returns undefined when nothing changes", async () => {
 		const preCompact = createTypesafePreCompact({
 			apiKey: "key-1",

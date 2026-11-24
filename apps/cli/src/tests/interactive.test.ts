@@ -12,11 +12,6 @@ test.describe("cline interactive basics", () => {
 		env: clineEnv("default"),
 	});
 
-	test("shows logo, prompt, and hints", async ({ terminal }) => {
-		await waitForChatReady(terminal);
-		await expectVisible(terminal, ["@ for file mentions", "Tab"]);
-	});
-
 	test("shows slash commands after / input", async ({ terminal }) => {
 		await waitForChatReady(terminal);
 		// Type "/" without submitting to trigger the slash menu

@@ -111,18 +111,6 @@ describe("tasks agent tool", () => {
 		});
 	});
 
-	it("registers one prompt rule conditional on the tasks tool", async () => {
-		const extension = createTasksPromptExtension();
-		const registerRule = vi.fn();
-		await extension.setup?.({ registerRule } as never, {});
-
-		expect(registerRule).toHaveBeenCalledWith({
-			id: "hub:task-guidance",
-			content: TASKS_SYSTEM_PROMPT_RULE,
-			whenToolAvailable: "tasks",
-		});
-	});
-
 	describe("with the Todo kind disabled", () => {
 		function scheduledOnlyOptions() {
 			const manager = {

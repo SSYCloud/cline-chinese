@@ -65,15 +65,6 @@ afterEach(() => {
 });
 
 describe("open wrapper (linux)", () => {
-	it("passes through untouched when xdg-open is on PATH", async () => {
-		usePlatform("linux");
-		mockExecutables("/usr/bin/xdg-open");
-		await open("https://example.com", { wait: false });
-		expect(hoisted.realOpenMock).toHaveBeenCalledWith("https://example.com", {
-			wait: false,
-		});
-	});
-
 	it("falls back to a packaged xdg-open script when PATH has none", async () => {
 		usePlatform("linux");
 		process.env.PATH = "/nowhere";

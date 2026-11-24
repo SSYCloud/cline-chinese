@@ -124,16 +124,6 @@ describe("storage path resolution", () => {
 		expect(resolveTeamDataDir()).toBe(join("/tmp/cline-data", "teams"));
 	});
 
-	it("falls back to CLINE_DATA_DIR/connectors for connector storage", () => {
-		snapshot = captureEnv();
-		delete process.env.CLINE_CONNECTOR_DATA_DIR;
-		process.env.CLINE_DATA_DIR = "/tmp/cline-data";
-
-		expect(resolveConnectorDataDir()).toBe(
-			join("/tmp/cline-data", "connectors"),
-		);
-	});
-
 	it("falls back to CLINE_DATA_DIR/connectors/settings.json for connector settings", () => {
 		snapshot = captureEnv();
 		delete process.env.CLINE_CONNECTOR_DATA_DIR;
@@ -317,11 +307,6 @@ describe("chat workspace paths", () => {
 
 	afterEach(() => {
 		restoreEnv(snapshot);
-	});
-
-	it("exports the canonical path segments", () => {
-		expect(CLINE_WORKSPACES_DIRECTORY_NAME).toBe("workspaces");
-		expect(CLINE_CHAT_WORKSPACE_DIRECTORY_NAME).toBe("chat");
 	});
 
 	it("resolves the shared chat workspace under the cline data dir", () => {

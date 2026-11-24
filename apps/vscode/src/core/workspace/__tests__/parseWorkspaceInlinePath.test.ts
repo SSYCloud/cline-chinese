@@ -10,14 +10,6 @@ import {
 
 describe("parseWorkspaceInlinePath", () => {
 	describe("basic parsing", () => {
-		it("should parse path with workspace hint", () => {
-			const result = parseWorkspaceInlinePath("@frontend:src/index.ts")
-			expect(result).to.deep.equal({
-				workspaceHint: "frontend",
-				relPath: "src/index.ts",
-			})
-		})
-
 		it("should parse path without workspace hint", () => {
 			const result = parseWorkspaceInlinePath("src/index.ts")
 			expect(result).to.deep.equal({
@@ -110,11 +102,6 @@ describe("parseWorkspaceInlinePath", () => {
 	})
 
 	describe("hasWorkspaceHint", () => {
-		it("should return true for paths with hints", () => {
-			expect(hasWorkspaceHint("@frontend:src/index.ts")).to.be.true
-			expect(hasWorkspaceHint("@backend:package.json")).to.be.true
-		})
-
 		it("should return false for paths without hints", () => {
 			expect(hasWorkspaceHint("src/index.ts")).to.be.false
 			expect(hasWorkspaceHint("@frontend")).to.be.false

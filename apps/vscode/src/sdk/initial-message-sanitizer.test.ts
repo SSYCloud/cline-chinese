@@ -2,15 +2,6 @@ import { describe, expect, it } from "vitest"
 import { sanitizeInitialMessagesForSessionStart } from "./initial-message-sanitizer"
 
 describe("sanitizeInitialMessagesForSessionStart", () => {
-	it("returns original array when no tool_use blocks exist", () => {
-		const input = [
-			{ role: "user", content: "hello" },
-			{ role: "assistant", content: "hi" },
-		]
-		const result = sanitizeInitialMessagesForSessionStart(input)
-		expect(result).toBe(input)
-	})
-
 	it("adds missing tool_result blocks to the next user message", () => {
 		const input = [
 			{

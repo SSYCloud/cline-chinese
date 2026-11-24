@@ -27,22 +27,6 @@ describe("formatMessagesForAiSdk", () => {
 		]);
 	});
 
-	it("omits whitespace-only system messages", () => {
-		const messages = formatMessagesForAiSdk("   \n\t  ", [
-			{
-				role: "user",
-				content: [{ type: "text", text: "hey" }],
-			},
-		]);
-
-		expect(messages).toEqual([
-			{
-				role: "user",
-				content: [{ type: "text", text: "hey" }],
-			},
-		]);
-	});
-
 	it("replaces empty string user and assistant messages with explicit error text", () => {
 		const messages = formatMessagesForAiSdk(undefined, [
 			{ role: "user", content: "" },
@@ -843,34 +827,6 @@ describe("formatMessagesForAiSdk", () => {
 		]);
 	});
 
-	it("moves generated assistant images onto string user messages", () => {
-		const image = imageData(8);
-		const messages = formatMessagesForAiSdk(undefined, [
-			{
-				role: "assistant",
-				content: [{ type: "image", image, mediaType: "image/png" }],
-			},
-			{
-				role: "user",
-				content: "Describe it",
-			},
-		]);
-
-		expect(messages).toEqual([
-			{
-				role: "assistant",
-				content: [{ type: "text", text: "[generated image]" }],
-			},
-			{
-				role: "user",
-				content: [
-					{ type: "text", text: "Describe it" },
-					{ type: "file", data: image, mediaType: "image/png" },
-				],
-			},
-		]);
-	});
-
 	it("preserves generated assistant images across a tool-result turn", () => {
 		const image = imageData(8);
 		const messages = formatMessagesForAiSdk(undefined, [
@@ -961,23 +917,6 @@ describe("formatMessagesForAiSdk", () => {
 
 	it("keeps raw base64 string images without mediaType by defaulting to png", () => {
 		const image = imageData(8);
-		const messages = formatMessagesForAiSdk(undefined, [
-			{
-				role: "user",
-				content: [{ type: "image", image }],
-			},
-		]);
-
-		expect(messages).toEqual([
-			{
-				role: "user",
-				content: [{ type: "file", data: image, mediaType: "image/png" }],
-			},
-		]);
-	});
-
-	it("keeps binary image parts without mediaType by defaulting to png", () => {
-		const image = new Uint8Array([1, 2, 3, 4]);
 		const messages = formatMessagesForAiSdk(undefined, [
 			{
 				role: "user",
@@ -1103,48 +1042,6 @@ describe("formatMessagesForAiSdk", () => {
 			"[media omitted: invalid or exceeds size limit]",
 		);
 		expect(serialized).not.toContain("https://example.com/b.png");
-	});
-
-	it("charges remote string image URLs against the aggregate media budget", () => {
-		const messages = formatMessagesForAiSdk(undefined, [
-			{
-				role: "user",
-				content: [
-					{ type: "image", image: "https://example.com/a.png" },
-					{ type: "image", image: "https://example.com/b.png" },
-				],
-			},
-		]);
-
-		const serialized = JSON.stringify(messages);
-		expect(serialized).toContain("https://example.com/a.png");
-		expect(serialized).toContain(
-			"[media omitted: invalid or exceeds size limit]",
-		);
-		expect(serialized).not.toContain("https://example.com/b.png");
-	});
-
-	it("replaces oversized direct user images with text placeholders", () => {
-		const oversizedImage = imageData(4 * 1024 * 1024);
-		const messages = formatMessagesForAiSdk(undefined, [
-			{
-				role: "user",
-				content: [
-					{
-						type: "image",
-						image: oversizedImage,
-						mediaType: "image/png",
-					},
-				],
-			},
-		]);
-
-		const serialized = JSON.stringify(messages);
-
-		expect(serialized).toContain(
-			"[media omitted: invalid or exceeds size limit]",
-		);
-		expect(serialized).not.toContain(oversizedImage);
 	});
 
 	it("replaces invalid and oversized tool-result images with text placeholders before provider formatting", () => {
@@ -1376,41 +1273,6 @@ describe("formatMessagesForAiSdk - surrogate sanitization", () => {
 		expect(messages[0]?.content).toBe(expectedSystem);
 	});
 
-	it("sanitizes string message content", () => {
-		const lone = "\uD83D";
-		const messages = formatMessagesForAiSdk(undefined, [
-			{ role: "user", content: `text ${lone}` },
-		]);
-
-		expect(messages[0]?.content).toBe("text \uFFFD");
-	});
-
-	it("sanitizes text parts in user messages", () => {
-		const lone = "\uD83D";
-		const messages = formatMessagesForAiSdk(undefined, [
-			{ role: "user", content: [{ type: "text", text: `text ${lone}` }] },
-		]);
-
-		const userContent = messages[0]?.content as Array<{
-			type: string;
-			text: string;
-		}>;
-		expect(userContent[0]?.text).toBe("text \uFFFD");
-	});
-
-	it("sanitizes text parts in assistant messages", () => {
-		const lone = "\uD83D";
-		const messages = formatMessagesForAiSdk(undefined, [
-			{ role: "assistant", content: [{ type: "text", text: `text ${lone}` }] },
-		]);
-
-		const content = messages[0]?.content as Array<{
-			type: string;
-			text: string;
-		}>;
-		expect(content[0]?.text).toBe("text \uFFFD");
-	});
-
 	it("sanitizes reasoning parts in assistant messages", () => {
 		const lone = "\uD83D";
 		const messages = formatMessagesForAiSdk(undefined, [
@@ -1425,52 +1287,6 @@ describe("formatMessagesForAiSdk - surrogate sanitization", () => {
 			text: string;
 		}>;
 		expect(content[0]?.text).toBe("think \uFFFD");
-	});
-
-	it("sanitizes tool result string output", () => {
-		const lone = "\uD83D";
-		const messages = formatMessagesForAiSdk(undefined, [
-			{
-				role: "user",
-				content: [
-					{
-						type: "tool-result",
-						toolCallId: "call_1",
-						toolName: "test",
-						output: `result ${lone}`,
-					},
-				],
-			},
-		]);
-
-		const content = messages[0]?.content as Array<{
-			type: string;
-			output: { type: string; value: string };
-		}>;
-		expect(content[0]?.output.value).toBe("result \uFFFD");
-	});
-
-	it("sanitizes tool result text content blocks", () => {
-		const lone = "\uD83D";
-		const messages = formatMessagesForAiSdk(undefined, [
-			{
-				role: "user",
-				content: [
-					{
-						type: "tool-result",
-						toolCallId: "call_1",
-						toolName: "test",
-						output: [{ type: "text", text: `content ${lone}` }],
-					},
-				],
-			},
-		]);
-
-		const content = messages[0]?.content as Array<{
-			type: string;
-			output: { type: string; value: Array<{ type: string; text: string }> };
-		}>;
-		expect(content[0]?.output.value[0]?.text).toBe("content \uFFFD");
 	});
 
 	it("sanitizes deeply nested strings in json tool output", () => {

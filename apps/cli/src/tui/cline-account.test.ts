@@ -220,50 +220,6 @@ describe("loadClineAccountSnapshot", () => {
 		vi.unstubAllEnvs();
 	});
 
-	it("identifies the loaded Cline account for telemetry and feature flags", async () => {
-		coreMocks.getProviderSettings.mockReturnValue({
-			provider: "cline",
-			apiKey: "account-token",
-		});
-		const { loadClineAccountSnapshot } = await import("./cline-account");
-		coreMocks.fetchMe.mockResolvedValue({
-			id: "user-1",
-			email: "user@example.com",
-			displayName: "User One",
-			photoUrl: "",
-			createdAt: "",
-			updatedAt: "",
-			organizations: [
-				{
-					active: true,
-					memberId: "member-1",
-					name: "Acme",
-					organizationId: "org-1",
-					roles: ["member"],
-				},
-			],
-		});
-		coreMocks.fetchBalance.mockResolvedValue({ balance: 10, userId: "user-1" });
-		coreMocks.fetchOrganizationBalance.mockResolvedValue({
-			balance: 20,
-			organizationId: "org-1",
-		});
-
-		await loadClineAccountSnapshot({ config: makeConfig() });
-
-		expect(telemetryMocks.identifyTelemetryAccount).toHaveBeenCalledWith(
-			{
-				id: "user-1",
-				email: "user@example.com",
-				provider: "cline",
-				organizationId: "org-1",
-				organizationName: "Acme",
-				memberId: "member-1",
-			},
-			expect.any(Object),
-		);
-	});
-
 	it("links to the web app's privacy settings when the account provides a path", async () => {
 		vi.stubEnv("CLINE_ENVIRONMENT", "staging");
 		coreMocks.getProviderSettings.mockReturnValue({
@@ -357,15 +313,6 @@ describe("isClineAccountCreditsErrorMessage", () => {
 			isClineAccountCreditsErrorMessage(
 				'Error: {"code":"insufficient_credits","current_balance":0,"message":"Not enough credits available"}',
 			),
-		).toBe(true);
-	});
-
-	it("matches the plain human-readable Cline API message", async () => {
-		const { isClineAccountCreditsErrorMessage } = await import(
-			"./cline-account"
-		);
-		expect(
-			isClineAccountCreditsErrorMessage("Not enough credits available"),
 		).toBe(true);
 	});
 

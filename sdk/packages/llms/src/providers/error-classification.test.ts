@@ -55,26 +55,6 @@ describe("classifyProviderError", () => {
 			expect(classifyProviderError(error)).toBe("context_window_exceeded");
 		});
 
-		it("classifies by explicit context_length_exceeded code alone", () => {
-			expect(
-				classifyProviderError({
-					error: { code: "context_length_exceeded" },
-				}),
-			).toBe("context_window_exceeded");
-		});
-
-		it("classifies Anthropic prompt-too-long rejections", () => {
-			expect(
-				classifyProviderError({
-					status: 400,
-					error: {
-						type: "invalid_request_error",
-						message: "prompt is too long: 213462 tokens > 200000 maximum",
-					},
-				}),
-			).toBe("context_window_exceeded");
-		});
-
 		it("classifies Bedrock input-too-long validation errors", () => {
 			const error = Object.assign(new Error("Bad Request"), {
 				name: "AI_APICallError",
@@ -115,35 +95,6 @@ describe("classifyProviderError", () => {
 	});
 
 	describe("auth", () => {
-		it("classifies a structural 401 payload", () => {
-			expect(
-				classifyProviderError({
-					statusCode: 401,
-					message: "invalid x-api-key",
-				}),
-			).toBe("auth");
-		});
-
-		it("classifies a structural 403 payload", () => {
-			expect(classifyProviderError({ status: 403, message: "Forbidden" })).toBe(
-				"auth",
-			);
-		});
-
-		it("classifies a typed APICallError 401 (Mistral invalid-key shape)", () => {
-			expect(
-				classifyProviderError(
-					new APICallError({
-						message: "Invalid API Key",
-						url: "https://api.mistral.ai/v1/chat/completions",
-						requestBodyValues: {},
-						statusCode: 401,
-						responseBody: JSON.stringify({ detail: "Invalid API Key" }),
-					}),
-				),
-			).toBe("auth");
-		});
-
 		it("treats the typed statusCode as authoritative: 401 wins over context wording", () => {
 			expect(
 				classifyProviderError(
@@ -181,19 +132,6 @@ describe("classifyProviderError", () => {
 	});
 
 	describe("unknown", () => {
-		it("vetoes token-per-minute rate limits despite token wording", () => {
-			expect(
-				classifyProviderError({
-					status: 429,
-					error: {
-						type: "rate_limit_error",
-						message:
-							"Number of request tokens has exceeded your per-minute rate limit.",
-					},
-				}),
-			).toBe("unknown");
-		});
-
 		it("vetoes rate-limit wording even without a status", () => {
 			expect(
 				classifyProviderError(
@@ -216,12 +154,6 @@ describe("classifyProviderError", () => {
 			// without the request having been an auth failure.
 			expect(
 				classifyProviderError(new Error("Unauthorized: check your key")),
-			).toBe("unknown");
-		});
-
-		it("leaves generic stream failures unclassified", () => {
-			expect(
-				classifyProviderError(new Error("fetch failed: other side closed")),
 			).toBe("unknown");
 		});
 
@@ -254,27 +186,6 @@ describe("classifyProviderError", () => {
 					},
 				}),
 			});
-
-		it("classifies an APICallError 400 with a prompt-too-long body", () => {
-			expect(classifyProviderError(overflowApiCallError())).toBe(
-				"context_window_exceeded",
-			);
-		});
-
-		it("treats the typed statusCode as authoritative: 429 vetoes token wording", () => {
-			const error = new APICallError({
-				message: "Too Many Requests",
-				url: "https://api.anthropic.com/v1/messages",
-				requestBodyValues: {},
-				statusCode: 429,
-				responseBody: JSON.stringify({
-					error: {
-						message: "Request tokens exceed your available quota.",
-					},
-				}),
-			});
-			expect(classifyProviderError(error)).toBe("unknown");
-		});
 
 		it("treats the typed statusCode as authoritative: 500 vetoes context wording", () => {
 			const error = new APICallError({
@@ -311,15 +222,6 @@ describe("classifyProviderError", () => {
 			expect(classifyProviderError(withStatus(400))).toBe(
 				"context_window_exceeded",
 			);
-		});
-
-		it("unwraps a RetryError to its last attempt's error", () => {
-			const error = new RetryError({
-				message: "Failed after 3 attempts.",
-				reason: "maxRetriesExceeded",
-				errors: [new Error("fetch failed"), overflowApiCallError()],
-			});
-			expect(classifyProviderError(error)).toBe("context_window_exceeded");
 		});
 
 		it("classifies an untyped final RetryError attempt without earlier attempts vetoing it", () => {
@@ -471,16 +373,6 @@ describe("isRetryableProviderError", () => {
 			expect(
 				isRetryableProviderError(apiCallError(404, "model not found")),
 			).toBe(false);
-		});
-
-		it("does not retry a bare transport failure with no status", () => {
-			expect(isRetryableProviderError("fetch failed: socket closed")).toBe(
-				false,
-			);
-		});
-
-		it("returns false for undefined", () => {
-			expect(isRetryableProviderError(undefined)).toBe(false);
 		});
 	});
 

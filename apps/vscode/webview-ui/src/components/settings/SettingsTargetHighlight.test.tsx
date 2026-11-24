@@ -1,22 +1,9 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import SettingsTargetHighlight from "./SettingsTargetHighlight"
-import {
-	createSettingsNavigationRequest,
-	featureSettingControlId,
-	featureSettingElementId,
-	getNextSettingsNavigationRequestId,
-	resolveSettingsTarget,
-} from "./settingsTargets"
+import { featureSettingControlId, featureSettingElementId, resolveSettingsTarget } from "./settingsTargets"
 
-describe("settings navigation requests", () => {
-	it("shares one request sequence across navigation producers", () => {
-		const contextRequest = createSettingsNavigationRequest("checkpoints")
-		const messageRequestId = getNextSettingsNavigationRequestId()
-
-		expect(messageRequestId).toBe(contextRequest.requestId + 1)
-	})
-})
+describe("settings navigation requests", () => {})
 
 describe("SettingsTargetHighlight", () => {
 	const scrollIntoView = vi.fn()

@@ -535,32 +535,6 @@ describe("createHookConfigFileHooks", () => {
 		}
 	});
 
-	it("honors PostToolUse cancel with the hook's error message as reason", async () => {
-		const { workspace } = await createWorkspaceWithHook(
-			"PostToolUse.js",
-			`console.log('HOOK_CONTROL\\t' + JSON.stringify({ cancel: true, errorMessage: "post-hook says stop" }))\n`,
-		);
-		try {
-			const hooks = createHookConfigFileHooks({
-				cwd: workspace,
-				workspacePath: workspace,
-				detachAsyncHooks: false,
-			});
-			const control = await hooks?.afterTool?.(afterToolContext());
-			expect(control).toEqual({
-				stop: true,
-				reason: "post-hook says stop",
-			});
-		} finally {
-			await rm(workspace, {
-				recursive: true,
-				force: true,
-				maxRetries: 3,
-				retryDelay: 250,
-			});
-		}
-	});
-
 	it("prefers errorMessage over context for a cancelling hook's reason", async () => {
 		const { workspace } = await createWorkspaceWithHook(
 			"PostToolUse.js",

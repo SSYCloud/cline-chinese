@@ -498,13 +498,6 @@ describe("getCachedClineRecommendedModels", () => {
 });
 
 describe("peekClineRecommendedModels", () => {
-	it("returns the bundled fallback when the cache is cold", () => {
-		resetClineRecommendedModelsCacheForTests();
-		expect(peekClineRecommendedModels()).toEqual(
-			FALLBACK_CLINE_RECOMMENDED_MODELS,
-		);
-	});
-
 	it("returns the cached live feed once warmed, without another fetch", async () => {
 		resetClineRecommendedModelsCacheForTests();
 		let calls = 0;

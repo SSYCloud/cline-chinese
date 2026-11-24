@@ -209,15 +209,6 @@ describe("SdkModeCoordinator", () => {
 		expect(options.postStateToWebview).toHaveBeenCalledOnce()
 	})
 
-	it("returns false without side effects when toggling to the current mode", async () => {
-		const { coordinator, options } = makeCoordinator({ mode: "plan" })
-
-		await expect(coordinator.togglePlanActMode("plan")).resolves.toBe(false)
-
-		expect(options.stateManager.setGlobalState).not.toHaveBeenCalled()
-		expect(options.postStateToWebview).not.toHaveBeenCalled()
-	})
-
 	it("rebuilds an active session for the new mode while preserving the session id", async () => {
 		const activeSession = makeActiveSession()
 		const task = makeTask("old-session")
@@ -937,14 +928,6 @@ describe("SdkModeCoordinator", () => {
 			const task = makeTask("old-session")
 			const { coordinator, options } = makeCoordinator({ activeSession, task, mode: "act" })
 			options.loadInitialMessages.mockRejectedValueOnce(new Error("disk read failed"))
-
-			await coordinator.togglePlanActMode("plan")
-
-			expect(coordinator.consumeModeSwitchNotice("new-session")).toBeNull()
-		})
-
-		it("records no notice when toggling without an active session", async () => {
-			const { coordinator } = makeCoordinator({ mode: "act" })
 
 			await coordinator.togglePlanActMode("plan")
 

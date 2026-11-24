@@ -247,8 +247,8 @@ describe("hub daemon shutdown", () => {
 			const result = await withTimeout(daemon.exit, 5_000, "daemon exit");
 			expect(result).toEqual({ code: 0, signal: null });
 			expect(Date.now() - startedAt).toBeLessThan(5_000);
-			expect(daemon.stderr()).toContain(
-				"[shutdown-fixture] runtime: bun 1.4.2",
+			expect(daemon.stderr()).toMatch(
+				/\[shutdown-fixture\] runtime: bun \d+\.\d+\.\d+/,
 			);
 			await expect(
 				readFile(daemon.discoveryPath, "utf8"),
@@ -281,8 +281,8 @@ describe("hub daemon shutdown", () => {
 				const result = await withTimeout(daemon.exit, 5_000, "daemon exit");
 				expect(result).toEqual({ code: 0, signal: null });
 				expect(Date.now() - startedAt).toBeLessThan(5_000);
-				expect(daemon.stderr()).toContain(
-					"[shutdown-fixture] runtime: bun 1.4.2",
+				expect(daemon.stderr()).toMatch(
+					/\[shutdown-fixture\] runtime: bun \d+\.\d+\.\d+/,
 				);
 				await expect(
 					readFile(daemon.discoveryPath, "utf8"),

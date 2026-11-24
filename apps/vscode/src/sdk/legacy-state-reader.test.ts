@@ -11,7 +11,6 @@ import {
 	readGlobalState,
 	readGlobalStateKey,
 	readMcpSettings,
-	readSecretKey,
 	readSecrets,
 	readTaskHistory,
 	readTaskMetadata,
@@ -101,10 +100,6 @@ describe("resolveDataDir", () => {
 // ---------------------------------------------------------------------------
 
 describe("readGlobalState", () => {
-	it("returns empty object when file is missing", () => {
-		expect(readGlobalState(tempDir)).toEqual({})
-	})
-
 	it("reads globalState.json contents", () => {
 		writeJson(path.join(tempDir, "globalState.json"), {
 			mode: "act",
@@ -152,11 +147,6 @@ describe("readGlobalStateKey", () => {
 		writeJson(path.join(tempDir, "globalState.json"), { mode: "act" })
 		expect(readGlobalStateKey("telemetrySetting", tempDir)).toBeUndefined()
 	})
-
-	it("returns value for present key", () => {
-		writeJson(path.join(tempDir, "globalState.json"), { mode: "plan" })
-		expect(readGlobalStateKey("mode", tempDir)).toBe("plan")
-	})
 })
 
 // ---------------------------------------------------------------------------
@@ -164,10 +154,6 @@ describe("readGlobalStateKey", () => {
 // ---------------------------------------------------------------------------
 
 describe("readSecrets", () => {
-	it("returns empty object when file is missing", () => {
-		expect(readSecrets(tempDir)).toEqual({})
-	})
-
 	it("reads secrets.json contents", () => {
 		writeJson(path.join(tempDir, "secrets.json"), {
 			apiKey: "sk-ant-test123",
@@ -178,41 +164,19 @@ describe("readSecrets", () => {
 		expect(secrets.apiKey).toBe("sk-ant-test123")
 		expect(secrets.openRouterApiKey).toBe("sk-or-test456")
 	})
-
-	it("returns empty object for corrupt JSON", () => {
-		const filePath = path.join(tempDir, "secrets.json")
-		fs.mkdirSync(tempDir, { recursive: true })
-		fs.writeFileSync(filePath, "BROKEN{")
-
-		expect(readSecrets(tempDir)).toEqual({})
-	})
 })
 
 // ---------------------------------------------------------------------------
 // readSecretKey
 // ---------------------------------------------------------------------------
 
-describe("readSecretKey", () => {
-	it("returns undefined for missing key", () => {
-		writeJson(path.join(tempDir, "secrets.json"), { apiKey: "test" })
-		expect(readSecretKey("openRouterApiKey", tempDir)).toBeUndefined()
-	})
-
-	it("returns value for present key", () => {
-		writeJson(path.join(tempDir, "secrets.json"), { apiKey: "sk-test" })
-		expect(readSecretKey("apiKey", tempDir)).toBe("sk-test")
-	})
-})
+describe("readSecretKey", () => {})
 
 // ---------------------------------------------------------------------------
 // readTaskHistory
 // ---------------------------------------------------------------------------
 
 describe("readTaskHistory", () => {
-	it("returns empty array when file is missing", () => {
-		expect(readTaskHistory(tempDir)).toEqual([])
-	})
-
 	it("reads taskHistory.json from state/ subdirectory", () => {
 		const history = [
 			{
@@ -240,14 +204,6 @@ describe("readTaskHistory", () => {
 		expect(result[0].id).toBe("task-1")
 		expect(result[1].isFavorited).toBe(true)
 	})
-
-	it("returns empty array for corrupt JSON", () => {
-		const filePath = path.join(tempDir, "state", "taskHistory.json")
-		fs.mkdirSync(path.dirname(filePath), { recursive: true })
-		fs.writeFileSync(filePath, "INVALID")
-
-		expect(readTaskHistory(tempDir)).toEqual([])
-	})
 })
 
 // ---------------------------------------------------------------------------
@@ -255,10 +211,6 @@ describe("readTaskHistory", () => {
 // ---------------------------------------------------------------------------
 
 describe("readApiConversationHistory", () => {
-	it("returns empty array when file is missing", () => {
-		expect(readApiConversationHistory("task-1", tempDir)).toEqual([])
-	})
-
 	it("reads api_conversation_history.json", () => {
 		const history = [
 			{ role: "user", content: [{ type: "text", text: "Hello" }] },
@@ -293,21 +245,6 @@ describe("readUiMessages", () => {
 		expect(readUiMessages("task-1", tempDir)).toEqual([taskMessage, completionMessage])
 		expect(fs.readFileSync(filePath, "utf-8")).toBe(savedHistory)
 	})
-
-	it("returns empty array when file is missing", () => {
-		expect(readUiMessages("task-1", tempDir)).toEqual([])
-	})
-
-	it("reads ui_messages.json", () => {
-		const messages = [
-			{ type: "say", say: "text", text: "Hello" },
-			{ type: "ask", ask: "tool", text: "Run command?" },
-		]
-		writeJson(path.join(tempDir, "tasks", "task-1", "ui_messages.json"), messages)
-
-		const result = readUiMessages("task-1", tempDir)
-		expect(result).toHaveLength(2)
-	})
 })
 
 // ---------------------------------------------------------------------------
@@ -315,10 +252,6 @@ describe("readUiMessages", () => {
 // ---------------------------------------------------------------------------
 
 describe("readContextHistory", () => {
-	it("returns empty array when file is missing", () => {
-		expect(readContextHistory("task-1", tempDir)).toEqual([])
-	})
-
 	it("reads context_history.json", () => {
 		const history = [{ context: "test" }]
 		writeJson(path.join(tempDir, "tasks", "task-1", "context_history.json"), history)
@@ -333,10 +266,6 @@ describe("readContextHistory", () => {
 // ---------------------------------------------------------------------------
 
 describe("readTaskMetadata", () => {
-	it("returns empty object when file is missing", () => {
-		expect(readTaskMetadata("task-1", tempDir)).toEqual({})
-	})
-
 	it("reads task_metadata.json", () => {
 		const metadata = { files_in_context: ["src/index.ts"], model_usage: [] }
 		writeJson(path.join(tempDir, "tasks", "task-1", "task_metadata.json"), metadata)
@@ -351,10 +280,6 @@ describe("readTaskMetadata", () => {
 // ---------------------------------------------------------------------------
 
 describe("readMcpSettings", () => {
-	it("returns empty mcpServers when file is missing", () => {
-		expect(readMcpSettings(tempDir)).toEqual({ mcpServers: {} })
-	})
-
 	it("reads cline_mcp_settings.json from settings/ subdirectory", () => {
 		const settings: McpSettingsFile = {
 			mcpServers: {

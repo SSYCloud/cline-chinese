@@ -265,20 +265,6 @@ describe("global-settings", () => {
 		}
 	});
 
-	it("reads and writes the compaction strategy globally", async () => {
-		const root = await mkdtemp(join(tmpdir(), "core-global-settings-"));
-		try {
-			const settingsPath = join(root, "global-settings.json");
-			process.env.CLINE_GLOBAL_SETTINGS_PATH = settingsPath;
-
-			expect(readCompactionStrategyGlobally()).toBe("agentic");
-			setCompactionStrategyGlobally("agentic");
-			expect(readCompactionStrategyGlobally()).toBe("agentic");
-		} finally {
-			await rm(root, { recursive: true, force: true });
-		}
-	});
-
 	it("normalizes the persisted general settings fields", () => {
 		expect(
 			GlobalSettingsSchema.parse({

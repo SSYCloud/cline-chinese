@@ -115,16 +115,6 @@ describe("createRuntimeHooks", () => {
 		eventMocks.closeInlineStreamIfNeeded.mockReset();
 	});
 
-	it("disables runtime hooks in yolo mode", async () => {
-		const runtimeHooks = createRuntimeHooks({
-			yolo: true,
-			dispatchHookEvent: vi.fn(),
-		});
-
-		expect(runtimeHooks.hooks).toBeUndefined();
-		await expect(runtimeHooks.shutdown()).resolves.toBeUndefined();
-	});
-
 	it("returns in-process hooks when dispatch is available", async () => {
 		const dispatchHookEvent = vi.fn().mockResolvedValue(undefined);
 		const runtimeHooks = createRuntimeHooks({

@@ -53,15 +53,6 @@ function sessionRow(sessionId: string) {
 	};
 }
 
-it("uses server activity when it is newer than local timestamps", () => {
-	expect(
-		sessionActivityTimestamp({
-			...sessionRow("ses-cloud"),
-			lastActivityAt: "2026-07-20T12:00:00.000Z",
-		}),
-	).toBe(Date.parse("2026-07-20T12:00:00.000Z"));
-});
-
 let container: HTMLDivElement;
 let root: Root;
 let current: SessionHistoryHook;

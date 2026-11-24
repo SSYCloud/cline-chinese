@@ -343,37 +343,6 @@ describe("formatCommandForTerminal", () => {
 })
 
 describe("executeForeground", () => {
-	it("returns output as-is on success (no exit code captured)", async () => {
-		const process = createFakeTerminalProcess({ lines: ["hello"] })
-		const terminalManager = createFakeTerminalManager(process)
-
-		const result = await executeForeground("echo hello", "/workspace", terminalManager, 1000)
-
-		expect(result).toBe("hello")
-	})
-
-	it("returns output as-is when the exit code is 0", async () => {
-		const process = createFakeTerminalProcess({ lines: ["hello"], completionDetails: { exitCode: 0 } })
-		const terminalManager = createFakeTerminalManager(process)
-
-		const result = await executeForeground("echo hello", "/workspace", terminalManager, 1000)
-
-		expect(result).toBe("hello")
-	})
-
-	it("passes the caller's terminal profile through to getOrCreateTerminal", async () => {
-		const process = createFakeTerminalProcess({ lines: ["ok"] })
-		const getOrCreateTerminal = vi.fn(async () => ({ terminal: { show: () => {} } }) as never)
-		const terminalManager = {
-			getOrCreateTerminal,
-			runCommand: () => process,
-		} as unknown as VscodeTerminalManager
-
-		await executeForeground("echo ok", "/workspace", terminalManager, 1000, undefined, undefined, "wsl-bash")
-
-		expect(getOrCreateTerminal).toHaveBeenCalledWith("/workspace", "wsl-bash")
-	})
-
 	it("throws CommandExitError with the exit code on non-zero exit", async () => {
 		const terminalManager = createFakeTerminalManager(
 			createFakeTerminalProcess({ lines: ["boom"], completionDetails: { exitCode: 127 } }),

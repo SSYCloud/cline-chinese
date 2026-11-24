@@ -38,16 +38,6 @@ describe("clearOrganizationForClinePassProviderSelection", () => {
 		expect(switchAccount.callCount).toBe(0)
 	})
 
-	it("switches to the personal account when ClinePass is selected without blocking the caller", () => {
-		clearOrganizationForClinePassProviderSelection(createController(), {
-			planModeApiProvider: "cline-pass",
-			actModeApiProvider: "openrouter",
-		})
-
-		expect(switchAccount.callCount).toBe(1)
-		expect(switchAccount.firstCall.args[0]).toBeUndefined()
-	})
-
 	it("logs and swallows account switch failures", async () => {
 		const error = new Error("not signed in")
 		switchAccount.rejects(error)

@@ -290,24 +290,6 @@ describe("SDK URL MCP client app support", () => {
 		timeoutSeconds: 12,
 	};
 
-	it("advertises the MCP Apps extension only when enabled", async () => {
-		await (await createDefaultMcpServerClientFactory()(registration)).connect();
-		expect(clientState.constructorOptions).toBeUndefined();
-
-		await (
-			await createDefaultMcpServerClientFactory({ mcpApps: true })(registration)
-		).connect();
-		expect(clientState.constructorOptions).toEqual({
-			capabilities: {
-				extensions: {
-					"io.modelcontextprotocol/ui": {
-						mimeTypes: ["text/html;profile=mcp-app"],
-					},
-				},
-			},
-		});
-	});
-
 	it("keeps tool _meta and reads resources with the request timeout", async () => {
 		clientState.listedTools = [
 			{

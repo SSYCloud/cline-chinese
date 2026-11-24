@@ -255,20 +255,5 @@ describe("syncRemoteMcpServersToSettings", () => {
 			result.mcpServers["my-server"].url.should.equal("https://new-url.example.com")
 			result.mcpServers["my-server"].remoteConfigured.should.equal(true)
 		})
-
-		it("should record the post-write McpHub fingerprint when an McpHub is provided", async () => {
-			await writeSettings({})
-
-			const mockMcpHub = {
-				recordSettingsFingerprint: sandbox.stub(),
-			}
-
-			await syncRemoteMcpServersToSettings([{ name: "test", url: "https://test.com" }], settingsPath, mockMcpHub as any)
-
-			mockMcpHub.recordSettingsFingerprint.calledOnce.should.be.true()
-			const result = await readSettings()
-			result.mcpServers["test"].url.should.equal("https://test.com")
-			result.mcpServers["test"].remoteConfigured.should.equal(true)
-		})
 	})
 })

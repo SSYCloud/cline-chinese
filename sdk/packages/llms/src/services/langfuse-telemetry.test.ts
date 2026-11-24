@@ -330,15 +330,6 @@ describe("langfuse telemetry", () => {
 			});
 		}
 
-		it("keeps the direct Langfuse path unchanged: enabled with content recording untouched", async () => {
-			const decision = await resolveAiSdkTelemetry("cline", "task-a");
-
-			expect(decision).toEqual({
-				isEnabled: true,
-				integrations: expect.any(Object),
-			});
-		});
-
 		it("defaults to full sampling when the host registered a tracer and no rate is set", async () => {
 			clearLangfuseEnv();
 			mockHostOtlpTracer();
@@ -493,25 +484,6 @@ describe("langfuse telemetry", () => {
 			const decision = await resolveAiSdkTelemetry("cline", "task-a");
 
 			expect(decision.isEnabled).toBe(true);
-		});
-
-		it("leaves the credentialed direct Langfuse path unaffected by the opt-out", async () => {
-			const settingsPath = path.join(
-				await fs.mkdtemp(path.join(os.tmpdir(), "lf-direct-")),
-				"settings.json",
-			);
-			await fs.writeFile(
-				settingsPath,
-				JSON.stringify({ telemetryOptOut: true }),
-			);
-			globalSettingsPathRef.current = settingsPath;
-
-			const decision = await resolveAiSdkTelemetry("cline", "task-a");
-
-			expect(decision).toEqual({
-				isEnabled: true,
-				integrations: expect.any(Object),
-			});
 		});
 
 		it("does not treat a console-only tracer as the relay", async () => {

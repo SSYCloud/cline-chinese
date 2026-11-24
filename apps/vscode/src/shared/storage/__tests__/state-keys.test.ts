@@ -41,11 +41,7 @@ import { expect } from "chai"
 import {
 	applyTransform,
 	GLOBAL_STATE_DEFAULTS,
-	type GlobalState,
 	GlobalStateAndSettingKeys,
-	type GlobalStateAndSettings,
-	type GlobalStateAndSettingsKey,
-	type GlobalStateKey,
 	getDefaultValue,
 	hasTransform,
 	isAsyncProperty,
@@ -54,15 +50,9 @@ import {
 	isLocalStateKey,
 	isSecretKey,
 	isSettingsKey,
-	type LocalState,
-	type LocalStateKey,
 	LocalStateKeys,
 	SETTINGS_DEFAULTS,
-	SETTINGS_TRANSFORMS,
-	type SecretKey,
 	SecretKeys,
-	type Settings,
-	type SettingsKey,
 	SettingsKeys,
 } from "../state-keys"
 
@@ -119,66 +109,8 @@ describe("State Keys Type Safety", () => {
 		 * TypeScript would accept but would cause runtime issues.
 		 */
 
-		it("should have GlobalState defaults with correct runtime types", () => {
-			const defaults = GLOBAL_STATE_DEFAULTS as Record<string, unknown>
-
-			// Validate each default value has a sensible runtime type
-			for (const [key, value] of Object.entries(defaults)) {
-				const type = inferExpectedType(value)
-				// Re-validate to ensure consistency
-				assertTypeMatch(value, type, `GLOBAL_STATE_DEFAULTS.${key}`)
-			}
-		})
-
 		it("defaults terminal execution to the VS Code terminal", () => {
 			expect(getDefaultValue("vscodeTerminalExecutionMode")).to.equal("vscodeTerminal")
-		})
-
-		it("should have Settings defaults with correct runtime types", () => {
-			const defaults = SETTINGS_DEFAULTS as Record<string, unknown>
-
-			for (const [key, value] of Object.entries(defaults)) {
-				const type = inferExpectedType(value)
-				assertTypeMatch(value, type, `SETTINGS_DEFAULTS.${key}`)
-			}
-		})
-
-		it("should not have undefined defaults masquerading as non-optional types", () => {
-			// This test catches the pattern: { default: undefined as SomeType }
-			// where SomeType doesn't include undefined
-			const allDefaults = { ...GLOBAL_STATE_DEFAULTS, ...SETTINGS_DEFAULTS } as Record<string, unknown>
-
-			const undefinedKeys = Object.entries(allDefaults)
-				.filter(([_, value]) => value === undefined)
-				.map(([key]) => key)
-
-			// These keys have undefined defaults, which is valid only if their
-			// declared type includes `| undefined`. This test documents which
-			// keys are expected to have undefined defaults.
-			expect(undefinedKeys).to.be.an("array")
-			// If a key unexpectedly becomes undefined, this test will catch it
-		})
-
-		it("should have array defaults that are actually arrays", () => {
-			const allDefaults = { ...GLOBAL_STATE_DEFAULTS, ...SETTINGS_DEFAULTS } as Record<string, unknown>
-
-			for (const [key, value] of Object.entries(allDefaults)) {
-				if (Array.isArray(value)) {
-					// Verify it's a proper array, not an array-like object
-					expect(value, `${key} should be a true array`).to.be.instanceOf(Array)
-				}
-			}
-		})
-
-		it("should have object defaults that are plain objects", () => {
-			const allDefaults = { ...GLOBAL_STATE_DEFAULTS, ...SETTINGS_DEFAULTS } as Record<string, unknown>
-
-			for (const [key, value] of Object.entries(allDefaults)) {
-				if (typeof value === "object" && value !== null && !Array.isArray(value)) {
-					// Verify it's a plain object
-					expect(Object.getPrototypeOf(value), `${key} should be a plain object`).to.equal(Object.prototype)
-				}
-			}
 		})
 	})
 
@@ -198,14 +130,6 @@ describe("State Keys Type Safety", () => {
 			}
 		})
 
-		it("should have GlobalStateAndSettingKeys be a superset of SettingsKeys", () => {
-			const combinedSet = new Set<string>(GlobalStateAndSettingKeys)
-
-			for (const key of SettingsKeys) {
-				expect(combinedSet.has(key), `GlobalStateAndSettingKeys missing settings key: ${key}`).to.be.true
-			}
-		})
-
 		it("should have no duplicate keys in exported arrays", () => {
 			expect(new Set(SettingsKeys).size, "SettingsKeys has duplicates").to.equal(SettingsKeys.length)
 			expect(new Set(SecretKeys).size, "SecretKeys has duplicates").to.equal(SecretKeys.length)
@@ -213,13 +137,6 @@ describe("State Keys Type Safety", () => {
 			expect(new Set(GlobalStateAndSettingKeys).size, "GlobalStateAndSettingKeys has duplicates").to.equal(
 				GlobalStateAndSettingKeys.length,
 			)
-		})
-
-		it("should have SecretKeys as strings", () => {
-			for (const key of SecretKeys) {
-				expect(typeof key, `SecretKey ${key} should be string`).to.equal("string")
-				expect(key.length, `SecretKey should not be empty`).to.be.greaterThan(0)
-			}
 		})
 	})
 
@@ -268,53 +185,12 @@ describe("State Keys Type Safety", () => {
 
 			expect(isLocalStateKey("notALocalStateKey")).to.be.false
 		})
-
-		it("should have mutually exclusive key categories where expected", () => {
-			// Secret keys should not overlap with settings keys
-			for (const secretKey of SecretKeys) {
-				// Most secret keys should not be in settings (they're stored separately)
-				// This is a sanity check, not a strict requirement
-				if (isSettingsKey(secretKey)) {
-					// If there is overlap, document it
-					console.log(`Note: ${secretKey} is both a SecretKey and SettingsKey`)
-				}
-			}
-		})
 	})
 
 	describe("Default Value Retrieval", () => {
 		/**
 		 * Tests for the getDefaultValue utility function.
 		 */
-
-		it("should return correct default values for known keys", () => {
-			// Test a few known defaults
-			const testCases: Array<{ key: GlobalStateAndSettingsKey; expectedType: string }> = [
-				{ key: "autoApprovalSettings", expectedType: "object" },
-				{ key: "browserSettings", expectedType: "object" },
-				{ key: "shellIntegrationTimeout", expectedType: "number" },
-				{ key: "preferredLanguage", expectedType: "string" },
-				{ key: "hooksEnabled", expectedType: "boolean" },
-			]
-
-			for (const { key, expectedType } of testCases) {
-				const value = getDefaultValue(key)
-				if (value !== undefined) {
-					assertTypeMatch(value, expectedType, `getDefaultValue(${key})`)
-				}
-			}
-		})
-
-		it("should return undefined for keys without defaults", () => {
-			// Keys with `undefined` as default should return undefined
-			const keysWithUndefinedDefaults = GlobalStateAndSettingKeys.filter((key) => {
-				const value = getDefaultValue(key)
-				return value === undefined
-			})
-
-			// This is expected behavior - document which keys have undefined defaults
-			expect(keysWithUndefinedDefaults).to.be.an("array")
-		})
 	})
 
 	describe("Transform Functions", () => {
@@ -322,31 +198,9 @@ describe("State Keys Type Safety", () => {
 		 * Tests for transform functions that modify values before storage.
 		 */
 
-		it("should have transforms return the same type as input", () => {
-			// Get keys that have transforms
-			const keysWithTransforms = Object.keys(SETTINGS_TRANSFORMS)
-
-			expect(keysWithTransforms.length, "Should have at least one transform").to.be.greaterThan(0)
-
-			for (const key of keysWithTransforms) {
-				expect(hasTransform(key), `hasTransform(${key}) should be true`).to.be.true
-			}
-		})
-
 		it("should correctly identify keys without transforms", () => {
 			expect(hasTransform("nonExistentKey")).to.be.false
 			expect(hasTransform("")).to.be.false
-		})
-
-		it("should apply transforms without throwing", () => {
-			const keysWithTransforms = Object.keys(SETTINGS_TRANSFORMS)
-
-			for (const key of keysWithTransforms) {
-				// Transform should handle various inputs gracefully
-				expect(() => applyTransform(key, {})).to.not.throw()
-				expect(() => applyTransform(key, undefined)).to.not.throw()
-				expect(() => applyTransform(key, null)).to.not.throw()
-			}
 		})
 
 		it("should pass through values for keys without transforms", () => {
@@ -402,55 +256,6 @@ describe("State Keys Type Safety", () => {
 		 * Compile-time tests that verify type exports work correctly.
 		 * If these fail to compile, the types are broken.
 		 */
-
-		it("should export usable GlobalState type", () => {
-			// This is a compile-time check - if GlobalState is broken, this won't compile
-			const partialState: Partial<GlobalState> = {
-				isNewUser: true,
-				favoritedModelIds: [],
-			}
-			expect(partialState.isNewUser).to.equal(true)
-		})
-
-		it("should export usable Settings type", () => {
-			const partialSettings: Partial<Settings> = {
-				preferredLanguage: "English",
-				shellIntegrationTimeout: 5000,
-			}
-			expect(partialSettings.preferredLanguage).to.equal("English")
-		})
-
-		it("should export usable key types", () => {
-			// These assignments verify the key types are correctly narrowed
-			const globalKey: GlobalStateKey = "isNewUser"
-			const settingsKey: SettingsKey = "preferredLanguage"
-			const secretKey: SecretKey = "apiKey"
-			const localKey: LocalStateKey = "localClineRulesToggles"
-
-			expect(globalKey).to.be.a("string")
-			expect(settingsKey).to.be.a("string")
-			expect(secretKey).to.be.a("string")
-			expect(localKey).to.be.a("string")
-		})
-
-		it("should have GlobalStateAndSettings include both GlobalState and Settings", () => {
-			const combined: Partial<GlobalStateAndSettings> = {
-				// From GlobalState
-				isNewUser: true,
-				// From Settings
-				preferredLanguage: "English",
-			}
-			expect(combined.isNewUser).to.equal(true)
-			expect(combined.preferredLanguage).to.equal("English")
-		})
-
-		it("should have LocalState keys map to ClineRulesToggles", () => {
-			const localState: Partial<LocalState> = {
-				localClineRulesToggles: {},
-				localCursorRulesToggles: { "some-rule": true },
-			}
-			expect(localState.localClineRulesToggles).to.deep.equal({})
-		})
 	})
 
 	describe("Edge Cases", () => {

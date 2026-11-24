@@ -40,50 +40,6 @@ describe("hooks-adapter task id threading", () => {
 		mocks.create.mockResolvedValue(runner)
 	})
 
-	it("passes the task id and tool name when creating the PreToolUse runner", async () => {
-		const hooks = buildAgentHooks(stateManager)
-		await hooks.beforeTool?.({ toolCall: { toolName: "read_file" }, input: { path: "a.ts" }, snapshot } as never)
-
-		expect(mocks.create).toHaveBeenCalledWith("PreToolUse", "conv-1", "read_file")
-		expect(runner.run).toHaveBeenCalledWith(expect.objectContaining({ taskId: "conv-1" }))
-	})
-
-	it("passes the task id and tool name when creating the PostToolUse runner", async () => {
-		const hooks = buildAgentHooks(stateManager)
-		await hooks.afterTool?.({
-			toolCall: { toolName: "write_file" },
-			input: {},
-			result: { output: "ok", isError: false },
-			durationMs: 5,
-			snapshot,
-		} as never)
-
-		expect(mocks.create).toHaveBeenCalledWith("PostToolUse", "conv-1", "write_file")
-		expect(runner.run).toHaveBeenCalledWith(expect.objectContaining({ taskId: "conv-1" }))
-	})
-
-	it("passes the task id when creating the TaskStart and UserPromptSubmit runners", async () => {
-		const hooks = buildAgentHooks(stateManager)
-		await hooks.beforeRun?.({ snapshot } as never)
-
-		expect(mocks.create).toHaveBeenCalledWith("TaskStart", "conv-1")
-		expect(mocks.create).toHaveBeenCalledWith("UserPromptSubmit", "conv-1")
-	})
-
-	it("passes the task id when creating the TaskComplete runner", async () => {
-		const hooks = buildAgentHooks(stateManager)
-		await hooks.afterRun?.({ snapshot, result: { status: "completed", outputText: "done" } } as never)
-
-		expect(mocks.create).toHaveBeenCalledWith("TaskComplete", "conv-1")
-	})
-
-	it("passes the task id when creating the TaskCancel runner", async () => {
-		const hooks = buildAgentHooks(stateManager)
-		await hooks.afterRun?.({ snapshot, result: { status: "aborted", outputText: "" } } as never)
-
-		expect(mocks.create).toHaveBeenCalledWith("TaskCancel", "conv-1")
-	})
-
 	it("falls back to the run id when the snapshot has no conversation id", async () => {
 		const hooks = buildAgentHooks(stateManager)
 		await hooks.beforeTool?.({

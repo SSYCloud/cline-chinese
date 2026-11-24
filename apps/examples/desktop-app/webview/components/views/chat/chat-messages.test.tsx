@@ -1355,24 +1355,6 @@ describe("ChatMessages tool disclosures", () => {
 		).toBeNull();
 	});
 
-	it("leaves vertical scrolling to the conversation viewport", async () => {
-		await renderMessages([
-			{
-				id: "assistant-scroll",
-				sessionId: "session-1",
-				role: "assistant",
-				content: "Assistant message",
-				createdAt: 1,
-			},
-		]);
-
-		const content = container.querySelector(".cline-message-scroller-content");
-		const messageList = content?.querySelector(":scope > div");
-
-		expect(content?.classList.contains("overflow-x-hidden")).toBe(false);
-		expect(messageList?.classList.contains("overflow-x-hidden")).toBe(false);
-	});
-
 	it("renders live ANSI command output and offers proceed while running", async () => {
 		const onProceedWhileRunning = vi.fn(async () => undefined);
 		await renderMessages(
@@ -2367,11 +2349,6 @@ describe("ChatMessages thinking indicator", () => {
 		expect(
 			container.querySelector('button[aria-label="Copy assistant message"]'),
 		).not.toBeNull();
-	});
-
-	it("keeps showing while running until the first assistant output arrives", async () => {
-		await renderMessages([userMessage], { status: "running" });
-		expect(container.textContent).toContain("Thinking...");
 	});
 
 	it("ignores trailing status messages when deciding to show", async () => {

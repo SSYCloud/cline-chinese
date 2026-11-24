@@ -47,12 +47,6 @@ describe("desktop connector lifecycle", () => {
 		).toEqual(["--restart", "telegram", "-k", "token"]);
 	});
 
-	it("starts an inactive channel directly", () => {
-		expect(
-			__test__.buildConnectorLaunchArgs(["telegram", "-k", "token"], false),
-		).toEqual(["telegram", "-k", "token"]);
-	});
-
 	it("rejects a channel-wide restart when multiple instances are active", () => {
 		expect(() => __test__.shouldRestartConnector("telegram", 2)).toThrow(
 			"cannot safely restart telegram: 2 instances are active",

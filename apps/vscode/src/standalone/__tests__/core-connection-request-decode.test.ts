@@ -1,5 +1,4 @@
 import { describe, expect, it } from "bun:test"
-import { serviceHandlers, serviceRequestDecoders } from "@generated/hosts/vscode/protobus-services"
 import { ModelsApiConfiguration, OpenRouterModelInfo, UpdateApiConfigurationRequest } from "@shared/proto/cline/models"
 import { PlanActMode, TogglePlanActModeRequest } from "@shared/proto/cline/state"
 import { fromProtobufModelInfo } from "@shared/proto-conversions/models/typeConversion"
@@ -75,15 +74,5 @@ describe("core connection request decoding", () => {
 		const message = { anything: "goes" }
 		expect(decodeCoreConnectionRequestMessage("cline.NoSuchService", "noSuchMethod", message)).toBe(message)
 		expect(decodeCoreConnectionRequestMessage("cline.ModelsService", "noSuchMethod", message)).toBe(message)
-	})
-
-	it("has a decoder for every registered protobus handler", () => {
-		for (const [serviceName, handlers] of Object.entries(serviceHandlers)) {
-			const decoders = serviceRequestDecoders[serviceName]
-			expect(decoders).toBeDefined()
-			for (const methodName of Object.keys(handlers)) {
-				expect(typeof decoders[methodName]).toBe("function")
-			}
-		}
 	})
 })

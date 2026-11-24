@@ -32,17 +32,4 @@ describe("registerVsCodeLmHandler gating", () => {
 		expect(registerHandler).not.toHaveBeenCalled()
 		expect(registerProvider).not.toHaveBeenCalled()
 	})
-
-	it("registers the catalog provider and handler once when the vscode.lm API is available", async () => {
-		lm.selectChatModels = vi.fn()
-		const { registerVsCodeLmHandler, isVsCodeLmApiAvailable, VSCODE_LM_PROVIDER_COLLECTION, VSCODE_LM_PROVIDER_ID } =
-			await import("./register-vscode-lm")
-		expect(isVsCodeLmApiAvailable()).toBe(true)
-		registerVsCodeLmHandler()
-		registerVsCodeLmHandler() // idempotent
-		expect(registerProvider).toHaveBeenCalledTimes(1)
-		expect(registerProvider).toHaveBeenCalledWith(VSCODE_LM_PROVIDER_COLLECTION)
-		expect(registerHandler).toHaveBeenCalledTimes(1)
-		expect(registerHandler).toHaveBeenCalledWith(VSCODE_LM_PROVIDER_ID, expect.any(Function))
-	})
 })

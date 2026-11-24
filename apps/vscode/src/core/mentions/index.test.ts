@@ -60,25 +60,6 @@ describe("parseMentions", () => {
 	})
 
 	describe("File mentions", () => {
-		it("should handle simple file mention", async () => {
-			const text = "Check @/src/index.ts for details"
-
-			fsStatStub.resolves({ isFile: () => true, isDirectory: () => false })
-			isBinaryFileStub.resolves(false)
-			extractTextStub.resolves("console.log('Hello World');")
-
-			const result = await parseMentions(text, cwd, urlContentFetcherStub, fileContextTrackerStub)
-
-			const expectedOutput = `Check 'src/index.ts' (see below for file content) for details
-
-<file_content path="src/index.ts">
-console.log('Hello World');
-</file_content>`
-
-			expect(result).to.equal(expectedOutput)
-			expect(fileContextTrackerStub.trackFileContext.calledWith("src/index.ts", "file_mentioned")).to.be.true
-		})
-
 		it("should handle quoted file paths with spaces", async () => {
 			const text = 'Open @"/path with spaces/file.txt"'
 

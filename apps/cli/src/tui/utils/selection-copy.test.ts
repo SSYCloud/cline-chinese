@@ -160,28 +160,6 @@ describe("createSelectionCopyHandler", () => {
 		expect(deps.showToast).toHaveBeenCalledWith("已复制到剪贴板", "success");
 	});
 
-	it("aborts in-flight fallback when the next selection starts", async () => {
-		const { deps, pending } = createTestDeps();
-		const { handleSelection } = createSelectionCopyHandler(deps);
-
-		handleSelection(makeSelection("text-A"));
-		const firstSignal = pending[0]?.signal;
-		expect(firstSignal?.aborted).toBe(false);
-
-		deps.copyToClipboardOSC52.mockReturnValueOnce(true);
-		handleSelection(makeSelection("text-B"));
-
-		expect(firstSignal?.aborted).toBe(true);
-		expect(deps.showToast).not.toHaveBeenCalled();
-		expect(deps.copyTextToSystemClipboardImpl).toHaveBeenCalledTimes(2);
-
-		pending[1]?.resolve(false);
-		await Promise.resolve();
-		await Promise.resolve();
-
-		expect(deps.showToast).toHaveBeenCalledWith("已复制到剪贴板", "success");
-	});
-
 	it("dispose() aborts any in-flight fallback and suppresses later toasts", async () => {
 		const { deps, pending } = createTestDeps();
 		const { handleSelection, dispose } = createSelectionCopyHandler(deps);

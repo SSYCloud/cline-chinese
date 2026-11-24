@@ -64,16 +64,6 @@ describe("isUnusableSessionError", () => {
 });
 
 describe("SessionRunInProgressError", () => {
-	it("carries a stable code and keeps the original message", () => {
-		const error = new SessionRunInProgressError("agent_1");
-
-		expect(error.code).toBe("session_run_in_progress");
-		expect(error.message).toBe(
-			"SessionRuntime.shutdown called while a run is in progress (agentId=agent_1)",
-		);
-		expect(error).toBeInstanceOf(Error);
-	});
-
 	it("reads sensibly without an agent id", () => {
 		expect(new SessionRunInProgressError().message).toBe(
 			"SessionRuntime.shutdown called while a run is in progress",

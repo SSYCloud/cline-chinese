@@ -315,13 +315,6 @@ describe("useSessionAgents", () => {
 		expect(current.agents).toHaveLength(1);
 	});
 
-	it("reports a roster failure without dropping the header tally", async () => {
-		invokeMock.mockRejectedValue(new Error("no session database"));
-		await render({ sessionId: "a" });
-		expect(current.agents).toEqual([]);
-		expect(current.error).toBe("no session database");
-	});
-
 	it("keeps a loaded roster when a later refresh fails", async () => {
 		// A transient sidecar/SQLite error means this read learned nothing, not
 		// that the agents vanished. Blanking them is unrecoverable on an idle

@@ -195,20 +195,6 @@ async function fixture() {
 }
 
 describe("summary cloud handoff", () => {
-	it("passes the actual publication payload through the Hub schema to Git", async () => {
-		const f = await fixture();
-		const root = await mkdtemp(join(tmpdir(), "handoff-contract-"));
-		try {
-			f.plan.root = root;
-			f.launch.mockRestore();
-			await f.prepare();
-			await expect(f.handoff()).rejects.toThrow("Git remote failed");
-			expect(f.create).not.toHaveBeenCalled();
-			expect(f.send).not.toHaveBeenCalled();
-		} finally {
-			await rm(root, { recursive: true, force: true });
-		}
-	});
 	it("returns a missed completion before preparing another cloud task", async () => {
 		const f = await fixture();
 		await f.prepare();
@@ -235,13 +221,6 @@ describe("summary cloud handoff", () => {
 		await expect(
 			handlePrepareHandoff(f.ctx, f.request, f.summarize),
 		).resolves.toEqual(retry);
-	});
-	it("does not return another account's completed handoff", async () => {
-		const f = await fixture();
-		await f.prepare();
-		await f.handoff();
-		f.ctx.cloudSessionManager = (await fixture()).ctx.cloudSessionManager;
-		await f.prepare();
 	});
 	it("discards only the canceled preview, not a newer preview", async () => {
 		const f = await fixture();

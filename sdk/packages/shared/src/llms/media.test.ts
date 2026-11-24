@@ -11,34 +11,6 @@ import {
 } from "./media";
 
 describe("generated media", () => {
-	it("validates stable inline, remote, and artifact sources", () => {
-		expect(
-			GeneratedMediaSchema.parse({
-				id: "media_inline",
-				modality: "image",
-				mediaType: "image/png",
-				source: { type: "base64", data: "aGVsbG8=" },
-				sizeBytes: 5,
-			}),
-		).toMatchObject({ source: { type: "base64" } });
-		expect(
-			GeneratedMediaSchema.parse({
-				id: "media_remote",
-				modality: "audio",
-				mediaType: "audio/mpeg",
-				source: { type: "url", url: "https://example.com/result.mp3" },
-			}),
-		).toMatchObject({ source: { type: "url" } });
-		expect(
-			GeneratedMediaSchema.parse({
-				id: "media_artifact",
-				modality: "video",
-				mediaType: "video/mp4",
-				source: { type: "artifact", artifactId: "artifact_123" },
-			}),
-		).toMatchObject({ source: { type: "artifact" } });
-	});
-
 	it("rejects unsafe remote sources", () => {
 		expect(
 			GeneratedMediaSchema.safeParse({

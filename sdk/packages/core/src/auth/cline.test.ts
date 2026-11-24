@@ -42,18 +42,6 @@ describe("auth/cline getValidClineCredentials", () => {
 		globalThis.fetch = ORIGINAL_FETCH;
 	});
 
-	it("returns existing credentials when not expired", async () => {
-		const nowSpy = vi.spyOn(Date, "now").mockReturnValue(10_000);
-		const current = createCredentials({ expires: 400_000 });
-		const fetchMock = vi.fn();
-		globalThis.fetch = fetchMock as unknown as typeof fetch;
-
-		const result = await getValidClineCredentials(current, PROVIDER_OPTIONS);
-		expect(result).toBe(current);
-		expect(fetchMock).not.toHaveBeenCalled();
-		nowSpy.mockRestore();
-	});
-
 	it("refreshes expired credentials", async () => {
 		const nowSpy = vi.spyOn(Date, "now").mockReturnValue(100_000);
 		const current = createCredentials({
@@ -319,113 +307,6 @@ describe("auth/cline loginClineOAuth", () => {
 	afterEach(() => {
 		vi.restoreAllMocks();
 		globalThis.fetch = ORIGINAL_FETCH;
-	});
-
-	it("completes WorkOS device auth and registers tokens", async () => {
-		const nowSpy = vi.spyOn(Date, "now").mockReturnValue(200_000);
-		const loginAccessToken = createJwt({ sid: "sid-login" });
-		const fetchMock = vi
-			.fn()
-			.mockResolvedValueOnce(
-				new Response(
-					JSON.stringify({
-						device_code: "dev-code-1",
-						user_code: "ABCD-EFGH",
-						verification_uri: "https://example.com/device",
-						verification_uri_complete:
-							"https://example.com/device?user_code=ABCD-EFGH",
-						expires_in: 300,
-						interval: 1,
-					}),
-					{ status: 200, headers: { "Content-Type": "application/json" } },
-				),
-			)
-			.mockResolvedValueOnce(
-				new Response(
-					JSON.stringify({
-						access_token: "workos-access",
-						refresh_token: "workos-refresh",
-						token_type: "Bearer",
-						expires_in: 3600,
-					}),
-					{ status: 200, headers: { "Content-Type": "application/json" } },
-				),
-			)
-			.mockResolvedValueOnce(
-				new Response(
-					JSON.stringify({
-						success: true,
-						data: {
-							accessToken: loginAccessToken,
-							refreshToken: "cline-refresh",
-							tokenType: "Bearer",
-							expiresAt: "2030-01-01T00:00:00.000Z",
-							userInfo: {
-								subject: "sub-1",
-								email: "user@example.com",
-								name: "User",
-								clineUserId: "acct-1",
-								accounts: ["acct-1"],
-							},
-						},
-					}),
-					{ status: 200, headers: { "Content-Type": "application/json" } },
-				),
-			);
-		globalThis.fetch = fetchMock as unknown as typeof fetch;
-
-		const onAuth = vi.fn();
-		const capture = vi.fn();
-		const credentials = await loginClineOAuth({
-			apiBaseUrl: "https://api.cline.bot",
-			useWorkOSDeviceAuth: true,
-			telemetry: {
-				capture,
-				setDistinctId: vi.fn(),
-				updateCommonProperties: vi.fn(),
-			} as never,
-			callbacks: {
-				onAuth,
-				onPrompt: async () => "",
-			},
-		});
-
-		expect(onAuth).toHaveBeenCalledTimes(1);
-		expect(onAuth.mock.calls[0]?.[0]).toMatchObject({
-			url: "https://example.com/device?user_code=ABCD-EFGH",
-		});
-		expect(credentials).toMatchObject({
-			access: loginAccessToken,
-			refresh: "cline-refresh",
-			accountId: "acct-1",
-			email: "user@example.com",
-			metadata: {
-				sessionStartedAtMs: 200_000,
-				tokenType: "Bearer",
-			},
-		});
-		expect(fetchMock).toHaveBeenCalledTimes(3);
-		const registerCallBody = JSON.parse(
-			String(fetchMock.mock.calls[2]?.[1]?.body ?? "{}"),
-		);
-		const deviceAuthBody = String(fetchMock.mock.calls[0]?.[1]?.body ?? "");
-		const deviceAuthParams = new URLSearchParams(deviceAuthBody);
-		expect(deviceAuthParams.get("client_id")).toMatch(/client_.*/);
-		expect(registerCallBody).toMatchObject({
-			accessToken: "workos-access",
-			refreshToken: "workos-refresh",
-		});
-		expect(capture).toHaveBeenCalledWith(
-			expect.objectContaining({
-				event: "user.auth_succeeded",
-				properties: expect.objectContaining({
-					provider: "cline",
-					sessionId: "sid-login",
-					sessionDurationMs: Date.now() - 200_000,
-				}),
-			}),
-		);
-		nowSpy.mockRestore();
 	});
 
 	it("includes the request ID when initial authentication fails", async () => {

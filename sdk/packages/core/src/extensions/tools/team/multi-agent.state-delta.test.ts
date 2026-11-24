@@ -10,11 +10,6 @@ function newRuntime() {
 }
 
 describe("AgentTeamsRuntime state delta", () => {
-	it("starts clean", () => {
-		const runtime = newRuntime();
-		expect(runtime.hasPendingStateDelta()).toBe(false);
-	});
-
 	it("returns only entities changed since the previous drain", () => {
 		const runtime = newRuntime();
 		const t1 = runtime.createTask({

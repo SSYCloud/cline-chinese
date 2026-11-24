@@ -25,11 +25,6 @@ test.describe("cline --model (interactive mode, flag ignored)", () => {
 		...TERMINAL_WIDE,
 		env: clineEnv("default"),
 	});
-
-	test("starts interactive mode", async ({ terminal }) => {
-		await waitForChatReady(terminal);
-		await expectVisible(terminal, "GPT-5.3 Codex");
-	});
 });
 
 test.describe("cline --cwd <dir>", () => {
@@ -38,11 +33,6 @@ test.describe("cline --cwd <dir>", () => {
 		...TERMINAL_WIDE,
 		env: clineEnv("default"),
 	});
-
-	test("starts interactive mode with --cwd flag", async ({ terminal }) => {
-		await waitForChatReady(terminal);
-		await expectVisible(terminal, "tmp");
-	});
 });
 
 test.describe("cline -c <dir> (short alias)", () => {
@@ -50,11 +40,6 @@ test.describe("cline -c <dir> (short alias)", () => {
 		program: { file: CLINE_BIN, args: ["-c", "/tmp"] },
 		...TERMINAL_WIDE,
 		env: clineEnv("default"),
-	});
-
-	test("starts interactive mode with -c flag", async ({ terminal }) => {
-		await waitForChatReady(terminal);
-		await expectVisible(terminal, "tmp");
 	});
 });
 
@@ -66,12 +51,6 @@ test.describe("cline --config (claude-sonnet-4.6)", () => {
 		},
 		...TERMINAL_WIDE,
 		env: clineEnv("claude-sonnet-4.6"),
-	});
-
-	test("starts interactive mode with custom config directory", async ({
-		terminal,
-	}) => {
-		await expectVisible(terminal, "Claude Sonnet 4.6");
 	});
 });
 

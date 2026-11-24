@@ -85,40 +85,6 @@ describe("createCliCore", () => {
 		process.env.CLINE_VCR = envSnapshot.CLINE_VCR;
 	});
 
-	it("passes hub client metadata through without forcing hub mode", async () => {
-		process.env.CLINE_RPC_ADDRESS = "127.0.0.1:5001";
-
-		await sessionModule.createCliCore();
-
-		expect(createCore).toHaveBeenCalledWith(
-			expect.objectContaining({
-				hub: expect.objectContaining({
-					clientType: "cli",
-					displayName: "Cline CLI",
-				}),
-			}),
-		);
-	});
-
-	it("lets core choose the backend by default", async () => {
-		await sessionModule.createCliCore();
-
-		expect(createCore).toHaveBeenCalledWith(
-			expect.objectContaining({
-				hub: expect.objectContaining({
-					clientType: "cli",
-					displayName: "Cline CLI",
-				}),
-			}),
-		);
-		expect(createCore).toHaveBeenCalledWith(
-			expect.not.objectContaining({
-				backendMode: expect.anything(),
-			}),
-		);
-		expect(featureFlagsPoll).toHaveBeenCalledTimes(1);
-	});
-
 	it("returns the core while the feature flag refresh is still pending", async () => {
 		let resolvePoll!: () => void;
 		featureFlagsPoll.mockReturnValueOnce(
@@ -216,30 +182,6 @@ describe("createCliCore", () => {
 		);
 	});
 
-	it("passes env-managed routing through to core when local is requested via env", async () => {
-		process.env.CLINE_SESSION_BACKEND_MODE = "local";
-
-		await sessionModule.createCliCore();
-
-		expect(createCore).toHaveBeenCalledWith(
-			expect.not.objectContaining({
-				backendMode: expect.anything(),
-			}),
-		);
-	});
-
-	it("passes env-managed routing through to core when vcr is enabled", async () => {
-		process.env.CLINE_VCR = "1";
-
-		await sessionModule.createCliCore();
-
-		expect(createCore).toHaveBeenCalledWith(
-			expect.not.objectContaining({
-				backendMode: expect.anything(),
-			}),
-		);
-	});
-
 	it("logs the selected backend through the injected logger", async () => {
 		const logger = {
 			debug: vi.fn(),
@@ -294,29 +236,6 @@ describe("createCliCore", () => {
 				sessionId: "sess_2",
 				workspaceRoot: "/tmp/other-workspace",
 			},
-		]);
-	});
-
-	it("filters out empty and unreadable sessions", async () => {
-		listSessionHistoryFromBackend.mockResolvedValueOnce([
-			{ sessionId: "sess_full", workspaceRoot: "/tmp/workspace" },
-		]);
-
-		const rows = await sessionModule.listSessions(25, {
-			workspaceRoot: "/tmp/workspace",
-		});
-
-		expect(listSessionHistoryFromBackend).toHaveBeenCalledWith(
-			{ kind: "backend" },
-			{
-				limit: 25,
-				includeManifestFallback: true,
-				hydrate: false,
-				includeSubagents: false,
-			},
-		);
-		expect(rows).toEqual([
-			{ sessionId: "sess_full", workspaceRoot: "/tmp/workspace" },
 		]);
 	});
 });

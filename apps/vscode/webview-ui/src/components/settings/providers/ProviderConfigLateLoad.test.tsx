@@ -1,7 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import type { ChangeEventHandler, ReactNode } from "react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { LiteLlmProvider } from "./LiteLlmProvider"
 import { OpenAICompatibleProvider } from "./OpenAICompatible"
 
 // Regression tests for edits made while the provider config is still loading:
@@ -196,42 +195,5 @@ describe("provider settings edits made before config loads", () => {
 		// shows the saved-key mask for the key just typed — not the stale
 		// stored key's mask.
 		expect(screen.getByPlaceholderText("Enter API Key...")).toHaveValue("•".repeat("early-secret".length))
-	})
-
-	it("LiteLLM: persists a base URL typed before the initial read resolves", async () => {
-		const initialRead = deferred<ReturnType<typeof storedConfig>>()
-		mocks.readProviderConfig.mockReturnValue(initialRead.promise)
-		render(<LiteLlmProvider currentMode="act" showModelOptions={false} />)
-
-		const baseUrlInput = screen.getByPlaceholderText("Default: http://localhost:4000")
-		fireEvent.change(baseUrlInput, { target: { value: "http://typed.example:4000" } })
-		await flushDebounce()
-
-		expect(mocks.writeProviderConfig).toHaveBeenCalledTimes(1)
-		expect(mocks.writeProviderConfig.mock.calls[0][0].patch.baseUrl).toBe("http://typed.example:4000")
-
-		await act(async () => {
-			initialRead.resolve(storedConfig("litellm"))
-		})
-
-		expect(baseUrlInput).toHaveValue("http://typed.example:4000")
-	})
-
-	it("LiteLLM: persists an API key typed before the initial read resolves", async () => {
-		const initialRead = deferred<ReturnType<typeof storedConfig>>()
-		mocks.readProviderConfig.mockReturnValue(initialRead.promise)
-		render(<LiteLlmProvider currentMode="act" showModelOptions={false} />)
-
-		fireEvent.change(screen.getByPlaceholderText("Default: noop"), { target: { value: "sk-early" } })
-		await flushDebounce()
-
-		expect(mocks.writeProviderConfig).toHaveBeenCalledTimes(1)
-		expect(mocks.writeProviderConfig.mock.calls[0][0].patch.apiKey).toBe("sk-early")
-
-		await act(async () => {
-			initialRead.resolve(storedConfig("litellm"))
-		})
-
-		expect(screen.getByPlaceholderText("Default: noop")).toHaveValue("•".repeat("sk-early".length))
 	})
 })

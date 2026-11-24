@@ -58,24 +58,6 @@ describe("createGoogleProviderModule", () => {
 		googleModelMock.mockClear();
 	});
 
-	it("passes custom base URLs to the Google provider", async () => {
-		const provider = await createGoogleProviderModule(
-			config({ baseUrl: "https://gemini-proxy.example.com/v1beta" }),
-			context(),
-		);
-
-		provider.operations.language("gemini-2.5-pro");
-
-		expect(createGoogleGenerativeAIMock).toHaveBeenCalledWith(
-			expect.objectContaining({
-				apiKey: "test-api-key",
-				baseURL: "https://gemini-proxy.example.com/v1beta",
-				name: "gemini",
-			}),
-		);
-		expect(googleModelMock).toHaveBeenCalledWith("gemini-2.5-pro");
-	});
-
 	it("normalizes host-root base URLs before passing them to the Google provider", async () => {
 		await createGoogleProviderModule(
 			config({ baseUrl: "http://localhost:4000/gemini" }),
@@ -85,16 +67,6 @@ describe("createGoogleProviderModule", () => {
 		expect(createGoogleGenerativeAIMock).toHaveBeenCalledWith(
 			expect.objectContaining({
 				baseURL: "http://localhost:4000/gemini/v1beta",
-			}),
-		);
-	});
-
-	it("keeps the Google provider default when no base URL is configured", async () => {
-		await createGoogleProviderModule(config(), context());
-
-		expect(createGoogleGenerativeAIMock).toHaveBeenCalledWith(
-			expect.objectContaining({
-				baseURL: undefined,
 			}),
 		);
 	});

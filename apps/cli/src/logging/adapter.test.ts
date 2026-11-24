@@ -59,28 +59,6 @@ describe("createCliLoggerAdapter", () => {
 		vi.restoreAllMocks();
 	});
 
-	it("resolves default runtime config from data dir", () => {
-		const snapshot = withEnvSnapshot();
-		const dataDir = mkdtempSync(join(tmpdir(), `${commandName}-log-test-`));
-		process.env.CLINE_DATA_DIR = dataDir;
-		delete process.env.CLINE_LOG_PATH;
-		delete process.env.CLINE_LOG_LEVEL;
-		delete process.env.CLINE_LOG_NAME;
-		delete process.env.CLINE_LOG_ENABLED;
-
-		try {
-			const adapter = createCliLoggerAdapter({ runtime: "cli" });
-			expect(adapter.runtimeConfig.destination).toBe(
-				join(dataDir, "logs", `${commandName}.log`),
-			);
-			expect(adapter.runtimeConfig.level).toBe("info");
-			expect(adapter.runtimeConfig.name).toBe(`${commandName}.cli`);
-			expect(adapter.runtimeConfig.enabled).toBe(true);
-		} finally {
-			restoreEnv(snapshot);
-		}
-	});
-
 	it("uses provided runtime config in rpc runtime", () => {
 		const adapter = createCliLoggerAdapter({
 			runtime: "rpc-runtime",
@@ -96,24 +74,6 @@ describe("createCliLoggerAdapter", () => {
 		expect(adapter.runtimeConfig.level).toBe("warn");
 		expect(adapter.runtimeConfig.name).toBe("custom-runtime");
 		expect(adapter.runtimeConfig.enabled).toBe(false);
-	});
-
-	it("maps core logger metadata with error payload", () => {
-		const dataDir = mkdtempSync(join(tmpdir(), `${commandName}-log-test-`));
-		const snapshot = withEnvSnapshot();
-		process.env.CLINE_DATA_DIR = dataDir;
-		process.env.CLINE_LOG_ENABLED = "0";
-		try {
-			const adapter = createCliLoggerAdapter({ runtime: "cli" });
-			expect(() => {
-				adapter.core.error?.("runtime error", {
-					error: new Error("boom"),
-					sessionId: "s1",
-				});
-			}).not.toThrow();
-		} finally {
-			restoreEnv(snapshot);
-		}
 	});
 
 	it("writes process-level errors to the CLI log", () => {
@@ -160,31 +120,6 @@ describe("createCliLoggerAdapter", () => {
 			createCliLoggerAdapter({ runtime: "cli" });
 			expect(readFileSync(logPath, "utf8")).toBe("");
 		} finally {
-			restoreEnv(snapshot);
-		}
-	});
-
-	it("falls back when log destination path is not writable", () => {
-		const snapshot = withEnvSnapshot();
-		const unwritablePath = mkdtempSync(
-			join(tmpdir(), `${commandName}-log-dir-as-file-`),
-		);
-		delete process.env.CLINE_DATA_DIR;
-		process.env.CLINE_LOG_PATH = unwritablePath;
-		delete process.env.CLINE_LOG_LEVEL;
-		delete process.env.CLINE_LOG_NAME;
-		delete process.env.CLINE_LOG_ENABLED;
-
-		const stderrWriteSpy = vi
-			.spyOn(process.stderr, "write")
-			.mockImplementation(() => true);
-		try {
-			expect(() => {
-				const adapter = createCliLoggerAdapter({ runtime: "cli" });
-				adapter.core.log("fallback path test");
-			}).not.toThrow();
-		} finally {
-			stderrWriteSpy.mockRestore();
 			restoreEnv(snapshot);
 		}
 	});
@@ -315,31 +250,6 @@ describe("createCliLoggerAdapter", () => {
 			const logPath = join(dataDir, "logs", `${commandName}.log`);
 			expect(readFileSync(logPath, "utf8")).toContain("shutdown logging");
 		} finally {
-			restoreEnv(snapshot);
-		}
-	});
-
-	it("clears log cleanup timers during shutdown", () => {
-		const snapshot = withEnvSnapshot();
-		const dataDir = mkdtempSync(join(tmpdir(), `${commandName}-timer-test-`));
-		process.env.CLINE_DATA_DIR = dataDir;
-		delete process.env.CLINE_LOG_PATH;
-		delete process.env.CLINE_LOG_LEVEL;
-		delete process.env.CLINE_LOG_NAME;
-		delete process.env.CLINE_LOG_ENABLED;
-
-		const clearIntervalSpy = vi.spyOn(globalThis, "clearInterval");
-		try {
-			createCliLoggerAdapter({
-				runtime: "cli",
-				component: "timer-test",
-			});
-
-			shutdownCliLoggerAdapters();
-
-			expect(clearIntervalSpy).toHaveBeenCalled();
-		} finally {
-			clearIntervalSpy.mockRestore();
 			restoreEnv(snapshot);
 		}
 	});

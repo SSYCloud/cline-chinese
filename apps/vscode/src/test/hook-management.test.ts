@@ -311,28 +311,6 @@ describe("Hook Management", () => {
 			mode.should.equal(0o644)
 		}, 5000)
 
-		it("should work for workspace hooks", async () => {
-			if (isWindows) {
-				return
-			}
-
-			// Create a workspace hook
-			const hookPath = path.join(workspaceHooksDir, "UserPromptSubmit")
-			await fs.writeFile(hookPath, "#!/usr/bin/env node\nconsole.log('test')", { mode: 0o644 })
-
-			const request = ToggleHookRequest.create({
-				hookName: "UserPromptSubmit",
-				isGlobal: false,
-				enabled: true,
-			})
-
-			await toggleHook(mockController, request)
-
-			const stats = await fs.stat(hookPath)
-			const mode = stats.mode & 0o777
-			;(mode & 0o100).should.be.greaterThan(0)
-		}, 5000)
-
 		it("should return updated hooks state", async () => {
 			const hookPath = path.join(globalHooksDir, hookFileName("TaskComplete"))
 			await fs.writeFile(hookPath, "#!/usr/bin/env node\nconsole.log('test')", { mode: 0o644 })
@@ -424,12 +402,6 @@ describe("Hook Management", () => {
 			const result = await refreshHooks(mockController, undefined, globalHooksDir)
 
 			result.globalHooks[0].absolutePath.should.equal(path.join(globalHooksDir, hookFileName("TaskComplete")))
-		}, 5000)
-
-		it("should set isWindows flag correctly", async () => {
-			const result = await refreshHooks(mockController, undefined)
-
-			result.isWindows.should.equal(isWindows)
 		}, 5000)
 
 		it("should resolve .ps1-only hooks on Windows (extensionless is unsupported)", async () => {

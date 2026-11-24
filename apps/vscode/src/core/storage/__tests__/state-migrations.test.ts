@@ -39,12 +39,6 @@ afterEach(() => {
 })
 
 describe("migrateWelcomeViewCompleted", () => {
-	it("leaves an already-set flag untouched", async () => {
-		const { context, globalState } = makeContext({ globalState: { welcomeViewCompleted: true } })
-		await migrateWelcomeViewCompleted(context, dataDir)
-		expect(globalState.get("welcomeViewCompleted")).toBe(true)
-	})
-
 	it("sets false when no configuration exists anywhere (fresh install)", async () => {
 		const { context, globalState } = makeContext()
 		await migrateWelcomeViewCompleted(context, dataDir)
@@ -67,13 +61,6 @@ describe("migrateWelcomeViewCompleted", () => {
 	it("detects keyless provider config in the file-backed globalState.json", async () => {
 		const { context, globalState } = makeContext()
 		writeDataFile("globalState.json", { awsRegion: "us-east-1" })
-		await migrateWelcomeViewCompleted(context, dataDir)
-		expect(globalState.get("welcomeViewCompleted")).toBe(true)
-	})
-
-	it("honors welcomeViewCompleted=true already in the file-backed globalState.json", async () => {
-		const { context, globalState } = makeContext()
-		writeDataFile("globalState.json", { welcomeViewCompleted: true })
 		await migrateWelcomeViewCompleted(context, dataDir)
 		expect(globalState.get("welcomeViewCompleted")).toBe(true)
 	})

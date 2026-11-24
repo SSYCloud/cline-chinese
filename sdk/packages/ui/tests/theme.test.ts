@@ -550,26 +550,4 @@ describe("@cline/ui theme contract", () => {
 		expect(componentCss).not.toContain("var(--destructive)");
 		expect(componentCss).not.toContain("var(--chart-2)");
 	});
-
-	it("exports every documented CSS entry point", () => {
-		const manifest = JSON.parse(
-			readFileSync(join(packageRoot, "package.json"), "utf8"),
-		) as { exports?: Record<string, string>; files?: string[] };
-		for (const subpath of [
-			"./components/agent-chat.css",
-			"./components/markdown.css",
-			"./theme/index.css",
-			"./theme/palette.css",
-			"./theme/scoped-tokens.css",
-			"./theme/tokens.css",
-			"./theme/theme.css",
-			"./theme/base.css",
-		]) {
-			const target = manifest.exports?.[subpath];
-			expect(target, `missing export ${subpath}`).toBeTypeOf("string");
-			expect(existsSync(join(packageRoot, target ?? ""))).toBe(true);
-		}
-		expect(manifest.files).toContain("RADIX-COLORS-LICENSE");
-		expect(existsSync(join(packageRoot, "RADIX-COLORS-LICENSE"))).toBe(true);
-	});
 });

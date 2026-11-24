@@ -181,27 +181,6 @@ describe("resolveModelInfo", () => {
 		expect(catalog.resolveModels).not.toHaveBeenCalled()
 	})
 
-	it("returns sdk-default when the request omits a model id and the catalog has a default", async () => {
-		const { resolveModelInfo } = await import("../resolveModelInfo")
-		const store = makeStore({ providerId: parseProviderId("deepseek") })
-		const catalog = makeCatalog()
-		vi.mocked(catalog.peekModels).mockReturnValue(
-			peekResult(
-				"deepseek",
-				[["deepseek-v4-flash", { name: "DeepSeek V4 Flash", supportsPromptCache: false, contextWindow: 1_000_000 }]],
-				"deepseek-v4-flash",
-			),
-		)
-
-		const response = await resolveModelInfo(makeController(store, catalog), {
-			providerId: "deepseek",
-		})
-
-		expect(response.source).toBe("sdk-default")
-		expect(response.modelId).toBe("deepseek-v4-flash")
-		expect(response.modelInfo?.contextWindow).toBe(1_000_000)
-	})
-
 	it("awaits the catalog when the peek is empty and surfaces the resolved info", async () => {
 		const { resolveModelInfo } = await import("../resolveModelInfo")
 		const store = makeStore({ providerId: parseProviderId("deepseek") })

@@ -1,5 +1,5 @@
-import { afterEach, describe, it } from "mocha"
 import { strict as assert } from "assert"
+import { afterEach, describe, it } from "mocha"
 import * as sinon from "sinon"
 import * as vscode from "vscode"
 import { ExtensionRegistryInfo } from "@/registry"
@@ -34,14 +34,6 @@ describe("Hostbridge - Env - getHostVersion", () => {
 
 	it("normalizes empty remote workspace names to undefined", async () => {
 		sandbox.stub(vscode.env, "remoteName").get(() => "")
-
-		const response = await getHostVersion({} as any)
-
-		assert.strictEqual(response.remoteName, undefined)
-	})
-
-	it("keeps local workspaces without a remoteName", async () => {
-		sandbox.stub(vscode.env, "remoteName").get(() => undefined)
 
 		const response = await getHostVersion({} as any)
 

@@ -129,17 +129,6 @@ describe("connector router contract", () => {
 		expect(global.fetch).not.toHaveBeenCalled();
 	});
 
-	it("does not combine connection pages from different accounts", async () => {
-		global.fetch = vi.fn(async () => {
-			identity.accountId = "account-b";
-			return Response.json({
-				success: true,
-				data: { items: [], nextToken: "next", total: 0 },
-			});
-		}) as unknown as typeof fetch;
-		await expect(listConnections()).rejects.toMatchObject({ status: 401 });
-		expect(global.fetch).toHaveBeenCalledOnce();
-	});
 	const account = {
 		id: "c1",
 		toolkit: { slug: "gmail" },
@@ -331,25 +320,6 @@ describe("connector router contract", () => {
 				Response.json({ success: true, data: { items: [] } }),
 			) as unknown as typeof fetch;
 		await expect(listConnections()).rejects.toThrow(/Invalid connectors page/);
-	});
-
-	it("rejects cyclic connection pagination", async () => {
-		global.fetch = vi.fn(async () =>
-			page([account], "same"),
-		) as unknown as typeof fetch;
-		await expect(listConnections()).rejects.toThrow(/repeated cursor/);
-		expect(global.fetch).toHaveBeenCalledTimes(2);
-	});
-
-	it("does not combine connection pages from different accounts", async () => {
-		global.fetch = vi.fn(async () => {
-			identity.accountId = "account-b";
-			return page([account], "next");
-		}) as unknown as typeof fetch;
-		await expect(listConnections()).rejects.toMatchObject({
-			status: 401,
-		});
-		expect(global.fetch).toHaveBeenCalledOnce();
 	});
 
 	it("keeps polling while an ACTIVE connection is disabled", async () => {

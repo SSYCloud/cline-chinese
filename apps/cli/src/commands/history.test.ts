@@ -49,61 +49,6 @@ function createHistoryRow(
 }
 
 describe("formatHistoryListLine", () => {
-	it("includes checkpoint metadata when present", () => {
-		const line = formatHistoryListLine(
-			createHistoryRow({
-				metadata: {
-					title: "hello world",
-					totalCost: 0.25,
-					checkpoint: {
-						latest: {
-							ref: "abc123",
-							createdAt: 1767196800000,
-							runCount: 3,
-						},
-						history: [
-							{ ref: "a", createdAt: 1, runCount: 1 },
-							{ ref: "b", createdAt: 2, runCount: 2 },
-							{ ref: "c", createdAt: 3, runCount: 3 },
-						],
-					},
-				},
-			}),
-		);
-
-		expect(line).toContain(
-			"12/31/2025 16:00 mock-provider:mock-model [completed] | $0.25 | hello world",
-		);
-	});
-
-	it("formats a compact checkpoint badge summary in the line", () => {
-		const line = formatHistoryListLine(
-			createHistoryRow({
-				metadata: {
-					title: "hello world",
-					totalCost: 0.25,
-					checkpoint: {
-						latest: {
-							ref: "abc123",
-							createdAt: 1767196800000,
-							runCount: 3,
-						},
-						history: [
-							{ ref: "a", createdAt: 1, runCount: 1 },
-							{ ref: "b", createdAt: 2, runCount: 2 },
-							{ ref: "c", createdAt: 3, runCount: 3 },
-						],
-					},
-				},
-			}),
-		);
-
-		expect(line).toContain(
-			"12/31/2025 16:00 mock-provider:mock-model [completed] | $0.25 | hello world",
-		);
-		expect(line).toMatch(/^\d{2}\/\d{2}\/\d{4} \d{2}:\d{2}/);
-	});
-
 	it("formats checkpoint detail text for the selected row footer", () => {
 		const detail = formatCheckpointDetail(
 			createHistoryRow({

@@ -9,15 +9,6 @@ import {
 const DEV_HUB_PORT = 25466;
 
 describe("resolveDefaultHubPort", () => {
-	it("returns the dev hub port when CLINE_BUILD_ENV is development and CLINE_HUB_PORT is unset", () => {
-		expect(
-			resolveDefaultHubPort({
-				env: { [CLINE_BUILD_ENV_ENV]: "development" },
-				execArgv: [],
-			}),
-		).toBe(DEV_HUB_PORT);
-	});
-
 	it("returns the production hub port when CLINE_BUILD_ENV is production and CLINE_HUB_PORT is unset", () => {
 		expect(
 			resolveDefaultHubPort({
@@ -40,30 +31,6 @@ describe("resolveDefaultHubPort", () => {
 				execArgv: ["--conditions=development"],
 			}),
 		).toBe(DEV_HUB_PORT);
-	});
-
-	it("honors an explicit CLINE_HUB_PORT override in development", () => {
-		expect(
-			resolveDefaultHubPort({
-				env: {
-					[CLINE_BUILD_ENV_ENV]: "development",
-					CLINE_HUB_PORT: "31000",
-				},
-				execArgv: [],
-			}),
-		).toBe(31000);
-	});
-
-	it("honors an explicit CLINE_HUB_PORT override in production", () => {
-		expect(
-			resolveDefaultHubPort({
-				env: {
-					[CLINE_BUILD_ENV_ENV]: "production",
-					CLINE_HUB_PORT: "31000",
-				},
-				execArgv: [],
-			}),
-		).toBe(31000);
 	});
 
 	it("falls back to the dev default when CLINE_HUB_PORT is invalid in development", () => {

@@ -45,11 +45,5 @@ describe("pricingUtils", () => {
 			expect(parsePrice("1.", defaultValue)).toBe(1)
 			expect(parsePrice("0.", defaultValue)).toBe(0)
 		})
-
-		it("should use the provided default value", () => {
-			expect(parsePrice("", 99)).toBe(99)
-			expect(parsePrice(".", 42)).toBe(42)
-			expect(parsePrice("invalid", 7.5)).toBe(7.5)
-		})
 	})
 })

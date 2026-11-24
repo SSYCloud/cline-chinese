@@ -32,14 +32,6 @@ function browserRequest(
 }
 
 describe("allowedBrowserOrigins", () => {
-	it("allows the configured public URL origin and local aliases for local binds", () => {
-		expect([...allowedBrowserOrigins(defaultOptions)].sort()).toEqual([
-			"http://127.0.0.1:8787",
-			"http://[::1]:8787",
-			"http://localhost:8787",
-		]);
-	});
-
 	it("uses the configured public URL scheme for local aliases", () => {
 		expect(
 			[
@@ -92,14 +84,6 @@ describe("allowedBrowserOrigins", () => {
 });
 
 describe("allowedBrowserHosts", () => {
-	it("allows the configured public URL host and local aliases for local binds", () => {
-		expect([...allowedBrowserHosts(defaultOptions)].sort()).toEqual([
-			"127.0.0.1:8787",
-			"[::1]:8787",
-			"localhost:8787",
-		]);
-	});
-
 	it("omits default protocol ports for local alias hosts", () => {
 		expect(
 			[

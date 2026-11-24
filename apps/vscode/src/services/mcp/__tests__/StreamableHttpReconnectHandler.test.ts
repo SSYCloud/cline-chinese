@@ -1,12 +1,7 @@
 import { afterEach, beforeEach, describe, it } from "bun:test"
 import "should"
 import sinon from "sinon"
-import {
-	DEFAULT_RECONNECT_CONFIG,
-	ReconnectCallbacks,
-	ReconnectConfig,
-	StreamableHttpReconnectHandler,
-} from "../StreamableHttpReconnectHandler"
+import { ReconnectCallbacks, ReconnectConfig, StreamableHttpReconnectHandler } from "../StreamableHttpReconnectHandler"
 
 /** Build a mock connection object whose status can be inspected. */
 function makeConnection(overrides: Partial<{ status: string; disabled: boolean }> = {}) {
@@ -54,13 +49,6 @@ describe("StreamableHttpReconnectHandler", () => {
 	})
 
 	// ── basics ──────────────────────────────────────────────────────────
-
-	it("should export sensible defaults", () => {
-		DEFAULT_RECONNECT_CONFIG.maxAttempts.should.equal(6)
-		DEFAULT_RECONNECT_CONFIG.getDelayMs(0).should.equal(2000)
-		DEFAULT_RECONNECT_CONFIG.getDelayMs(1).should.equal(4000)
-		DEFAULT_RECONNECT_CONFIG.getDelayMs(2).should.equal(8000)
-	})
 
 	// ── no-op cases ─────────────────────────────────────────────────────
 

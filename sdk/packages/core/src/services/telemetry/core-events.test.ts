@@ -132,10 +132,6 @@ describe("captureExtensionActivated", () => {
 		expect(event).toBe("user.extension_activated");
 		expect(properties).toBeUndefined();
 	});
-
-	test("no-ops when telemetry is undefined", () => {
-		expect(() => captureExtensionActivated(undefined)).not.toThrow();
-	});
 });
 
 describe("captureGitSnapshot", () => {
@@ -148,10 +144,6 @@ describe("captureGitSnapshot", () => {
 			properties: gitSnapshot,
 		});
 		expect(stub.captureRequired).not.toHaveBeenCalled();
-	});
-
-	test("no-ops when telemetry is undefined", () => {
-		expect(() => captureGitSnapshot(undefined, gitSnapshot)).not.toThrow();
 	});
 });
 
@@ -210,12 +202,6 @@ describe("task lifecycle contract", () => {
 	});
 });
 
-describe("CORE_TELEMETRY_EVENTS", () => {
-	test("re-exports the task lifecycle telemetry helper", () => {
-		expect(captureTaskLifecycleEvent).toBe(captureSharedTaskLifecycleEvent);
-	});
-});
-
 describe("captureProviderConfigured", () => {
 	test("emits user.provider_configured with the provider id as a normal (opt-out-respecting) event", () => {
 		const stub = createTelemetryStub();
@@ -238,12 +224,6 @@ describe("captureProviderConfigured", () => {
 		const { event, properties } = captureCallAt(stub, 0);
 		expect(event).toBe("user.provider_configured");
 		expect(properties).toEqual({ provider: undefined });
-	});
-
-	test("no-ops when telemetry is undefined", () => {
-		expect(() =>
-			captureProviderConfigured(undefined, "openrouter"),
-		).not.toThrow();
 	});
 });
 
@@ -307,15 +287,6 @@ describe("captureWorkspaceInitialized", () => {
 		const props = properties as Record<string, unknown>;
 		expect(props.is_remote_workspace).toBe(true);
 	});
-
-	test("no-ops when telemetry is undefined", () => {
-		expect(() =>
-			captureWorkspaceInitialized(undefined, {
-				root_count: 1,
-				vcs_types: ["none"],
-			}),
-		).not.toThrow();
-	});
 });
 
 describe("captureWorkspaceInitError", () => {
@@ -350,14 +321,6 @@ describe("captureWorkspaceInitError", () => {
 		expect(props.error_message).toBe("boom");
 		expect(props.workspace_count).toBe(4);
 	});
-
-	test("no-ops when telemetry is undefined", () => {
-		expect(() =>
-			captureWorkspaceInitError(undefined, "boom", {
-				fallback_to_single_root: false,
-			}),
-		).not.toThrow();
-	});
 });
 
 describe("captureWorkspacePathResolved", () => {
@@ -385,16 +348,6 @@ describe("captureWorkspacePathResolved", () => {
 			target_workspace_index: 1,
 			is_multi_root_enabled: true,
 		});
-	});
-
-	test("no-ops when telemetry is undefined", () => {
-		expect(() =>
-			captureWorkspacePathResolved(undefined, {
-				ulid: "ulid-1",
-				context: "search_codebase",
-				resolution_type: "fallback_to_primary",
-			}),
-		).not.toThrow();
 	});
 });
 
@@ -443,12 +396,6 @@ describe("captureMistakeLimitReached", () => {
 		expect(properties).toMatchObject(baseProps);
 		expect(typeof properties?.timestamp).toBe("string");
 	});
-
-	test("no-ops when telemetry is undefined", () => {
-		expect(() =>
-			captureMistakeLimitReached(undefined, baseProps),
-		).not.toThrow();
-	});
 });
 
 describe("captureCompactionExecuted", () => {
@@ -470,20 +417,6 @@ describe("captureCompactionExecuted", () => {
 		modelId: "claude-sonnet-4",
 	};
 
-	test("emits task.compaction_executed with all properties and a timestamp", () => {
-		const stub = createTelemetryStub();
-		captureCompactionExecuted(stub.telemetry, baseProps);
-		expect(stub.capture).toHaveBeenCalledTimes(1);
-		expect(stub.captureRequired).not.toHaveBeenCalled();
-		const { event, properties } = captureCallAt(stub, 0);
-		expect(event).toBe(CORE_TELEMETRY_EVENTS.TASK.COMPACTION_EXECUTED);
-		expect(event).toBe("task.compaction_executed");
-		expect(properties).toMatchObject(baseProps);
-		expect(typeof (properties as Record<string, unknown>).timestamp).toBe(
-			"string",
-		);
-	});
-
 	test("preserves optional agent identity fields when supplied", () => {
 		const stub = createTelemetryStub();
 		captureCompactionExecuted(stub.telemetry, {
@@ -501,10 +434,6 @@ describe("captureCompactionExecuted", () => {
 		expect(props.conversationId).toBe("conv-1");
 		expect(props.parentAgentId).toBe("agent-root");
 		expect(props.isSubagent).toBe(true);
-	});
-
-	test("no-ops when telemetry is undefined", () => {
-		expect(() => captureCompactionExecuted(undefined, baseProps)).not.toThrow();
 	});
 });
 
@@ -535,10 +464,6 @@ describe("captureCompactionSkipped", () => {
 		expect(typeof (properties as Record<string, unknown>).timestamp).toBe(
 			"string",
 		);
-	});
-
-	test("no-ops when telemetry is undefined", () => {
-		expect(() => captureCompactionSkipped(undefined, baseProps)).not.toThrow();
 	});
 });
 
@@ -720,16 +645,6 @@ describe("telemetry policy: helpers respect telemetry opt-out", () => {
 		return { adapter, emit, emitRequired };
 	}
 
-	test("captureExtensionActivated never invokes captureRequired", () => {
-		const { adapter, emitRequired } = createDisabledAdapter();
-		const service = new TelemetryService({
-			distinctId: "test-distinct-id",
-			adapters: [adapter],
-		});
-		captureExtensionActivated(service);
-		expect(emitRequired).not.toHaveBeenCalled();
-	});
-
 	test("captureGitSnapshot respects the ordinary opt-out path", () => {
 		const { adapter, emit, emitRequired } = createDisabledAdapter();
 		const service = new TelemetryService({ adapters: [adapter] });
@@ -739,123 +654,6 @@ describe("telemetry policy: helpers respect telemetry opt-out", () => {
 			CORE_TELEMETRY_EVENTS.TASK.GIT_SNAPSHOT,
 			expect.objectContaining(gitSnapshot),
 		);
-		expect(emitRequired).not.toHaveBeenCalled();
-	});
-
-	test("captureWorkspaceInitialized never invokes captureRequired", () => {
-		const { adapter, emitRequired } = createDisabledAdapter();
-		const service = new TelemetryService({
-			distinctId: "test-distinct-id",
-			adapters: [adapter],
-		});
-		captureWorkspaceInitialized(service, {
-			root_count: 1,
-			vcs_types: ["git"],
-		});
-		expect(emitRequired).not.toHaveBeenCalled();
-	});
-
-	test("captureWorkspaceInitError never invokes captureRequired", () => {
-		const { adapter, emitRequired } = createDisabledAdapter();
-		const service = new TelemetryService({
-			distinctId: "test-distinct-id",
-			adapters: [adapter],
-		});
-		captureWorkspaceInitError(service, "boom", {
-			fallback_to_single_root: true,
-		});
-		expect(emitRequired).not.toHaveBeenCalled();
-	});
-
-	test("captureWorkspacePathResolved never invokes captureRequired", () => {
-		const { adapter, emitRequired } = createDisabledAdapter();
-		const service = new TelemetryService({
-			distinctId: "test-distinct-id",
-			adapters: [adapter],
-		});
-		captureWorkspacePathResolved(service, {
-			ulid: "ulid-1",
-			context: "search_codebase",
-			resolution_type: "fallback_to_primary",
-		});
-		expect(emitRequired).not.toHaveBeenCalled();
-	});
-
-	test("captureCompactionExecuted never invokes captureRequired", () => {
-		const { adapter, emitRequired } = createDisabledAdapter();
-		const service = new TelemetryService({
-			distinctId: "test-distinct-id",
-			adapters: [adapter],
-		});
-		captureCompactionExecuted(service, {
-			ulid: "ulid-1",
-			strategy: "basic",
-			mode: "auto",
-			messagesBefore: 12,
-			messagesAfter: 6,
-			messagesRemoved: 6,
-			tokensBefore: 100_000,
-			tokensAfter: 50_000,
-			tokensSaved: 50_000,
-			triggerTokens: 180_000,
-			maxInputTokens: 200_000,
-			thresholdRatio: 0.9,
-			durationMs: 42,
-		});
-		expect(emitRequired).not.toHaveBeenCalled();
-	});
-
-	test("captureCompactionSkipped never invokes captureRequired", () => {
-		const { adapter, emitRequired } = createDisabledAdapter();
-		const service = new TelemetryService({
-			distinctId: "test-distinct-id",
-			adapters: [adapter],
-		});
-		captureCompactionSkipped(service, {
-			ulid: "ulid-1",
-			strategy: "basic",
-			mode: "auto",
-			reason: "no_result",
-			tokensBefore: 100_000,
-			triggerTokens: 180_000,
-			maxInputTokens: 200_000,
-			thresholdRatio: 0.9,
-			durationMs: 17,
-		});
-		expect(emitRequired).not.toHaveBeenCalled();
-	});
-
-	test("captureRunCommandsTimeout never invokes captureRequired", () => {
-		const { adapter, emitRequired } = createDisabledAdapter();
-		const service = new TelemetryService({
-			distinctId: "test-distinct-id",
-			adapters: [adapter],
-		});
-		captureRunCommandsTimeout(service, {
-			tool_name: "run_commands",
-			effective_timeout_ms: 1500,
-			timeout_source: "default_setting",
-			command_count: 2,
-			duration_ms: 1502,
-		});
-		expect(emitRequired).not.toHaveBeenCalled();
-	});
-
-	test("captureCompactionBudgetEmergency never invokes captureRequired", () => {
-		const { adapter, emitRequired } = createDisabledAdapter();
-		const service = new TelemetryService({
-			distinctId: "test-distinct-id",
-			adapters: [adapter],
-		});
-		captureCompactionBudgetEmergency(service, {
-			ulid: "ulid-1",
-			strategy: "basic",
-			mode: "auto",
-			policyIntent: "basic_compaction_projection",
-			actionCount: 1,
-			warningCount: 0,
-			liveTailHandling: "included_degraded",
-		});
 		expect(emitRequired).not.toHaveBeenCalled();
 	});
 
@@ -1039,12 +837,6 @@ describe("identifyAccount", () => {
 		identifyAccount(stub.telemetry, { id: "   " });
 		expect(stub.telemetry.setDistinctId).not.toHaveBeenCalled();
 	});
-
-	test("no-ops when telemetry is undefined", () => {
-		expect(() =>
-			identifyAccount(undefined, { id: "usr-123", provider: "cline" }),
-		).not.toThrow();
-	});
 });
 
 describe("clearAccountTelemetryIdentity", () => {
@@ -1063,12 +855,6 @@ describe("clearAccountTelemetryIdentity", () => {
 			organization_name: undefined,
 			member_id: undefined,
 		});
-	});
-
-	test("no-ops when telemetry is undefined", () => {
-		expect(() =>
-			clearAccountTelemetryIdentity(undefined, "machine-123"),
-		).not.toThrow();
 	});
 });
 

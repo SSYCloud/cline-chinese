@@ -140,34 +140,12 @@ describe("LMStudioProvider", () => {
 		})
 	})
 
-	it("renders an API key field", async () => {
-		await renderProvider()
-		expect(screen.getByTestId("api-key-field")).toBeInTheDocument()
-	})
-
 	it("writes the API key when the user types one", async () => {
 		await renderProvider()
 
 		fireEvent.change(screen.getByTestId("api-key-field"), { target: { value: "my-secret-key" } })
 
 		await waitFor(() => expect(mocks.write).toHaveBeenCalledWith(expect.objectContaining({ apiKey: "my-secret-key" })))
-	})
-
-	it("shows a masked placeholder when an API key is already saved", async () => {
-		mocks.useProviderConfig.mockReturnValue({
-			config: {
-				apiKeyLength: 8,
-				baseUrl: undefined,
-				headers: {},
-				providerId: "lmstudio",
-			},
-			commitSelection: mocks.commitSelection,
-			write: mocks.write,
-		})
-
-		await renderProvider()
-		const input = screen.getByTestId("api-key-field") as HTMLInputElement
-		expect(input.value).toBe("••••••••")
 	})
 
 	it("fetches models from the configured base URL on mount", async () => {

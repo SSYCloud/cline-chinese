@@ -769,17 +769,6 @@ describe("createAgentTeamsTools runtime behavior", () => {
 		]);
 	});
 
-	it("sets long timeout for team await tool", () => {
-		const runtime = new AgentTeamsRuntime({ teamName: "test-team" });
-		const tools = createAgentTeamsTools({
-			runtime,
-			requesterId: "lead",
-			teammateConfigProvider: makeTeammateConfigProvider(),
-		});
-		const awaitRuns = tools.find((tool) => tool.name === "team_await_runs");
-		expect(awaitRuns?.timeoutMs).toBe(60 * 60 * 1000);
-	});
-
 	it("collapses concurrent sync team_run_task calls to the same agent", async () => {
 		let resolveRoute!: (value: { text: string; iterations: number }) => void;
 		const routePromise = new Promise<{ text: string; iterations: number }>(

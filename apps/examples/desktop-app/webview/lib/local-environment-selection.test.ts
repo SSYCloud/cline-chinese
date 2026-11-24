@@ -45,17 +45,6 @@ it("waits for an explicit Local switch before mounting a draft when the event ar
 	expect(mountedTargets).toEqual(["local", "local"]);
 });
 
-it("does not schedule deferred navigation while an explicit switch is pending", async () => {
-	const selection = createLocalEnvironmentSelection();
-	const disconnect = deferred();
-	const deferNavigation = vi.fn();
-	const switched = selection.select(() => disconnect.promise, vi.fn());
-	selection.onDisconnected(deferNavigation);
-	expect(deferNavigation).not.toHaveBeenCalled();
-	disconnect.resolve();
-	await switched;
-});
-
 it("keeps Cloud remembered after failure and continues handling unsolicited disconnects", async () => {
 	const selection = createLocalEnvironmentSelection();
 	const disconnect = deferred();

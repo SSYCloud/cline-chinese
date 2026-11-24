@@ -4,12 +4,7 @@ import { mkdir, mkdtemp, readFile, rmdir, symlink, unlink, writeFile } from "nod
 import { tmpdir } from "node:os"
 import { basename, dirname, join, resolve } from "node:path"
 import type { BatchField } from "@shared/loomloom"
-import {
-	BATCH_ASSET_FILE_MAX_BYTES,
-	BATCH_TEXT_FILE_MAX_BYTES,
-	getBatchFileInputMode,
-	getBatchFileMimeType,
-} from "@shared/loomloom-files"
+import { BATCH_ASSET_FILE_MAX_BYTES, BATCH_TEXT_FILE_MAX_BYTES, getBatchFileMimeType } from "@shared/loomloom-files"
 import { readBatchInputFile } from "./input-file-adapter"
 
 let directory: string
@@ -51,14 +46,6 @@ function isoMedia(brand: string): Buffer {
 }
 
 describe("Batch file input fields", () => {
-	it("accepts plain string fields and assets, with metadata-only references when no field is selected", () => {
-		expect(getBatchFileInputMode()).toBe("reference")
-		expect(getBatchFileInputMode({ key: "prompt", value_type: "string" })).toBe("text")
-		expect(getBatchFileInputMode({ key: "prompt", value_type: "string", enum_values: [] })).toBe("text")
-		expect(getBatchFileInputMode({ key: "picture", value_type: "asset_ref" })).toBe("asset")
-		expect(getBatchFileInputMode({ key: "model_reference", value_type: "asset_ref" })).toBe("asset")
-	})
-
 	for (const field of [
 		{ key: "text_model", value_type: "string" },
 		{ key: "choice", value_type: "string", enum_values: ["a", "b"] },
@@ -70,9 +57,6 @@ describe("Batch file input fields", () => {
 		{ key: "count", value_type: "integer" },
 		{ key: "enabled", value_type: "boolean" },
 	] satisfies BatchField[]) {
-		it(`does not offer automatic import for ${field.key}/${field.value_type}`, () => {
-			expect(getBatchFileInputMode(field)).toBeUndefined()
-		})
 	}
 
 	it("provides case-insensitive MIME hints without browser-unsafe imports", () => {

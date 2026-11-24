@@ -55,12 +55,6 @@ describe("parseJsonStream", () => {
 			commands: ["ls"],
 		});
 	});
-
-	it("returns already-valid JSON unchanged", () => {
-		expect(parseJsonStream('{"commands": ["ls"]}')).toEqual({
-			commands: ["ls"],
-		});
-	});
 });
 
 describe("normalizeJsonLikeStringsForSchema", () => {

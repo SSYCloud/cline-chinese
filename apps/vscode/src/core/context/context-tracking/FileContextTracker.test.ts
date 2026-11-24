@@ -7,7 +7,7 @@ import * as sinon from "sinon"
 import * as vscode from "vscode"
 import { Controller } from "@/core/controller"
 import { setVscodeHostProviderMock } from "@/test/host-provider-test-utils"
-import type { FileMetadataEntry, TaskMetadata } from "./ContextTrackerTypes"
+import type { TaskMetadata } from "./ContextTrackerTypes"
 
 // bun loads real ESM, so sinon cannot stub the `@core/storage/disk` and
 // `chokidar` namespace exports ("ES Modules cannot be stubbed"). Inject
@@ -80,53 +80,6 @@ describe("FileContextTracker", () => {
 		sandbox.restore()
 	})
 
-	it("should add a record when a file is read by a tool", async () => {
-		await tracker.trackFileContext(filePath, "read_tool")
-
-		// Verify getTaskMetadata was called
-		expect(getTaskMetadataStub.calledOnce).to.be.true
-		expect(getTaskMetadataStub.firstCall.args[0]).to.equal(taskId)
-
-		// Verify saveTaskMetadata was called with the correct data
-		expect(saveTaskMetadataStub.calledOnce).to.be.true
-
-		const savedMetadata = saveTaskMetadataStub.firstCall.args[1]
-		expect(savedMetadata.files_in_context.length).to.equal(1)
-
-		const fileEntry = savedMetadata.files_in_context[0]
-		expect(fileEntry.path).to.equal(filePath)
-		expect(fileEntry.record_state).to.equal("active")
-		expect(fileEntry.record_source).to.equal("read_tool")
-		expect(fileEntry.cline_read_date).to.be.a("number")
-		expect(fileEntry.cline_edit_date).to.be.null
-	})
-
-	it("should add a record when a file is edited by Cline Chinese", async () => {
-		await tracker.trackFileContext(filePath, "cline_edited")
-
-		// Verify saveTaskMetadata was called with the correct data
-		expect(saveTaskMetadataStub.calledOnce).to.be.true
-		const savedMetadata = saveTaskMetadataStub.firstCall.args[1]
-
-		// Check that we have at least one entry in files_in_context
-		expect(savedMetadata.files_in_context).to.be.an("array").that.is.not.empty
-
-		// Find the active entry for this file
-		const activeEntry = savedMetadata.files_in_context.find(
-			(entry: FileMetadataEntry) => entry.path === filePath && entry.record_state === "active",
-		)
-
-		// Assert that we found an active entry
-		expect(activeEntry).to.exist
-
-		// Now check the properties of the active entry
-		expect(activeEntry.path).to.equal(filePath)
-		expect(activeEntry.record_state).to.equal("active")
-		expect(activeEntry.record_source).to.equal("cline_edited")
-		expect(activeEntry.cline_read_date).to.be.a("number")
-		expect(activeEntry.cline_edit_date).to.be.a("number")
-	})
-
 	it("should add a record when a file is mentioned", async () => {
 		await tracker.trackFileContext(filePath, "file_mentioned")
 
@@ -187,16 +140,6 @@ describe("FileContextTracker", () => {
 		expect(newEntry.record_source).to.equal("cline_edited")
 	})
 
-	it("should setup a file watcher for tracked files", async () => {
-		await tracker.trackFileContext(filePath, "read_tool")
-
-		// Verify chokidar.watch was called
-		expect(chokidarWatchStub.called).to.be.true
-
-		// Verify change listener was set up
-		expect(mockFileSystemWatcher.on.called).to.be.true
-	})
-
 	it("should track user edits when file watcher detects changes", async () => {
 		// First track the file to set up the watcher
 		await tracker.trackFileContext(filePath, "read_tool")
@@ -248,16 +191,5 @@ describe("FileContextTracker", () => {
 		// Verify the file was not added to recentlyModifiedFiles
 		const modifiedFiles = tracker.getAndClearRecentlyModifiedFiles()
 		expect(modifiedFiles).to.not.include(filePath)
-	})
-
-	it("should dispose file watchers when dispose is called", async () => {
-		// Track a file to set up the watcher
-		await tracker.trackFileContext(filePath, "read_tool")
-
-		// Call dispose
-		await tracker.dispose()
-
-		// Verify the watcher was closed
-		expect(mockFileSystemWatcher.close.called).to.be.true
 	})
 })

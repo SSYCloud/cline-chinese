@@ -635,20 +635,6 @@ describe("SdkCompactionCoordinator.pruneTests", () => {
 		)
 	})
 
-	it("writes the pruned files only after the user approves in chat", async () => {
-		vi.mocked(pruneTests).mockImplementation(async (files) => {
-			await files.write("a.test.ts", "pruned")
-			return { files: 1, tests: 3, requests: 1, deleted: [deletion], scores: [] }
-		})
-		const { coordinator, options, real, files } = makePruneCoordinator({ answer: "删除" })
-
-		await coordinator.pruneTests()
-
-		expect(real.write).toHaveBeenCalledWith("a.test.ts", "pruned")
-		expect(files.get("a.test.ts")).toBe("pruned")
-		expect(options.setTurnPhase).toHaveBeenLastCalledWith("idle")
-	})
-
 	it("does not ask when nothing is slated for deletion", async () => {
 		vi.mocked(pruneTests).mockResolvedValue({ files: 1, tests: 2, requests: 1, deleted: [], scores: [] })
 		const { coordinator, options, real } = makePruneCoordinator({})

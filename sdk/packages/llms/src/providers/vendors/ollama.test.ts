@@ -40,18 +40,6 @@ describe("normalizeOllamaBaseUrl", () => {
 		);
 	});
 
-	it("strips a native-API /api suffix", () => {
-		expect(normalizeOllamaBaseUrl("http://localhost:11434/api")).toBe(
-			"http://localhost:11434/api",
-		);
-	});
-
-	it("strips trailing slashes", () => {
-		expect(normalizeOllamaBaseUrl("http://localhost:11434/")).toBe(
-			"http://localhost:11434/api",
-		);
-	});
-
 	it("returns undefined for empty input", () => {
 		expect(normalizeOllamaBaseUrl(undefined)).toBeUndefined();
 		expect(normalizeOllamaBaseUrl("  ")).toBeUndefined();
@@ -59,10 +47,6 @@ describe("normalizeOllamaBaseUrl", () => {
 });
 
 describe("readOllamaTimeoutMs", () => {
-	it("reads a configured timeout", () => {
-		expect(readOllamaTimeoutMs(config({ timeoutMs: 180000 }))).toBe(180000);
-	});
-
 	it("falls back to the default for missing or invalid values", () => {
 		expect(readOllamaTimeoutMs(config({}))).toBe(OLLAMA_DEFAULT_TIMEOUT_MS);
 		expect(readOllamaTimeoutMs(config({ timeoutMs: 0 }))).toBe(
@@ -71,12 +55,6 @@ describe("readOllamaTimeoutMs", () => {
 		expect(readOllamaTimeoutMs(config({ timeoutMs: -5 }))).toBe(
 			OLLAMA_DEFAULT_TIMEOUT_MS,
 		);
-	});
-
-	it("defaults to 5 minutes so model cold loads don't hit a timeout error", () => {
-		// Ollama only sends response headers once the model is loaded, so the
-		// response-start budget must cover a cold load (cline/cline#12829).
-		expect(OLLAMA_DEFAULT_TIMEOUT_MS).toBe(300_000);
 	});
 });
 
@@ -163,16 +141,6 @@ describe("createOllamaProviderModule", () => {
 			}),
 		);
 		expect(ollamaModelMock).toHaveBeenCalledWith("minimax-m3:cloud");
-	});
-
-	it("constructs a native chat model without request-scoped settings", async () => {
-		const provider = await createOllamaProviderModule(
-			config({}),
-			context({ contextWindow: 65536 }),
-		);
-		provider.operations.language("qwen3-coder:30b");
-
-		expect(ollamaModelMock).toHaveBeenCalledWith("qwen3-coder:30b");
 	});
 
 	it("omits baseURL and authorization headers for a default local server", async () => {

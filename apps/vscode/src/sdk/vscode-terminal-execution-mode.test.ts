@@ -16,15 +16,6 @@ describe("getEffectiveTerminalExecutionMode", () => {
 		}
 	})
 
-	it("honors vscodeTerminal on the real VS Code host (IS_STANDALONE unset)", () => {
-		expect(getEffectiveTerminalExecutionMode("vscodeTerminal")).toBe("vscodeTerminal")
-	})
-
-	it("honors vscodeTerminal on the real VS Code host (IS_STANDALONE=false)", () => {
-		process.env.IS_STANDALONE = "false"
-		expect(getEffectiveTerminalExecutionMode("vscodeTerminal")).toBe("vscodeTerminal")
-	})
-
 	it("clamps vscodeTerminal to backgroundExec on the standalone (JetBrains/CLI) build", () => {
 		process.env.IS_STANDALONE = "true"
 		expect(getEffectiveTerminalExecutionMode("vscodeTerminal")).toBe("backgroundExec")

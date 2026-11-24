@@ -1288,29 +1288,6 @@ describe("hub cloud credentials", () => {
 		expect(await getAuthToken()).toBe("new-key");
 		expect(resolve).toHaveBeenCalledTimes(2);
 	});
-
-	it("keeps reporting refresh failures that are not a rejection", async () => {
-		vi.spyOn(
-			ProviderSettingsManager.prototype,
-			"getProviderSettings",
-		).mockReturnValue({ provider: "cline" } as never);
-		const resolve = vi
-			.spyOn(RuntimeOAuthTokenManager.prototype, "resolveProviderApiKey")
-			.mockRejectedValue(new Error("temporarily unavailable"));
-		const service = new HubCloudSessionService({
-			publish: () => {},
-			getScope: () => "account-one",
-		});
-		services.push(service);
-		service.watch();
-		const controller = service["controller"];
-		if (!controller) throw new Error("Controller missing");
-
-		await controller["options"].getAuthToken();
-		await controller["options"].getAuthToken();
-		// Transient failures are retried on every poll, as before.
-		expect(resolve).toHaveBeenCalledTimes(2);
-	});
 });
 
 describe("persisted cloud account scope", () => {

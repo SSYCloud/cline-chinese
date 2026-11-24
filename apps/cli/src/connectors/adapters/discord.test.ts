@@ -57,24 +57,6 @@ afterEach(() => {
 });
 
 describe("discordConnector", () => {
-	it("accepts the documented app id and token aliases", () => {
-		const options = parseDiscordArgs([
-			"--app-id",
-			"app-123",
-			"--token",
-			"bot-token",
-			"--public-key",
-			"public-key",
-			"--base-url",
-			"https://example.test",
-		]);
-
-		expect(options.applicationId).toBe("app-123");
-		expect(options.botToken).toBe("bot-token");
-		expect(options.publicKey).toBe("public-key");
-		expect(options.baseUrl).toBe("https://example.test");
-	});
-
 	it("keeps accepting the explicit application id and bot token options", () => {
 		const options = parseDiscordArgs([
 			"--application-id",

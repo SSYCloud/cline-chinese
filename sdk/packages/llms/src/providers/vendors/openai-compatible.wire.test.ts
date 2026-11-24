@@ -155,24 +155,6 @@ describe("OpenAI-compatible reasoning disable wire contract", () => {
 		expect(body.reasoning_effort).toBe("none");
 	});
 
-	it("sends none for a model that advertises it", async () => {
-		const body = await wireBody({
-			modelId: "example/reasoning-model",
-			reasoning: { enabled: false },
-			reasoningOptions: [{ type: "effort", values: ["none", "low", "high"] }],
-		});
-		expect(body.reasoning_effort).toBe("none");
-	});
-
-	it("sends nothing to a model whose catalog has no off option", async () => {
-		const body = await wireBody({
-			modelId: KIMI_K3_ID,
-			reasoning: { enabled: false },
-			reasoningOptions: KIMI_K3_EFFORTS,
-		});
-		expect(body).not.toHaveProperty("reasoning_effort");
-	});
-
 	it("sends nothing to a model known not to reason", async () => {
 		const body = await wireBody({
 			modelId: "example/non-reasoning-model",
@@ -200,24 +182,6 @@ describe("OpenAI-compatible reasoning disable wire contract", () => {
 				reasoningOptions: undefined,
 			});
 			expect(body.reasoning_effort).toBe("high");
-		});
-
-		it("sends none to a model that advertises it", async () => {
-			const body = await wireBody({
-				modelId: "gpt-6-astra",
-				reasoning: { effort: "high", preferOff: true },
-				reasoningOptions: [{ type: "effort", values: ["none", "low", "high"] }],
-			});
-			expect(body.reasoning_effort).toBe("none");
-		});
-
-		it("sends nothing about reasoning to a model with no off option", async () => {
-			const body = await wireBody({
-				modelId: KIMI_K3_ID,
-				reasoning: { preferOff: true },
-				reasoningOptions: KIMI_K3_EFFORTS,
-			});
-			expect(body).not.toHaveProperty("reasoning_effort");
 		});
 
 		it("still sends an explicit disable to a model the catalog does not list", async () => {

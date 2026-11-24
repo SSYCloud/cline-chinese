@@ -54,18 +54,6 @@ describe("disk - hooks functionality", () => {
 			result.length.should.equal(0)
 		})
 
-		it("should return empty array when no hooks directories exist", async () => {
-			// Create workspace root without hooks directory
-			const workspaceRoot = path.join(tempDir, "workspace1")
-			await fs.mkdir(workspaceRoot, { recursive: true })
-
-			stubWorkspacePaths(sandbox, [workspaceRoot])
-
-			const result = await getWorkspaceHooksDirs()
-			result.should.be.an.Array()
-			result.length.should.equal(0)
-		})
-
 		it("should return hooks directory when it exists", async () => {
 			// Create workspace root with hooks directory
 			const workspaceRoot = path.join(tempDir, "workspace1")

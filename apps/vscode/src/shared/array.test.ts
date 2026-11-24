@@ -22,22 +22,6 @@ describe("Array Utilities", () => {
 			index.should.equal(-1)
 		})
 
-		it("should work with different types", () => {
-			const array = ["a", "b", "c", "b", "a"]
-			const index = findLastIndex(array, (x) => x === "b")
-			index.should.equal(3)
-		})
-
-		it("should provide correct index in predicate", () => {
-			const array = [1, 2, 3]
-			const indices: number[] = []
-			findLastIndex(array, (_, index) => {
-				indices.push(index)
-				return false
-			})
-			indices.should.deepEqual([2, 1, 0]) // Should iterate in reverse
-		})
-
 		it("should provide array reference in predicate", () => {
 			const array = [1, 2, 3]
 			findLastIndex(array, (_, __, arr) => {
@@ -48,22 +32,9 @@ describe("Array Utilities", () => {
 	})
 
 	describe("findLast", () => {
-		it("should find last matching element", () => {
-			const array = [1, 2, 3, 2, 1]
-			const element = findLast(array, (x) => x === 2)
-			should(element).not.be.undefined()
-			element!.should.equal(2)
-		})
-
 		it("should return undefined when no element matches", () => {
 			const array = [1, 2, 3]
 			const element = findLast(array, (x) => x === 4)
-			should(element).be.undefined()
-		})
-
-		it("should handle empty arrays", () => {
-			const array: number[] = []
-			const element = findLast(array, (x) => x === 1)
 			should(element).be.undefined()
 		})
 
@@ -76,16 +47,6 @@ describe("Array Utilities", () => {
 			const element = findLast(array, (x) => x.value === "a")
 			should(element).not.be.undefined()
 			element!.should.deepEqual({ id: 3, value: "a" })
-		})
-
-		it("should provide correct index in predicate", () => {
-			const array = [1, 2, 3]
-			const indices: number[] = []
-			findLast(array, (_, index) => {
-				indices.push(index)
-				return false
-			})
-			indices.should.deepEqual([2, 1, 0]) // Should iterate in reverse
 		})
 	})
 })

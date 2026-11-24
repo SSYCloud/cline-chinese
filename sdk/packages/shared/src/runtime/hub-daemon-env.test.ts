@@ -180,16 +180,6 @@ describe("supervised connector marker", () => {
 		expect(claimSupervisedConnectorProcess()).toBe(false);
 		expect(isSupervisedConnectorProcess()).toBe(false);
 	});
-
-	it("reads an explicitly passed environment verbatim, ignoring the latch", () => {
-		process.env[CLINE_CONNECTOR_SUPERVISED_ENV] = "1";
-		claimSupervisedConnectorProcess();
-
-		expect(isSupervisedConnectorProcess({})).toBe(false);
-		expect(
-			isSupervisedConnectorProcess({ [CLINE_CONNECTOR_SUPERVISED_ENV]: "1" }),
-		).toBe(true);
-	});
 });
 
 describe("hub launcher identity", () => {

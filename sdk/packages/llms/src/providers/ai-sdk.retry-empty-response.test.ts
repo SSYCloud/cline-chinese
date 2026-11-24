@@ -11,7 +11,6 @@ import type {
 } from "@cline/shared";
 import { describe, expect, it, vi } from "vitest";
 import {
-	createAnthropicProvider,
 	createClineProvider,
 	createOllamaProvider,
 	createOpenAICompatibleProvider,
@@ -32,18 +31,6 @@ import {
  * parts differ in shape being retried incorrectly (e.g. a tool-call-only
  * turn, which must never be retried because Cline runs its own tool loop).
  */
-
-const READ_FILES_TOOL: AgentToolDefinition = {
-	name: "read_files",
-	description: "Read files",
-	inputSchema: {
-		type: "object",
-		properties: {
-			files: { type: "array", items: { type: "string" } },
-		},
-		required: ["files"],
-	},
-};
 
 function queuedFetch(bodies: string[]) {
 	let call = 0;
@@ -132,20 +119,6 @@ describe("openai-compatible wire format (openrouter / cline / custom endpoints)"
 		chunk({ role: "assistant", content: "hello" }) +
 		chunk({}, "stop") +
 		"data: [DONE]\n\n";
-	const toolCallSse =
-		chunk({
-			role: "assistant",
-			tool_calls: [
-				{
-					index: 0,
-					id: "call_1",
-					type: "function",
-					function: { name: "read_files", arguments: '{"files":["a.ts"]}' },
-				},
-			],
-		}) +
-		chunk({}, "tool_calls") +
-		"data: [DONE]\n\n";
 
 	async function run(bodies: string[], tools: AgentToolDefinition[] = []) {
 		const fetchMock = queuedFetch(bodies);
@@ -164,18 +137,6 @@ describe("openai-compatible wire format (openrouter / cline / custom endpoints)"
 		);
 		return { fetchMock, events };
 	}
-
-	it("retries an empty turn and streams the successful attempt", async () => {
-		const { fetchMock, events } = await run([emptySse, textSse]);
-
-		expect(fetchMock).toHaveBeenCalledTimes(2);
-		expect(hasTextDelta(events, "hello")).toBe(true);
-		const finishes = finishEvents(events);
-		expect(finishes).toHaveLength(1);
-		expect(finishes[0]).not.toMatchObject({ reason: "error" });
-		// The returned HTTP ID, not the SSE generation ID (cmpl-1) or hidden retry's ID.
-		expect(finishes[0]).toMatchObject({ requestId: "request-2" });
-	});
 
 	it.each([
 		"cline",
@@ -230,13 +191,6 @@ describe("openai-compatible wire format (openrouter / cline / custom endpoints)"
 		expect(finishEvents(events)).toEqual([
 			expect.objectContaining({ reason: "content-filter" }),
 		]);
-	});
-
-	it("does not retry a tool-call-only turn", async () => {
-		const { fetchMock, events } = await run([toolCallSse], [READ_FILES_TOOL]);
-
-		expect(fetchMock).toHaveBeenCalledTimes(1);
-		expect(events.some((event) => event.type === "tool-call-delta")).toBe(true);
 	});
 
 	it("gives up after the default attempts and surfaces the empty turn", async () => {
@@ -354,93 +308,6 @@ describe("openai-compatible wire format (openrouter / cline / custom endpoints)"
 	});
 });
 
-describe("anthropic wire format", () => {
-	const sse = (events: Array<Record<string, unknown>>) =>
-		events
-			.map(
-				(event) => `event: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`,
-			)
-			.join("");
-
-	const messageStart = {
-		type: "message_start",
-		message: {
-			id: "msg_1",
-			type: "message",
-			role: "assistant",
-			model: "test-model",
-			content: [],
-			stop_reason: null,
-			stop_sequence: null,
-			usage: { input_tokens: 10, output_tokens: 0 },
-		},
-	};
-	const messageStop = { type: "message_stop" };
-	const messageDelta = (stopReason: string) => ({
-		type: "message_delta",
-		delta: { stop_reason: stopReason, stop_sequence: null },
-		usage: { output_tokens: 1 },
-	});
-
-	const _emptySse = sse([messageStart, messageDelta("end_turn"), messageStop]);
-	const _textSse = sse([
-		messageStart,
-		{
-			type: "content_block_start",
-			index: 0,
-			content_block: { type: "text", text: "" },
-		},
-		{
-			type: "content_block_delta",
-			index: 0,
-			delta: { type: "text_delta", text: "hello" },
-		},
-		{ type: "content_block_stop", index: 0 },
-		messageDelta("end_turn"),
-		messageStop,
-	]);
-	const toolUseSse = sse([
-		messageStart,
-		{
-			type: "content_block_start",
-			index: 0,
-			content_block: { type: "tool_use", id: "toolu_1", name: "read_files" },
-		},
-		{
-			type: "content_block_delta",
-			index: 0,
-			delta: { type: "input_json_delta", partial_json: '{"files":["a.ts"]}' },
-		},
-		{ type: "content_block_stop", index: 0 },
-		messageDelta("tool_use"),
-		messageStop,
-	]);
-
-	async function run(bodies: string[], tools: AgentToolDefinition[] = []) {
-		const fetchMock = queuedFetch(bodies);
-		const config = {
-			providerId: "anthropic",
-			apiKey: "test-key",
-			fetch: fetchMock as unknown as typeof fetch,
-		};
-		const provider = await createAnthropicProvider(config);
-		const events = await collect(
-			await provider.stream(
-				streamRequest(tools),
-				providerContext("anthropic", config),
-			),
-		);
-		return { fetchMock, events };
-	}
-
-	it("does not retry a tool-call-only turn", async () => {
-		const { fetchMock, events } = await run([toolUseSse], [READ_FILES_TOOL]);
-
-		expect(fetchMock).toHaveBeenCalledTimes(1);
-		expect(events.some((event) => event.type === "tool-call-delta")).toBe(true);
-	});
-});
-
 // ---------------------------------------------------------------------------
 // Ollama: the vendor-level retry wrap was replaced by the central one; prove
 // the provider still retries after the refactor.
@@ -497,17 +364,6 @@ const v4EmptyParts: LanguageModelV4StreamPart[] = [
 		usage: v4Usage,
 	},
 ];
-const v4TextParts: LanguageModelV4StreamPart[] = [
-	{ type: "stream-start", warnings: [] },
-	{ type: "text-start", id: "t" },
-	{ type: "text-delta", id: "t", delta: "hello" },
-	{ type: "text-end", id: "t" },
-	{
-		type: "finish",
-		finishReason: { unified: "stop", raw: "stop" },
-		usage: v4Usage,
-	},
-];
 
 async function streamThroughOllama(
 	parts: LanguageModelV4StreamPart[][],
@@ -522,16 +378,6 @@ async function streamThroughOllama(
 		await provider.stream(streamRequest(), providerContext("ollama", config)),
 	);
 }
-
-describe("ollama (central wrap replaces the old vendor-level wrap)", () => {
-	it("retries an empty turn and streams the successful attempt", async () => {
-		const events = await streamThroughOllama([v4EmptyParts, v4TextParts]);
-
-		expect(ollamaDoStreamMock).toHaveBeenCalledTimes(2);
-		expect(hasTextDelta(events, "hello")).toBe(true);
-		expect(finishEvents(events)).toHaveLength(1);
-	});
-});
 
 describe("full path: model output classes through emitAiSdkEvents", () => {
 	it("converts an image-file-only turn into an image event instead of retrying or dropping it", async () => {

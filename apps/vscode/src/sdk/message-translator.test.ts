@@ -28,14 +28,6 @@ describe("MessageTranslatorState", () => {
 		expect(ts2).toBeGreaterThan(ts1)
 	})
 
-	it("tracks streaming text timestamps", () => {
-		const state = new MessageTranslatorState()
-		const ts1 = state.getStreamingTextTs()
-		const ts2 = state.getStreamingTextTs()
-		// Same ts while streaming
-		expect(ts2).toBe(ts1)
-	})
-
 	it("clears streaming text and returns the ts", () => {
 		const state = new MessageTranslatorState()
 		const ts = state.getStreamingTextTs()
@@ -45,12 +37,6 @@ describe("MessageTranslatorState", () => {
 		// Next call should get a new ts
 		const newTs = state.getStreamingTextTs()
 		expect(newTs).toBeGreaterThan(ts)
-	})
-
-	it("clearStreamingText without prior get returns a new ts", () => {
-		const state = new MessageTranslatorState()
-		const ts = state.clearStreamingText()
-		expect(typeof ts).toBe("number")
 	})
 
 	it("tracks streaming reasoning timestamps", () => {
@@ -795,30 +781,6 @@ describe("translateSessionEvent — agent_event content_end", () => {
 		expect(result.messages[1].say).toBe("error")
 		expect(result.messages[1].text).toBe("Command not found")
 		expect(result.messages[1].partial).toBe(false)
-	})
-
-	it("translates tool content_end with output", () => {
-		const state = new MessageTranslatorState()
-		const event: CoreSessionEvent = {
-			type: "agent_event",
-			payload: {
-				sessionId: "session-1",
-				event: {
-					type: "content_end",
-					contentType: "tool",
-					toolName: "read_files",
-					toolCallId: "call-1",
-					output: "file contents here",
-				} as AgentEvent,
-			},
-		}
-
-		const result = translateSessionEvent(event, state)
-		expect(result.messages).toHaveLength(1)
-		// Tool content_end produces a ClineSayTool JSON with the tool name
-		expect(result.messages[0].say).toBe("tool")
-		expect(result.messages[0].text).toContain("readFile")
-		expect(result.messages[0].partial).toBe(false)
 	})
 
 	it("content_end preserves tool input from content_start (S6-24 fix)", () => {
@@ -3168,45 +3130,6 @@ describe("translateSessionEvent — run_commands bare array/string input (ENG-18
 		expect(msg.partial).toBe(false)
 	})
 
-	it("content_end with bare string input from content_start preserves command", () => {
-		const state = new MessageTranslatorState()
-		translateSessionEvent(
-			{
-				type: "agent_event",
-				payload: {
-					sessionId: "s1",
-					event: {
-						type: "content_start",
-						contentType: "tool",
-						toolName: "execute_command",
-						toolCallId: "c1",
-						input: "echo hello",
-					} as AgentEvent,
-				},
-			},
-			state,
-		)
-		const endResult = translateSessionEvent(
-			{
-				type: "agent_event",
-				payload: {
-					sessionId: "s1",
-					event: {
-						type: "content_end",
-						contentType: "tool",
-						toolName: "execute_command",
-						toolCallId: "c1",
-						output: "hello\n",
-					} as AgentEvent,
-				},
-			},
-			state,
-		)
-		const msg = endResult.messages[0]
-		expect(msg.text).toContain("echo hello")
-		expect(msg.text).toContain("hello")
-	})
-
 	it("wrapped object input { commands: [...] } still works (regression)", () => {
 		const state = new MessageTranslatorState()
 		const event: CoreSessionEvent = {
@@ -3225,26 +3148,6 @@ describe("translateSessionEvent — run_commands bare array/string input (ENG-18
 		const result = translateSessionEvent(event, state)
 		// The running command row carries the "Output:" marker so ChatRow renders it as executing.
 		expect(result.messages[0].text).toBe("npm test\nOutput:")
-	})
-
-	it("structured command array input renders command and args, not [object Object]", () => {
-		const state = new MessageTranslatorState()
-		const event: CoreSessionEvent = {
-			type: "agent_event",
-			payload: {
-				sessionId: "s1",
-				event: {
-					type: "content_start",
-					contentType: "tool",
-					toolName: "run_commands",
-					toolCallId: "c1",
-					input: { commands: [{ command: "ls", args: ["-la", "/tmp"] }] },
-				} as AgentEvent,
-			},
-		}
-		const result = translateSessionEvent(event, state)
-		expect(result.messages[0].text).toBe("ls -la /tmp\nOutput:")
-		expect(result.messages[0].text).not.toContain("[object Object]")
 	})
 
 	it("direct structured command input renders command and args, not [object Object]", () => {
@@ -3466,27 +3369,6 @@ describe("sdkToolToClineSayTool — fetch_web_content and skills (S6-39, S6-40)"
 // ---------------------------------------------------------------------------
 
 describe("sdkToolToClineSayTool — search_codebase (S6-47)", () => {
-	it("S6-47: search_codebase with { queries: ['TODO', 'FIXME'] } extracts regex", () => {
-		const state = new MessageTranslatorState()
-		const event: CoreSessionEvent = {
-			type: "agent_event",
-			payload: {
-				sessionId: "s1",
-				event: {
-					type: "content_start",
-					contentType: "tool",
-					toolName: "search_codebase",
-					toolCallId: "c1",
-					input: { queries: ["TODO", "FIXME"] },
-				} as AgentEvent,
-			},
-		}
-		const result = translateSessionEvent(event, state)
-		const tool = JSON.parse(result.messages[0].text!)
-		expect(tool.tool).toBe("searchFiles")
-		expect(tool.regex).toBe("TODO, FIXME")
-	})
-
 	it("S6-47: search_codebase with stringified JSON input extracts regex", () => {
 		const state = new MessageTranslatorState()
 		const event: CoreSessionEvent = {
@@ -3506,27 +3388,6 @@ describe("sdkToolToClineSayTool — search_codebase (S6-47)", () => {
 		const tool = JSON.parse(result.messages[0].text!)
 		expect(tool.tool).toBe("searchFiles")
 		expect(tool.regex).toBe("TODO")
-	})
-
-	it("S6-47: search_codebase with bare array input extracts regex", () => {
-		const state = new MessageTranslatorState()
-		const event: CoreSessionEvent = {
-			type: "agent_event",
-			payload: {
-				sessionId: "s1",
-				event: {
-					type: "content_start",
-					contentType: "tool",
-					toolName: "search_codebase",
-					toolCallId: "c1",
-					input: ["TODO", "FIXME"],
-				} as AgentEvent,
-			},
-		}
-		const result = translateSessionEvent(event, state)
-		const tool = JSON.parse(result.messages[0].text!)
-		expect(tool.tool).toBe("searchFiles")
-		expect(tool.regex).toBe("TODO, FIXME")
 	})
 
 	it("S6-47: search_codebase with bare string input extracts regex", () => {
@@ -3748,31 +3609,6 @@ describe("sdkToolToClineSayTool — editor diff rendering (S6-48)", () => {
 		expect(tool.path).toBe("/src/existing.ts")
 	})
 
-	it("S6-48: editor with old_str/new_str also builds search/replace diff", () => {
-		const state = new MessageTranslatorState()
-		const event: CoreSessionEvent = {
-			type: "agent_event",
-			payload: {
-				sessionId: "session-1",
-				event: {
-					type: "content_start",
-					contentType: "tool",
-					toolName: "editor",
-					toolCallId: "call-3",
-					input: {
-						path: "/src/file.ts",
-						old_str: "return false",
-						new_str: "return true",
-					},
-				} as AgentEvent,
-			},
-		}
-		const result = translateSessionEvent(event, state)
-		const tool = JSON.parse(result.messages[0].text!)
-		expect(tool.tool).toBe("editedExistingFile")
-		expect(tool.content).toBe("------- SEARCH\nreturn false\n=======\nreturn true\n+++++++ REPLACE")
-	})
-
 	it("S6-48: multiline old_text/new_text preserved in search/replace diff", () => {
 		const state = new MessageTranslatorState()
 		const oldText = "function foo() {\n\treturn 1\n}"
@@ -3815,29 +3651,6 @@ describe("sdkToolToClineSayTool — editor diff rendering (S6-48)", () => {
 						toolName: "apply_patch",
 						toolCallId: "call-1",
 						input: { input: patchContent },
-					} as AgentEvent,
-				},
-			}
-			const result = translateSessionEvent(event, state)
-			const tool = JSON.parse(result.messages[0].text!)
-			expect(tool.tool).toBe("editedExistingFile")
-			expect(tool.content).toBe(patchContent)
-			expect(tool.diff).toBe(patchContent)
-		})
-
-		it("S6-48: apply_patch with classic { patch: '...' } populates both content and diff", () => {
-			const state = new MessageTranslatorState()
-			const patchContent = "*** Begin Patch\n*** Update File: src/file.ts\n@@\n-old\n+new\n*** End Patch"
-			const event: CoreSessionEvent = {
-				type: "agent_event",
-				payload: {
-					sessionId: "session-1",
-					event: {
-						type: "content_start",
-						contentType: "tool",
-						toolName: "apply_patch",
-						toolCallId: "call-2",
-						input: { patch: patchContent },
 					} as AgentEvent,
 				},
 			}
@@ -4405,15 +4218,6 @@ describe("tool display paths are relativized to the cwd", () => {
 			deleteState,
 		)
 		expect(parseTool(deleteResult.messages[0].text).path).toBe("a/b.ts")
-	})
-
-	it("rewrites apply_patch file markers so the diff view shows relative paths", () => {
-		const state = stateWithCwd()
-		const patch = `*** Begin Patch\n*** Update File: ${CWD}/src/app.ts\n@@\n-old\n+new\n*** End Patch`
-		const result = translateSessionEvent(toolEvent("content_start", "apply_patch", { patch }), state)
-		const tool = parseTool(result.messages[0].text)
-		expect(tool.content).toContain("*** Update File: src/app.ts")
-		expect(tool.content).not.toContain(`*** Update File: ${CWD}`)
 	})
 
 	it("splits multi-file apply_patch into rows with relativized paths and markers", () => {

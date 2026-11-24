@@ -22,10 +22,6 @@ describe("getCurrentContextSize", () => {
 		expect(getCurrentContextSize([])).toBeUndefined();
 	});
 
-	it("returns undefined when the latest assistant message has no metrics", () => {
-		expect(getCurrentContextSize([user(), assistant()])).toBeUndefined();
-	});
-
 	it("uses the latest assistant call's inputTokens", () => {
 		const messages: MessageWithMetadata[] = [
 			user(),

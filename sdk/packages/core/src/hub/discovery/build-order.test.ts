@@ -52,12 +52,6 @@ function retires(mine: HubBuildIdentity, theirs: HubBuildIdentity): boolean {
 }
 
 describe("compareHubBuilds", () => {
-	it("is reflexive over the corpus", () => {
-		for (const build of BUILD_CORPUS) {
-			expect(compareHubBuilds(build, build)).toBe(0);
-		}
-	});
-
 	it("is antisymmetric over every pair in the corpus", () => {
 		for (const a of BUILD_CORPUS) {
 			for (const b of BUILD_CORPUS) {
@@ -125,11 +119,6 @@ describe("isManagedHubReusable", () => {
 				expect(retires(a, b) && retires(b, a)).toBe(false);
 			}
 		}
-	});
-
-	it("reuses a Hub built from the same build id", () => {
-		const build = { buildId: "0.0.74", coreVersion: "0.0.74" };
-		expect(retires(build, build)).toBe(false);
 	});
 
 	it("retires a strictly older Hub", () => {

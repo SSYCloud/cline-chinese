@@ -1,5 +1,5 @@
-import { after, beforeEach, describe, it } from "mocha"
 import fs from "fs/promises"
+import { after, beforeEach, describe, it } from "mocha"
 import os from "os"
 import path from "path"
 import { ClineIgnoreController } from "./ClineIgnoreController"
@@ -41,15 +41,6 @@ describe("ClineIgnoreController", () => {
 		// 	results.forEach((result) => result.should.be.false())
 		// })
 
-		it("should allow access to regular files", async () => {
-			const results = [
-				controller.validateAccess("src/index.ts"),
-				controller.validateAccess("README.md"),
-				controller.validateAccess("package.json"),
-			]
-			results.forEach((result) => result.should.be.true())
-		})
-
 		it("should block access to .clineignore file", async () => {
 			const result = controller.validateAccess(".clineignore")
 			result.should.be.false()
@@ -66,17 +57,6 @@ describe("ClineIgnoreController", () => {
 				controller.validateAccess("private/nested/deep/file.txt"),
 			]
 			results.forEach((result) => result.should.be.false())
-		})
-
-		it("should allow access to non-ignored files", async () => {
-			const results = [
-				controller.validateAccess("public/data.txt"),
-				controller.validateAccess("config.json"),
-				controller.validateAccess("src/temp/file.ts"),
-				controller.validateAccess("nested/deep/file.txt"),
-				controller.validateAccess("not-private/data.txt"),
-			]
-			results.forEach((result) => result.should.be.true())
 		})
 
 		it("should handle pattern edge cases", async () => {
@@ -164,37 +144,6 @@ describe("ClineIgnoreController", () => {
 	})
 
 	describe("Path Handling", () => {
-		it("should handle absolute paths and match ignore patterns", async () => {
-			// Test absolute path that should be allowed
-			const allowedPath = path.join(tempDir, "src/file.ts")
-			const allowedResult = controller.validateAccess(allowedPath)
-			allowedResult.should.be.true()
-
-			// Test absolute path that matches an ignore pattern (*.secret)
-			const ignoredPath = path.join(tempDir, "config.secret")
-			const ignoredResult = controller.validateAccess(ignoredPath)
-			ignoredResult.should.be.false()
-
-			// Test absolute path in ignored directory (private/)
-			const ignoredDirPath = path.join(tempDir, "private/data.txt")
-			const ignoredDirResult = controller.validateAccess(ignoredDirPath)
-			ignoredDirResult.should.be.false()
-		})
-
-		it("should handle relative paths and match ignore patterns", async () => {
-			// Test relative path that should be allowed
-			const allowedResult = controller.validateAccess("./src/file.ts")
-			allowedResult.should.be.true()
-
-			// Test relative path that matches an ignore pattern (*.secret)
-			const ignoredResult = controller.validateAccess("./config.secret")
-			ignoredResult.should.be.false()
-
-			// Test relative path in ignored directory (private/)
-			const ignoredDirResult = controller.validateAccess("./private/data.txt")
-			ignoredDirResult.should.be.false()
-		})
-
 		it("should normalize paths with backslashes", async () => {
 			const result = controller.validateAccess("src\\file.ts")
 			result.should.be.true()

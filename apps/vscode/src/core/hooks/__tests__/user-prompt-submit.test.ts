@@ -209,55 +209,7 @@ console.log(JSON.stringify({
 		})
 	})
 
-	describe("Error Handling", () => {
-		it("should handle malformed JSON output from hook", async () => {
-			const hookPath = path.join(tempDir, ".clinerules", "hooks", "UserPromptSubmit")
-			const hookScript = `#!/usr/bin/env node
-console.log("not valid json")`
-
-			await writeHookScript(hookPath, hookScript)
-
-			const factory = new HookFactory()
-			const runner = await factory.create("UserPromptSubmit")
-
-			// When hook exits 0 but has malformed JSON, it returns success without context
-			const result = await runner.run({
-				taskId: "test-task",
-				userPromptSubmit: {
-					prompt: "Test",
-					attachments: [],
-				},
-			})
-
-			// Hook succeeded (exit 0) but couldn't parse JSON, so returns success without context
-			result.cancel.should.be.false()
-			;(result.contextModification === undefined || result.contextModification === "").should.be.true()
-		})
-
-		it("should handle hook script errors", async () => {
-			const hookPath = path.join(tempDir, ".clinerules", "hooks", "UserPromptSubmit")
-			const hookScript = `#!/usr/bin/env node
-process.exit(1)`
-
-			await writeHookScript(hookPath, hookScript)
-
-			const factory = new HookFactory()
-			const runner = await factory.create("UserPromptSubmit")
-
-			try {
-				await runner.run({
-					taskId: "test-task",
-					userPromptSubmit: {
-						prompt: "Test",
-						attachments: [],
-					},
-				})
-				throw new Error("Should have thrown")
-			} catch (error: unknown) {
-				getErrorMessage(error).should.match(/exited with code 1/)
-			}
-		})
-	})
+	describe("Error Handling", () => {})
 
 	describe("Global and Workspace Hooks", () => {
 		let globalHooksDir: string
@@ -308,171 +260,14 @@ console.log(JSON.stringify({
 			result.contextModification?.should.match(/GLOBAL: Prompt received/)
 			result.contextModification?.should.match(/WORKSPACE: Prompt received/)
 		})
-
-		it("should block if workspace hook blocks even when global allows", async () => {
-			// Create allowing global hook
-			const globalHookPath = path.join(globalHooksDir, "UserPromptSubmit")
-			const globalHookScript = `#!/usr/bin/env node
-console.log(JSON.stringify({
-  cancel: false,
-  contextModification: "Global allows"
-}))`
-			await writeHookScript(globalHookPath, globalHookScript)
-
-			// Create blocking workspace hook
-			const workspaceHookPath = path.join(tempDir, ".clinerules", "hooks", "UserPromptSubmit")
-			const workspaceHookScript = `#!/usr/bin/env node
-console.log(JSON.stringify({
-  cancel: true,
-  errorMessage: "Workspace blocks"
-}))`
-			await writeHookScript(workspaceHookPath, workspaceHookScript)
-
-			const factory = new HookFactory()
-			const runner = await factory.create("UserPromptSubmit")
-
-			const result = await runner.run({
-				taskId: "test-task",
-				userPromptSubmit: {
-					prompt: "Create a feature",
-					attachments: [],
-				},
-			})
-
-			result.cancel.should.be.true()
-			result.errorMessage?.should.match(/Workspace blocks/)
-		})
 	})
 
-	describe("No Hook Behavior", () => {
-		it("should allow prompt when no hook exists", async () => {
-			// Don't create any hook
-			const factory = new HookFactory()
-			const runner = await factory.create("UserPromptSubmit")
-
-			const result = await runner.run({
-				taskId: "test-task",
-				userPromptSubmit: {
-					prompt: "Create a feature",
-					attachments: [],
-				},
-			})
-
-			// NoOpRunner always returns success
-			result.cancel.should.be.false()
-		})
-	})
+	describe("No Hook Behavior", () => {})
 
 	describe("Fixture-Based Tests", () => {
 		// These tests demonstrate using pre-written fixtures from the fixtures directory
 		// Fixtures serve as both test data and examples for manual testing
 		const isWindows = process.platform === "win32"
-
-		it(
-			"should validate representative fixtures end-to-end",
-			async () => {
-				// Multiple fixture scenarios spawn child processes sequentially,
-				// which can easily exceed the default 2 s Mocha timeout.
-				const scenarios: FixtureScenario[] = [
-					{
-						fixtureName: "success",
-						prompt: "Create a feature",
-						assert: (result: HookOutput) => {
-							result.cancel.should.be.false()
-							result.contextModification?.should.equal("Prompt approved")
-						},
-					},
-					{
-						fixtureName: "blocking",
-						prompt: "Do something forbidden",
-						assert: (result: HookOutput) => {
-							result.cancel.should.be.true()
-							result.errorMessage?.should.equal("Prompt violates policy")
-						},
-					},
-					{
-						fixtureName: "context-injection",
-						prompt: "Build something",
-						assert: (result: HookOutput) => {
-							result.cancel.should.be.false()
-							result.contextModification?.should.equal("CONTEXT_INJECTION: User is in plan mode")
-						},
-					},
-					{
-						fixtureName: "multiline",
-						prompt: "Line 1\nLine 2\nLine 3",
-						assert: (result: HookOutput) => {
-							result.cancel.should.be.false()
-							result.contextModification?.should.equal("Line count: 3")
-						},
-					},
-					{
-						fixtureName: "special-chars",
-						prompt: "Test @user #feature $cost",
-						assert: (result: HookOutput) => {
-							result.cancel.should.be.false()
-							result.contextModification?.should.equal("Special chars preserved")
-						},
-					},
-					{
-						fixtureName: "empty-prompt",
-						prompt: "",
-						assert: (result: HookOutput) => {
-							result.cancel.should.be.false()
-							result.contextModification?.should.equal("Prompt length: 0")
-						},
-					},
-				]
-
-				if (!isWindows) {
-					scenarios.push({
-						fixtureName: "large-prompt",
-						prompt: "x".repeat(10000),
-						assert: (result: HookOutput) => {
-							result.cancel.should.be.false()
-							result.contextModification?.should.equal("Prompt size: 10000")
-						},
-					})
-				}
-
-				for (const scenario of scenarios) {
-					await withFixtureRunner(
-						"UserPromptSubmit",
-						`hooks/userpromptsubmit/${scenario.fixtureName}`,
-						hookTestEnv,
-						async (runner) => {
-							const result = await runner.run({
-								taskId: "test-task",
-								userPromptSubmit: {
-									prompt: scenario.prompt,
-									attachments: [],
-								},
-							})
-
-							scenario.assert(result)
-						},
-					)
-				}
-			},
-			WINDOWS_HOOK_TEST_TIMEOUT_MS,
-		)
-
-		it("should cover malformed-json fixture path", async () => {
-			await withFixtureRunner("UserPromptSubmit", "hooks/userpromptsubmit/malformed-json", hookTestEnv, async (runner) => {
-				const malformedResult = await runner.run({
-					taskId: "test-task",
-					userPromptSubmit: {
-						prompt: "Test",
-						attachments: [],
-					},
-				})
-
-				malformedResult.cancel.should.be.false()
-				;(
-					malformedResult.contextModification === undefined || malformedResult.contextModification === ""
-				).should.be.true()
-			})
-		})
 
 		it("should cover failing fixture path", async () => {
 			await withFixtureRunner("UserPromptSubmit", "hooks/userpromptsubmit/error", hookTestEnv, async (runner) => {

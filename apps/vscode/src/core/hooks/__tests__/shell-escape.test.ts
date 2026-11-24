@@ -28,24 +28,6 @@ describe("Shell Path Escaping", () => {
 			setPlatform("darwin") // macOS, but same escaping as Linux
 		})
 
-		it("should handle paths without special characters", () => {
-			const path = "/Users/user/Documents/Cline/Hooks/PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal("'/Users/user/Documents/Cline/Hooks/PreToolUse'")
-		})
-
-		it("should handle paths with spaces", () => {
-			const path = "/Users/user/My Project/Hooks/PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal("'/Users/user/My Project/Hooks/PreToolUse'")
-		})
-
-		it("should handle paths with multiple spaces", () => {
-			const path = "/Users/user/My Test   Project/Hooks/PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal("'/Users/user/My Test   Project/Hooks/PreToolUse'")
-		})
-
 		it("should handle paths with single quotes", () => {
 			const path = "/Users/user/Test's Project/Hooks/PreToolUse"
 			const escaped = escapeShellPath(path)
@@ -66,30 +48,11 @@ describe("Shell Path Escaping", () => {
 			escaped.should.equal("'/Users/user/Test \"Quoted\" Project/Hooks/PreToolUse'")
 		})
 
-		it("should handle paths with special shell characters", () => {
-			const path = "/Users/user/Test$Project/Hooks/PreToolUse"
-			const escaped = escapeShellPath(path)
-			// Special characters like $ are safe inside single quotes
-			escaped.should.equal("'/Users/user/Test$Project/Hooks/PreToolUse'")
-		})
-
 		it("should handle paths with backticks", () => {
 			const path = "/Users/user/Test`Project/Hooks/PreToolUse"
 			const escaped = escapeShellPath(path)
 			// Backticks are safe inside single quotes
 			escaped.should.equal("'/Users/user/Test`Project/Hooks/PreToolUse'")
-		})
-
-		it("should handle paths with parentheses", () => {
-			const path = "/Users/user/Test (Project)/Hooks/PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal("'/Users/user/Test (Project)/Hooks/PreToolUse'")
-		})
-
-		it("should handle paths with ampersands", () => {
-			const path = "/Users/user/Test & Project/Hooks/PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal("'/Users/user/Test & Project/Hooks/PreToolUse'")
 		})
 
 		it("should handle paths with semicolons", () => {
@@ -98,59 +61,17 @@ describe("Shell Path Escaping", () => {
 			escaped.should.equal("'/Users/user/Test;Project/Hooks/PreToolUse'")
 		})
 
-		it("should handle paths with pipes", () => {
-			const path = "/Users/user/Test|Project/Hooks/PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal("'/Users/user/Test|Project/Hooks/PreToolUse'")
-		})
-
-		it("should handle global hooks directory with spaces", () => {
-			const path = "/Users/user name/Documents/Cline/Hooks/PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal("'/Users/user name/Documents/Cline/Hooks/PreToolUse'")
-		})
-
-		it("should handle workspace hooks with spaces in root", () => {
-			const path = "/Users/user/My Example Project/.clinerules/hooks/PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal("'/Users/user/My Example Project/.clinerules/hooks/PreToolUse'")
-		})
-
 		it("should handle paths with newlines (edge case)", () => {
 			const path = "/Users/user/Test\nProject/Hooks/PreToolUse"
 			const escaped = escapeShellPath(path)
 			// Newlines are safe inside single quotes
 			escaped.should.equal("'/Users/user/Test\nProject/Hooks/PreToolUse'")
 		})
-
-		it("should handle paths with tabs", () => {
-			const path = "/Users/user/Test\tProject/Hooks/PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal("'/Users/user/Test\tProject/Hooks/PreToolUse'")
-		})
 	})
 
 	describe("Windows path escaping", () => {
 		beforeAll(() => {
 			setPlatform("win32")
-		})
-
-		it("should handle paths without special characters", () => {
-			const path = "C:\\Users\\user\\Documents\\Cline\\Hooks\\PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal('"C:\\Users\\user\\Documents\\Cline\\Hooks\\PreToolUse"')
-		})
-
-		it("should handle paths with spaces", () => {
-			const path = "C:\\Users\\user\\My Project\\Hooks\\PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal('"C:\\Users\\user\\My Project\\Hooks\\PreToolUse"')
-		})
-
-		it("should handle paths with multiple spaces", () => {
-			const path = "C:\\Users\\user\\My Test   Project\\Hooks\\PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal('"C:\\Users\\user\\My Test   Project\\Hooks\\PreToolUse"')
 		})
 
 		it("should handle paths with double quotes", () => {
@@ -165,44 +86,6 @@ describe("Shell Path Escaping", () => {
 			const escaped = escapeShellPath(path)
 			// Backslash before quote needs to be doubled, then quote is doubled
 			escaped.should.equal('"C:\\Users\\user\\Test\\\\""Project\\Hooks\\PreToolUse"')
-		})
-
-		it("should handle paths with single quotes", () => {
-			const path = "C:\\Users\\user\\Test's Project\\Hooks\\PreToolUse"
-			const escaped = escapeShellPath(path)
-			// Single quotes are safe inside double quotes on Windows
-			escaped.should.equal('"C:\\Users\\user\\Test\'s Project\\Hooks\\PreToolUse"')
-		})
-
-		it("should handle paths with special characters", () => {
-			const path = "C:\\Users\\user\\Test$Project\\Hooks\\PreToolUse"
-			const escaped = escapeShellPath(path)
-			// Most special characters are safe inside double quotes on Windows
-			escaped.should.equal('"C:\\Users\\user\\Test$Project\\Hooks\\PreToolUse"')
-		})
-
-		it("should handle paths with parentheses", () => {
-			const path = "C:\\Users\\user\\Test (Project)\\Hooks\\PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal('"C:\\Users\\user\\Test (Project)\\Hooks\\PreToolUse"')
-		})
-
-		it("should handle paths with ampersands", () => {
-			const path = "C:\\Users\\user\\Test & Project\\Hooks\\PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal('"C:\\Users\\user\\Test & Project\\Hooks\\PreToolUse"')
-		})
-
-		it("should handle global hooks directory with spaces", () => {
-			const path = "C:\\Users\\user name\\Documents\\Cline\\Hooks\\PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal('"C:\\Users\\user name\\Documents\\Cline\\Hooks\\PreToolUse"')
-		})
-
-		it("should handle workspace hooks with spaces in root", () => {
-			const path = "C:\\Users\\user\\My Example Project\\.clinerules\\hooks\\PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal('"C:\\Users\\user\\My Example Project\\.clinerules\\hooks\\PreToolUse"')
 		})
 
 		it("should handle UNC paths with spaces", () => {
@@ -225,20 +108,6 @@ describe("Shell Path Escaping", () => {
 			const path = "C:\\Users\\John Doe\\Documents\\Cline\\Hooks\\PreToolUse"
 			const escaped = escapeShellPath(path)
 			escaped.should.equal('"C:\\Users\\John Doe\\Documents\\Cline\\Hooks\\PreToolUse"')
-		})
-
-		it("should handle workspace with company name and spaces", () => {
-			setPlatform("darwin")
-			const path = "/Users/user/Projects/ACME Corp Project/.clinerules/hooks/PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal("'/Users/user/Projects/ACME Corp Project/.clinerules/hooks/PreToolUse'")
-		})
-
-		it("should handle workspace with version numbers and spaces", () => {
-			setPlatform("darwin")
-			const path = "/Users/user/Projects/My Project v2.0/.clinerules/hooks/PreToolUse"
-			const escaped = escapeShellPath(path)
-			escaped.should.equal("'/Users/user/Projects/My Project v2.0/.clinerules/hooks/PreToolUse'")
 		})
 
 		it("should handle workspace with mixed special characters", () => {

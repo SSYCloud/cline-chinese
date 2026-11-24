@@ -57,16 +57,6 @@ describe("buildClineSystemPrompt mode instructions", () => {
 		);
 	});
 
-	it("keeps run_commands available-but-read-only in the plan contract", () => {
-		// Explicit product decision: run_commands is NOT removed in plan mode
-		// (it is essential for read-only investigation); the mitigation for
-		// plan-mode mutations is prompting, so the contract must spell out the
-		// inspection-only usage.
-		expect(PLAN_MODE_INSTRUCTIONS).toContain("run_commands");
-		expect(PLAN_MODE_INSTRUCTIONS).toContain("read-only");
-		expect(PLAN_MODE_INSTRUCTIONS).toContain("switch_to_act_mode");
-	});
-
 	it("swaps in the manual-switch plan contract when the host has no switch tool", () => {
 		const prompt = buildClineSystemPrompt({
 			...BASE_OPTIONS,

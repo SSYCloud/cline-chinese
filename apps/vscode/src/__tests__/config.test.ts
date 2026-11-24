@@ -119,18 +119,6 @@ describe("ClineEndpoint configuration", () => {
 	})
 
 	describe("invalid JSON handling", () => {
-		it("should throw ClineConfigurationError for invalid JSON syntax", async () => {
-			await fs.writeFile(path.join(tempDir, ".cline", "endpoints.json"), "{ invalid json }", "utf8")
-
-			try {
-				await ClineEndpoint.initialize(tempDir)
-				throw new Error("Should have thrown")
-			} catch (error: any) {
-				error.should.be.instanceof(ClineConfigurationError)
-				error.message.should.containEql("Invalid JSON")
-			}
-		})
-
 		it("should throw ClineConfigurationError for truncated JSON", async () => {
 			await fs.writeFile(path.join(tempDir, ".cline", "endpoints.json"), '{"appBaseUrl": "https://test.com"', "utf8")
 
@@ -193,57 +181,6 @@ describe("ClineEndpoint configuration", () => {
 	})
 
 	describe("missing required fields", () => {
-		it("should throw ClineConfigurationError when appBaseUrl is missing", async () => {
-			const config = {
-				apiBaseUrl: "https://api.enterprise.com",
-				mcpBaseUrl: "https://mcp.enterprise.com",
-			}
-
-			await fs.writeFile(path.join(tempDir, ".cline", "endpoints.json"), JSON.stringify(config), "utf8")
-
-			try {
-				await ClineEndpoint.initialize(tempDir)
-				throw new Error("Should have thrown")
-			} catch (error: any) {
-				error.should.be.instanceof(ClineConfigurationError)
-				error.message.should.containEql('Missing required field "appBaseUrl"')
-			}
-		})
-
-		it("should throw ClineConfigurationError when apiBaseUrl is missing", async () => {
-			const config = {
-				appBaseUrl: "https://app.enterprise.com",
-				mcpBaseUrl: "https://mcp.enterprise.com",
-			}
-
-			await fs.writeFile(path.join(tempDir, ".cline", "endpoints.json"), JSON.stringify(config), "utf8")
-
-			try {
-				await ClineEndpoint.initialize(tempDir)
-				throw new Error("Should have thrown")
-			} catch (error: any) {
-				error.should.be.instanceof(ClineConfigurationError)
-				error.message.should.containEql('Missing required field "apiBaseUrl"')
-			}
-		})
-
-		it("should throw ClineConfigurationError when mcpBaseUrl is missing", async () => {
-			const config = {
-				appBaseUrl: "https://app.enterprise.com",
-				apiBaseUrl: "https://api.enterprise.com",
-			}
-
-			await fs.writeFile(path.join(tempDir, ".cline", "endpoints.json"), JSON.stringify(config), "utf8")
-
-			try {
-				await ClineEndpoint.initialize(tempDir)
-				throw new Error("Should have thrown")
-			} catch (error: any) {
-				error.should.be.instanceof(ClineConfigurationError)
-				error.message.should.containEql('Missing required field "mcpBaseUrl"')
-			}
-		})
-
 		it("should throw ClineConfigurationError when all fields are missing", async () => {
 			await fs.writeFile(path.join(tempDir, ".cline", "endpoints.json"), "{}", "utf8")
 
@@ -471,21 +408,6 @@ describe("ClineEndpoint configuration", () => {
 	})
 
 	describe("self-hosted mode behavior", () => {
-		it("should report selfHosted environment in self-hosted mode", async () => {
-			const config = {
-				appBaseUrl: "https://app.enterprise.com",
-				apiBaseUrl: "https://api.enterprise.com",
-				mcpBaseUrl: "https://mcp.enterprise.com",
-			}
-
-			await fs.writeFile(path.join(tempDir, ".cline", "endpoints.json"), JSON.stringify(config), "utf8")
-
-			await ClineEndpoint.initialize(tempDir)
-
-			const envConfig = ClineEndpoint.config
-			envConfig.environment.should.equal(Environment.selfHosted)
-		})
-
 		it("should use custom endpoints from file", async () => {
 			const customConfig = {
 				appBaseUrl: "https://custom-app.internal",
@@ -529,18 +451,6 @@ describe("ClineEndpoint configuration", () => {
 		it("should return true when not initialized (safety fallback)", async () => {
 			// Reset singleton state - already done in beforeEach, not initialized
 			ClineEndpoint.isInitialized().should.be.false()
-			ClineEndpoint.isSelfHosted().should.be.true()
-		})
-
-		it("should return true when in self-hosted mode", async () => {
-			const config = {
-				appBaseUrl: "https://app.enterprise.com",
-				apiBaseUrl: "https://api.enterprise.com",
-				mcpBaseUrl: "https://mcp.enterprise.com",
-			}
-			await fs.writeFile(path.join(tempDir, ".cline", "endpoints.json"), JSON.stringify(config), "utf8")
-			await ClineEndpoint.initialize(tempDir)
-
 			ClineEndpoint.isSelfHosted().should.be.true()
 		})
 

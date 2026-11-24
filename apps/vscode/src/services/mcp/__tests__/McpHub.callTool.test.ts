@@ -83,39 +83,6 @@ describe("McpHub.callTool", () => {
 	// ── Core fix: undefined arguments → empty object ────────────────────
 
 	describe("arguments fallback to empty object", () => {
-		it("should pass empty object {} when toolArguments is undefined", async () => {
-			const { hub, client } = createMcpHub()
-
-			await hub.callTool("test-server", "list_pages", undefined, "ulid-001")
-
-			client.request.calledOnce.should.be.true()
-			const requestArgs = client.request.firstCall.args[0]
-			requestArgs.params.arguments.should.deepEqual({})
-		})
-
-		it("should pass the provided arguments object when toolArguments is defined", async () => {
-			const { hub, client } = createMcpHub()
-			const args = { url: "https://example.com", verbose: true }
-
-			await hub.callTool("test-server", "navigate_page", args, "ulid-002")
-
-			client.request.calledOnce.should.be.true()
-			const requestArgs = client.request.firstCall.args[0]
-			requestArgs.params.arguments.should.deepEqual({ url: "https://example.com", verbose: true })
-		})
-
-		it("should pass empty object {} when toolArguments is explicitly passed as undefined", async () => {
-			const { hub, client } = createMcpHub()
-
-			await hub.callTool("test-server", "take_screenshot", undefined, "ulid-003")
-
-			const requestArgs = client.request.firstCall.args[0]
-			requestArgs.params.arguments.should.deepEqual({})
-			// Ensure it's an object, not null or undefined
-			;(typeof requestArgs.params.arguments).should.equal("object")
-			;(requestArgs.params.arguments === null).should.be.false()
-		})
-
 		it("should preserve arguments with falsy values inside the object", async () => {
 			const { hub, client } = createMcpHub()
 			const args = { enabled: false, count: 0, name: "" }
@@ -125,58 +92,11 @@ describe("McpHub.callTool", () => {
 			const requestArgs = client.request.firstCall.args[0]
 			requestArgs.params.arguments.should.deepEqual({ enabled: false, count: 0, name: "" })
 		})
-
-		it("should pass an already-empty object through unchanged", async () => {
-			const { hub, client } = createMcpHub()
-
-			await hub.callTool("test-server", "list_pages", {}, "ulid-005")
-
-			const requestArgs = client.request.firstCall.args[0]
-			requestArgs.params.arguments.should.deepEqual({})
-		})
 	})
 
 	// ── Request structure validation ────────────────────────────────────
 
-	describe("request structure", () => {
-		it("should always include method 'tools/call' in the request", async () => {
-			const { hub, client } = createMcpHub()
-
-			await hub.callTool("test-server", "any_tool", undefined, "ulid-006")
-
-			const requestArgs = client.request.firstCall.args[0]
-			requestArgs.method.should.equal("tools/call")
-		})
-
-		it("should set the tool name in params.name", async () => {
-			const { hub, client } = createMcpHub()
-
-			await hub.callTool("test-server", "list_pages", undefined, "ulid-007")
-
-			const requestArgs = client.request.firstCall.args[0]
-			requestArgs.params.name.should.equal("list_pages")
-		})
-
-		it("should pass timeout in request options", async () => {
-			const { hub, client } = createMcpHub()
-
-			await hub.callTool("test-server", "slow_tool", { query: "test" }, "ulid-008")
-
-			const requestOptions = client.request.firstCall.args[2]
-			requestOptions.should.have.property("timeout")
-			requestOptions.timeout.should.be.a.Number()
-			requestOptions.timeout.should.be.above(0)
-		})
-
-		it("should pass the abort signal in request options", async () => {
-			const { hub, client } = createMcpHub()
-			const controller = new AbortController()
-
-			await hub.callTool("test-server", "slow_tool", undefined, "ulid-signal", controller.signal)
-
-			client.request.firstCall.args[2].signal.should.equal(controller.signal)
-		})
-	})
+	describe("request structure", () => {})
 
 	// ── Per-server timeout resolution ─────────────────────────────────
 

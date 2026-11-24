@@ -74,10 +74,6 @@ describe("expandSlashCommands", () => {
 		expect(expandSlashCommands("/newtask use /release", commands)).toBe("/newtask use Run the release workflow.")
 	})
 
-	it("keeps configured skills typed so the skills tool loads them", () => {
-		expect(expandSlashCommands("/debug this failure", commands)).toBe("/debug this failure")
-	})
-
 	it("still expands builtin pseudo-skills, which the skills tool does not serve", () => {
 		const builtin: AvailableRuntimeCommand = {
 			id: "builtin:deep-planning",

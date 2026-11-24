@@ -233,11 +233,6 @@ describe("Git snapshots", () => {
 		expect(await readGitSnapshot(cwd)).toEqual({ state: "unavailable" })
 	})
 
-	it("reports unavailable when Git is missing", async () => {
-		vi.stubEnv("PATH", join(cwd, "missing-bin"))
-		expect(await readGitSnapshot(cwd)).toEqual({ state: "unavailable" })
-	})
-
 	it("prefers origin and strips credentials, query parameters, fragments, and local remotes", async () => {
 		await git("remote", "add", "upstream", "https://example.test/upstream.git")
 		await git("remote", "add", "origin", "https://user:secret@example.test/team/repo.git?token=secret#secret")

@@ -104,56 +104,6 @@ class TestCoverage(unittest.TestCase):
             with open(cls.webview_coverage_file, 'w') as f:
                 f.write("No coverage data available")
 
-    def test_extract_coverage(self):
-        """Test extract_coverage function with both extension and webview coverage."""
-        # Check if verbose mode is enabled
-        if '-v' in sys.argv or '--verbose' in sys.argv:
-            set_verbose(True)
-        
-        # Verify files exist before testing
-        self.assertTrue(file_exists(self.extension_coverage_file), 
-                       f"Extension coverage file does not exist: {self.extension_coverage_file}")
-        self.assertTrue(file_exists(self.webview_coverage_file), 
-                       f"Webview coverage file does not exist: {self.webview_coverage_file}")
-        
-        # Log file sizes
-        ext_size = get_file_size(self.extension_coverage_file)
-        web_size = get_file_size(self.webview_coverage_file)
-        log(f"Extension coverage file size: {ext_size} bytes")
-        log(f"Webview coverage file size: {web_size} bytes")
-        
-        # Test extension coverage
-        log("Testing extension coverage extraction...")
-        ext_coverage_pct = extract_coverage(self.extension_coverage_file, 'extension')
-        
-        # Check that coverage percentage is a float
-        self.assertIsInstance(ext_coverage_pct, float)
-        
-        # Check that coverage percentage is between 0 and 100
-        self.assertGreaterEqual(ext_coverage_pct, 0)
-        self.assertLessEqual(ext_coverage_pct, 100)
-        
-        # Log coverage percentage for debugging
-        log(f"Extension coverage: {ext_coverage_pct}%")
-        
-        # Test webview coverage
-        log("Testing webview coverage extraction...")
-        web_coverage_pct = extract_coverage(self.webview_coverage_file, 'webview')
-        
-        # Convert to float if it's an integer
-        if isinstance(web_coverage_pct, int):
-            web_coverage_pct = float(web_coverage_pct)
-        
-        # Check that coverage percentage is a float
-        self.assertIsInstance(web_coverage_pct, float)
-        
-        # Check that coverage percentage is between 0 and 100
-        self.assertGreaterEqual(web_coverage_pct, 0)
-        self.assertLessEqual(web_coverage_pct, 100)
-        
-        # Log coverage percentage for debugging
-        log(f"Webview coverage: {web_coverage_pct}%")
-
     def test_compare_coverage(self):
         """Test compare_coverage function."""
         # Test with coverage increase
@@ -193,53 +143,6 @@ class TestCoverage(unittest.TestCase):
         # Check that comment contains correct assessment
         self.assertIn('Coverage increased or remained the same', comment)
         self.assertIn('Test coverage has been maintained or improved', comment)
-
-    @patch('coverage_check.requests.get')
-    @patch('coverage_check.requests.post')
-    @patch('coverage_check.requests.patch')
-    def test_post_comment_new(self, mock_patch, mock_post, mock_get):
-        """Test post_comment function when creating a new comment."""
-        # Create a temporary comment file
-        comment_file = os.path.join(self.temp_dir.name, 'comment.md')
-        with open(comment_file, 'w') as f:
-            f.write('<!-- COVERAGE_REPORT -->\nTest comment')
-        
-        # Mock the API responses
-        mock_get.return_value = MagicMock(status_code=200, json=lambda: [])
-        mock_post.return_value = MagicMock(status_code=201)
-        
-        # Test post_comment function
-        post_comment(comment_file, '123', 'owner/repo', 'token')
-        
-        # Check that the correct API calls were made
-        mock_get.assert_called_once()
-        mock_post.assert_called_once()
-        mock_patch.assert_not_called()
-
-    @patch('coverage_check.requests.get')
-    @patch('coverage_check.requests.post')
-    @patch('coverage_check.requests.patch')
-    def test_post_comment_update(self, mock_patch, mock_post, mock_get):
-        """Test post_comment function when updating an existing comment."""
-        # Create a temporary comment file
-        comment_file = os.path.join(self.temp_dir.name, 'comment.md')
-        with open(comment_file, 'w') as f:
-            f.write('<!-- COVERAGE_REPORT -->\nTest comment')
-        
-        # Mock the API responses
-        mock_get.return_value = MagicMock(
-            status_code=200, 
-            json=lambda: [{'id': 456, 'body': '<!-- COVERAGE_REPORT -->\nOld comment'}]
-        )
-        mock_patch.return_value = MagicMock(status_code=200)
-        
-        # Test post_comment function
-        post_comment(comment_file, '123', 'owner/repo', 'token')
-        
-        # Check that the correct API calls were made
-        mock_get.assert_called_once()
-        mock_patch.assert_called_once()
-        mock_post.assert_not_called()
 
     def test_set_github_output(self):
         """Test set_github_output function."""

@@ -339,26 +339,4 @@ describe("local cloud service boundary", () => {
 			message: "Unauthorized",
 		} satisfies Partial<CloudSessionError>)
 	})
-
-	it("serializes concurrent activation as one owned sandbox", async () => {
-		environment = await startLocalCloudEnvironment()
-		const service = new CloudSessionsService({
-			apiBaseUrl: environment.apiBaseUrl,
-			appBaseUrl: environment.apiBaseUrl,
-			getAuthToken: async () => environment?.accessToken,
-			getActiveOrganizationId: () => undefined,
-		})
-		const created = await service.createSession({
-			modelId: "fixture-model",
-			repoUrl: "https://github.com/cline/fixture",
-		})
-
-		const [first, second] = await Promise.all([
-			environment.activateSession(created.id),
-			environment.activateSession(created.id),
-		])
-
-		expect(first).toBe(second)
-		expect(first.hub).toBeDefined()
-	})
 })

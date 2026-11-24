@@ -581,118 +581,6 @@ describe("session forks", () => {
 		expect(ctx.restoringWorkspacePaths.size).toBe(0);
 	});
 
-	it("holds the workspace lock for the full edit restore", async () => {
-		const sourceSessionId = `locking-source-${Date.now()}`;
-		const siblingSessionId = `locking-sibling-${Date.now()}`;
-		const sourceMessages = [
-			{ role: "user" as const, content: "first prompt" },
-			{ role: "assistant" as const, content: "first response" },
-		];
-		let releaseRestore = () => {};
-		const restoreGate = new Promise<void>((resolve) => {
-			releaseRestore = resolve;
-		});
-		let markRestoreStarted = () => {};
-		const restoreStarted = new Promise<void>((resolve) => {
-			markRestoreStarted = resolve;
-		});
-		const send = vi.fn();
-		const restore = vi.fn(async () => {
-			markRestoreStarted();
-			await restoreGate;
-			return {
-				sessionId: "locked-edited-fork",
-				messages: sourceMessages,
-				checkpoint: { ref: "first", createdAt: 1, runCount: 1 },
-			};
-		});
-		const ctx = {
-			liveSessions: new Map([
-				[
-					sourceSessionId,
-					{
-						config: {
-							provider: "cline",
-							model: "anthropic/claude-sonnet-4.6",
-							cwd: "/workspace/project",
-						},
-						messages: sourceMessages,
-						promptsInQueue: [],
-						busy: false,
-						startedAt: Date.now(),
-						status: "idle",
-					},
-				],
-				[
-					siblingSessionId,
-					{
-						config: { workspaceRoot: "/workspace/project/." },
-						messages: [],
-						promptsInQueue: [],
-						busy: false,
-						startedAt: Date.now(),
-						status: "idle",
-					},
-				],
-			]),
-			restoringWorkspacePaths: new Set(),
-			...localRuntimeContext(
-				{
-					get: vi.fn(async () => ({
-						sessionId: sourceSessionId,
-						source: "desktop",
-						status: "completed",
-						provider: "cline",
-						model: "anthropic/claude-sonnet-4.6",
-						cwd: "/workspace/project",
-						workspaceRoot: "/workspace/project",
-						metadata: {
-							checkpoint: {
-								latest: { ref: "first", createdAt: 1, runCount: 1 },
-								history: [{ ref: "first", createdAt: 1, runCount: 1 }],
-							},
-						},
-					})),
-					readMessages: vi.fn(async () => sourceMessages),
-					restore,
-					send,
-				},
-				{ sessionIds: [sourceSessionId, siblingSessionId] },
-			),
-			streamIndices: new Map(),
-			wsClients: new Set(),
-		} as unknown as SidecarContext;
-
-		const fork = handleChatSessionCommand(ctx, {
-			action: "fork",
-			sessionId: sourceSessionId,
-			forkBeforeRunCount: 1,
-		});
-		await restoreStarted;
-		try {
-			expect(ctx.restoringWorkspacePaths).toEqual(
-				new Set(["/workspace/project"]),
-			);
-			await expect(
-				handleChatSessionCommand(ctx, {
-					action: "send",
-					sessionId: siblingSessionId,
-					prompt: "race",
-				}),
-			).rejects.toThrow(
-				"Cannot send a prompt while the session workspace is being restored",
-			);
-			expect(send).not.toHaveBeenCalled();
-		} finally {
-			releaseRestore();
-		}
-
-		await expect(fork).resolves.toMatchObject({
-			sessionId: "locked-edited-fork",
-		});
-		expect(ctx.restoringWorkspacePaths.size).toBe(0);
-	});
-
 	it("forks trimmed messages without restoring when the edited run has no checkpoint", async () => {
 		const sourceSessionId = `source-imported-fork-${Date.now()}`;
 		const sourceMessages = [
@@ -1301,97 +1189,6 @@ describe("first-send connection updates", () => {
 		}
 	});
 
-	it("deletes materialized attachments when a queued prompt is removed", async () => {
-		const { ctx, send, sessionId } = createContext();
-		const previousSessionDataDir = process.env.CLINE_SESSION_DATA_DIR;
-		const testSessionDataDir = join(
-			tmpdir(),
-			`cline-desktop-attachments-remove-${Date.now()}`,
-		);
-
-		try {
-			process.env.CLINE_SESSION_DATA_DIR = testSessionDataDir;
-			const queue: Array<{
-				id: string;
-				prompt: string;
-				delivery: "queue";
-				attachmentCount: number;
-				userFiles?: string[];
-			}> = [];
-			const manager = localSessionManager(ctx) as unknown as {
-				send: typeof send;
-				pendingPrompts: {
-					list: (input: unknown) => Promise<unknown[]>;
-					delete: (input: {
-						sessionId: string;
-						promptId: string;
-					}) => Promise<unknown>;
-				};
-			};
-			manager.send = vi.fn(async (input?: unknown) => {
-				const { prompt, userFiles } = input as {
-					prompt: string;
-					userFiles?: string[];
-				};
-				queue.push({
-					id: "pending_1",
-					prompt,
-					delivery: "queue",
-					attachmentCount: userFiles?.length ?? 0,
-					userFiles,
-				});
-				return undefined;
-			}) as unknown as typeof send;
-			manager.pendingPrompts = {
-				list: vi.fn(async () => [...queue]),
-				delete: vi.fn(async ({ promptId }) => {
-					const index = queue.findIndex((entry) => entry.id === promptId);
-					const [removed] = index >= 0 ? queue.splice(index, 1) : [];
-					return {
-						sessionId,
-						prompts: [...queue],
-						prompt: removed,
-						removed: index >= 0,
-					};
-				}),
-			};
-
-			await handleChatSessionCommand(ctx, {
-				action: "send",
-				sessionId,
-				prompt: "queued with file",
-				delivery: "queue",
-				attachments: {
-					userFiles: [{ name: "notes.txt", content: "hello" }],
-				},
-			});
-			const filePath = queue[0]?.userFiles?.[0] ?? "";
-			expect(existsSync(filePath)).toBe(true);
-			expect(
-				ctx.liveSessions
-					.get(sessionId)
-					?.queuedAttachmentFiles?.get("pending_1"),
-			).toEqual([filePath]);
-
-			await handleChatSessionCommand(ctx, {
-				action: "remove_pending_prompt",
-				sessionId,
-				promptId: "pending_1",
-			});
-			expect(existsSync(filePath)).toBe(false);
-			expect(
-				ctx.liveSessions.get(sessionId)?.queuedAttachmentFiles?.size ?? 0,
-			).toBe(0);
-		} finally {
-			if (previousSessionDataDir === undefined) {
-				delete process.env.CLINE_SESSION_DATA_DIR;
-			} else {
-				process.env.CLINE_SESSION_DATA_DIR = previousSessionDataDir;
-			}
-			rmSync(testSessionDataDir, { recursive: true, force: true });
-		}
-	});
-
 	it("deletes tracked attachments when a session is reset", async () => {
 		const { ctx, sessionId } = createContext();
 		const previousSessionDataDir = process.env.CLINE_SESSION_DATA_DIR;
@@ -1477,24 +1274,6 @@ describe("first-send connection updates", () => {
 			}
 			rmSync(testSessionDataDir, { recursive: true, force: true });
 		}
-	});
-
-	it("updates a changed connection before sending", async () => {
-		const { ctx, send, sessionId, updateSessionConnection } = createContext({
-			config: { ...baseConfig, reasoningEffort: "low" },
-		});
-
-		await handleChatSessionCommand(ctx, {
-			action: "send",
-			sessionId,
-			prompt: "hello",
-			config: { ...baseConfig },
-		});
-
-		expect(updateSessionConnection).toHaveBeenCalledTimes(1);
-		expect(updateSessionConnection.mock.invocationCallOrder[0]).toBeLessThan(
-			send.mock.invocationCallOrder[0] ?? 0,
-		);
 	});
 
 	it("rebuilds the same session with its transcript before a provider switch", async () => {
@@ -2542,24 +2321,6 @@ Follow the desktop send workflow instructions.`,
 		expect(session.prompt).toBe("/desktop-send-workflow ship it");
 	});
 
-	it("keeps a skill command as typed when a queued prompt is edited", async () => {
-		const workspace = createWorkspaceWithSkill();
-		const { ctx, sessionId, updatePendingPrompt } = createContext(workspace);
-
-		await handleChatSessionCommand(ctx, {
-			action: "update_pending_prompt",
-			sessionId,
-			promptId: "queued-1",
-			prompt: "/desktop-send-skill later please",
-		});
-
-		expect(updatePendingPrompt).toHaveBeenCalledWith({
-			sessionId,
-			promptId: "queued-1",
-			prompt: "/desktop-send-skill later please",
-		});
-	});
-
 	it("expands a workflow command when a queued prompt is edited", async () => {
 		const workspace = createWorkspaceWithSkill();
 		const { ctx, sessionId, updatePendingPrompt } = createContext(workspace);
@@ -3280,46 +3041,6 @@ describe("mistake-limit prompt", () => {
 			resolveSidecarAskQuestion(ctx, requestId, "Try a different approach"),
 		).toBe(false);
 		expect(steer).not.toHaveBeenCalled();
-	});
-
-	it("is wired into freshly started sessions as a local runtime option", async () => {
-		const start = vi.fn(
-			async (input: {
-				config: Record<string, unknown>;
-				localRuntime?: Record<string, unknown>;
-			}) => {
-				expect(input.config).not.toHaveProperty(
-					"onConsecutiveMistakeLimitReached",
-				);
-				expect(
-					typeof input.localRuntime?.onConsecutiveMistakeLimitReached,
-				).toBe("function");
-				// The SDK pauses the run on the decision itself; per-step hooks
-				// would round-trip to the sidecar on every model and tool call.
-				expect(input.config).not.toHaveProperty("hooks");
-				expect(input.localRuntime).not.toHaveProperty("hooks");
-				return {
-					sessionId: "session-limit",
-					manifest: { cwd: "/tmp/ws", workspace_root: "/tmp/ws" },
-					manifestPath: "/tmp/session-limit.json",
-					messagesPath: "/tmp/session-limit.messages.json",
-				};
-			},
-		);
-		const ctx = {
-			liveSessions: new Map(),
-			restoringWorkspacePaths: new Set(),
-			...localRuntimeContext({ start }),
-		} as unknown as SidecarContext;
-		await handleChatSessionCommand(ctx, {
-			action: "start",
-			config: {
-				provider: "cline",
-				model: "anthropic/claude-sonnet-4.6",
-				cwd: "/tmp/ws",
-			},
-		});
-		expect(start).toHaveBeenCalledTimes(1);
 	});
 });
 

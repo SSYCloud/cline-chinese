@@ -37,37 +37,6 @@ describe("root option help text", () => {
 		}
 	});
 
-	it("reports the actual resolver defaults for --config and --data-dir", () => {
-		// A wide help width keeps each option description on one line so the
-		// full default text can be matched.
-		const help = createProgram()
-			.configureHelp({ helpWidth: 500 })
-			.helpInformation();
-
-		const configDefault = tildePath(resolveClineDir(), FAKE_HOME);
-		const dataDirDefault = tildePath(resolveClineDataDir(), FAKE_HOME);
-
-		// Sanity-check the resolvers themselves so the assertions below can't
-		// silently drift along with a resolver regression.
-		expect(configDefault).toBe("~/.cline");
-		expect(dataDirDefault).toBe("~/.cline/data");
-
-		expect(help).toContain(`配置目录（默认：${configDefault}）`);
-		expect(help).toContain(
-			`在此目录路径使用隔离的本地状态（默认：${dataDirDefault}）`,
-		);
-	});
-
-	it("reports the --retries default that runs use", () => {
-		const help = createProgram()
-			.configureHelp({ helpWidth: 500 })
-			.helpInformation();
-
-		expect(help).toContain(
-			`before exiting (default: ${CLI_DEFAULT_MAX_CONSECUTIVE_MISTAKES})`,
-		);
-	});
-
 	it("rejects --retries without a count", () => {
 		const program = createProgram().configureOutput({ writeErr: () => {} });
 

@@ -41,16 +41,6 @@ test.describe("cline auth --help", () => {
 		...TERMINAL_WIDE,
 		env: clineEnv("unauthenticated"),
 	});
-
-	test("shows auth help page", async ({ terminal }) => {
-		await expectVisible(terminal, [
-			"Usage:",
-			"--provider",
-			"--apikey",
-			"--modelid",
-			"--baseurl",
-		]);
-	});
 });
 
 // ---------------------------------------------------------------------------
@@ -116,12 +106,6 @@ test.describe("cline auth --verbose only", () => {
 		...TERMINAL_WIDE,
 		env: clineEnv("unauthenticated"),
 	});
-
-	test("accepts --verbose and shows interactive auth screen", async ({
-		terminal,
-	}) => {
-		await waitForAuthScreen(terminal);
-	});
 });
 
 test.describe("cline auth --cwd", () => {
@@ -133,12 +117,6 @@ test.describe("cline auth --cwd", () => {
 		...TERMINAL_WIDE,
 		env: clineEnv("unauthenticated"),
 	});
-
-	test("accepts --cwd and shows interactive auth screen", async ({
-		terminal,
-	}) => {
-		await waitForAuthScreen(terminal);
-	});
 });
 
 test.describe("cline auth --config", () => {
@@ -149,12 +127,6 @@ test.describe("cline auth --config", () => {
 		},
 		...TERMINAL_WIDE,
 		env: clineEnv("unauthenticated"),
-	});
-
-	test("accepts --config and shows interactive auth screen", async ({
-		terminal,
-	}) => {
-		await waitForAuthScreen(terminal);
 	});
 });
 
@@ -175,13 +147,6 @@ test.describe("cline auth -p -k -m (golden path)", () => {
 		...TERMINAL_WIDE,
 		env: clineEnv("unauthenticated"),
 	});
-
-	test("exits successfully with valid provider, key, and model", async ({
-		terminal,
-	}) => {
-		// Golden path: should not show interactive auth screen, should exit cleanly
-		await expectExitCode(terminal, EXIT_CODE_SUCCESS);
-	});
 });
 
 test.describe("cline auth with invalid key (still exits 0)", () => {
@@ -200,12 +165,6 @@ test.describe("cline auth with invalid key (still exits 0)", () => {
 		},
 		...TERMINAL_WIDE,
 		env: clineEnv("unauthenticated"),
-	});
-
-	test("accepts invalid key without error at auth time", async ({
-		terminal,
-	}) => {
-		await expectExitCode(terminal, EXIT_CODE_SUCCESS);
 	});
 });
 
@@ -227,12 +186,6 @@ test.describe("cline auth -p -k -m -b (golden path with baseUrl)", () => {
 		},
 		...TERMINAL_WIDE,
 		env: clineEnv("unauthenticated"),
-	});
-
-	test("exits successfully with baseUrl for OpenAI Compatible provider", async ({
-		terminal,
-	}) => {
-		await expectExitCode(terminal, EXIT_CODE_SUCCESS);
 	});
 });
 

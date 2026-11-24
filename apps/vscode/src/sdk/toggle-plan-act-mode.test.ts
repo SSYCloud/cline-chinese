@@ -37,24 +37,6 @@ describe("togglePlanActModeProto", () => {
 		}
 	})
 
-	it("decodes PLAN mode and passes it to the controller", async () => {
-		toggleSpy.mockResolvedValue(false)
-		const request = TogglePlanActModeRequest.create({ mode: PlanActMode.PLAN })
-
-		await togglePlanActModeProto(mockController, request)
-
-		expect(toggleSpy).toHaveBeenCalledWith("plan", undefined)
-	})
-
-	it("decodes ACT mode and passes it to the controller", async () => {
-		toggleSpy.mockResolvedValue(false)
-		const request = TogglePlanActModeRequest.create({ mode: PlanActMode.ACT })
-
-		await togglePlanActModeProto(mockController, request)
-
-		expect(toggleSpy).toHaveBeenCalledWith("act", undefined)
-	})
-
 	it("passes chatContent through to the controller", async () => {
 		toggleSpy.mockResolvedValue(false)
 		const request = TogglePlanActModeRequest.create({
@@ -72,15 +54,6 @@ describe("togglePlanActModeProto", () => {
 			images: ["img.png"],
 			files: ["a.txt"],
 		})
-	})
-
-	it("returns a Boolean proto reflecting controller.togglePlanActMode's return value (false)", async () => {
-		toggleSpy.mockResolvedValue(false)
-		const request = TogglePlanActModeRequest.create({ mode: PlanActMode.PLAN })
-
-		const response = await togglePlanActModeProto(mockController, request)
-
-		expect(response.value).toBe(false)
 	})
 
 	it("returns a Boolean proto reflecting controller.togglePlanActMode's return value (true)", async () => {

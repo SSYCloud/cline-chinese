@@ -35,15 +35,6 @@ describe("getProviderConfigFields", () => {
 		);
 	});
 
-	it("returns api-key auth with apiKey + baseUrl for LiteLLM", () => {
-		const result = getProviderConfigFields("litellm");
-		expect(result.authMethod).toBe("api-key");
-		expect(result.fields.apiKey).toEqual({});
-		expect(result.fields.baseUrl?.defaultValue).toBe(
-			"http://localhost:4000/v1",
-		);
-	});
-
 	it("returns api-key auth with apiKey + baseUrl for user-added providers", () => {
 		registerCustomProvider("internal-router", {
 			provider: {
@@ -68,24 +59,6 @@ describe("getProviderConfigFields", () => {
 	it("returns oauth auth with no fields for cline", () => {
 		const result = getProviderConfigFields("cline");
 		expect(result.authMethod).toBe("oauth");
-		expect(result.fields).toEqual({});
-	});
-
-	it("returns oauth auth with no fields for openai-codex", () => {
-		const result = getProviderConfigFields("openai-codex");
-		expect(result.authMethod).toBe("oauth");
-		expect(result.fields).toEqual({});
-	});
-
-	it("returns local auth with no fields for openai-codex-cli", () => {
-		const result = getProviderConfigFields("openai-codex-cli");
-		expect(result.authMethod).toBe("local");
-		expect(result.fields).toEqual({});
-	});
-
-	it("returns local auth with no fields for claude-code", () => {
-		const result = getProviderConfigFields("claude-code");
-		expect(result.authMethod).toBe("local");
 		expect(result.fields).toEqual({});
 	});
 

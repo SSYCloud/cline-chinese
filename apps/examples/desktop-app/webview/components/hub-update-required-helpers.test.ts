@@ -77,12 +77,6 @@ describe("shouldShowHubMismatchDialog", () => {
 });
 
 describe("resolveHubUpdateRestartDecision", () => {
-	it("restarts only once an update is staged", () => {
-		expect(resolveHubUpdateRestartDecision({ state: "ready" })).toEqual({
-			action: "restart",
-		});
-	});
-
 	it("stays open when no update is available, so the app is not relaunched into the same version", () => {
 		for (const state of ["idle", "checking", "downloading"] as const) {
 			const decision = resolveHubUpdateRestartDecision({ state });

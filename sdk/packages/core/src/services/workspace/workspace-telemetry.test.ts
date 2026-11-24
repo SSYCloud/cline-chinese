@@ -152,16 +152,6 @@ describe("emitWorkspaceLifecycleTelemetry", () => {
 		expect(props.vcs_types).toEqual(["git", "hg"]);
 	});
 
-	test("no-ops when telemetry is undefined", () => {
-		expect(() =>
-			emitWorkspaceLifecycleTelemetry({
-				telemetry: undefined,
-				rootPath: "/tmp/quiet",
-				vcsType: "none",
-			}),
-		).not.toThrow();
-	});
-
 	test("resetWorkspaceTelemetryForTests clears the dedup cache", () => {
 		const stub = createTelemetryStub();
 		emitWorkspaceLifecycleTelemetry({

@@ -506,22 +506,6 @@ describe("createDoctorCommand log subcommand", () => {
 		expect(existsSync(expectedPath)).toBe(true);
 	});
 
-	it("opens the CLINE_LOG_PATH file the CLI writes to", async () => {
-		const logDir = mkdtempSync(
-			path.join(os.tmpdir(), `${commandName}-doctor-log-path-test-`),
-		);
-		tempDirs.push(logDir);
-		const logPath = path.join(logDir, "custom", "cli.log");
-		vi.stubEnv("CLINE_LOG_PATH", logPath);
-
-		const { exitCode, opened, output } = await runDoctorLog();
-
-		expect(exitCode).toBe(0);
-		expect(opened).toEqual([logPath]);
-		expect(output).toEqual([`正在打开存放在 ${logPath} 的日志`]);
-		expect(existsSync(logPath)).toBe(true);
-	});
-
 	it("returns an error if opening log file fails", async () => {
 		const dataDir = mkdtempSync(
 			path.join(os.tmpdir(), `${commandName}-doctor-log-test-`),

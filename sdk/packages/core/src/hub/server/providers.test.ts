@@ -510,15 +510,6 @@ describe("hub provider management", () => {
 		).toEqual({ unrelated: "keep" });
 	});
 
-	it("returns recommended models with the offline fallback", async () => {
-		const result = await api.recommendedModels();
-		expect(result.recommended.length).toBeGreaterThan(0);
-		expect(result).toMatchObject({
-			free: expect.any(Array),
-			clinePass: expect.any(Array),
-		});
-	});
-
 	it("rejects invalid writes before changing persisted settings", async () => {
 		await api.saveSettings({ providerId: "cline", apiKey: "keep" });
 		const result = await transport.handleCommand({

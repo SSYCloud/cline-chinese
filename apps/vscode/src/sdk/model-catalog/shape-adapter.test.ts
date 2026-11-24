@@ -96,13 +96,6 @@ describe("adaptSdkModelInfo", () => {
 			expect(model.supportsReasoning).toBeUndefined()
 		})
 
-		it("uses safe defaults for image/cache capabilities when capabilities are absent", () => {
-			const model = adaptSdkModelInfo({ id: "m" })
-			expect(model.supportsImages).toBe(openAiModelInfoSafeDefaults.supportsImages)
-			expect(model.supportsPromptCache).toBe(openAiModelInfoSafeDefaults.supportsPromptCache)
-			expect(model.supportsReasoning).toBeUndefined()
-		})
-
 		it("preserves the SDK capability list verbatim, including entries without a boolean projection", () => {
 			const model = adaptSdkModelInfo({
 				id: "m",

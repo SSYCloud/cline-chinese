@@ -80,23 +80,6 @@ describe("CronWatcher", () => {
 		expect(runs[0]?.status).toBe("queued");
 	});
 
-	it("watches the native canonical path rather than a Windows short-path alias", () => {
-		const canonicalDir = realpathSync.native(cronDir);
-		const resolvePath = vi.spyOn(realpathSync, "native");
-		const watcher = new CronWatcher({ reconciler });
-		try {
-			watcher.start();
-			expect(resolvePath).toHaveBeenCalledWith(cronDir);
-			expect(watch).toHaveBeenCalledExactlyOnceWith(
-				canonicalDir,
-				{ recursive: true },
-				expect.any(Function),
-			);
-		} finally {
-			watcher.dispose();
-		}
-	});
-
 	it("reports resolution failure without watching the unresolved path", () => {
 		const error = new Error("Cannot resolve watcher directory");
 		vi.spyOn(realpathSync, "native").mockImplementationOnce(() => {

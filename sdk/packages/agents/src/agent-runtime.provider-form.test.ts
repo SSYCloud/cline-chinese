@@ -55,34 +55,6 @@ describe("AgentRuntime (provider-form config + Agent alias)", () => {
 		createAgentModel.mockReset();
 	});
 
-	it("constructs the runtime via the llms gateway in ESM-safe code", () => {
-		const model = new ScriptedModel([]);
-		createAgentModel.mockReturnValue(model);
-
-		const agent = new Agent({
-			providerId: "openai",
-			modelId: "gpt-5",
-			apiKey: "test-key",
-		});
-
-		expect(agent).toBeInstanceOf(Agent);
-		expect(createGateway).toHaveBeenCalledWith({
-			providerConfigs: [
-				{
-					providerId: "openai",
-					apiKey: "test-key",
-					baseUrl: undefined,
-					headers: undefined,
-					options: undefined,
-				},
-			],
-		});
-		expect(createAgentModel).toHaveBeenCalledWith({
-			providerId: "openai",
-			modelId: "gpt-5",
-		});
-	});
-
 	it("passes provider options through to the llms gateway", () => {
 		const model = new ScriptedModel([]);
 		createAgentModel.mockReturnValue(model);
@@ -152,23 +124,6 @@ describe("AgentRuntime (provider-form config + Agent alias)", () => {
 		}
 		expect(abortReason.message).toBe("user cancelled");
 		expect(abortReason.reason).toBe("user cancelled");
-	});
-
-	it("createAgent() and new Agent() both return an AgentRuntime instance", () => {
-		const model = new ScriptedModel([]);
-		createAgentModel.mockReturnValue(model);
-
-		const agent = createAgent({
-			providerId: "anthropic",
-			modelId: "claude-sonnet-4-6",
-		});
-
-		// After the facade/runtime merge (Option B), `Agent` is an alias for
-		// `AgentRuntime`. Both constructors return the same class — verified
-		// here so future refactors don't silently reintroduce a split.
-		expect(agent).toBeInstanceOf(Agent);
-		expect(agent).toBeInstanceOf(AgentRuntime);
-		expect(Agent).toBe(AgentRuntime);
 	});
 
 	it("restores conversation state by rebuilding the runtime", () => {

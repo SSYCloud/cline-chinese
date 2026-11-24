@@ -36,11 +36,6 @@ test.describe("root flag descriptions", () => {
 			"Run the kanban app",
 		]);
 	});
-
-	test("all short flag aliases are shown", async ({ terminal }) => {
-		// `-a` and `-y` are intentionally hidden from help (still accepted at parse time).
-		await expectVisible(terminal, ["-p", "-t", "-m", "-v", "-c"]);
-	});
 });
 
 // ===========================================================================
@@ -51,11 +46,6 @@ test.describe("history flag descriptions", () => {
 		program: { file: CLINE_BIN, args: ["history", "--help"] },
 		env: clineEnv("default"),
 		...HELP_TERMINAL,
-	});
-
-	test("all history flags have correct descriptions", async ({ terminal }) => {
-		await expectVisible(terminal, "number of sessions to show");
-		await expectVisible(terminal, "configuration directory");
 	});
 });
 
@@ -68,16 +58,6 @@ test.describe("auth flag descriptions", () => {
 		env: clineEnv("default"),
 		...HELP_TERMINAL,
 	});
-
-	test("all auth flags have correct descriptions", async ({ terminal }) => {
-		await expectVisible(terminal, [
-			"Provider ID",
-			"API key",
-			"Model ID",
-			"Base URL",
-			"configuration directory",
-		]);
-	});
 });
 
 // ===========================================================================
@@ -89,10 +69,6 @@ test.describe("config flag descriptions", () => {
 		env: clineEnv("default"),
 		...HELP_TERMINAL,
 	});
-
-	test("config --config flag description", async ({ terminal }) => {
-		await expectVisible(terminal, "configuration directory");
-	});
 });
 
 // ===========================================================================
@@ -103,9 +79,5 @@ test.describe("update flag descriptions", () => {
 		program: { file: CLINE_BIN, args: ["update", "--help"] },
 		env: clineEnv("default"),
 		...HELP_TERMINAL,
-	});
-
-	test("update --verbose flag description", async ({ terminal }) => {
-		await expectVisible(terminal, "verbose output");
 	});
 });

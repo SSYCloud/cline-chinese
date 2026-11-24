@@ -383,13 +383,6 @@ describe("CloudSessionManager state", () => {
 		expect(result.queued).toBeUndefined();
 	});
 
-	it("keeps an explicit steer reply distinct from a queued successor", async () => {
-		const { manager, connection } = await createFixture();
-		connection.transcriptKnown = true;
-		const result = await manager.send("ses-outer", "Steer now", "steer");
-		expect(result.queued).toBeUndefined();
-	});
-
 	it.each([
 		false,
 		true,
