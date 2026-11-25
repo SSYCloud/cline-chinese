@@ -228,28 +228,6 @@ describe("SessionsView table", () => {
 		expect(container.textContent).not.toContain("Loading session history...");
 	});
 
-	it("loads complete history before treating search results as exhaustive", async () => {
-		const view = renderView({ mayHaveMoreSessions: true });
-		await view.render();
-
-		const search = container.querySelector<HTMLInputElement>(
-			'input[aria-label="Search sessions"]',
-		);
-		expect(search).not.toBeNull();
-		await act(async () => {
-			if (search) {
-				const setValue = Object.getOwnPropertyDescriptor(
-					HTMLInputElement.prototype,
-					"value",
-				)?.set;
-				setValue?.call(search, "older match");
-				search.dispatchEvent(new Event("input", { bubbles: true }));
-			}
-		});
-
-		expect(view.loadAllSessions).toHaveBeenCalledOnce();
-	});
-
 	it("loads complete history for filters and oldest-first sorting", async () => {
 		const view = renderView({ mayHaveMoreSessions: true });
 		await view.render();

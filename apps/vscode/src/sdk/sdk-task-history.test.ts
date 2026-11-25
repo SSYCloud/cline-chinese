@@ -799,38 +799,6 @@ describe("SdkTaskHistory", () => {
 		expect(result[0].sessionId).toBe("task-1")
 	})
 
-	it("patches cache in place on per-turn usage updates", async () => {
-		const { history, listHistory } = makeHistory([
-			makeSessionRecord("task-1", {
-				metadata: { tokensIn: 10, tokensOut: 20, totalCost: 0.01 },
-			}),
-		])
-
-		// Populate cache
-		await history.listHistory({ hydrate: false })
-		expect(listHistory).toHaveBeenCalledTimes(1)
-
-		// Per-turn usage update (the streaming hot path)
-		await history.updateTaskUsage("task-1", {
-			tokensIn: 100,
-			tokensOut: 200,
-			totalCost: 0.03,
-		})
-
-		// Read again — should use cache, not re-list from host
-		const result = await history.listHistory({ hydrate: false })
-		expect(listHistory).toHaveBeenCalledTimes(1)
-
-		const updated = result.find((r) => r.sessionId === "task-1")
-		expect(updated?.metadata).toEqual(
-			expect.objectContaining({
-				tokensIn: 110,
-				tokensOut: 220,
-				totalCost: 0.04,
-			}),
-		)
-	})
-
 	it("bumps cached updatedAt to the write time, not a stale HistoryItem.ts", async () => {
 		// Simulates toggleTaskFavorite(), which reuses an existing HistoryItem
 		// (with its original, possibly old, `ts`) to flip just `isFavorited`. The

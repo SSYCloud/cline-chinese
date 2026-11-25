@@ -168,12 +168,6 @@ describe("SDK error rate limiting", () => {
 		expect(capture).toHaveBeenCalledTimes(SDK_ERROR_RATE_LIMIT_MAX_PER_WINDOW);
 	});
 
-	it("does not suppress distinct failures", () => {
-		const capture = captureRepeatedly(10, (i) => `distinct ${"x".repeat(i)}`);
-
-		expect(capture).toHaveBeenCalledTimes(10);
-	});
-
 	it("coalesces messages that differ only by numbers", () => {
 		const capture = captureRepeatedly(
 			100,

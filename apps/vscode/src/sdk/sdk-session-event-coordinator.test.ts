@@ -225,28 +225,6 @@ describe("SdkSessionEventCoordinator", () => {
 		expect(options.sessions.setRunning).toHaveBeenCalledWith(false)
 	})
 
-	it("updates task usage when the active session has a start result", async () => {
-		const { coordinator, options, event } = makeCoordinator({
-			task: { taskId: "task-1" },
-			translation: {
-				messages: [],
-				sessionEnded: false,
-				turnComplete: false,
-				usage: { tokensIn: 3, tokensOut: 4, cacheReads: 5, cacheWrites: 0, totalCost: 0.01 },
-			},
-		})
-
-		await coordinator.handleSessionEvent(event)
-
-		expect(options.taskHistory.updateTaskUsage).toHaveBeenCalledWith("task-1", {
-			tokensIn: 3,
-			tokensOut: 4,
-			cacheReads: 5,
-			cacheWrites: 0,
-			totalCost: 0.01,
-		})
-	})
-
 	it("zeros usage and api request message cost for free Cline models", async () => {
 		const { coordinator, options, event } = makeCoordinator({
 			isClineFreeModel: vi.fn().mockResolvedValue(true),

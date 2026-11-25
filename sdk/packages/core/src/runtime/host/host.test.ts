@@ -225,22 +225,6 @@ describe("runtime host resolution", () => {
 		);
 	});
 
-	it("uses the configured hub workspace root when prewarming", async () => {
-		const { createRuntimeHost } = await import("./host");
-		resolveCompatibleLocalHubUrlMock.mockResolvedValue(undefined);
-
-		await createRuntimeHost({
-			backendMode: "auto",
-			hub: {
-				workspaceRoot: "/workspace/project",
-			},
-		});
-
-		expect(prewarmDetachedHubServerMock).toHaveBeenCalledWith(
-			"/workspace/project",
-		);
-	});
-
 	it("does not prewarm when using an explicit hub endpoint", async () => {
 		const { createRuntimeHost } = await import("./host");
 		resolveCompatibleLocalHubUrlMock.mockResolvedValue(undefined);

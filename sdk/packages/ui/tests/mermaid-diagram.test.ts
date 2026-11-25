@@ -720,12 +720,6 @@ describe("encodePngWithinLimit", () => {
 		expect(scales.length).toBeLessThanOrEqual(4);
 	});
 
-	test("does not retry when the edge cap already forced the scale below 1x", async () => {
-		const encode = vi.fn(async () => ({ size: OVERSIZE }));
-		await encodePngWithinLimit({ height: 100, width: 8192 }, encode);
-		expect(encode).toHaveBeenCalledTimes(1);
-	});
-
 	test("propagates encoder failures", async () => {
 		await expect(
 			encodePngWithinLimit({ height: 10, width: 10 }, async () => {

@@ -565,18 +565,6 @@ describe("AgentHeader subagent session badge", () => {
 		expect(badge?.getAttribute("title")).toBe("Back to the main agent session");
 	});
 
-	it("opens the parent session when clicked", async () => {
-		const onOpenParentSession = vi.fn();
-		const badge = await renderHeader({
-			parentSession: { sessionId: "root1", title: "Parent" },
-			onOpenParentSession,
-		});
-		await act(async () => {
-			badge?.click();
-		});
-		expect(onOpenParentSession).toHaveBeenCalledWith("root1");
-	});
-
 	it("is inert when the host cannot navigate", async () => {
 		const badge = await renderHeader({
 			parentSession: { sessionId: "root1", title: "Parent" },

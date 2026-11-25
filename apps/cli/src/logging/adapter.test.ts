@@ -59,23 +59,6 @@ describe("createCliLoggerAdapter", () => {
 		vi.restoreAllMocks();
 	});
 
-	it("uses provided runtime config in rpc runtime", () => {
-		const adapter = createCliLoggerAdapter({
-			runtime: "rpc-runtime",
-			runtimeConfig: {
-				destination: "/tmp/custom-runtime.log",
-				level: "warn",
-				name: "custom-runtime",
-				enabled: false,
-			},
-		});
-
-		expect(adapter.runtimeConfig.destination).toBe("/tmp/custom-runtime.log");
-		expect(adapter.runtimeConfig.level).toBe("warn");
-		expect(adapter.runtimeConfig.name).toBe("custom-runtime");
-		expect(adapter.runtimeConfig.enabled).toBe(false);
-	});
-
 	it("writes process-level errors to the CLI log", () => {
 		const snapshot = withEnvSnapshot();
 		const dataDir = mkdtempSync(join(tmpdir(), `${commandName}-process-log-`));

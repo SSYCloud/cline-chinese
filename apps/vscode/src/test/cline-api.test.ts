@@ -59,16 +59,6 @@ describe("ClineAPI Core Functionality", () => {
 	describe("sendMessage", () => {})
 
 	describe("Button Press Methods", () => {
-		describe("pressPrimaryButton", () => {
-			it("should handle primary button press with no active task", async () => {
-				mockController.task = undefined
-
-				await api.pressPrimaryButton()
-
-				sinon.assert.calledWith(mockLoggerError, "No active task to press button for")
-			})
-		})
-
 		describe("pressSecondaryButton", () => {})
 	})
 

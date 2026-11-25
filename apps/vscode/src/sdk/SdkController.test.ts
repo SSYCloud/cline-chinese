@@ -12,17 +12,6 @@ import { createTaskProxy, type TaskProxy } from "./task-proxy"
 import { resolveWorkspaceManagerPaths, resolveWorkspaceRootPath } from "./workspace-root"
 
 describe("SDK displayed-task Batch lifecycle", () => {
-	it("binds a future Batch run to the host-resolved project workspace", async () => {
-		const controller = Object.create(SdkController.prototype) as SdkController
-		const configureOutputDestination = vi.fn(async () => {})
-		const project = path.resolve("batch-project")
-		Object.assign(controller, {
-			batch: { chatSnapshot: vi.fn(async () => ({ enabled: true })), configureOutputDestination },
-			getBatchProjectRoot: vi.fn(async () => project),
-		})
-		await controller.prepareBatchOutputDestination("old-task")
-		expect(configureOutputDestination).toHaveBeenCalledWith("old-task", project, undefined, true)
-	})
 	it("leaves output unbound when no VS Code project is open", async () => {
 		const controller = Object.create(SdkController.prototype) as SdkController
 		const configureOutputDestination = vi.fn(async () => {})

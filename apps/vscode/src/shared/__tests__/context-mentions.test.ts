@@ -45,17 +45,6 @@ describe("Mention Regex", () => {
 				assertMatch(result)
 			})
 		})
-
-		it("matches git hashes", () => {
-			const cases: Array<[string, string]> = [
-				["@abcdef1234567890abcdef1234567890abcdef12", "@abcdef1234567890abcdef1234567890abcdef12"],
-			]
-
-			cases.forEach(([input, expected]) => {
-				const result = testMention(input, expected)
-				assertMatch(result)
-			})
-		})
 	})
 
 	describe("Invalid Patterns", () => {

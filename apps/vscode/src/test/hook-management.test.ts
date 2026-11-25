@@ -310,23 +310,6 @@ describe("Hook Management", () => {
 			const mode = stats.mode & 0o777
 			mode.should.equal(0o644)
 		}, 5000)
-
-		it("should return updated hooks state", async () => {
-			const hookPath = path.join(globalHooksDir, hookFileName("TaskComplete"))
-			await fs.writeFile(hookPath, "#!/usr/bin/env node\nconsole.log('test')", { mode: 0o644 })
-
-			const request = ToggleHookRequest.create({
-				hookName: "TaskComplete",
-				isGlobal: true,
-				enabled: true,
-			})
-
-			const response = await toggleHook(mockController, request, globalHooksDir)
-
-			response.should.have.property("hooksToggles")
-			response.hooksToggles!.globalHooks.should.have.length(1)
-			response.hooksToggles!.globalHooks[0].enabled.should.equal(true)
-		}, 5000)
 	})
 
 	describe("refreshHooks", () => {

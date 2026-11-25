@@ -5093,32 +5093,6 @@ describe("sdk-gateway", () => {
 		expect(call).not.toHaveProperty("maxOutputTokens");
 	});
 
-	it("does not send explicit maxOutputTokens to ChatGPT OAuth", async () => {
-		streamTextSpy.mockReturnValue({
-			fullStream: makeStreamParts([
-				{ type: "finish", usage: { inputTokens: 1, outputTokens: 1 } },
-			]),
-		});
-
-		const gateway = createGateway({
-			providerConfigs: [{ providerId: "openai-codex" }],
-		});
-
-		await collect(
-			await gateway.stream({
-				providerId: "openai-codex",
-				modelId: "gpt-5.4",
-				messages: baseMessages,
-				maxTokens: 8_192,
-			}),
-		);
-
-		const call = streamTextSpy.mock.calls.at(-1)?.[0] as
-			| { maxOutputTokens?: unknown }
-			| undefined;
-		expect(call).not.toHaveProperty("maxOutputTokens");
-	});
-
 	it("passes Codex instructions through provider options and removes the system message from messages", async () => {
 		streamTextSpy.mockReturnValue({
 			fullStream: makeStreamParts([

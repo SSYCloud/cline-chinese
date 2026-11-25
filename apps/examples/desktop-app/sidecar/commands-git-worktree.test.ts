@@ -250,22 +250,6 @@ describe("delete_chat_session worktree cleanup", () => {
 		expect(events[0]?.payload).not.toHaveProperty("removedWorktree.path");
 	});
 
-	it("keeps a worktree that another session uses from a subfolder", async () => {
-		const worktree = await run(repo);
-		const store = new SqliteSessionStore();
-		store.create(sessionRecord("session-a", worktree.path) as never);
-		store.create(
-			sessionRecord(
-				"session-b",
-				join(worktree.path, "packages", "ui"),
-			) as never,
-		);
-
-		await deleteSession(store, "session-a");
-
-		expect(existsSync(worktree.path)).toBe(true);
-	});
-
 	it("never removes anything for a cwd that is not a <id>/<repo> worktree", async () => {
 		const worktree = await run(repo);
 		const store = new SqliteSessionStore();

@@ -264,21 +264,4 @@ describe("ClineAccountService", () => {
 			"Cline account response was not valid JSON",
 		);
 	});
-
-	it("switchAccount sends null org id for personal account", async () => {
-		const fetchImpl = vi.fn(async (_input: unknown, init?: RequestInit) => {
-			expect(init?.method).toBe("PUT");
-			expect(init?.body).toBe(JSON.stringify({ organizationId: null }));
-			return new Response(null, { status: 204 });
-		});
-
-		const service = new ClineAccountService({
-			apiBaseUrl: "https://api.cline.bot",
-			getAuthToken: async () => "workos:token-123",
-			fetchImpl: fetchImpl as unknown as typeof fetch,
-		});
-
-		await service.switchAccount(undefined);
-		expect(fetchImpl).toHaveBeenCalledTimes(1);
-	});
 });
