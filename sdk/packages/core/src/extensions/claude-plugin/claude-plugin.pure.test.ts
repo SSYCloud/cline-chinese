@@ -110,6 +110,7 @@ describe("parseClaudeHooksDocument", () => {
 	it("rejects a document without a hooks object", () => {
 		expect(parseClaudeHooksDocument([])).toEqual({
 			bindings: [],
+			modules: [],
 			problems: ["hooks document must contain a 'hooks' object."],
 		});
 	});

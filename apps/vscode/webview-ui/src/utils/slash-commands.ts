@@ -114,13 +114,14 @@ export interface PluginCommandSource {
 }
 
 /**
- * Commands contributed by Claude Code plugins. Their names are namespaced
- * (`plugin:command`), so they use the chat input's own token alphabet, which
- * accepts colons, rather than the stricter skill-name check.
+ * Commands contributed by Claude Code plugins: prompt templates are namespaced
+ * (`plugin:command`) and function-hook commands are plain (`prune-tests`). Both
+ * use the chat input's own token alphabet, which accepts colons, rather than
+ * the stricter skill-name check.
  */
 export function getPluginCommands(commands: PluginCommandSource[] = []): SlashCommand[] {
 	return commands
-		.filter((command) => /^[a-zA-Z0-9_.@-]+:[a-zA-Z0-9_.@-]+$/.test(command.name))
+		.filter((command) => /^[a-zA-Z0-9_.@-]+(:[a-zA-Z0-9_.@-]+)?$/.test(command.name))
 		.map((command) => ({
 			name: command.name,
 			description: command.description || command.name,

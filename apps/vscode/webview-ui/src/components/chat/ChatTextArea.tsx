@@ -273,7 +273,11 @@ const ChatTextArea = forwardRef<HTMLTextAreaElement, ChatTextAreaProps>(
 					if (!cancelled) {
 						setPluginCommandSources(
 							result.commands
-								.filter((command) => command.section === "custom" && command.name.includes(":"))
+								.filter(
+									(command) =>
+										(command.section === "custom" && command.name.includes(":")) ||
+										command.section === "plugin",
+								)
 								.map((command) => ({ name: command.name, description: command.description })),
 						)
 					}

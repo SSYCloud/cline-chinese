@@ -11,14 +11,6 @@ import type { Controller } from ".."
  * summary without actually compacting the context (CLINE-2503).
  */
 export async function condense(controller: Controller, request: StringRequest): Promise<Empty> {
-	if (request.value === "pruneTests") {
-		await controller.pruneTests()
-		return Empty.create()
-	}
-	if (request.value === "pruneCtx") {
-		await controller.pruneCtx()
-		return Empty.create()
-	}
 	await controller.compactTask()
 	return Empty.create()
 }

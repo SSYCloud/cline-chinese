@@ -1,4 +1,4 @@
-import { listClaudePluginSlashCommands } from "@cline/core"
+import { listClaudePluginFunctionCommands, listClaudePluginSlashCommands } from "@cline/core"
 import { EmptyRequest } from "@shared/proto/cline/common"
 import { SlashCommandInfo, SlashCommandsResponse } from "@shared/proto/cline/slash"
 import { Logger } from "@/shared/services/Logger"
@@ -92,6 +92,17 @@ export async function getAvailableSlashCommands(controller: Controller, _request
 		)
 	}
 
+	for (const command of await listClaudeFunctionCommandsSafely()) {
+		commands.push(
+			SlashCommandInfo.create({
+				name: command.name,
+				description: command.description ?? `Claude Code plugin command: ${command.name}`,
+				section: "plugin",
+				cliCompatible: true,
+			}),
+		)
+	}
+
 	return SlashCommandsResponse.create({ commands })
 }
 
@@ -105,6 +116,15 @@ async function listClaudePluginCommandsSafely(): Promise<Awaited<ReturnType<type
 		return await listClaudePluginSlashCommands({ cwd: undefined })
 	} catch (error) {
 		Logger.warn("[getAvailableSlashCommands] Claude plugin commands unavailable:", error)
+		return []
+	}
+}
+
+async function listClaudeFunctionCommandsSafely(): Promise<Awaited<ReturnType<typeof listClaudePluginFunctionCommands>>> {
+	try {
+		return await listClaudePluginFunctionCommands({})
+	} catch (error) {
+		Logger.warn("[getAvailableSlashCommands] Claude plugin function commands unavailable:", error)
 		return []
 	}
 }

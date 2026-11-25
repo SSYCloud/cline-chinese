@@ -30,7 +30,11 @@ export interface ClaudePluginManifest {
 	repository?: string;
 	license?: string;
 	keywords?: string[];
+	/** Defaults declared under `userConfig`, used as the plugin's options until a host supplies values. */
+	userConfigDefaults?: Record<string, ClaudePluginOptionValue>;
 }
+
+export type ClaudePluginOptionValue = string | number | boolean | string[];
 
 export type ClaudePluginComponent =
 	| "manifest"
@@ -75,6 +79,19 @@ export interface ClaudePluginHookBinding {
 	timeoutSeconds: number;
 }
 
+/**
+ * A TypeScript function-hook module listed under `modules` in `hooks.json`. It
+ * exports `register(on, options)` and subscribes to engine events instead of
+ * running a shell command.
+ */
+export interface ClaudePluginHookModule {
+	pluginName: string;
+	pluginRoot: string;
+	pluginDataPath: string;
+	modulePath: string;
+	options: Record<string, ClaudePluginOptionValue>;
+}
+
 export interface LoadedClaudePlugin {
 	rootPath: string;
 	manifestPath: string;
@@ -84,6 +101,7 @@ export interface LoadedClaudePlugin {
 	commands: ClaudePluginCommand[];
 	agents: ConfiguredAgentConfig[];
 	hooks: ClaudePluginHookBinding[];
+	hookModules: ClaudePluginHookModule[];
 }
 
 /**
@@ -116,6 +134,10 @@ export interface LoadClaudePluginsOptions {
 	searchPaths?: ReadonlyArray<string>;
 	/** Override the persistent plugin data root (`${CLAUDE_PLUGIN_DATA}`). */
 	pluginDataRoot?: string;
+	/** Option values by plugin name, overriding the defaults a plugin declares under `userConfig`. */
+	pluginOptions?: Readonly<
+		Record<string, Readonly<Record<string, ClaudePluginOptionValue>>>
+	>;
 	/** Plugin names the host has turned off. Disabled names still reserve precedence. */
 	disabledPluginNames?: ReadonlyArray<string>;
 	/**

@@ -1,6 +1,6 @@
 import type { Dirent } from "node:fs";
 import { lstat, readdir, readFile, stat } from "node:fs/promises";
-import { basename, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import {
 	AGENT_PLUGINS_V1_MCP_SCHEMA,
 	loadSkills,
@@ -23,6 +23,8 @@ import type {
 	ClaudePluginComponent,
 	ClaudePluginDiagnostic,
 	ClaudePluginHookBinding,
+	ClaudePluginHookModule,
+	ClaudePluginOptionValue,
 } from "./types";
 
 const MCP_CONFIG_FILE_NAME = ".mcp.json";
@@ -45,6 +47,8 @@ export interface ClaudePluginComponentContext {
 	inline: { hooks?: unknown; mcpServers?: unknown };
 	commandsPath?: string;
 	agentsPath?: string;
+	/** Option values handed to function-hook modules; defaults come from `userConfig`. */
+	pluginOptions?: Record<string, ClaudePluginOptionValue>;
 }
 
 export interface ClaudePluginComponentResult {
@@ -53,6 +57,7 @@ export interface ClaudePluginComponentResult {
 	commands: ClaudePluginCommand[];
 	agents: ConfiguredAgentConfig[];
 	hooks: ClaudePluginHookBinding[];
+	hookModules: ClaudePluginHookModule[];
 	diagnostics: ClaudePluginDiagnostic[];
 }
 
@@ -92,17 +97,20 @@ export async function loadClaudePluginComponents(
 		(await guarded("agents", context, diagnostics, () =>
 			loadAgents(context, diagnostics),
 		)) ?? [];
-	const hooks =
-		(await guarded("hooks", context, diagnostics, () =>
-			loadHooks(context, pluginDataPath, diagnostics),
-		)) ?? [];
+	const loadedHooks = (await guarded("hooks", context, diagnostics, () =>
+		loadHooks(context, pluginDataPath, diagnostics),
+	)) ?? {
+		bindings: [],
+		modules: [],
+	};
 
 	return {
 		skills,
 		mcpServers,
 		commands,
 		agents,
-		hooks,
+		hooks: loadedHooks.bindings,
+		hookModules: loadedHooks.modules,
 		diagnostics: [
 			...diagnostics,
 			...nativeDiagnostics.map((item) => fromNativeDiagnostic(item, context)),
@@ -361,34 +369,66 @@ async function loadHooks(
 	context: ClaudePluginComponentContext,
 	pluginDataPath: string,
 	diagnostics: ClaudePluginDiagnostic[],
-): Promise<ClaudePluginHookBinding[]> {
-	const document = await readHooksDocument(context);
-	if (document === undefined) {
-		return [];
+): Promise<{
+	bindings: ClaudePluginHookBinding[];
+	modules: ClaudePluginHookModule[];
+}> {
+	const source = await readHooksDocument(context);
+	if (source === undefined) {
+		return { bindings: [], modules: [] };
 	}
-	const parsed = parseClaudeHooksDocument(document);
-	for (const problem of parsed.problems) {
+	const parsed = parseClaudeHooksDocument(source.document);
+	const report = (message: string) =>
 		diagnostics.push({
 			level: "warning",
 			component: "hooks",
 			pluginPath: context.pluginRoot,
 			pluginName: context.pluginName,
-			message: problem,
+			message,
 		});
+	for (const problem of parsed.problems) {
+		report(problem);
 	}
-	return parsed.bindings.map((binding) => ({
-		...binding,
-		pluginName: context.pluginName,
-		pluginRoot: context.pluginRoot,
-		pluginDataPath,
-	}));
+	const modules: ClaudePluginHookModule[] = [];
+	for (const entry of parsed.modules) {
+		try {
+			const modulePath = await resolveContainedExistingPath(
+				context.pluginRoot,
+				join(source.baseDirectory, entry),
+				"file",
+			);
+			modules.push({
+				pluginName: context.pluginName,
+				pluginRoot: context.pluginRoot,
+				pluginDataPath,
+				modulePath,
+				options: { ...(context.pluginOptions ?? {}) },
+			});
+		} catch (error) {
+			report(
+				`Hook module '${entry}' cannot be loaded: ${error instanceof Error ? error.message : String(error)}`,
+			);
+		}
+	}
+	return {
+		bindings: parsed.bindings.map((binding) => ({
+			...binding,
+			pluginName: context.pluginName,
+			pluginRoot: context.pluginRoot,
+			pluginDataPath,
+		})),
+		modules,
+	};
 }
 
 async function readHooksDocument(
 	context: ClaudePluginComponentContext,
-): Promise<unknown> {
+): Promise<{ document: unknown; baseDirectory: string } | undefined> {
 	if (context.inline.hooks !== undefined) {
-		return { hooks: context.inline.hooks };
+		return {
+			document: { hooks: context.inline.hooks },
+			baseDirectory: context.pluginRoot,
+		};
 	}
 	const candidatePath = join(context.pluginRoot, HOOKS_CONFIG_RELATIVE_PATH);
 	if (!(await pathExists(candidatePath))) {
@@ -399,7 +439,10 @@ async function readHooksDocument(
 		candidatePath,
 		"file",
 	);
-	return JSON.parse(await readFile(hooksPath, "utf8")) as unknown;
+	return {
+		document: JSON.parse(await readFile(hooksPath, "utf8")) as unknown,
+		baseDirectory: dirname(hooksPath),
+	};
 }
 
 function fromNativeDiagnostic(

@@ -21,18 +21,6 @@ export function isSlashSafeName(name: string): boolean {
 }
 
 export const BASE_SLASH_COMMANDS: SlashCommand[] = [
-	// SystemOne (决策模型) is a global service, so /pruneCtx and /pruneTests are
-	// available with any provider.
-	{
-		name: "pruneCtx",
-		description: "Prune the current context now with the SystemOne decision model",
-		section: "default",
-	},
-	{
-		name: "pruneTests",
-		description: "Prune low-value unit tests in the workspace with the SystemOne decision model",
-		section: "default",
-	},
 	// `/newtask` is an alias of `/compact`: condensing achieves its goal
 	// (continue working with a fresh, summarized context window) without the
 	// legacy new_task tool. The webview intercepts all three spellings and

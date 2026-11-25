@@ -4,8 +4,15 @@ export {
 	createClaudePluginExtension,
 } from "./extension";
 export {
+	type ClaudeFunctionHooks,
+	type CreateClaudeFunctionHooksOptions,
+	createClaudeFunctionHooks,
+} from "./function-hooks";
+export {
+	type ClaudePluginFunctionCommandOptions,
 	type ClaudePluginInventoryOptions,
 	type ClaudePluginSlashCommand,
+	listClaudePluginFunctionCommands,
 	listClaudePluginInventory,
 	listClaudePluginSlashCommands,
 	setClaudePluginEnabled,
@@ -26,9 +33,11 @@ export type {
 	ClaudePluginComponent,
 	ClaudePluginDiagnostic,
 	ClaudePluginHookBinding,
+	ClaudePluginHookModule,
 	ClaudePluginInventoryEntry,
 	ClaudePluginLoadReport,
 	ClaudePluginManifest,
+	ClaudePluginOptionValue,
 	LoadClaudePluginsOptions,
 	LoadedClaudePlugin,
 } from "./types";

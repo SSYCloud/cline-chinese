@@ -105,6 +105,7 @@ import { SdkInteractionCoordinator } from "./sdk-interaction-coordinator"
 import { SdkMcpCoordinator } from "./sdk-mcp-coordinator"
 import { SdkMessageCoordinator, type SessionEventListener } from "./sdk-message-coordinator"
 import { SdkModeCoordinator } from "./sdk-mode-coordinator"
+import { SdkPluginCommandCoordinator } from "./sdk-plugin-command-coordinator"
 import { SdkProviderChangeCoordinator } from "./sdk-provider-change-coordinator"
 import { SdkSessionConfigBuilder } from "./sdk-session-config-builder"
 import { SdkSessionConfigChangeCoordinator } from "./sdk-session-config-change-coordinator"
@@ -237,6 +238,7 @@ export class Controller {
 	private taskControl: SdkTaskControlCoordinator
 	private taskStart: SdkTaskStartCoordinator
 	private compaction: SdkCompactionCoordinator
+	private pluginCommands: SdkPluginCommandCoordinator
 	private sessionEvents: SdkSessionEventCoordinator
 	private cloud!: SdkCloudSessionCoordinator
 	readonly cloudSessions: CloudSessionsService
@@ -868,6 +870,14 @@ export class Controller {
 		// previous account's cloud task and connections first and holds cloud
 		// reads until the change has settled.
 		this.accountService.onAccountChange((change) => this.cloud.reset(change))
+		this.pluginCommands = new SdkPluginCommandCoordinator({
+			stateManager: this.stateManager,
+			sessions: this.sessions,
+			messages: this.messages,
+			getDisplayedTaskId: () => this.task?.taskId,
+			getWorkspaceRoot: () => this.getWorkspaceRoot(),
+			postStateToWebview: () => this.postStateToWebview(),
+		})
 		this.compaction = new SdkCompactionCoordinator({
 			stateManager: this.stateManager,
 			sessions: this.sessions,
@@ -880,14 +890,6 @@ export class Controller {
 			loadInitialMessages: (reader, taskId) => this.sessionHistory.loadInitialMessages(reader, taskId),
 			getWorkspaceRoot: () => this.getWorkspaceRoot(),
 			postStateToWebview: () => this.postStateToWebview(),
-			askInChat: async (question, options) => {
-				const answer = await this.interactions.handleAskQuestion(question, options, undefined)
-				if (typeof answer === "string") return answer
-				return answer
-					.filter((block) => block.type === "text")
-					.map((block) => block.text)
-					.join("\n")
-			},
 			setTurnPhase: (phase) => this.turnStateTracker.set(phase),
 		})
 		this.sessionEvents = new SdkSessionEventCoordinator({
@@ -1928,12 +1930,8 @@ export class Controller {
 		await this.compaction.compactTask()
 	}
 
-	async pruneTests(): Promise<void> {
-		await this.compaction.pruneTests()
-	}
-
-	async pruneCtx(): Promise<void> {
-		await this.compaction.pruneCtx()
+	async runPluginSlashCommand(input: string): Promise<void> {
+		await this.pluginCommands.run(input)
 	}
 
 	async clearTask(): Promise<void> {

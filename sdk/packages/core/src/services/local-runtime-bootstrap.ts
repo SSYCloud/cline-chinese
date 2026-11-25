@@ -26,6 +26,7 @@ import {
 import {
 	type ClaudePluginDiagnostic,
 	type ClaudePluginLoadReport,
+	createClaudeFunctionHooks,
 	createClaudePluginExtension,
 	loadClaudePlugins,
 } from "../extensions/claude-plugin";
@@ -59,7 +60,7 @@ import type {
 import type { RuntimeBuilderInput } from "../runtime/orchestration/session-runtime";
 import type { SessionHistoryOriginMetadata } from "../session/history-origin";
 import { SessionSource } from "../types/common";
-import type { CoreSessionConfig } from "../types/config";
+import type { CoreCompactionConfig, CoreSessionConfig } from "../types/config";
 import {
 	type ProviderConfig,
 	type ProviderSettings,
@@ -81,6 +82,32 @@ import { InMemoryWorkspaceManager } from "./workspace/workspace-manager";
 import type { GitWorkspaceState } from "./workspace/workspace-manifest";
 import { buildWorkspaceMetadataWithInfo } from "./workspace/workspace-manifest";
 import { emitWorkspaceLifecycleTelemetry } from "./workspace/workspace-telemetry";
+
+/**
+ * Add a plugin's preCompact to the host's. The host's runs first, and the
+ * plugin sees whatever it returned.
+ */
+function withPreCompact(
+	compaction: CoreCompactionConfig | undefined,
+	pluginPreCompact: NonNullable<CoreCompactionConfig["preCompact"]>,
+): CoreCompactionConfig {
+	const hostPreCompact = compaction?.preCompact;
+	if (!hostPreCompact) {
+		return { ...compaction, preCompact: pluginPreCompact };
+	}
+	return {
+		...compaction,
+		preCompact: async (context) => {
+			const hostResult = await hostPreCompact(context);
+			const pluginResult = await pluginPreCompact(
+				hostResult?.messages
+					? { ...context, messages: hostResult.messages }
+					: context,
+			);
+			return pluginResult ?? hostResult;
+		},
+	};
+}
 
 function formatPluginFailure(failure: PluginInitializationFailure): string {
 	const label = failure.pluginName ?? failure.pluginPath;
@@ -127,7 +154,9 @@ function logAgentPluginDiagnostics(
 		const component = item.componentName ? ` (${item.componentName})` : "";
 		logger?.log(
 			`[agent-plugins] ${item.pluginName ?? item.pluginPath}${component}: ${item.message}`,
-			{ severity: item.level === "warning" ? "warn" : "error" },
+			{
+				severity: item.level === "warning" ? "warn" : "error",
+			},
 		);
 	}
 }
@@ -565,6 +594,7 @@ export async function prepareLocalRuntimeBootstrap(
 				pluginPaths: input.config.agentPluginPaths,
 				cwd: input.config.cwd,
 				disabledPluginNames,
+				pluginOptions: input.config.claudePluginOptions,
 				reservedPluginNames: (loadedAgentPluginPackages?.plugins ?? []).map(
 					(plugin) => plugin.manifest.name,
 				),
@@ -581,11 +611,21 @@ export async function prepareLocalRuntimeBootstrap(
 			);
 		}
 	}
+	const claudeFunctionHooks = loadedClaudePlugins
+		? await createClaudeFunctionHooks({
+				modules: loadedClaudePlugins.plugins.flatMap(
+					(plugin) => plugin.hookModules,
+				),
+				cwd: input.config.cwd,
+				logger: extensionContext.logger,
+			})
+		: undefined;
 	const claudePluginExtension = loadedClaudePlugins
 		? createClaudePluginExtension({
 				plugins: loadedClaudePlugins.plugins,
 				cwd: input.config.cwd,
 				logger: extensionContext.logger,
+				functionHookCommands: claudeFunctionHooks?.commands,
 			})
 		: undefined;
 
@@ -621,6 +661,14 @@ export async function prepareLocalRuntimeBootstrap(
 		sessionId,
 		hooks: baseHooks,
 		extensions,
+		...(claudeFunctionHooks?.preCompact
+			? {
+					compaction: withPreCompact(
+						localConfig?.compaction ?? input.config.compaction,
+						claudeFunctionHooks.preCompact,
+					),
+				}
+			: {}),
 		extensionContext,
 		telemetry: extensionContext.telemetry,
 		logger: extensionContext.logger,

@@ -9,7 +9,7 @@ import {
 	isClaudePluginDirectory,
 } from "@cline/shared/storage";
 import { resolveContainedExistingPath } from "../agent-plugin/loader";
-import type { ClaudePluginManifest } from "./types";
+import type { ClaudePluginManifest, ClaudePluginOptionValue } from "./types";
 
 const PLUGIN_NAME_PATTERN = /^[a-z0-9][a-z0-9._-]*$/i;
 const PLUGIN_NAME_MAX_LENGTH = 64;
@@ -29,6 +29,7 @@ const MANIFEST_FIELDS = new Set([
 	"skills",
 	"hooks",
 	"mcpServers",
+	"userConfig",
 ]);
 const UNSUPPORTED_COMPONENT_FIELDS = new Set(["outputStyles", "lspServers"]);
 const DEFAULT_COMPONENT_LOCATIONS: Readonly<Record<string, string>> = {
@@ -243,12 +244,40 @@ function parseManifestFields(
 	if (isRecord(value.author)) {
 		manifest.author = pickStringFields(value.author, ["name", "email", "url"]);
 	}
+	const userConfigDefaults = readUserConfigDefaults(value.userConfig);
+	if (userConfigDefaults) {
+		manifest.userConfigDefaults = userConfigDefaults;
+	}
 	if (Array.isArray(value.keywords)) {
 		manifest.keywords = value.keywords.filter(
 			(entry): entry is string => typeof entry === "string",
 		);
 	}
 	return manifest;
+}
+
+function readUserConfigDefaults(
+	userConfig: unknown,
+): Record<string, ClaudePluginOptionValue> | undefined {
+	if (!isRecord(userConfig)) {
+		return undefined;
+	}
+	const defaults: Record<string, ClaudePluginOptionValue> = {};
+	for (const [key, descriptor] of Object.entries(userConfig)) {
+		if (!isRecord(descriptor)) {
+			continue;
+		}
+		const value = descriptor.default;
+		if (
+			typeof value === "string" ||
+			typeof value === "boolean" ||
+			(typeof value === "number" && Number.isFinite(value)) ||
+			(Array.isArray(value) && value.every((item) => typeof item === "string"))
+		) {
+			defaults[key] = value;
+		}
+	}
+	return Object.keys(defaults).length > 0 ? defaults : undefined;
 }
 
 function collectManifestWarnings(value: Record<string, unknown>): string[] {

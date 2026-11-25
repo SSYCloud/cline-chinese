@@ -40,6 +40,8 @@ export type ClaudeHookBindingDraft = Omit<
 
 export interface ParsedClaudeHooksDocument {
 	bindings: ClaudeHookBindingDraft[];
+	/** Function-hook module paths from `modules`, relative to the plugin root. */
+	modules: string[];
 	problems: string[];
 }
 
@@ -51,19 +53,29 @@ export function parseClaudeHooksDocument(
 	document: unknown,
 ): ParsedClaudeHooksDocument {
 	const bindings: ClaudeHookBindingDraft[] = [];
+	const modules: string[] = [];
 	const problems: string[] = [];
+	const hooksByEvent =
+		isRecord(document) && isRecord(document.hooks) ? document.hooks : undefined;
 	if (isRecord(document) && Array.isArray(document.modules)) {
-		problems.push(
-			"hooks.json declares TypeScript hook modules, which Cline does not run. Only Claude Code command hooks are supported.",
-		);
-		return { bindings, problems };
-	}
-	if (!isRecord(document) || !isRecord(document.hooks)) {
+		for (const entry of document.modules) {
+			if (typeof entry === "string" && entry.trim() !== "") {
+				modules.push(entry);
+			} else {
+				problems.push(
+					"hooks.json 'modules' entries must be non-empty strings.",
+				);
+			}
+		}
+		if (!hooksByEvent) {
+			return { bindings, modules, problems };
+		}
+	} else if (!hooksByEvent) {
 		problems.push("hooks document must contain a 'hooks' object.");
-		return { bindings, problems };
+		return { bindings, modules, problems };
 	}
 
-	for (const [event, groups] of Object.entries(document.hooks)) {
+	for (const [event, groups] of Object.entries(hooksByEvent)) {
 		if (!CLAUDE_HOOK_EVENT_NAMES.has(event)) {
 			problems.push(`Unknown hook event '${event}' is ignored.`);
 			continue;
@@ -85,7 +97,7 @@ export function parseClaudeHooksDocument(
 			parseMatcherGroup(hookEvent, group, bindings, problems);
 		}
 	}
-	return { bindings, problems };
+	return { bindings, modules, problems };
 }
 
 function parseMatcherGroup(

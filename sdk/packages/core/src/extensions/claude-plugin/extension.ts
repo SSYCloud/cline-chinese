@@ -14,6 +14,8 @@ export interface CreateClaudePluginExtensionOptions {
 	plugins: ReadonlyArray<LoadedClaudePlugin>;
 	cwd: string;
 	logger?: BasicLogger;
+	/** Commands contributed by function-hook modules, see {@link createClaudeFunctionHooks}. */
+	functionHookCommands?: ReadonlyArray<AgentExtensionCommand>;
 }
 
 /**
@@ -29,12 +31,13 @@ export function createClaudePluginExtension(
 ): AgentExtension | undefined {
 	const hookBindings = options.plugins.flatMap((plugin) => plugin.hooks);
 	const commands = options.plugins.flatMap((plugin) => plugin.commands);
+	const functionHookCommands = options.functionHookCommands ?? [];
 	const hooks = createClaudeHookBridge({
 		bindings: hookBindings,
 		cwd: options.cwd,
 		logger: options.logger,
 	});
-	if (!hooks && commands.length === 0) {
+	if (!hooks && commands.length === 0 && functionHookCommands.length === 0) {
 		return undefined;
 	}
 
@@ -42,7 +45,7 @@ export function createClaudePluginExtension(
 	if (hooks) {
 		capabilities.push("hooks");
 	}
-	if (commands.length > 0) {
+	if (commands.length > 0 || functionHookCommands.length > 0) {
 		capabilities.push("commands");
 	}
 
@@ -53,6 +56,9 @@ export function createClaudePluginExtension(
 		setup: (api) => {
 			for (const command of commands) {
 				api.registerCommand(markPluginCommand(toCommand(command)));
+			}
+			for (const command of functionHookCommands) {
+				api.registerCommand(command);
 			}
 		},
 	};

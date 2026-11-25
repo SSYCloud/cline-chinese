@@ -44,8 +44,7 @@ import { StateManager } from "@/core/storage/StateManager"
 import { HostProvider } from "@/hosts/host-provider"
 import { ExtensionRegistryInfo } from "@/registry"
 import { getDistinctId } from "@/services/logging/distinctId"
-import { resolveTypesafeConfig } from "@/services/typesafe-compaction/config"
-import { createTypesafePreCompact } from "@/services/typesafe-compaction/precompact"
+import { buildJevPluginOptions, JEV_COMPACTION_PLUGIN_NAME, resolveTypesafeConfig } from "@/services/typesafe-compaction/config"
 import { fetch, fetchWithoutIdleTimeouts } from "@/shared/net"
 import { type BedrockProviderConfig, buildBedrockProviderConfig } from "./bedrock-config"
 import { buildAgentHooks } from "./hooks-adapter"
@@ -1171,17 +1170,6 @@ export async function buildSessionConfig(input: SessionConfigInput): Promise<Cor
 
 	// SystemOne (决策模型) is a global service: it runs whatever provider the chat uses.
 	const typesafe = resolveTypesafeConfig(stateManager)
-	const typesafePreCompact = createTypesafePreCompact({
-		apiKey: typesafe.apiKey,
-		model: typesafe.model,
-		baseUrl: typesafe.baseUrl,
-		testDeleteThreshold: typesafe.testDeleteThreshold,
-		contextDeleteThreshold: typesafe.contextDeleteThreshold,
-		workspaceRoot,
-		fetch: providerConfig.fetch,
-		log: (message) => Logger.log(`[Typesafe] ${message}`),
-	})
-
 	const config: CoreSessionConfig = {
 		providerId: sdkProviderId,
 		modelId,
@@ -1201,15 +1189,8 @@ export async function buildSessionConfig(input: SessionConfigInput): Promise<Cor
 		},
 		enableSpawnAgent: false,
 		enableAgentTeams: false,
-		...(useAutoCondense || typesafePreCompact
-			? {
-					compaction: {
-						enabled: useAutoCondense,
-						strategy: compactionStrategy,
-						...(typesafePreCompact ? { preCompact: typesafePreCompact } : {}),
-					},
-				}
-			: {}),
+		...(useAutoCondense ? { compaction: { enabled: true, strategy: compactionStrategy } } : {}),
+		claudePluginOptions: { [JEV_COMPACTION_PLUGIN_NAME]: buildJevPluginOptions(typesafe) },
 		disableMcpSettingsTools: true,
 		mode: mode === "plan" ? "plan" : "act",
 		...reasoningConfig,

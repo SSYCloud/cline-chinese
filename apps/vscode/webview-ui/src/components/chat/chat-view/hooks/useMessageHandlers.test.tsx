@@ -12,6 +12,7 @@ const cancelBackgroundCommand = vi.fn().mockResolvedValue(undefined)
 const cancelTask = vi.fn().mockResolvedValue(undefined)
 const clearTask = vi.fn().mockResolvedValue(undefined)
 const condense = vi.fn().mockResolvedValue(undefined)
+const runPluginCommand = vi.fn().mockResolvedValue(undefined)
 const trackIntent = vi.fn().mockResolvedValue(undefined)
 
 vi.mock("@/services/grpc-client", () => ({
@@ -25,6 +26,8 @@ vi.mock("@/services/grpc-client", () => ({
 	SlashServiceClient: {
 		condense: (req: unknown) => condense(req),
 		reportBug: vi.fn().mockResolvedValue(undefined),
+		runPluginCommand: (req: unknown) => runPluginCommand(req),
+		getAvailableSlashCommands: () => Promise.resolve({ commands: [{ name: "prune-tests", section: "plugin" }] }),
 	},
 	UiServiceClient: {
 		trackIntent: (req: unknown) => trackIntent(req),
@@ -186,6 +189,22 @@ describe("useMessageHandlers — send routing", () => {
 		expect(navigateToMarketplace).toHaveBeenCalledTimes(1)
 		expect(navigateToMarketplace).toHaveBeenCalledWith(type)
 		expect(chatState.setInputValue).toHaveBeenCalledWith("")
+		expect(newTask).not.toHaveBeenCalled()
+		expect(askResponse).not.toHaveBeenCalled()
+	})
+
+	it("runs a plugin function command through its RPC with the typed arguments instead of messaging the model", async () => {
+		mockTurnState = { phase: "completed", seq: 7 }
+		const { result } = renderHook(() => useMessageHandlers(completedConversation, makeChatState(completedConversation)))
+		await act(async () => {
+			await Promise.resolve()
+		})
+
+		await act(async () => {
+			await result.current.handleSendMessage("/prune-tests all", [], [])
+		})
+
+		expect(runPluginCommand).toHaveBeenCalledWith(expect.objectContaining({ value: "/prune-tests all" }))
 		expect(newTask).not.toHaveBeenCalled()
 		expect(askResponse).not.toHaveBeenCalled()
 	})

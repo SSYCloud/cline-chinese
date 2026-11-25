@@ -14,6 +14,9 @@ service SlashService {
   rpc reportBug(StringRequest) returns (Empty);
   rpc condense(StringRequest) returns (Empty);
 
+  // Runs a slash command that a Claude Code plugin registered from a function-hook module
+  rpc runPluginCommand(StringRequest) returns (Empty);
+
   // Get available slash commands for autocomplete (used by CLI)
   rpc getAvailableSlashCommands(EmptyRequest) returns (SlashCommandsResponse);
 }

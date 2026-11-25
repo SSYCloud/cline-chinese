@@ -283,6 +283,15 @@ export interface CoreSessionConfig
 	 * execution host, so hub clients do not load package contents themselves.
 	 */
 	agentPluginPaths?: string[];
+	/**
+	 * Option values for Claude Code plugins, keyed by plugin name. They override
+	 * the defaults a plugin declares under `userConfig` and are handed to its
+	 * function-hook modules. Honored by the local runtime host only.
+	 */
+	claudePluginOptions?: Record<
+		string,
+		Record<string, string | number | boolean | string[]>
+	>;
 	extensions?: AgentConfig["extensions"];
 	execution?: AgentConfig["execution"];
 	compaction?: CoreCompactionConfig;

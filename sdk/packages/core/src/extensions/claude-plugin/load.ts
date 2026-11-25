@@ -109,6 +109,10 @@ export async function loadClaudePlugins(
 			inline: manifestRead.inline,
 			commandsPath: manifestRead.commandsPath,
 			agentsPath: manifestRead.agentsPath,
+			pluginOptions: {
+				...manifestRead.manifest.userConfigDefaults,
+				...options.pluginOptions?.[pluginName],
+			},
 		});
 		diagnostics.push(...components.diagnostics);
 		inventory.push({
@@ -126,6 +130,7 @@ export async function loadClaudePlugins(
 			commands: components.commands,
 			agents: components.agents,
 			hooks: components.hooks,
+			hookModules: components.hookModules,
 		});
 	}
 

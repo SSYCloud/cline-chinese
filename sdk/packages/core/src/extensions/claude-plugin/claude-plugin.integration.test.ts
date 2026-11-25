@@ -376,10 +376,50 @@ describe("inventory and custom component paths", () => {
 		).toEqual(["custom-cmds:ship"]);
 	});
 
-	it("explains that TypeScript hook modules are unsupported rather than reporting a malformed file", async () => {
+	it("loads function-hook modules with userConfig defaults overridden by host options", async () => {
 		const search = await tempRoot();
-		await createClaudePlugin(search, "modular", {
-			"hooks/hooks.json": { modules: ["./fast.ts"] },
+		const pluginRoot = await createClaudePlugin(search, "modular", {
+			"hooks/hooks.json": { modules: ["./fast.ts", "./missing.ts"] },
+			"hooks/fast.ts": "export const register = () => {};",
+		});
+		await writeFile(
+			join(pluginRoot, ".claude-plugin", "plugin.json"),
+			JSON.stringify({
+				name: "modular",
+				userConfig: {
+					keepThreshold: { type: "number", default: 0.5 },
+					model: { type: "string", default: "jev-latest" },
+					apiKey: { type: "string", sensitive: true },
+				},
+			}),
+		);
+
+		const report = await loadClaudePlugins({
+			searchPaths: [search],
+			pluginDataRoot: await tempRoot(),
+			pluginOptions: { modular: { keepThreshold: 0.8 } },
+		});
+
+		const [plugin] = report.plugins;
+		expect(plugin.hooks).toEqual([]);
+		expect(plugin.hookModules).toHaveLength(1);
+		expect(plugin.hookModules[0].modulePath).toBe(
+			join(pluginRoot, "hooks", "fast.ts"),
+		);
+		expect(plugin.hookModules[0].options).toEqual({
+			keepThreshold: 0.8,
+			model: "jev-latest",
+		});
+		expect(report.diagnostics).toHaveLength(1);
+		expect(report.diagnostics[0].message).toContain(
+			"Hook module './missing.ts' cannot be loaded",
+		);
+	});
+
+	it("refuses a hook module that escapes the plugin root", async () => {
+		const search = await tempRoot();
+		await createClaudePlugin(search, "escaper", {
+			"hooks/hooks.json": { modules: ["../../outside.ts"] },
 		});
 
 		const report = await loadClaudePlugins({
@@ -387,10 +427,8 @@ describe("inventory and custom component paths", () => {
 			pluginDataRoot: await tempRoot(),
 		});
 
-		expect(report.plugins[0].hooks).toEqual([]);
-		expect(report.diagnostics.map((item) => item.message)).toEqual([
-			"hooks.json declares TypeScript hook modules, which Cline does not run. Only Claude Code command hooks are supported.",
-		]);
+		expect(report.plugins[0].hookModules).toEqual([]);
+		expect(report.diagnostics).toHaveLength(1);
 	});
 });
 

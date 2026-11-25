@@ -1,6 +1,11 @@
+import type { AgentExtensionCommand, BasicLogger } from "@cline/shared";
 import { setDisabledAgentPlugin } from "../../services/global-settings";
+import { createClaudeFunctionHooks } from "./function-hooks";
 import { loadClaudePlugins } from "./load";
-import type { ClaudePluginInventoryEntry } from "./types";
+import type {
+	ClaudePluginInventoryEntry,
+	ClaudePluginOptionValue,
+} from "./types";
 
 export interface ClaudePluginInventoryOptions {
 	cwd?: string;
@@ -61,4 +66,30 @@ export async function listClaudePluginSlashCommands(
 				.join(command.pluginRoot),
 		})),
 	);
+}
+
+export interface ClaudePluginFunctionCommandOptions
+	extends ClaudePluginInventoryOptions {
+	pluginOptions?: Readonly<
+		Record<string, Readonly<Record<string, ClaudePluginOptionValue>>>
+	>;
+	logger?: BasicLogger;
+}
+
+/**
+ * Slash commands that enabled Claude plugins register from function-hook
+ * modules (`/prune-tests`, for example). Unlike {@link listClaudePluginSlashCommands}
+ * these run code instead of expanding a prompt template, so a host runs them by
+ * calling `handler(args)` and showing the reply.
+ */
+export async function listClaudePluginFunctionCommands(
+	options: ClaudePluginFunctionCommandOptions = {},
+): Promise<AgentExtensionCommand[]> {
+	const report = await loadClaudePlugins(options);
+	const hooks = await createClaudeFunctionHooks({
+		modules: report.plugins.flatMap((plugin) => plugin.hookModules),
+		cwd: options.cwd ?? process.cwd(),
+		logger: options.logger,
+	});
+	return hooks.commands;
 }

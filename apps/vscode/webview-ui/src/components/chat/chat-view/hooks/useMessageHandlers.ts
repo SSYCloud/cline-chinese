@@ -8,6 +8,7 @@ import { useExtensionState } from "@/context/ExtensionStateContext"
 import { SlashServiceClient, TaskServiceClient, UiServiceClient } from "@/services/grpc-client"
 import { buttonsForPhase, getTurnStateMessage } from "../shared/buttonConfig"
 import type { ButtonActionInvocation, ChatState, MessageHandlers } from "../types/chatTypes"
+import { usePluginFunctionCommands } from "./usePluginFunctionCommands"
 
 function formatDraftText(text: string, activeQuote: string | null): string {
 	if (!activeQuote) {
@@ -24,14 +25,6 @@ function formatDraftText(text: string, activeQuote: string | null): string {
 // new_task tool.
 function isCompactionCommand(text: string): boolean {
 	return text === "/compact" || text === "/smol" || text === "/newtask"
-}
-
-function isPruneTestsCommand(text: string): boolean {
-	return text === "/pruneTests"
-}
-
-function isPruneCtxCommand(text: string): boolean {
-	return text === "/pruneCtx"
 }
 
 /**
@@ -56,6 +49,7 @@ export function useMessageHandlers(messages: ClineMessage[], chatState: ChatStat
 		clineAsk,
 		lastMessage,
 	} = chatState
+	const pluginFunctionCommands = usePluginFunctionCommands()
 	const cancelInFlightRef = useRef(false)
 	const pendingResponseIdRef = useRef(0)
 	// The first recovery action for an authoritative turn sequence owns that
@@ -148,26 +142,17 @@ export function useMessageHandlers(messages: ClineMessage[], chatState: ChatStat
 				return
 			}
 
-			if (isPruneTestsCommand(messageToSend)) {
+			const pluginCommand = pluginFunctionCommands.find(
+				(name) => messageToSend === `/${name}` || messageToSend.startsWith(`/${name} `),
+			)
+			if (pluginCommand) {
 				if (errorRecoveryAvailable) {
 					return
 				}
 				setInputValue("")
 				setActiveQuote(null)
-				await SlashServiceClient.condense(StringRequest.create({ value: "pruneTests" })).catch((err) =>
-					console.error("Failed to prune tests:", err),
-				)
-				return
-			}
-
-			if (isPruneCtxCommand(messageToSend)) {
-				if (errorRecoveryAvailable) {
-					return
-				}
-				setInputValue("")
-				setActiveQuote(null)
-				await SlashServiceClient.condense(StringRequest.create({ value: "pruneCtx" })).catch((err) =>
-					console.error("Failed to prune context:", err),
+				await SlashServiceClient.runPluginCommand(StringRequest.create({ value: messageToSend })).catch((err) =>
+					console.error("Failed to run plugin command:", err),
 				)
 				return
 			}
@@ -465,6 +450,7 @@ export function useMessageHandlers(messages: ClineMessage[], chatState: ChatStat
 		},
 		[
 			messages,
+			pluginFunctionCommands,
 			clineAsk,
 			turnState,
 			activeQuote,

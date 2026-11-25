@@ -1,6 +1,9 @@
 import { DEFAULT_TYPESAFE_MODEL } from "@shared/typesafe-models"
-import { DEFAULT_TEST_DELETE_THRESHOLD } from "./library"
-import { DEFAULT_OPTIONS as DEFAULT_COMPACT_OPTIONS } from "./library/compact"
+
+export const JEV_COMPACTION_PLUGIN_NAME = "fast-jev-compaction"
+export const TYPESAFE_BASE_URL = "https://router.shengsuanyun.com/api/v1/decisions"
+const DEFAULT_TEST_DELETE_THRESHOLD = 0.1
+const DEFAULT_CONTEXT_KEEP_THRESHOLD = 0.5
 
 /** Minimal view of the state manager needed to resolve the SystemOne (决策模型) settings. */
 export interface TypesafeSettingsSource {
@@ -42,7 +45,18 @@ export function resolveTypesafeConfig(source: TypesafeSettingsSource): ResolvedT
 		testDeleteThreshold: clamp01(source.getGlobalSettingsKey("typesafeTestDeleteThreshold"), DEFAULT_TEST_DELETE_THRESHOLD),
 		contextDeleteThreshold: clamp01(
 			source.getGlobalSettingsKey("typesafeContextDeleteThreshold"),
-			DEFAULT_COMPACT_OPTIONS.keepThreshold,
+			DEFAULT_CONTEXT_KEEP_THRESHOLD,
 		),
+	}
+}
+
+/** Option values handed to the fast-jev-compaction plugin, taken from the SystemOne settings. */
+export function buildJevPluginOptions(typesafe: ResolvedTypesafeConfig): Record<string, string | number> {
+	return {
+		model: typesafe.model,
+		keepThreshold: typesafe.contextDeleteThreshold,
+		testDeleteThreshold: typesafe.testDeleteThreshold,
+		...(typesafe.apiKey ? { apiKey: typesafe.apiKey } : {}),
+		baseUrl: typesafe.baseUrl ?? TYPESAFE_BASE_URL,
 	}
 }
